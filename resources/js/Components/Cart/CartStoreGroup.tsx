@@ -34,17 +34,17 @@ export default function CartStoreGroup({ store }: { store: any }) {
                             </p>
                         </div>
 
-                        <div className="flex flex-col items-end gap-4 shrink-0">
+                        <div className="flex items-center gap-4 shrink-0">
                             <button className="text-slate-400 hover:text-red-500 transition">
                                 <Trash2 className="w-5 h-5" />
                             </button>
+
                             <div className="flex items-center justify-end gap-3 bg-white border border-slate-200 rounded-full px-2 py-1 shadow-sm w-fit">
                                 <button className="text-slate-400 hover:text-gray-900 p-1"><Minus className="w-3.5 h-3.5" /></button>
                                 <span className="text-sm font-bold w-4 text-center">{item.qty}</span>
                                 <button className="text-slate-400 hover:text-gray-900 p-1"><Plus className="w-3.5 h-3.5" /></button>
                             </div>
-                        </div>
-                    </div>
+                        </div>                    </div>
                 ))}
             </div>
         </div>

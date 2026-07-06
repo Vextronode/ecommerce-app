@@ -22,6 +22,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'addresses' => $request->user()->addresses()->orderBy('is_primary', 'desc')->get(),
         ]);
     }
 
@@ -86,6 +87,54 @@ class ProfileController extends Controller
                 'profile_photo_path' => $path,
             ]);
         }
+
+        return back();
+    }
+
+    public function storeAddress(Request $request)
+    {
+        $request->validate([
+            'recipient_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'full_address' => 'required|string',
+            'label' => 'required|string|in:Rumah,Kantor',
+            'is_primary' => 'boolean',
+        ]);
+
+        if ($request->is_primary) {
+            $request->user()->addresses()->update(['is_primary' => false]);
+        }
+
+        $request->user()->addresses()->create($request->all());
+
+        return back();
+    }
+
+    public function updateAddress(Request $request, $id)
+    {
+        $address = $request->user()->addresses()->findOrFail($id);
+
+        $request->validate([
+            'recipient_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'full_address' => 'required|string',
+            'label' => 'required|string|in:Rumah,Kantor',
+            'is_primary' => 'boolean',
+        ]);
+
+        if ($request->is_primary) {
+            $request->user()->addresses()->update(['is_primary' => false]);
+        }
+
+        $address->update($request->all());
+
+        return back();
+    }
+
+    public function destroyAddress(Request $request, $id)
+    {
+        $address = $request->user()->addresses()->findOrFail($id);
+        $address->delete();
 
         return back();
     }

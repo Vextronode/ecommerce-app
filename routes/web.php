@@ -16,7 +16,6 @@ Route::get('/shop', function () {
 })->name('shop');
 
 Route::get('/product/{id}', function ($id) {
-    // nanti di sini logic nge-fetch data dari database pake $id
     return Inertia::render('Storefront/ProductDetail', [
         'productId' => $id,
     ]);
@@ -34,6 +33,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/cart', function () {
         return Inertia::render('Cart/Cart');
     })->name('cart');
+    Route::post('/profile/address', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
+    Route::put('/profile/address/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
+    Route::delete('/profile/address/{id}', [ProfileController::class, 'destroyAddress'])->name('profile.address.destroy');
 });
 
 Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('google.redirect');

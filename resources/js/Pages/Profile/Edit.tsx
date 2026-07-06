@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { PageProps } from "@/types";
 import { Head, Link, usePage } from "@inertiajs/react";
 import { ArrowLeft } from "lucide-react";
@@ -6,12 +6,23 @@ import { ArrowLeft } from "lucide-react";
 import SettingsSidebar from "@/Components/Profile/SettingsSidebar";
 import ProfileHeader from "@/Components/Profile/ProfileHeader";
 import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm";
+import AddressInformation, { Address } from "./Partials/AddressInformation";
+
+type EditProfileProps = {
+    mustVerifyEmail: boolean;
+    status?: string;
+    addresses: Address[];
+};
 
 export default function Edit({
     mustVerifyEmail,
     status,
-}: PageProps<{ mustVerifyEmail: boolean; status?: string }>) {
+    addresses,
+}: PageProps<EditProfileProps>) {
     const user = usePage().props.auth.user;
+
+    // State buat ngatur tab, defaultnya nampilin 'biodata'
+    const [activeTab, setActiveTab] = useState<string>("biodata");
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] py-12 px-4 md:px-8 font-sans">
@@ -35,20 +46,26 @@ export default function Edit({
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* sidebar component */}
-                    <SettingsSidebar />
+                    <SettingsSidebar
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                    />
 
                     <div className="flex-1 space-y-8">
-                        {/* header profgile */}
                         <ProfileHeader user={user} />
 
-                        {/* form component */}
-                        <div className="bg-white rounded-3xl shadow-sm p-6 md:p-8 border border-slate-100">
-                            <UpdateProfileInformationForm
-                                mustVerifyEmail={mustVerifyEmail}
-                                status={status}
-                            />
-                        </div>
+                        {activeTab === "biodata" && (
+                            <div className="bg-white rounded-3xl shadow-sm p-6 md:p-8 border border-slate-100">
+                                <UpdateProfileInformationForm
+                                    mustVerifyEmail={mustVerifyEmail}
+                                    status={status}
+                                />
+                            </div>
+                        )}
+
+                        {activeTab === "alamat" && (
+                            <AddressInformation addresses={addresses} />
+                        )}
                     </div>
                 </div>
             </div>
