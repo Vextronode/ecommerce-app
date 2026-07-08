@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\Merchant\MerchantSetupController;
 
 Route::redirect('/', '/login');
 
@@ -41,5 +42,31 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->name('google.callback');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/pedagang/login', function () {
+        return Inertia::render('Merchant/Login');
+    })->name('merchant.login.view');
+});
+
+// route dashboard pedagag (auth)
+Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckMerchantSetup::class])
+    ->prefix('pedagang')
+    ->group(function () {
+
+        Route::get('/setup-password', function () {
+            return Inertia::render('Merchant/SetupPasswordPopup');
+        })->name('merchant.password.setup');
+
+        Route::get('/setup-store', function () {
+            return Inertia::render('Merchant/SetupStore');
+        })->name('merchant.store.setup');
+
+        Route::post('/setup-store', [MerchantSetupController::class, 'store'])->name('merchant.store.store');
+
+        Route::get('/dashboard', function () {
+            return Inertia::render('Merchant/Dashboard');
+        })->name('merchant.dashboard');
+    });
 
 require __DIR__ . '/auth.php';

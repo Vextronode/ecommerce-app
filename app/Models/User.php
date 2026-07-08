@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'profile_photo_path', 'phone', 'gender', 'dob','notification_settings'])]
+#[Fillable(['name', 'email', 'password','role','is_password_changed','google_id', 'profile_photo_path', 'phone', 'gender', 'dob','notification_settings'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -29,7 +29,23 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'notification_settings' => 'array',
+            'is_password_changed' => 'boolean',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isPedagang(): bool
+    {
+        return $this->role === 'pedagang';
+    }
+
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
     }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<Address, User>
