@@ -18,7 +18,7 @@ export default function AddressFields({
                     value={data.recipient_name}
                     onChange={(e) => setData("recipient_name", e.target.value)}
                     required
-                    placeholder="Khairil"
+                    placeholder="Nama"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#245D56] text-sm"
                 />
             </div>
