@@ -4,7 +4,6 @@ import { useForm } from "@inertiajs/react";
 import AddressFields from "./AddressFields";
 import AddressSuggestionInput from "./AddressSuggestionInput";
 import AddressMapSection from "./AddressMapSection";
-
 import { useAddressSearch } from "@/Hooks/useAddressSearch";
 import { useAddressMap } from "@/Hooks/useAddressMap";
 
@@ -30,7 +29,7 @@ export default function AddressModal({
         full_address: "",
     });
 
-    const search = useAddressSearch(setData);
+    const search = useAddressSearch(setData, data.provinsi);
 
     const handleCoordsChange = async (lat: number, lng: number) => {
         try {

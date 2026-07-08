@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { router } from "@inertiajs/react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import AddressModal from "./AddressModal";
 
 export interface Address {
@@ -18,13 +18,26 @@ export default function AddressInformation({
     addresses: Address[];
 }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
-    const handleDelete = (id: number) => {
-        if (confirm("Yakin mau hapus alamat ini bang?")) {
-            router.delete(route("profile.address.destroy", id), {
+    // state buat modal delete
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [addressToDelete, setAddressToDelete] = useState<number | null>(null);
+
+    // fungsi buat open modal ketika button delete/hapus di klik
+    const confirmDelete = (id: number) => {
+        setAddressToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const executeDelete = () => {
+        if (addressToDelete !== null) {
+            router.delete(route("profile.address.destroy", addressToDelete), {
                 preserveScroll: true,
+                onSuccess: () => {
+                    setIsDeleteModalOpen(false);
+                    setAddressToDelete(null);
+                },
             });
         }
     };
@@ -99,7 +112,7 @@ export default function AddressInformation({
                                 </button>
 
                                 <button
-                                    onClick={() => handleDelete(address.id)}
+                                    onClick={() => confirmDelete(address.id)}
                                     className="text-sm font-bold text-red-500 hover:text-red-700 transition"
                                 >
                                     Hapus
@@ -110,11 +123,49 @@ export default function AddressInformation({
                 )}
             </div>
 
+            {/* modal form buat update */}
             <AddressModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
-                addressToEdit={editingAddress} // Lempar data edit ke Modal
+                addressToEdit={editingAddress}
             />
+
+            {/* popup modal buat hapus alamat */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-xl text-center transform transition-all scale-100">
+                        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
+                            <Trash2 className="w-8 h-8" />
+                        </div>
+
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Hapus Alamat?
+                        </h3>
+                        <p className="text-sm text-slate-500 mb-6 px-2">
+                            Alamat ini akan dihapus sevara permanen, apakah kamu
+                            yakin ingin menghapusnya?
+                        </p>
+
+                        <div className="flex gap-3 justify-center">
+                            <button
+                                onClick={() => {
+                                    setIsDeleteModalOpen(false);
+                                    setAddressToDelete(null);
+                                }}
+                                className="px-5 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition flex-1"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={executeDelete}
+                                className="px-5 py-3 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 transition flex-1 shadow-lg shadow-red-500/20"
+                            >
+                                Ya, Hapus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
