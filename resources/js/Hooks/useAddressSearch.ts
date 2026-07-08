@@ -7,7 +7,6 @@ interface SuggestionItem {
     address: any;
 }
 
-// FIX 1: Tambahin parameter currentProvinsi (kasih default string kosong biar aman)
 export function useAddressSearch(setData: any, currentProvinsi: string = "") {
     const [provSuggestions, setProvSuggestions] = useState<SuggestionItem[]>(
         [],
@@ -51,7 +50,6 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
         };
     };
 
-    // DEBOUNCE PROVINSI
     useEffect(() => {
         if (!provQuery || provQuery.length < 3) {
             setProvSuggestions([]);
@@ -73,7 +71,6 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
         return () => clearTimeout(timer);
     }, [provQuery, baseUrl]);
 
-    // DEBOUNCE JALAN (FILTER ALA SHOPEE)
     useEffect(() => {
         if (!jalanQuery || jalanQuery.length < 3) {
             setJalanSuggestions([]);
@@ -82,7 +79,6 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
         setSearchLoading(true);
         const timer = setTimeout(async () => {
             try {
-                // MAGIC: Gabungin jalan yg diketik sama provinsi yg udah dipilih
                 const fullQuery = currentProvinsi
                     ? `${jalanQuery}, ${currentProvinsi}`
                     : jalanQuery;
@@ -92,11 +88,9 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
                 );
                 const results = await response.json();
 
-                // Kalau ketemu hasil spesifik di kota itu, tampilin
                 if (results && results.length > 0) {
                     setJalanSuggestions(results);
                 } else {
-                    // Fallback: Kalau terlalu spesifik dan ga ketemu, cari polos aja
                     const fallbackRes = await fetch(
                         `${baseUrl}/search?format=json&q=${encodeURIComponent(jalanQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
                     );
