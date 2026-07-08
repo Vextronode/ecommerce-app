@@ -83,7 +83,7 @@ export default function AddressSuggestionInput({
 
             {activeDropdown === dropdownType && suggestions.length > 0 && (
                 <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-slate-100 max-h-48 overflow-y-auto z-1000 divide-y divide-slate-50">
-                    {suggestions.map((item, idx) => (
+                    {(suggestions || []).map((item, idx) => (
                         <button
                             key={idx}
                             type="button"
