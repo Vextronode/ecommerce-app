@@ -23,6 +23,7 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
             'addresses' => $request->user()->addresses()->orderBy('is_primary', 'desc')->get(),
+            'notificationSettings' => $request->user()->notification_settings ?? [],
         ]);
     }
 
@@ -135,6 +136,15 @@ class ProfileController extends Controller
     {
         $address = $request->user()->addresses()->findOrFail($id);
         $address->delete();
+
+        return back();
+    }
+
+    public function updateNotifications(Request $request)
+    {
+        $request->user()->update([
+            'notification_settings' => $request->all(),
+        ]);
 
         return back();
     }
