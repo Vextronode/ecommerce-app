@@ -1,75 +1,67 @@
 import React from "react";
 
-export default function OrderStatus() {
+interface Props {
+    statusData: {
+        pending: number;
+        processing: number;
+        shipped: number;
+        completed: number;
+    };
+}
+
+export default function OrderStatus({ statusData }: Props) {
+    const statuses = [
+        { label: "Pending", count: statusData.pending, color: "bg-gray-400" },
+        {
+            label: "Processing",
+            count: statusData.processing,
+            color: "bg-[#41B9C5]",
+        },
+        { label: "Shipped", count: statusData.shipped, color: "bg-blue-400" },
+        {
+            label: "Completed",
+            count: statusData.completed,
+            color: "bg-[#004F54]",
+        },
+    ];
+
+    const total = statuses.reduce((acc, curr) => acc + curr.count, 0) || 1;
+
     return (
-        <div className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm flex flex-col h-full">
-            <h3 className="text-lg font-bold text-gray-800 mb-5">
+        <div className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm h-full flex flex-col">
+            <h3 className="text-lg font-bold text-gray-800 mb-6">
                 Order Status
             </h3>
 
             <div className="space-y-4 flex-1">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
-                        <span className="text-sm text-gray-600 font-medium">
-                            Pending
+                {statuses.map((item, index) => (
+                    <div
+                        key={index}
+                        className="flex justify-between items-center"
+                    >
+                        <div className="flex items-center gap-3">
+                            <span
+                                className={`w-2 h-2 rounded-full ${item.color}`}
+                            ></span>
+                            <span className="text-sm text-gray-600 font-medium">
+                                {item.label}
+                            </span>
+                        </div>
+                        <span className="text-sm font-bold text-[#004F54]">
+                            {item.count}
                         </span>
                     </div>
-                    <span className="text-sm font-bold text-[#004F54]">45</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#41B9C5]"></div>
-                        <span className="text-sm text-gray-600 font-medium">
-                            Processing
-                        </span>
-                    </div>
-                    <span className="text-sm font-bold text-[#004F54]">
-                        120
-                    </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div>
-                        <span className="text-sm text-gray-600 font-medium">
-                            Shipped
-                        </span>
-                    </div>
-                    <span className="text-sm font-bold text-[#004F54]">32</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#004F54]"></div>
-                        <span className="text-sm text-gray-600 font-medium">
-                            Completed
-                        </span>
-                    </div>
-                    <span className="text-sm font-bold text-[#004F54]">
-                        1,248
-                    </span>
-                </div>
+                ))}
             </div>
 
-            <div className="w-full h-2 flex rounded-full overflow-hidden mt-6 bg-gray-100">
-                <div
-                    className="bg-gray-400 h-full"
-                    style={{ width: "5%" }}
-                ></div>
-                <div
-                    className="bg-[#41B9C5] h-full"
-                    style={{ width: "15%" }}
-                ></div>
-                <div
-                    className="bg-blue-400 h-full"
-                    style={{ width: "10%" }}
-                ></div>
-                <div
-                    className="bg-[#004F54] h-full"
-                    style={{ width: "70%" }}
-                ></div>
+            <div className="mt-6 flex h-2 w-full rounded-full overflow-hidden bg-gray-100">
+                {statuses.map((item, index) => (
+                    <div
+                        key={index}
+                        className={`h-full ${item.color}`}
+                        style={{ width: `${(item.count / total) * 100}%` }}
+                    ></div>
+                ))}
             </div>
         </div>
     );

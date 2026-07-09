@@ -1,46 +1,75 @@
 import React from "react";
 import { Head } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
-import StatCards from "@/Components/Merchant/Dashboard/StatsCards";
+import StatCards from "@/Components/Merchant/Dashboard/StatCards";
 import OrderStatus from "@/Components/Merchant/Dashboard/OrderStatus";
 import TopSelling from "@/Components/Merchant/Dashboard/TopSelling";
 import SalesChart from "@/Components/Merchant/Dashboard/SalesChart";
 import RecentOrders from "@/Components/Merchant/Dashboard/RecentOrders";
 
-export default function Dashboard() {
+interface DashboardProps {
+    merchantInfo: { name: string; store_name: string };
+    stats: {
+        sales: number;
+        orders: number;
+        customers: number;
+        products: number;
+    };
+    chartData: any[];
+    recentOrders: any[];
+    topSelling: any[];
+    orderStatus: {
+        pending: number;
+        processing: number;
+        shipped: number;
+        completed: number;
+    };
+}
+
+export default function Dashboard({
+    merchantInfo,
+    stats,
+    chartData,
+    recentOrders,
+    topSelling,
+    orderStatus,
+}: DashboardProps) {
     return (
         <MerchantLayout>
-            <Head title="Dashboard Pedagang" />
+            <Head title={`Dashboard - ${merchantInfo.store_name}`} />
 
-            {/* Header Section */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
-                    Selamat pagi, Penjual{" "}
+            {/* Header */}
+            <div className="mb-6 md:mb-8">
+                <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                    Selamat pagi, {merchantInfo.name}
                 </h1>
-                <p className="text-gray-500 mt-1 text-sm font-medium">
-                    Produk apa yang akan kamu jual hari ini?
+                <p className="text-gray-500 mt-1 text-xs md:text-sm font-medium">
+                    Toko{" "}
+                    <span className="font-bold text-[#41B9C5]">
+                        {merchantInfo.store_name}
+                    </span>{" "}
+                    siap beroperasi hari ini!
                 </p>
             </div>
 
-            <StatCards />
+            <StatCards statsData={stats} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                {/* chart */}
+            {/* Grid layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
                 <div className="lg:col-span-2">
-                    <SalesChart />
+                    <SalesChart chartData={chartData} />
                 </div>
-
-                <div className="space-y-6 flex flex-col">
+                <div className="space-y-4 md:space-y-6 flex flex-col">
                     <div className="flex-1 min-h-55">
-                        <OrderStatus />
+                        <OrderStatus statusData={orderStatus} />
                     </div>
                     <div className="flex-1 min-h-70">
-                        <TopSelling />
+                        <TopSelling products={topSelling} />
                     </div>
                 </div>
             </div>
-            {/*recent orders*/}
-            <RecentOrders />
+
+            <RecentOrders orders={recentOrders} />
         </MerchantLayout>
     );
 }

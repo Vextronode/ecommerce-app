@@ -7,36 +7,50 @@ import {
     TrendingUp,
 } from "lucide-react";
 
-export default function StatCards() {
+interface Props {
+    statsData: {
+        sales: number;
+        orders: number;
+        customers: number;
+        products: number;
+    };
+}
+
+export default function StatCards({ statsData }: Props) {
     const stats = [
         {
             title: "Total Penjualan",
-            value: "Rp 125M",
-            trend: "+12%",
+            // format uang (Rp)
+            value: new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+                maximumFractionDigits: 0,
+            }).format(statsData.sales),
+            trend: "+0%",
             icon: <Banknote className="w-6 h-6 text-[#41B9C5]" />,
         },
         {
             title: "Total Pesanan",
-            value: "245",
-            trend: "+18%",
+            value: statsData.orders.toString(),
+            trend: "+0%",
             icon: <ShoppingBag className="w-6 h-6 text-[#41B9C5]" />,
         },
         {
             title: "Total Konsumen",
-            value: "1.5k",
-            trend: "+8%",
+            value: statsData.customers.toString(),
+            trend: "+0%",
             icon: <Users className="w-6 h-6 text-[#41B9C5]" />,
         },
         {
             title: "Total Produk",
-            value: "890",
-            trend: "+5%",
+            value: statsData.products.toString(),
+            trend: "+0%",
             icon: <Package className="w-6 h-6 text-[#41B9C5]" />,
         },
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-4 md:mb-6">
             {stats.map((stat, index) => (
                 <div
                     key={index}
@@ -51,7 +65,6 @@ export default function StatCards() {
                             {stat.trend}
                         </span>
                     </div>
-
                     <div>
                         <p className="text-gray-500 text-sm font-medium mb-1">
                             {stat.title}

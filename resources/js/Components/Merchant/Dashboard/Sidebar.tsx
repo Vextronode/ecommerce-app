@@ -32,15 +32,23 @@ export default function Sidebar() {
             {/* nav Menu */}
             <nav className="flex-1 px-5 py-2 space-y-2 overflow-y-auto">
                 <Link
-                    href="#"
-                    className="flex items-center gap-4 px-4 py-3.5 bg-[#41B9C5] text-white rounded-xl font-semibold transition-all shadow-lg shadow-[#41B9C5]/30 text-sm whitespace-nowrap"
+                    href={route("merchant.dashboard")}
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-semibold transition-all text-sm whitespace-nowrap ${
+                        route().current("merchant.dashboard")
+                            ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
+                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                    }`}
                 >
                     <LayoutDashboard className="w-5 h-5 shrink-0" />
                     Dashboard
                 </Link>
                 <Link
-                    href="#"
-                    className="flex items-center gap-4 px-4 py-3.5 text-gray-500 hover:bg-gray-50 hover:text-gray-800 rounded-xl font-medium transition-all text-sm whitespace-nowrap"
+                    href={route("merchant.products.index")}
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                        route().current("merchant.products.*")
+                            ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30"
+                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                    }`}
                 >
                     <Package className="w-5 h-5 shrink-0" />
                     Product Management
@@ -78,8 +86,10 @@ export default function Sidebar() {
                     Settings
                 </Link>
                 <Link
-                    href="#"
-                    className="flex items-center gap-4 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-all text-sm whitespace-nowrap"
+                    href={route("logout")}
+                    method="post"
+                    as="button"
+                    className="flex items-center w-full gap-4 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-all text-sm whitespace-nowrap"
                 >
                     <LogOut className="w-5 h-5 shrink-0" />
                     Logout

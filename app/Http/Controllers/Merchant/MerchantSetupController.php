@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class MerchantSetupController extends Controller
@@ -13,7 +14,7 @@ class MerchantSetupController extends Controller
     {
         // validasi input dari react
         $request->validate([
-            'store_name' => ['required', 'string', 'max:255'],
+            'store_name' => ['required', 'string', 'max:255', 'unique:stores,name'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -25,10 +26,12 @@ class MerchantSetupController extends Controller
             'is_password_changed' => true,
         ])->save();
 
-        // save nama store nanti kalo udah ada table dan relasi
-        // $user->store()->create([
-        //     'name' => $request->store_name,
-        // ]);
+        // save nama store karena table dan relasi udah siap!
+        $user->store()->create([
+            'name' => $request->store_name,
+            // Generate slug dari nama toko + random string biar pasti unik
+            'slug' => Str::slug($request->store_name . '-' . uniqid()),
+        ]);
 
         return redirect()->route('merchant.dashboard');
     }

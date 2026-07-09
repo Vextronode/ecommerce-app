@@ -11,20 +11,18 @@ class CheckMerchantSetup
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-
-        $allowedRoutes = [
-            'merchant.password.setup',
-            'merchant.store.setup',
-            'merchant.store.store',
-        ];
-
         $currentRoute = $request->route() ? $request->route()->getName() : '';
 
-        if (!$user->is_password_changed && !in_array($currentRoute, $allowedRoutes)) {
-            return redirect()->route('merchant.password.setup');
+        $setupRoutes = ['merchant.store.setup', 'merchant.store.store'];
+
+        if (!$user->store || !$user->is_password_changed) {
+            if (!in_array($currentRoute, $setupRoutes)) {
+                return redirect()->route('merchant.store.setup');
+            }
+            return $next($request);
         }
 
-        if ($user->is_password_changed && in_array($currentRoute, $allowedRoutes)) {
+        if (in_array($currentRoute, $setupRoutes)) {
             return redirect()->route('merchant.dashboard');
         }
 
