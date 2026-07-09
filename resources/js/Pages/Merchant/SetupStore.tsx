@@ -1,10 +1,9 @@
 import React from "react";
 import { Head, useForm } from "@inertiajs/react";
-
 import AuthGlassLayout from "@/Layouts/AuthGlassLayout";
 
 export default function SetupStore() {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         store_name: "",
         password: "",
         password_confirmation: "",
@@ -12,8 +11,9 @@ export default function SetupStore() {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        post(route("merchant.store.store"));
+        post(route("merchant.store.store"), {
+            onError: () => reset("password", "password_confirmation"),
+        });
     };
 
     return (
@@ -21,8 +21,8 @@ export default function SetupStore() {
             <Head title="Setup Toko & Password" />
 
             <AuthGlassLayout
-                title="Login ke Akun"
-                subtitle="Untuk mendaftar sebagai Pedagang"
+                title="Lengkapi Profil"
+                subtitle="Atur password baru dan nama toko Anda"
             >
                 <form onSubmit={submit} className="space-y-7 w-full">
                     {/* Input Store Name */}
@@ -40,7 +40,7 @@ export default function SetupStore() {
                             required
                         />
                         {errors.store_name && (
-                            <div className="text-red-400 text-xs mt-1.5">
+                            <div className="text-red-400 text-xs mt-1.5 font-medium">
                                 {errors.store_name}
                             </div>
                         )}
@@ -61,7 +61,7 @@ export default function SetupStore() {
                             required
                         />
                         {errors.password && (
-                            <div className="text-red-400 text-xs mt-1.5">
+                            <div className="text-red-400 text-xs mt-1.5 font-medium">
                                 {errors.password}
                             </div>
                         )}
@@ -83,7 +83,7 @@ export default function SetupStore() {
                             required
                         />
                         {errors.password_confirmation && (
-                            <div className="text-red-400 text-xs mt-1.5">
+                            <div className="text-red-400 text-xs mt-1.5 font-medium">
                                 {errors.password_confirmation}
                             </div>
                         )}
@@ -93,9 +93,9 @@ export default function SetupStore() {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full max-w-50 px-4 py-3 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white font-bold transition-all hover:scale-105 disabled:opacity-70 shadow-lg shadow-[#004F54]/50"
+                            className="w-full max-w-50 px-4 py-3 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white font-bold transition-all hover:scale-105 disabled:opacity-70 disabled:hover:scale-100 shadow-lg shadow-[#004F54]/50"
                         >
-                            Masuk
+                            {processing ? "Menyimpan..." : "Simpan & Lanjut"}
                         </button>
                     </div>
                 </form>
