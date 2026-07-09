@@ -8,13 +8,11 @@ use App\Http\Controllers\Merchant\MerchantSetupController;
 
 Route::redirect('/', '/login');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard/Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
-Route::get('/shop', function () {
-    return Inertia::render('Storefront/Shop');
-})->name('shop');
+Route::get('/shop', [\App\Http\Controllers\ShopController::class, 'index'])->name('shop');
 
 Route::get('/product/{id}', function ($id) {
     return Inertia::render('Storefront/ProductDetail', [
