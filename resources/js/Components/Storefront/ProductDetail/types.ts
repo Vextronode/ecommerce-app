@@ -10,11 +10,6 @@ export interface PreparationOption {
     description: string;
 }
 
-export interface NutritionItem {
-    label: string;
-    value?: string;
-}
-
 export interface GuaranteeItem {
     title: string;
     description: string;
@@ -25,13 +20,12 @@ export interface GuaranteeItem {
 export interface ProductDetailData {
     id: number | string;
     name: string;
-    price: number;
+    price: number | string;
     unit: string;
     location: string;
     availableStock: number;
     description: string;
     images: ProductDetailImage[];
     preparationOptions: PreparationOption[];
-    nutrition: NutritionItem[];
     guarantees: GuaranteeItem[];
 }

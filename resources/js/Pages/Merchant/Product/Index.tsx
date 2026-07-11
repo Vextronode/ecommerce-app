@@ -1,30 +1,81 @@
-import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useState } from "react";
+import { Head, Link, router } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
 import {
     Plus,
     Download,
     Grid,
     List,
-    ChevronDown,
     ChevronLeft,
     ChevronRight,
-    MoreHorizontal,
-    Image as ImageIcon,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import ProductTable from "@/Components/Merchant/Product/ProductTable";
+import ProductGrid from "@/Components/Merchant/Product/ProductGrid";
+import Pagination from "@/Components/Merchant/Pagination";
 
-import ProductActions from "@/Components/Merchant/Product/ProductActions";
+const STOCK_RULES = [
+    {
+        max: 0,
+        ui: {
+            dotColor: "bg-gray-400",
+            badgeBg: "bg-gray-100",
+            badgeText: "text-gray-500",
+            label: "Habis",
+        },
+    },
+    {
+        max: 5,
+        ui: {
+            dotColor: "bg-red-500",
+            badgeBg: "bg-red-100",
+            badgeText: "text-red-600",
+            label: "Kritis",
+        },
+    },
+    {
+        max: 10,
+        ui: {
+            dotColor: "bg-yellow-400",
+            badgeBg: "bg-yellow-100",
+            badgeText: "text-yellow-700",
+            label: "Menipis",
+        },
+    },
+];
+const DEFAULT_STOCK_UI = {
+    dotColor: "bg-[#41B9C5]",
+    badgeBg: "bg-[#41B9C5]/10",
+    badgeText: "text-[#41B9C5]",
+    label: "Active",
+};
+
+export const getStockIndicator = (stock: number) => {
+    const activeRule = STOCK_RULES.find((rule) => stock <= rule.max);
+    return activeRule ? activeRule.ui : DEFAULT_STOCK_UI;
+};
 
 interface Props {
     products: any;
+    categories: any[];
+    filters: { category?: string; status?: string };
 }
 
-export default function Index({ products }: Props) {
+export default function Index({ products, categories, filters }: Props) {
+    const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+
+    const handleFilterChange = (key: string, value: string) => {
+        router.get(
+            route("merchant.products.index"),
+            { ...filters, [key]: value },
+            { preserveState: true, replace: true },
+        );
+    };
+
     return (
         <MerchantLayout>
             <Head title="Products Management" />
 
-            {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
                 <div>
                     <h1 className="text-xl md:text-2xl font-extrabold text-[#41B9C5]">
@@ -38,186 +89,84 @@ export default function Index({ products }: Props) {
                     href={route("merchant.products.create")}
                     className="flex items-center gap-2 bg-[#41B9C5] hover:bg-[#359a9e] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-[#41B9C5]/30 text-xs md:text-sm w-full sm:w-auto justify-center"
                 >
-                    <Plus className="w-4 h-4 md:w-5 md:h-5" />
-                    Add Product
+                    <Plus className="w-4 h-4 md:w-5 md:h-5" /> Add Product
                 </Link>
             </div>
 
-            {/* Toolbar / Filters */}
             <div className="bg-white rounded-2xl border border-[#41B9C5]/30 p-3 md:p-4 mb-4 md:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
                 <div className="flex flex-wrap gap-2 md:gap-4 w-full sm:w-auto">
-                    <button className="flex-1 sm:flex-none flex justify-between items-center gap-4 px-3 py-2 border border-gray-200 rounded-xl text-xs md:text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        All Categories
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </button>
-                    <button className="flex-1 sm:flex-none flex justify-between items-center gap-4 px-3 py-2 border border-gray-200 rounded-xl text-xs md:text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        All Status
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </button>
+                    <select
+                        value={filters?.category || ""}
+                        onChange={(e) =>
+                            handleFilterChange("category", e.target.value)
+                        }
+                        className="flex-1 sm:flex-none px-3 py-2 border border-gray-200 rounded-xl text-xs md:text-sm font-medium text-gray-500 hover:bg-gray-50 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none cursor-pointer appearance-none bg-white pr-8 bg-no-repeat bg-position-[right_0.75rem_center] bg-size-[16px_12px]"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                        }}
+                    >
+                        <option value="">All Categories</option>
+                        {categories?.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={filters?.status || ""}
+                        onChange={(e) =>
+                            handleFilterChange("status", e.target.value)
+                        }
+                        className="flex-1 sm:flex-none px-3 py-2 border border-gray-200 rounded-xl text-xs md:text-sm font-medium text-gray-500 hover:bg-gray-50 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none cursor-pointer appearance-none bg-white pr-8 bg-no-repeat bg-position-[right_0.75rem_center] bg-size-[16px_12px]"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                        }}
+                    >
+                        <option value="">Semua Stok</option>
+                        <option value="active">Active (Stok Aman)</option>
+                        <option value="menipis">Menipis (6 - 10)</option>
+                        <option value="kritis">Kritis (1 - 5)</option>
+                        <option value="habis">Habis (0)</option>
+                    </select>
                 </div>
+
                 <div className="flex gap-2 self-end sm:self-auto w-full sm:w-auto justify-end">
-                    <button className="p-2 md:p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button
+                        onClick={() =>
+                            toast.success("Fitur Export segera hadir!")
+                        }
+                        className="p-2 md:p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
                         <Download className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
-                    <button className="p-2 md:p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button
+                        onClick={() => setViewMode("grid")}
+                        className={`p-2 md:p-2.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#E0F7FA] text-[#41B9C5]" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"}`}
+                    >
                         <Grid className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
-                    <button className="p-2 md:p-2.5 bg-[#E0F7FA] text-[#41B9C5] rounded-lg transition-colors">
+                    <button
+                        onClick={() => setViewMode("list")}
+                        className={`p-2 md:p-2.5 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#E0F7FA] text-[#41B9C5]" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"}`}
+                    >
                         <List className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                 </div>
             </div>
 
-            {/* Table Section */}
-            <div className="bg-white rounded-3xl border border-[#41B9C5]/30 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-200">
-                        <thead>
-                            <tr className="bg-gray-50/50 border-b border-gray-100">
-                                <th className="py-3 px-4 md:py-4 md:px-6 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider w-16 md:w-20">
-                                    IMAGE
-                                </th>
-                                <th className="py-3 px-4 md:py-4 md:px-6 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                    PRODUCT NAME
-                                </th>
-                                <th className="py-3 px-4 md:py-4 md:px-6 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                    CATEGORY
-                                </th>
-                                <th className="py-3 px-4 md:py-4 md:px-6 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                    PRICE
-                                </th>
-                                <th className="py-3 px-4 md:py-4 md:px-6 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                    STOCK
-                                </th>
-                                <th className="py-3 px-4 md:py-4 md:px-6 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                    STATUS
-                                </th>
-                                <th className="py-3 px-4 md:py-4 md:px-6 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                                    ACTIONS
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {products.data.length > 0 ? (
-                                products.data.map((product: any) => (
-                                    <tr
-                                        key={product.id}
-                                        className="hover:bg-gray-50/30 transition-colors"
-                                    >
-                                        <td className="py-3 px-4 md:py-4 md:px-6">
-                                            {product.image_path ? (
-                                                <img
-                                                    src={product.image_path}
-                                                    alt={product.name}
-                                                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover border border-gray-200"
-                                                />
-                                            ) : (
-                                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
-                                                    <ImageIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="py-3 px-4 md:py-4 md:px-6">
-                                            <span className="text-xs md:text-sm font-bold text-[#41B9C5] cursor-pointer hover:underline">
-                                                {product.name}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 px-4 md:py-4 md:px-6">
-                                            <span className="bg-gray-100 text-gray-600 text-[10px] md:text-xs font-semibold px-2 md:px-3 py-1 rounded-full">
-                                                {product.category?.name ||
-                                                    "Uncategorized"}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 px-4 md:py-4 md:px-6">
-                                            <span className="text-xs md:text-sm font-semibold text-[#41B9C5]">
-                                                {new Intl.NumberFormat(
-                                                    "id-ID",
-                                                    {
-                                                        style: "currency",
-                                                        currency: "IDR",
-                                                        maximumFractionDigits: 0,
-                                                    },
-                                                ).format(product.price)}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 px-4 md:py-4 md:px-6">
-                                            <div className="flex items-center gap-2">
-                                                <span
-                                                    className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${product.stock > 0 ? "bg-[#41B9C5]" : "bg-red-500"}`}
-                                                ></span>
-                                                <span
-                                                    className={`text-xs md:text-sm font-bold ${product.stock > 0 ? "text-[#41B9C5]" : "text-gray-400"}`}
-                                                >
-                                                    {product.stock}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-4 md:py-4 md:px-6">
-                                            {product.is_active ? (
-                                                <span className="bg-[#41B9C5] text-white text-[10px] md:text-[11px] font-bold px-2 md:px-3 py-1 rounded-full">
-                                                    Active
-                                                </span>
-                                            ) : (
-                                                <span className="bg-gray-200 text-gray-600 text-[10px] md:text-[11px] font-bold px-2 md:px-3 py-1 rounded-full">
-                                                    Draft
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="py-3 px-4 md:py-4 md:px-6 text-right">
-                                            <ProductActions product={product} />
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td
-                                        colSpan={7}
-                                        className="py-12 text-center text-gray-500 text-xs md:text-sm"
-                                    >
-                                        Belum ada produk di toko Anda.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination Footer*/}
-                <div className="px-4 md:px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/30">
-                    <span className="text-[10px] md:text-xs font-medium text-gray-500">
-                        Showing{" "}
-                        <span className="text-[#41B9C5] font-bold">
-                            {products.from || 0}
-                        </span>{" "}
-                        to{" "}
-                        <span className="text-[#41B9C5] font-bold">
-                            {products.to || 0}
-                        </span>{" "}
-                        of{" "}
-                        <span className="text-[#41B9C5] font-bold">
-                            {products.total}
-                        </span>{" "}
-                        results
-                    </span>
-                    <div className="flex items-center gap-1">
-                        <button
-                            className="p-1 text-gray-400 hover:text-[#41B9C5] disabled:opacity-50"
-                            disabled={!products.prev_page_url}
-                        >
-                            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-                        </button>
-                        <button className="w-6 h-6 md:w-7 md:h-7 rounded-md bg-white border border-[#41B9C5] text-[#41B9C5] text-[10px] md:text-xs font-bold flex items-center justify-center">
-                            1
-                        </button>
-                        <button
-                            className="p-1 text-gray-400 hover:text-[#41B9C5] disabled:opacity-50"
-                            disabled={!products.next_page_url}
-                        >
-                            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-                        </button>
-                    </div>
-                </div>
-            </div>
+            {viewMode === "list" ? (
+                <ProductTable
+                    products={products.data}
+                    getStockIndicator={getStockIndicator}
+                />
+            ) : (
+                <ProductGrid
+                    products={products.data}
+                    getStockIndicator={getStockIndicator}
+                />
+            )}
+            <Pagination data={products} />
         </MerchantLayout>
     );
 }

@@ -1,41 +1,25 @@
-import { NutritionItem } from "./types";
+import React from "react";
 
-type ProductDetailsCardProps = {
+interface Props {
     description: string;
-    nutrition: NutritionItem[];
-};
+}
 
-export default function ProductDetailsCard({
-    description,
-    nutrition,
-}: ProductDetailsCardProps) {
+export default function ProductDetailsCard({ description }: Props) {
     return (
-        <div className="rounded-[1.75rem] border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="space-y-6">
-                <div>
-                    <h3 className="mb-3 text-lg font-bold text-slate-950">
-                        Product Details
-                    </h3>
-                    <p className="text-sm leading-7 text-slate-500">{description}</p>
-                </div>
-
-                <div>
-                    <h4 className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-700">
-                        Nutritional Information (per 100g)
-                    </h4>
-                    <ul className="space-y-2 text-sm text-slate-600">
-                        {nutrition.map((item) => (
-                            <li key={item.label} className="flex items-center justify-between gap-4">
-                                <span>{item.label}</span>
-                                {item.value ? (
-                                    <span className="font-bold text-slate-950">
-                                        {item.value}
-                                    </span>
-                                ) : null}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 flex flex-col h-full">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Product Details
+            </h3>
+            <div className="prose prose-sm md:prose-base text-slate-500 max-w-none">
+                {description ? (
+                    <p className="leading-relaxed whitespace-pre-wrap">
+                        {description}
+                    </p>
+                ) : (
+                    <p className="italic">
+                        Penjual belum menambahkan deskripsi untuk produk ini.
+                    </p>
+                )}
             </div>
         </div>
     );

@@ -1,63 +1,133 @@
-import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
-import StorefrontLayout from '@/Layouts/StorefrontLayout';
+import React, { useState, useEffect } from "react";
+import { Head, Link } from "@inertiajs/react";
+import StorefrontLayout from "@/Layouts/StorefrontLayout";
 
-import CartStoreGroup from '@/Components/Cart/CartStoreGroup';
-import CartSummary from '@/Components/Cart/CartSummary';
-import ProductRecommendations from '@/Components/Cart/ProductRecommendations';
+import CartStoreGroup from "@/Components/Cart/CartStoreGroup";
+import CartSummary from "@/Components/Cart/CartSummary";
+import ProductRecommendations from "@/Components/Cart/ProductRecommendations";
 
-export default function Cart() {
-    const [cartData] = useState([
-        {
-            id: 1,
-            storeName: "Toko Ikan Pak Agus",
-            items: [
-                { id: 101, name: "Ikan Kakap Merah", weight: "500g", price: 185000, qty: 2, stock: null, img: "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=200" },
-                { id: 102, name: "Udang Jumbo", weight: "500g", price: 185000, qty: 2, stock: 3, img: "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=200" }
-            ]
-        },
-        {
-            id: 2,
-            storeName: "Warung Ikan Mantap",
-            items: [
-                { id: 103, name: "Ikan Kakap Merah", weight: "500g", price: 185000, qty: 2, stock: null, img: "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=200" },
-                { id: 104, name: "Udang Jumbo", weight: "500g", price: 185000, qty: 2, stock: 3, img: "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=200" }
-            ]
+interface CartProps {
+    cartData: any[];
+    recommendations: any[];
+}
+
+export default function Cart({ cartData, recommendations }: CartProps) {
+    const allItemIds = cartData.flatMap((store) =>
+        store.items.map((i: any) => i.id),
+    );
+    const [selectedIds, setSelectedIds] = useState<number[]>(allItemIds);
+
+    useEffect(() => {
+        setSelectedIds((prev) => prev.filter((id) => allItemIds.includes(id)));
+    }, [cartData]);
+
+    const toggleItem = (id: number) => {
+        setSelectedIds((prev) =>
+            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+        );
+    };
+
+    const toggleStore = (storeId: number, itemIds: number[]) => {
+        const isAllSelected = itemIds.every((id) => selectedIds.includes(id));
+        if (isAllSelected) {
+            setSelectedIds((prev) =>
+                prev.filter((id) => !itemIds.includes(id)),
+            );
+        } else {
+            const newSelections = itemIds.filter(
+                (id) => !selectedIds.includes(id),
+            );
+            setSelectedIds((prev) => [...prev, ...newSelections]);
         }
-    ]);
+    };
+
+    const toggleAll = () => {
+        if (selectedIds.length === allItemIds.length) {
+            setSelectedIds([]); // Uncheck all
+        } else {
+            setSelectedIds(allItemIds);
+        }
+    };
+
+    const selectedItemsData = cartData
+        .flatMap((store) => store.items)
+        .filter((item: any) => selectedIds.includes(item.id));
+    const subtotal = selectedItemsData.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0,
+    );
 
     return (
         <StorefrontLayout>
-            <Head title="Keranjang - ParigiMart" />
+            <Head title="Keranjang - Cibenda Mart" />
 
             <div className="max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-24">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Keranjang</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                    Keranjang
+                </h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* left section */}
                     <div className="lg:col-span-8">
+                        {cartData.length > 0 && (
+                            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6">
+                                <label className="flex items-center gap-3 cursor-pointer w-fit">
+                                    <input
+                                        type="checkbox"
+                                        checked={
+                                            selectedIds.length ===
+                                                allItemIds.length &&
+                                            allItemIds.length > 0
+                                        }
+                                        onChange={toggleAll}
+                                        className="w-5 h-5 rounded text-[#245D56] focus:ring-[#245D56] border-slate-300"
+                                    />
+                                    <span className="font-bold text-gray-900 text-sm">
+                                        Pilih semua Product
+                                    </span>
+                                </label>
+                            </div>
+                        )}
 
-                        {/* checkbox */}
-                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6">
-                            <label className="flex items-center gap-3 cursor-pointer w-fit">
-                                <input type="checkbox" className="w-5 h-5 rounded text-[#245D56] focus:ring-[#245D56] border-slate-300" />
-                                <span className="font-bold text-gray-900 text-sm">Pilih semua Product</span>
-                            </label>
-                        </div>
-
-                        {/* looping toko */}
-                        {cartData.map((store) => (
-                            <CartStoreGroup key={store.id} store={store} />
-                        ))}
+                        {cartData.length > 0 ? (
+                            cartData.map((store) => (
+                                <CartStoreGroup
+                                    key={store.id}
+                                    store={store}
+                                    selectedIds={selectedIds}
+                                    onToggleItem={toggleItem}
+                                    onToggleStore={toggleStore}
+                                />
+                            ))
+                        ) : (
+                            <div className="bg-white rounded-2xl p-10 shadow-sm border border-slate-100 text-center">
+                                <div className="text-6xl mb-4">🛒</div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                    Keranjang belanjaanmu kosong
+                                </h3>
+                                <p className="text-gray-500 mb-6">
+                                    Yuk cari produk unggulan dari nelayan dan
+                                    petani lokal!
+                                </p>
+                                <Link
+                                    href={route("shop")}
+                                    className="bg-[#245D56] hover:bg-[#1a443f] text-white px-8 py-3 rounded-full font-bold transition shadow-md inline-block"
+                                >
+                                    Mulai Belanja
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
-                    {/* right section */}
                     <div className="lg:col-span-4">
-                        <CartSummary />
+                        <CartSummary
+                            subtotal={subtotal}
+                            selectedCount={selectedIds.length}
+                            selectedIds={selectedIds}
+                        />
                     </div>
                 </div>
 
-                <ProductRecommendations />
+                <ProductRecommendations recommendations={recommendations} />
             </div>
         </StorefrontLayout>
     );

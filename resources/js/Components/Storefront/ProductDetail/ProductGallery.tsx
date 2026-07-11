@@ -21,7 +21,7 @@ export default function ProductGallery({
 
     return (
         <div className="flex flex-col gap-4 w-full">
-            {/* GAMBAR UTAMA */}
+            {/* gambar utama */}
             <div className="w-full aspect-4/3 md:aspect-square bg-gray-50 rounded-4xl overflow-hidden border border-gray-100 shadow-sm relative group">
                 <img
                     src={images[selectedImageIndex].src}

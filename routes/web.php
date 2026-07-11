@@ -14,24 +14,20 @@ Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'ind
 
 Route::get('/shop', [\App\Http\Controllers\ShopController::class, 'index'])->name('shop');
 
-Route::get('/product/{id}', function ($id) {
-    return Inertia::render('Storefront/ProductDetail', [
-        'productId' => $id,
-    ]);
-})->name('product.detail');
+Route::get('/product/{id}', [\App\Http\Controllers\ShopController::class, 'show'])->name('product.detail');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
-    Route::get('/checkout', function () {
-        return Inertia::render('Checkout/Checkout');
-    })->name('checkout');
+    Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
 
-    Route::get('/cart', function () {
-        return Inertia::render('Cart/Cart');
-    })->name('cart');
+    Route::get('/cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart');
+    Route::post('/cart', [\App\Http\Controllers\CartController::class, 'store'])->name('cart.store');
+    Route::patch('/cart/{cart}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{cart}', [\App\Http\Controllers\CartController::class, 'destroy'])->name('cart.destroy');
     Route::post('/profile/address', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
     Route::put('/profile/address/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
     Route::delete('/profile/address/{id}', [ProfileController::class, 'destroyAddress'])->name('profile.address.destroy');

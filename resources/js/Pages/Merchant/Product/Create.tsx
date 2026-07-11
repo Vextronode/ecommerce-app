@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
-import { Plus } from "lucide-react";
+import toast from "react-hot-toast";
 
-import ProductPreview from "@/Components/Merchant/Product/ProductPreview";
+import ProductPreview, {
+    VariantType,
+} from "@/Components/Merchant/Product/ProductPreview";
 import ImageUpload from "@/Components/Merchant/Product/ImageUpload";
 import ProductForm from "@/Components/Merchant/Product/ProductForm";
 
@@ -23,25 +25,92 @@ export default function Create({ categories }: Props) {
         price: "",
         stock: "",
         description: "",
-        image: null as File | null,
+        images: [] as File[],
+        variants: [] as VariantType[],
+        skus: [],
+        is_preorder: false,
+        po_days: 0,
+        po_hours: 0,
     });
 
-    const [jenisProduk, setJenisProduk] = useState("");
-    const [perGram, setPerGram] = useState("100 gr");
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const gramOptions = ["100 gr", "500 gr", "1 kg", "2 kg"];
+    // state buat nyimpen URL preview gambar yang banyak
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
+    // handler multiple image
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setData("image", file);
-            setImagePreview(URL.createObjectURL(file));
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            // gabungin file lama sama file baru
+            setData("images", [...data.images, ...files]);
+
+            // bikin URL preview buat masing" file baru
+            const newPreviews = files.map((file) => URL.createObjectURL(file));
+            setImagePreviews([...imagePreviews, ...newPreviews]);
         }
+    };
+
+    // handler buat delete image klo salah pilih
+    const handleRemoveImage = (index: number) => {
+        const newImages = [...data.images];
+        newImages.splice(index, 1);
+        setData("images", newImages);
+
+        const newPreviews = [...imagePreviews];
+        newPreviews.splice(index, 1);
+        setImagePreviews(newPreviews);
     };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route("merchant.products.store"));
+
+        const MAX_TOTAL_SIZE = 8 * 1024 * 1024; // 8 MB
+        const MAX_SINGLE_SIZE = 2 * 1024 * 1024; // 2 MB
+
+        let totalSize = 0;
+        let hasOversizedFile = false;
+
+        data.images.forEach((file) => {
+            totalSize += file.size;
+            if (file.size > MAX_SINGLE_SIZE) {
+                hasOversizedFile = true;
+            }
+        });
+
+        if (hasOversizedFile) {
+            toast.error(
+                "Ada foto yang ukurannya lebih dari 2MB. Silakan kompres dulu.",
+                {
+                    position: "top-right",
+                },
+            );
+            return;
+        }
+
+        if (totalSize > MAX_TOTAL_SIZE) {
+            toast.error(
+                "Total ukuran semua foto melebihi 8MB. Kurangi jumlah foto.",
+                {
+                    position: "top-right",
+                },
+            );
+            return;
+        }
+
+        post(route("merchant.products.store"), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success("Produk berhasil ditambahkan!");
+            },
+            onError: (errors) => {
+                console.error("Validasi Backend Gagal:", errors);
+                toast.error(
+                    "Gagal menyimpan! Periksa kembali isian form Anda.",
+                    {
+                        position: "top-right",
+                    },
+                );
+            },
+        });
     };
 
     return (
@@ -65,9 +134,11 @@ export default function Create({ categories }: Props) {
                     <div className="lg:col-span-1">
                         <ProductPreview
                             data={data}
-                            imagePreview={imagePreview}
-                            perGram={perGram}
-                            gramOptions={gramOptions}
+                            imagePreviews={imagePreviews}
+                            variants={data.variants}
+                            isPreorder={data.is_preorder}
+                            poDays={data.po_days}
+                            poHours={data.po_hours}
                             processing={processing}
                         />
                     </div>
@@ -75,7 +146,9 @@ export default function Create({ categories }: Props) {
                     <div className="lg:col-span-2">
                         <ImageUpload
                             onImageChange={handleImageChange}
-                            error={errors.image}
+                            previews={imagePreviews}
+                            onRemoveImage={handleRemoveImage}
+                            error={errors.images as any}
                         />
                     </div>
                 </div>
@@ -85,11 +158,6 @@ export default function Create({ categories }: Props) {
                     setData={setData}
                     errors={errors}
                     categories={categories}
-                    jenisProduk={jenisProduk}
-                    setJenisProduk={setJenisProduk}
-                    perGram={perGram}
-                    setPerGram={setPerGram}
-                    gramOptions={gramOptions}
                 />
             </form>
         </MerchantLayout>
