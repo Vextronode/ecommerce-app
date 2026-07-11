@@ -22,8 +22,10 @@ export default function UpdateProfileInformation({
     // ambil user dari page props
     const user = usePage<PageProps>().props.auth.user;
 
-    // validasi tanggal lahir agar tidak lebih dari hari ini
-    const today = new Date().toISOString().split("T")[0];
+    // validasi tanggal lahir minimal umur 13 tahun
+    const maxBirthDate = new Date();
+    maxBirthDate.setFullYear(maxBirthDate.getFullYear() - 13);
+    const maxDob = maxBirthDate.toISOString().split("T")[0];
 
     // ambil nama dari user
     const initialNames = extractNames(user.name);
@@ -194,7 +196,7 @@ export default function UpdateProfileInformation({
                             type="date"
                             value={data.dob}
                             onChange={(e) => setData("dob", e.target.value)}
-                            max={today}
+                            max={maxDob}
                             min="1900-01-01"
                             className="w-full px-5 py-3.5 rounded-xl border-slate-200 focus:border-[#40E0D0] focus:ring-[#40E0D0] bg-slate-50/50 text-sm font-medium text-slate-700"
                         />

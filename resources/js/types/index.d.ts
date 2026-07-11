@@ -8,6 +8,8 @@ export interface User {
     phone?: string;
     gender?: string;
     dob?: string;
+    role?: "user" | "pedagang" | "admin";
+    is_password_changed?: boolean;
 }
 
 export type PageProps<
