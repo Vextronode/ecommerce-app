@@ -48,7 +48,13 @@ class ShopController extends Controller
 
     public function show($id)
     {
-        $product = Product::with(['store', 'category'])->findOrFail($id);
+        $product = Product::with([
+            'store',
+            'category',
+            'images',
+            'variants.options',
+            'skus',
+        ])->findOrFail($id);
 
         $relatedProducts = Product::with(['store', 'category'])
             ->where('category_id', $product->category_id)

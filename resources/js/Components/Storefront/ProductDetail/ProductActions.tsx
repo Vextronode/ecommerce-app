@@ -5,15 +5,26 @@ import toast from "react-hot-toast";
 interface Props {
     productId: number | string;
     quantity: number;
+    skuId?: number | string;
+    disabled?: boolean;
 }
 
-export default function ProductActions({ productId, quantity }: Props) {
+export default function ProductActions({
+    productId,
+    quantity,
+    skuId,
+    disabled,
+}: Props) {
     const handleAddToCart = () => {
+        if (disabled)
+            return toast.error("Silakan lengkapi pilihan varian dulu!");
+
         router.post(
             "/cart",
             {
                 product_id: productId,
                 quantity: quantity,
+                sku_id: skuId,
             },
             {
                 preserveScroll: true,
@@ -25,9 +36,13 @@ export default function ProductActions({ productId, quantity }: Props) {
     };
 
     const handleBuyNow = () => {
+        if (disabled)
+            return toast.error("Silakan lengkapi pilihan varian dulu!");
+
         router.post("/checkout", {
             product_id: productId,
             quantity: quantity,
+            sku_id: skuId,
         });
     };
 
@@ -35,13 +50,15 @@ export default function ProductActions({ productId, quantity }: Props) {
         <div className="grid grid-cols-2 gap-4 mb-6">
             <button
                 onClick={handleBuyNow}
-                className="bg-[#245D56] text-white py-4 rounded-xl font-bold text-sm hover:bg-[#1a443f] transition shadow-md whitespace-nowrap"
+                disabled={disabled}
+                className="bg-[#245D56] text-white py-4 rounded-xl font-bold text-sm hover:bg-[#1a443f] transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 Buy Now
             </button>
             <button
                 onClick={handleAddToCart}
-                className="bg-white text-[#245D56] py-4 rounded-xl font-bold text-sm border-2 border-[#245D56] hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                disabled={disabled}
+                className="bg-white text-[#245D56] py-4 rounded-xl font-bold text-sm border-2 border-[#245D56] hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <ShoppingCart className="w-4 h-4" /> Add to Cart
             </button>

@@ -15,15 +15,12 @@ class ProductController extends Controller
     {
         $user = $request->user()->load('store');
 
-        // Mulai ngerakit query
         $query = $user->store->products()->with(['category', 'images', 'variants.options', 'skus'])->latest();
 
-        // 1. Logic Filter Kategori
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
 
-        // 2. Logic Filter Status (Berdasarkan Stok)
         if ($request->filled('status')) {
             switch ($request->status) {
                 case 'habis':
@@ -42,7 +39,6 @@ class ProductController extends Controller
         }
 
 
-        // 3. Logic Filter Search (Pencarian Nama Produk)
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where('name', 'like', "%{$searchTerm}%");

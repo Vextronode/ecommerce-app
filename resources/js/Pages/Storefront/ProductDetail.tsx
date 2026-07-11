@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Head } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import mainImage from "@/assets/images/kakap.png";
@@ -13,6 +13,7 @@ import QuantitySelector from "@/Components/Storefront/ProductDetail/QuantitySele
 import ShippingGuaranteeCard from "@/Components/Storefront/ProductDetail/ShippingGuaranteeCard";
 import ProductReviewsCard from "@/Components/Storefront/ProductDetail/ProductReviewsCard";
 import ProductCarousel from "@/Components/Storefront/ProductCarousel";
+import VariantSelector from "@/Components/Storefront/ProductDetail/VariantSelector";
 
 const staticGuarantees = [
     {
@@ -38,7 +39,6 @@ const staticGuarantees = [
     },
 ];
 
-// Interface buat nerima data dari backend
 interface Props {
     product: any;
     relatedProducts: any[];
@@ -46,40 +46,81 @@ interface Props {
 
 export default function ProductDetail({ product, relatedProducts }: Props) {
     const [quantity, setQuantity] = useState(1);
-    const [prepOption, setPrepOption] = useState("whole");
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [activeTab, setActiveTab] = useState<"details" | "reviews">(
         "details",
     );
 
+    const [selectedVariants, setSelectedVariants] = useState<
+        Record<string, string>
+    >({});
+
+    const handleVariantSelect = (variantName: string, option: string) => {
+        setSelectedVariants((prev) => ({ ...prev, [variantName]: option }));
+        setQuantity(1);
+    };
+
+    const currentSku = useMemo(() => {
+        if (!product?.skus || product.skus.length === 0) return null;
+
+        return product.skus.find((sku: any) => {
+            const selectedValues = Object.values(selectedVariants);
+            if (selectedValues.length === 0) return false;
+            return selectedValues.every((val: any) =>
+                sku.variant_name.includes(val),
+            );
+        });
+    }, [product, selectedVariants]);
+
+    const isAllVariantsSelected = product?.variants?.length
+        ? product.variants.every((v: any) => selectedVariants[v.name])
+        : true;
+
+    const formatNumber = (angka: number) =>
+        new Intl.NumberFormat("id-ID").format(angka);
+
+    const getDisplayPrice = () => {
+        if (isAllVariantsSelected && currentSku)
+            return formatNumber(Number(currentSku.price));
+        if (product?.variants?.length > 0 && product?.skus?.length > 0) {
+            const prices = product.skus.map((s: any) => Number(s.price));
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            if (minPrice !== maxPrice)
+                return `${formatNumber(minPrice)} - ${formatNumber(maxPrice)}`;
+            return formatNumber(minPrice);
+        }
+        return formatNumber(Number(product.price));
+    };
+
     const formattedProduct = {
         name: product.name,
-        price: new Intl.NumberFormat("id-ID").format(Number(product.price)),
-        unit: product.unit || "kg",
+        price: getDisplayPrice(),
+        unit: product.unit || "pcs",
         location: product.store
             ? `${product.store.name}${product.store.address ? ` - ${product.store.address}` : ""}`
             : "Cibenda Mart",
-        availableStock: product.stock,
+        availableStock:
+            isAllVariantsSelected && currentSku
+                ? currentSku.stock
+                : product.stock,
         description: product.description,
-        images: [
-            {
-                src: product.image_path || mainImage,
-                alt: `${product.name} tampil utama`,
-                objectPosition: "center center",
-            },
-            {
-                src: product.image_path || mainImage,
-                alt: `${product.name} tampilan kedua`,
-                objectPosition: "center 28%",
-            },
-            {
-                src: product.image_path || mainImage,
-                alt: `${product.name} tampilan ketiga`,
-                objectPosition: "center 72%",
-            },
-        ],
+        images:
+            product.images && product.images.length > 0
+                ? product.images.map((img: any, idx: number) => ({
+                      src: img.image_path,
+                      alt: `${product.name} ${idx + 1}`,
+                      objectPosition: "center center",
+                  }))
+                : [
+                      {
+                          src: product.image_path || mainImage,
+                          alt: `${product.name} tampil utama`,
+                          objectPosition: "center center",
+                      },
+                  ],
     };
-    // Format related products buat carousel
+
     const formattedRelatedProducts = relatedProducts.map((p) => ({
         id: p.id,
         name: p.name,
@@ -115,6 +156,12 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                                 unit={formattedProduct.unit}
                             />
 
+                            <VariantSelector
+                                variants={product?.variants || []}
+                                selectedVariants={selectedVariants}
+                                onSelectVariant={handleVariantSelect}
+                            />
+
                             <QuantitySelector
                                 quantity={quantity}
                                 availableStock={formattedProduct.availableStock}
@@ -137,6 +184,11 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                             <ProductActions
                                 productId={product.id}
                                 quantity={quantity}
+                                skuId={currentSku?.id}
+                                disabled={
+                                    !isAllVariantsSelected ||
+                                    formattedProduct.availableStock === 0
+                                }
                             />
 
                             <DeliveryBanner
@@ -151,7 +203,6 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                             activeTab={activeTab}
                             onChangeTab={setActiveTab}
                         />
-
                         {activeTab === "details" ? (
                             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.25fr_0.75fr]">
                                 <ProductDetailsCard
