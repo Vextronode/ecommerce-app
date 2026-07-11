@@ -92,7 +92,6 @@ class ProductController extends Controller
         $product = $user->store->products()->create([
             'category_id' => $request->category_id,
             'name' => $request->name,
-            'slug' => Str::slug($request->name . '-' . uniqid()),
             'description' => $request->description,
             'price' => $basePrice,
             'stock' => $totalStock,

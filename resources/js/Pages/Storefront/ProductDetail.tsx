@@ -14,8 +14,9 @@ import ShippingGuaranteeCard from "@/Components/Storefront/ProductDetail/Shippin
 import ProductReviewsCard from "@/Components/Storefront/ProductDetail/ProductReviewsCard";
 import ProductCarousel from "@/Components/Storefront/ProductCarousel";
 import VariantSelector from "@/Components/Storefront/ProductDetail/VariantSelector";
+import { GuaranteeItem } from "@/Components/Storefront/ProductDetail/types";
 
-const staticGuarantees = [
+const staticGuarantees: GuaranteeItem[] = [
     {
         title: "Kualitas Dingin Terjaga",
         description:

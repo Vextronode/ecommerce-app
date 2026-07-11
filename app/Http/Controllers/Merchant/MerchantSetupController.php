@@ -20,6 +20,10 @@ class MerchantSetupController extends Controller
 
         $user = $request->user();
 
+        if ($user->store) {
+            return redirect()->route('merchant.dashboard');
+        }
+
         // update pw user dan ganti status "is_password_changed" jadi true
         $user->forceFill([
             'password' => Hash::make($request->password),
