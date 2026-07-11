@@ -6,7 +6,7 @@ import AddressModal from "./AddressModal";
 export interface Address {
     id: number;
     label: string;
-    is_primary: boolean;
+    is_primary: boolean | number;
     recipient_name: string;
     phone: string;
     full_address: string;
@@ -85,8 +85,7 @@ export default function AddressInformation({
                                     <h3 className="font-bold text-gray-900 text-sm">
                                         {address.label}
                                     </h3>
-                                    {address.is_primary === 1 ||
-                                    address.is_primary === true ? (
+                                    {Boolean(address.is_primary) ? (
                                         <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">
                                             Utama
                                         </span>

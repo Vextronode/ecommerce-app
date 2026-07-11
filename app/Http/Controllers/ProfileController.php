@@ -94,7 +94,7 @@ class ProfileController extends Controller
 
     public function storeAddress(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'recipient_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'full_address' => 'required|string',
@@ -106,7 +106,7 @@ class ProfileController extends Controller
             $request->user()->addresses()->update(['is_primary' => false]);
         }
 
-        $request->user()->addresses()->create($request->all());
+        $request->user()->addresses()->create($validated);
 
         return back();
     }
@@ -115,7 +115,7 @@ class ProfileController extends Controller
     {
         $address = $request->user()->addresses()->findOrFail($id);
 
-        $request->validate([
+        $validated = $request->validate([
             'recipient_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'full_address' => 'required|string',
@@ -127,7 +127,7 @@ class ProfileController extends Controller
             $request->user()->addresses()->update(['is_primary' => false]);
         }
 
-        $address->update($request->all());
+        $address->update($validated);
 
         return back();
     }
@@ -142,8 +142,17 @@ class ProfileController extends Controller
 
     public function updateNotifications(Request $request)
     {
+        $validated = $request->validate([
+            'menunggu_pembayaran' => 'sometimes|boolean',
+            'menunggu_konfirmasi' => 'sometimes|boolean',
+            'pesanan_diproses' => 'sometimes|boolean',
+            'pesanan_dikirim' => 'sometimes|boolean',
+            'pesanan_selesai' => 'sometimes|boolean',
+            'pengingat' => 'sometimes|boolean',
+        ]);
+
         $request->user()->update([
-            'notification_settings' => $request->all(),
+            'notification_settings' => $validated,
         ]);
 
         return back();

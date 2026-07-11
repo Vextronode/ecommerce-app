@@ -3,15 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class CheckoutController extends Controller
 {
+    private const DELIVERY_FEES = [
+        'coastal' => 25000,
+        'standard' => 15000,
+    ];
+
+    private const ADMIN_FEE = 2000;
+
     public function index(Request $request)
     {
         // tangkep array ID dari URL (yang dikirim dari router.get React)
-        $selectedItems = $request->query('items', []);
+        $selectedItems = array_filter((array) $request->query('items', []));
 
         // kalau iseng nembak URL /checkout tapi gak bawa item, tendang balik
         if (empty($selectedItems)) {
@@ -26,6 +37,10 @@ class CheckoutController extends Controller
 
         if ($carts->isEmpty()) {
             return redirect()->route('cart')->with('error', 'Barang tidak ditemukan di keranjang.');
+        }
+
+        if ($carts->count() !== count($selectedItems)) {
+            return redirect()->route('cart')->with('error', 'Ada item keranjang yang tidak valid.');
         }
 
         $cartItems = $carts->map(function ($cart) {
@@ -48,44 +63,78 @@ class CheckoutController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'cart_ids' => 'required|array',
+            'cart_ids' => ['required', 'array', 'min:1'],
+            'cart_ids.*' => ['integer', 'distinct'],
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'address' => 'required|string',
-            'delivery_method' => 'required|string',
-            'payment_method' => 'required|string',
-            'total_amount' => 'required|numeric',
+            'delivery_method' => ['required', 'string', 'in:coastal,standard'],
+            'payment_method' => ['required', 'string', 'in:va,card,ewallet'],
         ]);
 
-        // simpan data pesanan utama
-        $order = \App\Models\Order::create([
-            'user_id' => auth()->id(),
-            'shipping_name' => $validated['name'],
-            'shipping_phone' => $validated['phone'],
-            'shipping_address' => $validated['address'],
-            'delivery_method' => $validated['delivery_method'],
-            'payment_method' => $validated['payment_method'],
-            'total_amount' => $validated['total_amount'],
-            'status' => 'pending',
-        ]);
+        $order = DB::transaction(function () use ($validated) {
+            $carts = Cart::query()
+                ->where('user_id', auth()->id())
+                ->whereIn('id', $validated['cart_ids'])
+                ->with('product')
+                ->lockForUpdate()
+                ->get();
 
-        // pindahin barang dari keranjang ke order_items
-        $carts = Cart::whereIn('id', $validated['cart_ids'])->with('product')->get();
-
-        foreach ($carts as $cart) {
-            // masukin ke tabel riwayat pesanan
-            \App\Models\OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $cart->product_id,
-                'quantity' => $cart->quantity,
-                'price' => $cart->product->price,
-            ]);
-            if ($cart->product->stock > 0) {
-                $cart->product->decrement('stock', $cart->quantity);
+            if ($carts->count() !== count($validated['cart_ids'])) {
+                throw ValidationException::withMessages([
+                    'cart_ids' => 'Ada item keranjang yang tidak valid.',
+                ]);
             }
-        }
 
-        Cart::whereIn('id', $validated['cart_ids'])->delete();
+            $subtotal = 0;
+
+            foreach ($carts as $cart) {
+                $product = $cart->product()->lockForUpdate()->first();
+
+                if (!$product || !$product->is_active) {
+                    throw ValidationException::withMessages([
+                        'cart_ids' => "Produk {$cart->product_id} sudah tidak tersedia.",
+                    ]);
+                }
+
+                if ($cart->quantity > $product->stock) {
+                    throw ValidationException::withMessages([
+                        'cart_ids' => "Stok {$product->name} tidak mencukupi.",
+                    ]);
+                }
+
+                $subtotal += $product->price * $cart->quantity;
+                $cart->setRelation('product', $product);
+            }
+
+            $deliveryFee = self::DELIVERY_FEES[$validated['delivery_method']];
+            $totalAmount = $subtotal + $deliveryFee + self::ADMIN_FEE;
+
+            $order = Order::create([
+                'user_id' => auth()->id(),
+                'shipping_name' => $validated['name'],
+                'shipping_phone' => $validated['phone'],
+                'shipping_address' => $validated['address'],
+                'delivery_method' => $validated['delivery_method'],
+                'payment_method' => $validated['payment_method'],
+                'total_amount' => $totalAmount,
+                'status' => 'pending',
+            ]);
+
+            foreach ($carts as $cart) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $cart->product_id,
+                    'quantity' => $cart->quantity,
+                    'price' => $cart->product->price,
+                ]);
+
+                $cart->product->decrement('stock', $cart->quantity);
+                $cart->delete();
+            }
+
+            return $order;
+        });
 
         return redirect()->route('shop')->with('success', 'Pesanan berhasil dibuat!');
     }

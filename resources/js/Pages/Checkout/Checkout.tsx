@@ -31,7 +31,6 @@ export default function Checkout({ initialCartItems }: Props) {
         address: "",
         delivery_method: "coastal",
         payment_method: "card",
-        total_amount: 0,
     });
 
     const deliveryFee = data.delivery_method === "coastal" ? 25000 : 15000;
@@ -39,8 +38,6 @@ export default function Checkout({ initialCartItems }: Props) {
     const grandTotal = subtotal + deliveryFee + adminFee;
 
     const handlePlaceOrder = () => {
-        data.total_amount = grandTotal;
-
         post(route("checkout.store"), {
             preserveScroll: true,
             onSuccess: () => {

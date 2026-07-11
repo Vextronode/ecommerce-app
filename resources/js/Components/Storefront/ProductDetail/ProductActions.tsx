@@ -39,10 +39,11 @@ export default function ProductActions({
         if (disabled)
             return toast.error("Silakan lengkapi pilihan varian dulu!");
 
-        router.post("/checkout", {
+        router.post("/cart", {
             product_id: productId,
             quantity: quantity,
             sku_id: skuId,
+            checkout: true,
         });
     };
 

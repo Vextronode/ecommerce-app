@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class CartController extends Controller
@@ -81,16 +84,43 @@ class CartController extends Controller
             'preparation_option' => 'nullable|string',
         ]);
 
-        Cart::updateOrCreate(
-            [
-                'user_id' => auth()->id(),
-                'product_id' => $validated['product_id'],
-                'preparation_option' => $validated['preparation_option'] ?? '',
-            ],
-            [
-                'quantity' => \Illuminate\Support\Facades\DB::raw("quantity + " . $validated['quantity']),
-            ]
-        );
+        $cart = DB::transaction(function () use ($validated) {
+            $product = Product::query()
+                ->where('id', $validated['product_id'])
+                ->where('is_active', true)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $cart = Cart::query()
+                ->where('user_id', auth()->id())
+                ->where('product_id', $product->id)
+                ->where('preparation_option', $validated['preparation_option'] ?? '')
+                ->lockForUpdate()
+                ->first();
+
+            $newQuantity = ($cart?->quantity ?? 0) + $validated['quantity'];
+
+            if ($newQuantity > $product->stock) {
+                throw ValidationException::withMessages([
+                    'quantity' => "Stok {$product->name} tidak mencukupi.",
+                ]);
+            }
+
+            return Cart::updateOrCreate(
+                [
+                    'user_id' => auth()->id(),
+                    'product_id' => $product->id,
+                    'preparation_option' => $validated['preparation_option'] ?? '',
+                ],
+                [
+                    'quantity' => $newQuantity,
+                ]
+            );
+        });
+
+        if ($request->boolean('checkout')) {
+            return redirect()->route('checkout', ['items' => [$cart->id]]);
+        }
 
         return redirect()->back();
     }
@@ -101,9 +131,17 @@ class CartController extends Controller
             abort(403);
         }
 
-        $request->validate(['quantity' => 'required|integer|min:1']);
+        $validated = $request->validate(['quantity' => 'required|integer|min:1']);
 
-        $cart->update(['quantity' => $request->quantity]);
+        $cart->load('product');
+
+        if (!$cart->product || !$cart->product->is_active || $validated['quantity'] > $cart->product->stock) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Quantity melebihi stok tersedia.',
+            ]);
+        }
+
+        $cart->update(['quantity' => $validated['quantity']]);
 
         return redirect()->back();
     }
