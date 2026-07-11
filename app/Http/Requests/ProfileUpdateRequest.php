@@ -15,6 +15,8 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $minimumBirthDate = now()->subYears(13)->toDateString();
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -27,7 +29,15 @@ class ProfileUpdateRequest extends FormRequest
             ],
             'phone' => ['nullable', 'string', 'max:20'],
             'gender' => ['nullable', 'string', 'in:male,female'],
-            'dob' => ['nullable', 'date', 'before_or_equal:today', 'after:1900-01-01'],
+            'dob' => ['nullable', 'date', 'before_or_equal:' . $minimumBirthDate, 'after_or_equal:1900-01-01'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'dob.before_or_equal' => 'Tanggal lahir minimal harus menunjukkan umur 13 tahun.',
+            'dob.after_or_equal' => 'Tanggal lahir tidak valid.',
         ];
     }
 }
