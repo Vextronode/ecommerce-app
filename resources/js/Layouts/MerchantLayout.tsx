@@ -1,14 +1,38 @@
 import React, { ReactNode, useState } from "react";
 import Sidebar from "@/Components/Merchant/Dashboard/Sidebar";
 import { Search, Bell, Mail, User, Menu } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
+import { router } from "@inertiajs/react";
 
 interface Props {
     children: ReactNode;
 }
 
 export default function MerchantLayout({ children }: Props) {
-    // state buat ngatur bukav tutup sidebar di layar mobile
+    // state buat ngatur sidebar di mobile
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+    // state buat nyimpen ketikan search
+    const [searchQuery, setSearchQuery] = useState(
+        new URLSearchParams(window.location.search).get("search") || "",
+    );
+
+    // fungsi buat nembak pencarian pas tekan Enter
+    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            // ambil parameter yang lagi aktif (biar filter kategori/status ga ilang)
+            const currentParams = Object.fromEntries(
+                new URLSearchParams(window.location.search),
+            );
+
+            // tembak URL dengan gabungan parameter lama + search baru
+            router.get(
+                window.location.pathname,
+                { ...currentParams, search: searchQuery },
+                { preserveState: true, replace: true },
+            );
+        }
+    };
 
     return (
         <div className="flex h-screen bg-[#F8F9FA] p-4 md:p-6 gap-4 md:gap-6 font-sans overflow-hidden">
@@ -43,20 +67,37 @@ export default function MerchantLayout({ children }: Props) {
                             <Search className="w-4 h-4 md:w-5 md:h-5 absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search products"
+                                placeholder="Search products... "
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleSearch}
                                 className="w-full pl-9 md:pl-12 pr-4 py-2 md:py-2.5 bg-gray-50/50 border border-transparent rounded-full focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] text-xs md:text-sm transition-all"
                             />
                         </div>
                     </div>
 
-                    {/* Header Right Sectoin */}
+                    {/* Header Right Section */}
                     <div className="flex items-center gap-3 md:gap-6 ml-2 md:ml-4">
-                        <button className="text-gray-400 hover:text-[#41B9C5] transition-colors relative hidden sm:block">
+                        <button
+                            onClick={() =>
+                                toast("Fitur Notifikasi segera hadir!", {
+                                    icon: <Bell />,
+                                })
+                            }
+                            className="text-gray-400 hover:text-[#41B9C5] transition-colors relative hidden sm:block"
+                        >
                             <Bell className="w-5 h-5" />
                             <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
 
-                        <button className="text-gray-400 hover:text-[#41B9C5] transition-colors hidden sm:block">
+                        <button
+                            onClick={() =>
+                                toast("Fitur Pesan segera hadir!", {
+                                    icon: <Mail />,
+                                })
+                            }
+                            className="text-gray-400 hover:text-[#41B9C5] transition-colors hidden sm:block"
+                        >
                             <Mail className="w-5 h-5" />
                         </button>
 
@@ -67,6 +108,7 @@ export default function MerchantLayout({ children }: Props) {
                 </header>
 
                 <div className="flex-1 overflow-y-auto pb-6 pr-1 md:pr-2">
+                    <Toaster position="top-right" />
                     {children}
                 </div>
             </main>

@@ -12,7 +12,6 @@ class ShopController extends Controller
     public function index(Request $request)
     {
         $categories = Category::all();
-
         $query = Product::with(['store', 'category'])
             ->where('is_active', true)
             ->where('stock', '>', 0);
@@ -32,7 +31,6 @@ class ShopController extends Controller
         $groupedProducts = [];
         foreach ($categories as $category) {
             $catProducts = $products->where('category_id', $category->id)->values();
-
             if ($catProducts->count() > 0) {
                 $groupedProducts[] = [
                     'category_name' => $category->name,
@@ -45,6 +43,25 @@ class ShopController extends Controller
             'categories' => $categories,
             'groupedProducts' => $groupedProducts,
             'searchQuery' => $request->search ?? '',
+        ]);
+    }
+
+    public function show($id)
+    {
+        $product = Product::with(['store', 'category'])->findOrFail($id);
+
+        $relatedProducts = Product::with(['store', 'category'])
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('is_active', true)
+            ->where('stock', '>', 0)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return Inertia::render('Storefront/ProductDetail', [
+            'product' => $product,
+            'relatedProducts' => $relatedProducts,
         ]);
     }
 }
