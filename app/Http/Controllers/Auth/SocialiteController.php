@@ -13,7 +13,9 @@ class SocialiteController extends Controller
 {
     public function redirect(): RedirectResponse
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+            ->scopes(['openid', 'profile', 'email'])
+            ->redirect();
     }
 
     public function callback(): RedirectResponse
@@ -24,6 +26,12 @@ class SocialiteController extends Controller
             $user = User::query()->where('email', $googleUser->email)->first();
 
             if ($user) {
+                if ($user->role !== 'user') {
+                    return redirect('/login')->withErrors([
+                        'email' => 'Akun ini tidak bisa dipakai untuk login sebagai pembeli.',
+                    ]);
+                }
+
                 $user->update([
                     'google_id' => $googleUser->id,
                 ]);

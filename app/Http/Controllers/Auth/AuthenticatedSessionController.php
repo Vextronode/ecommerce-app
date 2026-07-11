@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
 
         if ($role === 'pedagang') {
             if (!$isPasswordChanged) {
-                return redirect()->intended('/pedagang/setup-password');
+                return redirect()->intended(route('merchant.store.setup', absolute: false));
             }
 
             return redirect()->intended('/pedagang/dashboard');
@@ -53,12 +53,18 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $redirectTo = $request->input('source') === 'merchant'
+            || $request->is('pedagang/*')
+            || str_contains((string) $request->headers->get('referer'), '/pedagang')
+            ? route('merchant.login.view')
+            : route('login');
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect($redirectTo);
     }
 }

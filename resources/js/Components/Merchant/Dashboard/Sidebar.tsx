@@ -88,6 +88,7 @@ export default function Sidebar() {
                 <Link
                     href={route("logout")}
                     method="post"
+                    data={{ source: "merchant" }}
                     as="button"
                     className="flex items-center w-full gap-4 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-all text-sm whitespace-nowrap"
                 >

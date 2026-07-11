@@ -13,6 +13,7 @@ const Login = () => {
         email: "",
         password: "",
         remember: false,
+        expected_role: "user",
     });
 
     useEffect(() => {

@@ -7,6 +7,7 @@ export default function Login() {
     const { data, setData, post, processing, errors } = useForm({
         email: "",
         password: "",
+        expected_role: "pedagang",
     });
 
     const submit = (e: React.FormEvent) => {

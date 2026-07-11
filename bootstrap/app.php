@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'storefront.user' => \App\Http\Middleware\RedirectNonUserFromStorefront::class,
+        ]);
+
         $middleware->redirectUsersTo(function (Request $request) {
             if (auth()->check() && auth()->user()->role === 'pedagang') {
                 return '/pedagang/dashboard';

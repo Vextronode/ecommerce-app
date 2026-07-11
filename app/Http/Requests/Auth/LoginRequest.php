@@ -30,6 +30,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'expected_role' => ['nullable', 'string', 'in:user,pedagang,admin'],
         ];
     }
 
@@ -47,6 +48,26 @@ class LoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        $expectedRole = $this->string('expected_role')->toString() ?: 'user';
+
+        $authenticatedRole = Auth::user()?->role;
+        $roleMismatch = match ($expectedRole) {
+            'pedagang' => $authenticatedRole !== 'pedagang',
+            'admin' => $authenticatedRole !== 'admin',
+            default => $authenticatedRole === 'pedagang',
+        };
+
+        if ($roleMismatch) {
+            Auth::guard('web')->logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => $expectedRole === 'pedagang'
+                    ? 'Akun ini bukan akun pedagang.'
+                    : 'Akun ini tidak bisa dipakai untuk login sebagai pembeli.',
             ]);
         }
 

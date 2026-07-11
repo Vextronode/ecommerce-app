@@ -131,7 +131,7 @@ export default function ProductPreview({
 
             <div className="flex w-full gap-3 mt-auto">
                 <Link
-                    href={route("dashboard")}
+                    href={route("merchant.products.index")}
                     className="flex-1 py-2 rounded-full border border-gray-300 text-gray-600 text-sm font-bold text-center hover:bg-gray-50 transition-colors"
                 >
                     Cancel
