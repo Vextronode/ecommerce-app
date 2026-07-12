@@ -116,7 +116,6 @@ export default function CartStoreGroup({
                             onChange={() => onToggleItem(item.id)}
                             className="w-5 h-5 rounded text-[#245D56] focus:ring-[#245D56] border-slate-300 mt-2 cursor-pointer"
                         />
-
                         {/* image */}
                         <div className="relative shrink-0">
                             <img
@@ -130,22 +129,30 @@ export default function CartStoreGroup({
                                 </div>
                             )}
                         </div>
-
                         {/* Info Produk */}
                         <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-sm md:text-base">
+                            <h3 className="font-bold text-gray-900 text-sm md:text-base mb-1">
                                 {item.name}
                             </h3>
 
-                            <p className="text-xs text-slate-500 mt-0.5">
-                                {item.weight}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                {item.prepOption && (
+                                    <span className="bg-[#EAF7F7] text-[#245D56] text-[10px] md:text-xs font-bold px-2 py-0.5 rounded border border-[#245D56]/20">
+                                        {item.prepOption}
+                                    </span>
+                                )}
+                            </div>
 
-                            <p className="font-bold text-[#245D56] text-sm md:text-base mt-2">
-                                Rp {Number(item.price).toLocaleString("id-ID")}
-                            </p>
-                        </div>
-
+                            <div className="flex items-baseline gap-1 mt-2">
+                                <p className="font-bold text-[#245D56] text-sm md:text-base">
+                                    Rp{" "}
+                                    {Number(item.price).toLocaleString("id-ID")}
+                                </p>
+                                <span className="text-xs font-medium text-slate-500">
+                                    / {item.weight || "pcs"}
+                                </span>
+                            </div>
+                        </div>{" "}
                         {/* Actions (Delete, Min, Plus) */}
                         <div className="flex items-center gap-4 shrink-0">
                             <button

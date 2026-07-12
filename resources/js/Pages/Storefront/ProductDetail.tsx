@@ -185,7 +185,11 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                             <ProductActions
                                 productId={product.id}
                                 quantity={quantity}
-                                skuId={currentSku?.id}
+                                prepOption={
+                                    isAllVariantsSelected && currentSku
+                                        ? currentSku.variant_name
+                                        : undefined
+                                }
                                 disabled={
                                     !isAllVariantsSelected ||
                                     formattedProduct.availableStock === 0

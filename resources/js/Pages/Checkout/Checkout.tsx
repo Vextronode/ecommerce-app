@@ -39,7 +39,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
         phone: auth?.user?.phone || "",
         address: "",
         delivery_method: "coastal",
-        payment_method: "card",
+        payment_method: "cod",
     });
 
     const applyAddress = (address: CheckoutAddress) => {
@@ -76,7 +76,9 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
     }, [addresses]);
 
     const deliveryFee = data.delivery_method === "coastal" ? 25000 : 15000;
-    const adminFee = 2000;
+
+    const adminFee = data.payment_method === "cod" ? 0 : 2000;
+
     const grandTotal = subtotal + deliveryFee + adminFee;
 
     const handlePlaceOrder = () => {
@@ -129,6 +131,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                         <OrderSummary
                             subtotal={subtotal}
                             deliveryFee={deliveryFee}
+                            adminFee={adminFee}
                             totalItems={totalItems}
                             onPlaceOrder={handlePlaceOrder}
                             processing={processing}

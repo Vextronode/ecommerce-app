@@ -5,14 +5,14 @@ import toast from "react-hot-toast";
 interface Props {
     productId: number | string;
     quantity: number;
-    skuId?: number | string;
+    prepOption?: string;
     disabled?: boolean;
 }
 
 export default function ProductActions({
     productId,
     quantity,
-    skuId,
+    prepOption, // <-- Tangkap prepOption
     disabled,
 }: Props) {
     const handleAddToCart = () => {
@@ -24,7 +24,7 @@ export default function ProductActions({
             {
                 product_id: productId,
                 quantity: quantity,
-                sku_id: skuId,
+                preparation_option: prepOption,
             },
             {
                 preserveScroll: true,
@@ -42,7 +42,7 @@ export default function ProductActions({
         router.post("/cart", {
             product_id: productId,
             quantity: quantity,
-            sku_id: skuId,
+            preparation_option: prepOption,
             checkout: true,
         });
     };

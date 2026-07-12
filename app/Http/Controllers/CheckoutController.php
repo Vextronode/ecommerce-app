@@ -21,16 +21,13 @@ class CheckoutController extends Controller
 
     public function index(Request $request)
     {
-        // tangkep array ID dari URL (yang dikirim dari router.get React)
         $selectedItems = array_filter((array) $request->query('items', []));
 
-        // kalau iseng nembak URL /checkout tapi gak bawa item, tendang balik
         if (empty($selectedItems)) {
             return redirect()->route('cart')->with('error', 'Pilih minimal satu barang untuk checkout.');
         }
 
-        // tarik data keranjang HANYA yang ID nya ada di array $selectedItems
-        $carts = Cart::with(['product.store'])
+        $carts = Cart::with(['product.store', 'product.skus'])
             ->where('user_id', auth()->id())
             ->whereIn('id', $selectedItems)
             ->get();
@@ -44,14 +41,22 @@ class CheckoutController extends Controller
         }
 
         $cartItems = $carts->map(function ($cart) {
+            $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
+
             return [
                 'id' => $cart->id,
                 'product_id' => $cart->product->id,
                 'name' => $cart->product->name,
                 'location' => $cart->product->store ? $cart->product->store->name . ' - ' . $cart->product->store->address : 'Cibenda Mart',
-                'price' => $cart->product->price,
+
+                // Set harga dari SKU kalau ada
+                'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
+
                 'qty' => $cart->quantity,
                 'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+
+                'preparation_option' => $cart->preparation_option,
+                'unit' => $cart->product->unit ?? 'pcs',
             ];
         });
 
@@ -71,12 +76,11 @@ class CheckoutController extends Controller
             'phone' => 'required_without:address_id|string|max:20',
             'address' => 'required_without:address_id|string',
             'delivery_method' => ['required', 'string', 'in:coastal,standard'],
-            'payment_method' => ['required', 'string', 'in:va,card,ewallet'],
+            'payment_method' => ['required', 'string', 'in:va,card,ewallet,cod'],
         ]);
 
         if (!empty($validated['address_id'])) {
             $address = $request->user()->addresses()->findOrFail($validated['address_id']);
-
             $validated['name'] = $address->recipient_name;
             $validated['phone'] = $address->phone;
             $validated['address'] = $address->full_address;
@@ -86,7 +90,7 @@ class CheckoutController extends Controller
             $carts = Cart::query()
                 ->where('user_id', auth()->id())
                 ->whereIn('id', $validated['cart_ids'])
-                ->with('product')
+                ->with(['product.skus'])
                 ->lockForUpdate()
                 ->get();
 
@@ -107,18 +111,25 @@ class CheckoutController extends Controller
                     ]);
                 }
 
-                if ($cart->quantity > $product->stock) {
+                $matchingSku = $product->skus->where('variant_name', $cart->preparation_option)->first();
+                $availableStock = $matchingSku ? $matchingSku->stock : $product->stock;
+                $itemPrice = $matchingSku ? $matchingSku->price : $product->price;
+
+                if ($cart->quantity > $availableStock) {
                     throw ValidationException::withMessages([
                         'cart_ids' => "Stok {$product->name} tidak mencukupi.",
                     ]);
                 }
 
-                $subtotal += $product->price * $cart->quantity;
+                $subtotal += $itemPrice * $cart->quantity;
                 $cart->setRelation('product', $product);
             }
 
             $deliveryFee = self::DELIVERY_FEES[$validated['delivery_method']];
-            $totalAmount = $subtotal + $deliveryFee + self::ADMIN_FEE;
+
+            $adminFee = $validated['payment_method'] === 'cod' ? 0 : self::ADMIN_FEE;
+
+            $totalAmount = $subtotal + $deliveryFee + $adminFee;
 
             $order = Order::create([
                 'user_id' => auth()->id(),
@@ -132,14 +143,22 @@ class CheckoutController extends Controller
             ]);
 
             foreach ($carts as $cart) {
+                $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
+                $itemPrice = $matchingSku ? $matchingSku->price : $cart->product->price;
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cart->product_id,
                     'quantity' => $cart->quantity,
-                    'price' => $cart->product->price,
+                    'price' => $itemPrice,
                 ]);
 
-                $cart->product->decrement('stock', $cart->quantity);
+                if ($matchingSku) {
+                    $matchingSku->decrement('stock', $cart->quantity);
+                } else {
+                    $cart->product->decrement('stock', $cart->quantity);
+                }
+
                 $cart->delete();
             }
 

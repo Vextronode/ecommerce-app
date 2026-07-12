@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Head, Link } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
+import { ShoppingBasket } from "lucide-react";
 
 import CartStoreGroup from "@/Components/Cart/CartStoreGroup";
 import CartSummary from "@/Components/Cart/CartSummary";
@@ -43,7 +44,7 @@ export default function Cart({ cartData, recommendations }: CartProps) {
 
     const toggleAll = () => {
         if (selectedIds.length === allItemIds.length) {
-            setSelectedIds([]); // Uncheck all
+            setSelectedIds([]);
         } else {
             setSelectedIds(allItemIds);
         }
@@ -100,20 +101,28 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                             ))
                         ) : (
                             <div className="bg-white rounded-2xl p-10 shadow-sm border border-slate-100 text-center">
-                                <div className="text-6xl mb-4">🛒</div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                    Keranjang belanjaanmu kosong
-                                </h3>
-                                <p className="text-gray-500 mb-6">
-                                    Yuk cari produk unggulan dari nelayan dan
-                                    petani lokal!
-                                </p>
-                                <Link
-                                    href={route("shop")}
-                                    className="bg-[#245D56] hover:bg-[#1a443f] text-white px-8 py-3 rounded-full font-bold transition shadow-md inline-block"
-                                >
-                                    Mulai Belanja
-                                </Link>
+                                <div className="flex flex-col items-center justify-center py-12 px-4">
+                                    <div className="w-24 h-24 bg-[#EAF7F7] text-[#41B9C5] rounded-full flex items-center justify-center mb-6 shadow-sm border border-[#41B9C5]/20">
+                                        <ShoppingBasket
+                                            className="w-12 h-12"
+                                            strokeWidth={1.5}
+                                        />
+                                    </div>
+
+                                    <h3 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-2 text-center">
+                                        Keranjang belanjaanmu kosong
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mb-8 text-center max-w-sm">
+                                        Yuk cari produk unggulan dari nelayan
+                                        dan petani lokal!
+                                    </p>
+                                    <Link
+                                        href={route("shop")}
+                                        className="bg-[#245D56] hover:bg-[#1a443f] text-white px-8 py-3 rounded-full font-bold transition shadow-md inline-block"
+                                    >
+                                        Mulai Belanja
+                                    </Link>
+                                </div>
                             </div>
                         )}
                     </div>

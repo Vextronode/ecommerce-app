@@ -4,6 +4,7 @@ import { ShieldCheck } from "lucide-react";
 interface Props {
     subtotal: number;
     deliveryFee: number;
+    adminFee: number;
     totalItems: number;
     onPlaceOrder: () => void;
     processing: boolean;
@@ -12,11 +13,11 @@ interface Props {
 export default function OrderSummary({
     subtotal,
     deliveryFee,
+    adminFee,
     totalItems,
     onPlaceOrder,
     processing,
 }: Props) {
-    const adminFee = 2000;
     const grandTotal = subtotal + deliveryFee + adminFee;
 
     return (

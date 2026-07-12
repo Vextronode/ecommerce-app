@@ -1,13 +1,18 @@
-import React from 'react';
-import { ShoppingCart, Plus, Minus } from 'lucide-react';
+import React from "react";
+import { ShoppingCart } from "lucide-react";
 
 interface CartItem {
     id: number;
     name: string;
-    location: string;
+    location?: string;
     price: number;
     qty: number;
     img: string;
+    prepOption?: string;
+    preparation_option?: string;
+    sku?: { variant_name: string };
+    weight?: string;
+    unit?: string;
 }
 
 export default function CartSection({ items }: { items: CartItem[] }) {
@@ -19,25 +24,63 @@ export default function CartSection({ items }: { items: CartItem[] }) {
             </div>
 
             <div className="space-y-6">
-                {items.map((item) => (
-                    <div key={item.id} className="flex gap-4 items-center">
-                        <img src={item.img} alt={item.name} className="w-20 h-20 rounded-2xl object-cover bg-slate-100" />
-                        <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-sm md:text-base">{item.name}</h3>
-                            <p className="text-xs text-slate-500 mt-1">{item.location}</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="font-bold text-[#245D56] text-sm md:text-base mb-3">
-                                Rp {item.price.toLocaleString('id-ID')}
-                            </p>
-                            <div className="flex items-center justify-end gap-3 bg-slate-50 border border-slate-200 rounded-full px-3 py-1 w-fit ml-auto">
-                                <button className="text-slate-400 hover:text-gray-900"><Minus className="w-3.5 h-3.5" /></button>
-                                <span className="text-sm font-bold w-4 text-center">{item.qty}</span>
-                                <button className="text-slate-400 hover:text-gray-900"><Plus className="w-3.5 h-3.5" /></button>
+                {items.map((item) => {
+                    const cleanLocation = item.location?.replace(
+                        /\s*-\s*$/,
+                        "",
+                    );
+
+                    const variantName =
+                        item.prepOption ||
+                        item.preparation_option ||
+                        item.sku?.variant_name;
+
+                    const unitName = item.weight || item.unit || "pcs";
+
+                    return (
+                        <div
+                            key={item.id}
+                            className="flex gap-4 items-center border-b border-slate-50 pb-4 last:border-0 last:pb-0"
+                        >
+                            <img
+                                src={item.img}
+                                alt={item.name}
+                                className="w-16 h-16 md:w-20 md:h-20 rounded-2xl object-cover bg-slate-100 shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">
+                                    {item.name}
+                                </h3>
+                                {cleanLocation && (
+                                    <p className="text-xs text-slate-500 mt-0.5 truncate">
+                                        {cleanLocation}
+                                    </p>
+                                )}
+
+                                {/* Badge Varian */}
+                                {variantName && (
+                                    <div className="mt-1.5">
+                                        <span className="bg-[#EAF7F7] text-[#245D56] text-[10px] md:text-xs font-bold px-2 py-0.5 rounded border border-[#245D56]/20">
+                                            {variantName}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="text-right shrink-0">
+                                <p className="font-bold text-[#245D56] text-sm md:text-base mb-1">
+                                    Rp{" "}
+                                    {Number(item.price).toLocaleString("id-ID")}
+                                </p>
+                                {/* Badge Qty Statis khusus Checkout */}
+                                <div className="inline-flex items-center justify-center bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 mt-1">
+                                    <span className="text-xs font-bold text-gray-700">
+                                        Qty: {item.qty} {unitName}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </section>
     );
