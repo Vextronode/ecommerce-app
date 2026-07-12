@@ -71,10 +71,10 @@ export default function CartSection({ items }: { items: CartItem[] }) {
                                     Rp{" "}
                                     {Number(item.price).toLocaleString("id-ID")}
                                 </p>
-                                {/* Badge Qty Statis khusus Checkout */}
+                                {/* Badge Qty */}
                                 <div className="inline-flex items-center justify-center bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 mt-1">
                                     <span className="text-xs font-bold text-gray-700">
-                                        Qty: {item.qty} {unitName}
+                                        Qty: {item.qty}
                                     </span>
                                 </div>
                             </div>

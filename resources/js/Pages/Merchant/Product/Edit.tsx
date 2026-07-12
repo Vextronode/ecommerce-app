@@ -27,6 +27,7 @@ export default function Edit({ product, categories }: any) {
         is_preorder: product.is_preorder || false,
         po_days: product.po_days || 0,
         po_hours: product.po_hours || 0,
+        unit: product.unit || "",
     });
 
     // nyimpe array object biar tau mana foto lama (punya ID) dan foto baru
