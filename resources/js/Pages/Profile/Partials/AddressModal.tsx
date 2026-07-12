@@ -11,14 +11,18 @@ interface AddressModalProps {
     isOpen: boolean;
     onClose: () => void;
     addressToEdit?: any;
+    storeRoute?: string;
+    updateRoute?: (id: number | string) => string;
 }
 
 export default function AddressModal({
     isOpen,
     onClose,
     addressToEdit,
+    storeRoute = route("profile.address.store"),
+    updateRoute = (id) => route("profile.address.update", id),
 }: AddressModalProps) {
-    const { data, setData, post, put, processing, reset } = useForm({
+    const { data, setData, post, put, processing, reset, transform } = useForm({
         recipient_name: "",
         phone: "",
         provinsi: "",
@@ -81,10 +85,14 @@ export default function AddressModal({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const separatorDetail = data.detail ? `, ${data.detail}` : "";
-        data.full_address = `${data.jalan}${separatorDetail}, ${data.provinsi}`;
-        data.phone = data.phone.startsWith("0")
-            ? data.phone
-            : `+62${data.phone}`;
+        const payload = {
+            ...data,
+            full_address: `${data.jalan}${separatorDetail}, ${data.provinsi}`,
+            phone: data.phone.startsWith("0")
+                ? data.phone
+                : `+62${data.phone}`,
+        };
+        transform(() => payload);
 
         const options = {
             onSuccess: () => {
@@ -93,9 +101,9 @@ export default function AddressModal({
             },
         };
         if (addressToEdit) {
-            put(route("profile.address.update", addressToEdit.id), options);
+            put(updateRoute(addressToEdit.id), options);
         } else {
-            post(route("profile.address.store"), options);
+            post(storeRoute, options);
         }
     };
 

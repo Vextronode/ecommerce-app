@@ -22,7 +22,9 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
     const [provQuery, setProvQuery] = useState("");
     const [jalanQuery, setJalanQuery] = useState("");
 
-    const baseUrl = import.meta.env.VITE_NOMINATIM_URL;
+    const baseUrl =
+        import.meta.env.VITE_NOMINATIM_URL ||
+        "https://nominatim.openstreetmap.org";
 
     const parseAddressResult = (address: any) => {
         const city =

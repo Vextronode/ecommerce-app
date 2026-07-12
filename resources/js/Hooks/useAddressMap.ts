@@ -21,7 +21,7 @@ export function useAddressMap(
         if (!isOpen || !mapContainerRef.current) return;
 
         if (!mapRef.current) {
-            const initialPos: [number, number] = [-6.9175, 107.6191]; // Bandung
+            const initialPos: [number, number] = [-7.6876, 108.6506]; // Pangandaran
             const map = L.map(mapContainerRef.current).setView(initialPos, 13);
 
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {

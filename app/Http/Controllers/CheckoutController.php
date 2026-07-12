@@ -57,6 +57,7 @@ class CheckoutController extends Controller
 
         return Inertia::render('Checkout/Checkout', [
             'initialCartItems' => $cartItems,
+            'addresses' => $request->user()->addresses()->orderBy('is_primary', 'desc')->latest()->get(),
         ]);
     }
 
@@ -65,12 +66,21 @@ class CheckoutController extends Controller
         $validated = $request->validate([
             'cart_ids' => ['required', 'array', 'min:1'],
             'cart_ids.*' => ['integer', 'distinct'],
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'address' => 'required|string',
+            'address_id' => ['nullable', 'integer'],
+            'name' => 'required_without:address_id|string|max:255',
+            'phone' => 'required_without:address_id|string|max:20',
+            'address' => 'required_without:address_id|string',
             'delivery_method' => ['required', 'string', 'in:coastal,standard'],
             'payment_method' => ['required', 'string', 'in:va,card,ewallet'],
         ]);
+
+        if (!empty($validated['address_id'])) {
+            $address = $request->user()->addresses()->findOrFail($validated['address_id']);
+
+            $validated['name'] = $address->recipient_name;
+            $validated['phone'] = $address->phone;
+            $validated['address'] = $address->full_address;
+        }
 
         $order = DB::transaction(function () use ($validated) {
             $carts = Cart::query()

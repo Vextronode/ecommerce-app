@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Cart;
+use App\Models\Address;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
@@ -87,6 +88,72 @@ class CheckoutSecurityTest extends TestCase
             'id' => $product->id,
             'stock' => 1,
         ]);
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_checkout_can_use_authenticated_users_saved_address(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $address = Address::create([
+            'user_id' => $user->id,
+            'label' => 'Rumah',
+            'is_primary' => true,
+            'recipient_name' => 'Pembeli Aman',
+            'phone' => '+6281234567890',
+            'full_address' => 'Jl. Aman No. 1, Pangandaran',
+        ]);
+        $product = $this->makeProduct(price: 10000, stock: 5);
+        $cart = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'preparation_option' => '',
+        ]);
+
+        $response = $this->actingAs($user)->post(route('checkout.store'), [
+            'cart_ids' => [$cart->id],
+            'address_id' => $address->id,
+            'delivery_method' => 'standard',
+            'payment_method' => 'va',
+        ]);
+
+        $response->assertRedirect(route('shop'));
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'shipping_name' => 'Pembeli Aman',
+            'shipping_phone' => '+6281234567890',
+            'shipping_address' => 'Jl. Aman No. 1, Pangandaran',
+        ]);
+    }
+
+    public function test_checkout_rejects_another_users_saved_address(): void
+    {
+        $attacker = User::factory()->create(['role' => 'user']);
+        $victim = User::factory()->create(['role' => 'user']);
+        $victimAddress = Address::create([
+            'user_id' => $victim->id,
+            'label' => 'Rumah',
+            'is_primary' => true,
+            'recipient_name' => 'Korban',
+            'phone' => '+6281111111111',
+            'full_address' => 'Alamat Rahasia Korban',
+        ]);
+        $product = $this->makeProduct(price: 10000, stock: 5);
+        $cart = Cart::create([
+            'user_id' => $attacker->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'preparation_option' => '',
+        ]);
+
+        $response = $this->actingAs($attacker)->post(route('checkout.store'), [
+            'cart_ids' => [$cart->id],
+            'address_id' => $victimAddress->id,
+            'delivery_method' => 'standard',
+            'payment_method' => 'va',
+        ]);
+
+        $response->assertNotFound();
         $this->assertDatabaseCount('orders', 0);
     }
 
