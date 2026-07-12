@@ -18,7 +18,7 @@ export default function QuantitySelector({
     return (
         <div className="flex items-center gap-6 mb-8 pt-4">
             <span className="font-bold text-gray-900 text-sm tracking-wide">
-                Quantity ({unit})
+                Atur Jumlah
             </span>
             <div className="flex items-center border border-gray-200 rounded-lg">
                 <button
@@ -40,8 +40,8 @@ export default function QuantitySelector({
                     <Plus className="w-4 h-4" />
                 </button>
             </div>
-            <span className="text-sm text-gray-500">
-                {availableStock} {unit} available
+            <span className="text-sm text-gray-500 font-medium">
+                Tersisa {availableStock} stok
             </span>
         </div>
     );

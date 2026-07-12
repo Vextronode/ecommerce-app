@@ -12,7 +12,7 @@ class Product extends Model
     protected $fillable = [
         'store_id', 'category_id', 'name', 'slug', 'description',
         'price', 'stock', 'image_path', 'is_active',
-        'is_preorder', 'po_days', 'po_hours',
+        'is_preorder', 'po_days', 'po_hours','unit',
     ];
 
     public function store()

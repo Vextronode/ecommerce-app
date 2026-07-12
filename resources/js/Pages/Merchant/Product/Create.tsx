@@ -31,6 +31,7 @@ export default function Create({ categories }: Props) {
         is_preorder: false,
         po_days: 0,
         po_hours: 0,
+        unit: "",
     });
 
     // state buat nyimpen URL preview gambar yang banyak

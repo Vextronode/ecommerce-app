@@ -75,6 +75,7 @@ class ProductController extends Controller
             'skus' => 'nullable|array',
             'price' => 'nullable|numeric|min:0',
             'stock' => 'nullable|integer|min:0',
+            'unit' => 'nullable|string|max:20',
         ]);
 
         $hasSkus = $request->has('skus') && is_array($request->skus) && count($request->skus) > 0;
@@ -94,6 +95,8 @@ class ProductController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'price' => $basePrice,
+            'slug' => Str::slug($request->name) . '-' . uniqid(),
+            'unit' => $request->unit,
             'stock' => $totalStock,
             'is_active' => true,
             'is_preorder' => $request->is_preorder ?? false,
@@ -173,6 +176,7 @@ class ProductController extends Controller
             'skus' => 'nullable|array',
             'price' => 'nullable|numeric|min:0',
             'stock' => 'nullable|integer|min:0',
+            'unit' => 'nullable|string|max:20',
         ]);
 
         $hasSkus = $request->has('skus') && is_array($request->skus) && count($request->skus) > 0;
@@ -195,6 +199,7 @@ class ProductController extends Controller
             'is_preorder' => $request->is_preorder ?? false,
             'po_days' => $request->po_days ?? 0,
             'po_hours' => $request->po_hours ?? 0,
+            'unit' => $request->unit,
         ]);
 
         if ($request->has('deleted_images')) {
