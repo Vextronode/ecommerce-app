@@ -9,7 +9,13 @@ import {
 } from "lucide-react";
 import OrderExpandedDetail from "./OrderExpandedDetail";
 
-export default function OrderMobileCard({ order }: { order: any }) {
+export default function OrderMobileCard({
+    order,
+    onOpenAction,
+}: {
+    order: any;
+    onOpenAction: (order: any) => void;
+}) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const formatRupiah = (angka: number) => {
@@ -58,7 +64,10 @@ export default function OrderMobileCard({ order }: { order: any }) {
                     </p>
                 </div>
                 <button
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenAction(order);
+                    }}
                     className="text-gray-400 hover:text-[#14433D] p-1"
                 >
                     <MoreVertical className="w-4 h-4" />

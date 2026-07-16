@@ -99,6 +99,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
         Route::post('/products/{product:slug}', [\App\Http\Controllers\Merchant\ProductController::class, 'update'])->name('merchant.products.update');
         Route::delete('/products/{product:slug}', [\App\Http\Controllers\Merchant\ProductController::class, 'destroy'])->name('merchant.products.destroy');
         Route::get('/orders', [\App\Http\Controllers\Merchant\OrderController::class, 'index'])->name('merchant.orders.index');
+        Route::put('/merchant/orders/{id}/status', [App\Http\Controllers\Merchant\OrderController::class, 'updateStatus'])->name('merchant.orders.update-status');
     });
 
 require __DIR__ . '/auth.php';

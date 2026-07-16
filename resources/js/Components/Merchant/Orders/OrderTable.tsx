@@ -4,11 +4,18 @@ import OrderTableRow from "./OrderTableRow";
 import OrderMobileCard from "./OrderMobileCard";
 import Pagination from "./Pagination";
 
-export default function OrderTable({ orders }: { orders: any }) {
+export default function OrderTable({
+    orders,
+    onOpenAction,
+}: {
+    orders: any;
+    onOpenAction: (order: any) => void;
+}) {
     return (
         <div className="bg-white rounded-[20px] border border-[#41B9C5]/20 shadow-sm overflow-hidden flex flex-col">
             <TableToolbar />
 
+            {/* Desktop View */}
             <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-200">
                     <thead>
@@ -35,7 +42,11 @@ export default function OrderTable({ orders }: { orders: any }) {
                     <tbody>
                         {orders?.data?.length > 0 ? (
                             orders.data.map((order: any, idx: number) => (
-                                <OrderTableRow key={idx} order={order} />
+                                <OrderTableRow
+                                    key={idx}
+                                    order={order}
+                                    onOpenAction={onOpenAction}
+                                />
                             ))
                         ) : (
                             <tr>
@@ -51,11 +62,15 @@ export default function OrderTable({ orders }: { orders: any }) {
                 </table>
             </div>
 
-            {/* Mobile VIew */}
+            {/* Mobile View */}
             <div className="block lg:hidden divide-y divide-gray-100">
                 {orders?.data?.length > 0 ? (
                     orders.data.map((order: any, idx: number) => (
-                        <OrderMobileCard key={idx} order={order} />
+                        <OrderMobileCard
+                            key={idx}
+                            order={order}
+                            onOpenAction={onOpenAction}
+                        />
                     ))
                 ) : (
                     <div className="py-12 text-center text-gray-400 font-medium">

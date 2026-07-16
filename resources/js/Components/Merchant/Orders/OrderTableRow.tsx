@@ -9,7 +9,13 @@ import {
 } from "lucide-react";
 import OrderExpandedDetail from "./OrderExpandedDetail";
 
-export default function OrderTableRow({ order }: { order: any }) {
+export default function OrderTableRow({
+    order,
+    onOpenAction,
+}: {
+    order: any;
+    onOpenAction: (order: any) => void;
+}) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const formatRupiah = (angka: number) => {
@@ -92,7 +98,6 @@ export default function OrderTableRow({ order }: { order: any }) {
                                     `• ${firstProduct.variant_name}`}
                             </span>
 
-                            {/* button mamsih statis */}
                             {otherProductsCount > 0 && (
                                 <span className="text-[11px] font-bold text-[#41B9C5] bg-[#EAF7F7] px-1.5 py-0.5 rounded flex items-center gap-0.5">
                                     +{otherProductsCount} lainnya
@@ -144,7 +149,10 @@ export default function OrderTableRow({ order }: { order: any }) {
                 </td>
                 <td className="py-4 px-6 text-center">
                     <button
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenAction(order);
+                        }}
                         className="text-gray-400 hover:text-[#41B9C5] transition-colors p-1 rounded"
                     >
                         <MoreVertical className="w-5 h-5" />
