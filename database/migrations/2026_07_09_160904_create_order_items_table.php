@@ -13,9 +13,18 @@ return new class extends Migration {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+
+            // 👇 Dibikin nullable dan nullOnDelete.
+            // Kalau produk dihapus Kang Asep, ID-nya doang yang null, tapi baris pesanan ini tetep ada!
+            $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
+
+            // 👇 Snapshot Data (Penting banget buat nota/histori)
+            $table->string('product_name');
+            $table->decimal('price', 12, 2); // Harga di-lock saat transaksi
             $table->integer('quantity');
-            $table->decimal('price', 12, 2);
+            $table->string('unit')->default('pcs'); // Misal: kg, gram, ekor
+            $table->string('variant_name')->nullable(); // Misal: Fillet, Utuh
+
             $table->timestamps();
         });
     }

@@ -1,0 +1,70 @@
+import React from "react";
+import TableToolbar from "./TableToolbar";
+import OrderTableRow from "./OrderTableRow";
+import OrderMobileCard from "./OrderMobileCard";
+import Pagination from "./Pagination";
+
+export default function OrderTable({ orders }: { orders: any }) {
+    return (
+        <div className="bg-white rounded-[20px] border border-[#41B9C5]/20 shadow-sm overflow-hidden flex flex-col">
+            <TableToolbar />
+
+            <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-200">
+                    <thead>
+                        <tr className="border-b border-gray-100 bg-white">
+                            {[
+                                "ORDER ID",
+                                "CUSTOMER",
+                                "ITEMS",
+                                "DATE",
+                                "TOTAL",
+                                "PAYMENT",
+                                "SHIPPING",
+                                "ACTIONS",
+                            ].map((th, idx) => (
+                                <th
+                                    key={idx}
+                                    className={`py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider ${th === "ACTIONS" ? "text-center" : ""}`}
+                                >
+                                    {th}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {orders?.data?.length > 0 ? (
+                            orders.data.map((order: any, idx: number) => (
+                                <OrderTableRow key={idx} order={order} />
+                            ))
+                        ) : (
+                            <tr>
+                                <td
+                                    colSpan={8}
+                                    className="py-8 text-center text-gray-400 font-medium"
+                                >
+                                    Belum ada pesanan masuk.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Mobile VIew */}
+            <div className="block lg:hidden divide-y divide-gray-100">
+                {orders?.data?.length > 0 ? (
+                    orders.data.map((order: any, idx: number) => (
+                        <OrderMobileCard key={idx} order={order} />
+                    ))
+                ) : (
+                    <div className="py-12 text-center text-gray-400 font-medium">
+                        Belum ada pesanan masuk.
+                    </div>
+                )}
+            </div>
+
+            <Pagination pagination={orders} />
+        </div>
+    );
+}
