@@ -2,7 +2,7 @@ import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import { X } from "lucide-react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
-import ShopHero from "@/Components/Storefront/ShopHero";
+import HeroSection from "@/Components/Storefront/HeroSection";
 import CategorySection from "@/Components/Storefront/CategorySection";
 import ProductCarousel from "@/Components/Storefront/ProductCarousel";
 
@@ -56,7 +56,7 @@ export default function Shop({
                 }
             />
 
-            <ShopHero />
+            <HeroSection />
 
             {searchQuery && (
                 <div className="w-full max-w-350 mx-auto px-4 md:px-8 lg:px-12 mt-8 -mb-4">

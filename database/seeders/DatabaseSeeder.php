@@ -51,6 +51,7 @@ class DatabaseSeeder extends Seeder
             'user_id' => $asep->id,
             'name' => 'Warung Sembako Kang Asep',
             'slug' => Str::slug('Warung Sembako Kang Asep-' . uniqid()),
+            'description' => 'Sedia beras, gula, minyak goreng, dan bumbu dapur lengkap dengan harga grosir.',
         ]);
 
         $euis = User::create([
@@ -65,6 +66,35 @@ class DatabaseSeeder extends Seeder
             'user_id' => $euis->id,
             'name' => 'Toko Baju Euis',
             'slug' => Str::slug('Toko Baju Euis-' . uniqid()),
+            'description' => 'Koleksi pakaian terbaru, kaos, kemeja, dan celana jeans berkualitas export.',
+        ]);
+
+        $udin = User::create([
+            'name' => 'Mang Udin',
+            'email' => 'udin@pedagang.com',
+            'password' => Hash::make('password123'),
+            'role' => 'pedagang',
+            'is_password_changed' => true,
+        ]);
+        $storeUdin = Store::create([
+            'user_id' => $udin->id,
+            'name' => 'TokoSegar Buah',
+            'slug' => Str::slug('TokoSegar Buah-' . uniqid()),
+            'description' => 'Menyediakan buah-buahan segar lokal dan impor kualitas terbaik setiap hari.',
+        ]);
+
+        $siti = User::create([
+            'name' => 'Bi Siti',
+            'email' => 'siti@pedagang.com',
+            'password' => Hash::make('password123'),
+            'role' => 'pedagang',
+            'is_password_changed' => true,
+        ]);
+        $storeSiti = Store::create([
+            'user_id' => $siti->id,
+            'name' => 'Sayur Mayur Siti',
+            'slug' => Str::slug('Sayur Mayur Siti-' . uniqid()),
+            'description' => 'Sayur mayur organik hidroponik dan bumbu dapur segar petik langsung dari kebun.',
         ]);
 
         User::create([
@@ -108,6 +138,39 @@ class DatabaseSeeder extends Seeder
             'stock' => 10,
             'is_active' => true,
         ]);
+
+        $catPakaian = Category::where('name', 'Pakaian')->first()->id;
+        $catSayuran = Category::where('name', 'Sayuran')->first()->id;
+        $catLainnya = Category::where('name', 'Lainnya')->first()->id;
+
+        $productsData = [
+            ['store' => $storeAsep, 'cat' => $sembakoId, 'name' => 'Minyak Goreng 2L', 'price' => 35000],
+            ['store' => $storeAsep, 'cat' => $sembakoId, 'name' => 'Gula Pasir 1kg', 'price' => 15000],
+            ['store' => $storeAsep, 'cat' => $sembakoId, 'name' => 'Telur Ayam 1kg', 'price' => 28000],
+            ['store' => $storeEuis, 'cat' => $catPakaian, 'name' => 'Kaos Polos Katun', 'price' => 50000],
+            ['store' => $storeEuis, 'cat' => $catPakaian, 'name' => 'Celana Jeans Pria', 'price' => 120000],
+            ['store' => $storeEuis, 'cat' => $catPakaian, 'name' => 'Kemeja Batik', 'price' => 150000],
+            ['store' => $storeEuis, 'cat' => $catPakaian, 'name' => 'Jaket Hoodie', 'price' => 180000],
+            ['store' => $storeUdin, 'cat' => $catLainnya, 'name' => 'Jeruk Medan 1kg', 'price' => 35000],
+            ['store' => $storeUdin, 'cat' => $catLainnya, 'name' => 'Apel Fuji 1kg', 'price' => 45000],
+            ['store' => $storeUdin, 'cat' => $catLainnya, 'name' => 'Pisang Ambon 1 Sisir', 'price' => 20000],
+            ['store' => $storeSiti, 'cat' => $catSayuran, 'name' => 'Bayam Segar 1 Ikat', 'price' => 5000],
+            ['store' => $storeSiti, 'cat' => $catSayuran, 'name' => 'Kangkung 1 Ikat', 'price' => 4000],
+            ['store' => $storeSiti, 'cat' => $catSayuran, 'name' => 'Tomat Merah 1kg', 'price' => 12000],
+        ];
+
+        foreach ($productsData as $p) {
+            Product::create([
+                'store_id' => $p['store']->id,
+                'category_id' => $p['cat'],
+                'name' => $p['name'],
+                'slug' => Str::slug($p['name'] . '-' . uniqid()),
+                'description' => 'Produk berkualitas dari ' . $p['store']->name,
+                'price' => $p['price'],
+                'stock' => rand(10, 50),
+                'is_active' => true,
+            ]);
+        }
 
 
         // ORDER 1: Udah Lunas & Dikirim (Isinya Beras & Udang)
