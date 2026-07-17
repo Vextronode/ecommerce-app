@@ -1,54 +1,139 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useLayoutEffect, useRef } from "react";
 import { usePage } from "@inertiajs/react";
-import { motion, AnimatePresence } from "framer-motion";
-
-import loginBg from "@/assets/images/log_bg.jpeg";
+import { motion, useAnimation } from "framer-motion";
 import AuthBranding from "@/Components/AuthBranding";
+
+const WaveEdge = ({ side }: { side: "right" | "left" }) => (
+    <div
+        className="absolute top-0 bottom-0 w-[100px] text-[#245D56]"
+        style={
+            side === "right"
+                ? { right: "-99px" }
+                : { left: "-99px", transform: "scaleX(-1)" }
+        }
+    >
+        <svg
+            viewBox="0 0 100 1000"
+            preserveAspectRatio="none"
+            className="w-full h-full fill-current"
+        >
+            <path d="M0,0 L0,1000 C 0,950 100,925 100,850 C 100,775 30,750 30,675 C 30,600 90,575 90,500 C 90,425 20,400 20,325 C 20,250 100,225 100,150 C 100,75 0,50 0,0 Z" />
+        </svg>
+    </div>
+);
 
 export default function AuthLayout({ children }: PropsWithChildren) {
     const { url } = usePage();
     const isLogin = url === "/login";
 
+    const panelControls = useAnimation();
+    const contentControls = useAnimation();
+    const prevIsLogin = useRef(isLogin);
+
+    useLayoutEffect(() => {
+        if (prevIsLogin.current === isLogin) return;
+        prevIsLogin.current = isLogin;
+
+        contentControls.set({ opacity: 0 });
+
+        async function runAnimation() {
+            if (!isLogin) {
+                await panelControls.start({
+                    width: "115%",
+                    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                });
+                await panelControls.start({
+                    left: "50%",
+                    width: "50%",
+                    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                });
+            } else {
+                await panelControls.start({
+                    left: "-15%",
+                    width: "115%",
+                    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                });
+                await panelControls.start({
+                    left: "0%",
+                    width: "50%",
+                    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
+                });
+            }
+
+            await contentControls.start({
+                opacity: 1,
+                transition: { duration: 0.25 },
+            });
+        }
+
+        runAnimation();
+    }, [isLogin]);
+
     return (
-        <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-8 overflow-hidden bg-gray-100">
-            <img
-                src={loginBg}
-                alt="Background"
-                className="absolute inset-0 w-full h-full object-cover z-0"
-                fetchPriority="high"
-            />
-            <div className="absolute inset-0 bg-black/10 z-0"></div>
-
-            {/* glass container*/}
-            <div className="relative z-10 w-full max-w-5xl bg-white/20 backdrop-blur-md border border-white/30 rounded-4xl shadow-2xl p-6 sm:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 transition-all duration-300">
-                {/* logo */}
+        <div className="relative w-full min-h-screen overflow-hidden bg-[#F0F2F5]">
+            <div className="hidden md:flex relative w-full h-screen">
                 <motion.div
-                    layout="position"
-                    transition={{ type: "spring", stiffness: 60, damping: 15 }}
-                    className={`w-full md:flex-1 flex justify-center z-10 ${isLogin ? "order-1" : "order-2"}`}
+                    className="absolute top-0 bottom-0 z-0"
+                    initial={{
+                        left: isLogin ? "0%" : "50%",
+                        width: "50%",
+                    }}
+                    animate={panelControls}
                 >
+                    <div className="absolute inset-0 bg-[#245D56]" />
+                    <WaveEdge side="right" />
+                    <WaveEdge side="left" />
+                </motion.div>
+
+                <motion.div
+                    className="relative z-10 w-full h-full flex"
+                    initial={{ opacity: 1 }}
+                    animate={contentControls}
+                >
+                    <div className="w-1/2 h-full flex items-center justify-center px-8 lg:px-14">
+                        {isLogin ? (
+                            <AuthBranding type="login" />
+                        ) : (
+                            <div className="w-full max-w-xl">
+                                <div className="bg-[#F0F2F5] rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
+                                    {children}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="w-1/2 h-full flex items-center justify-center px-8 lg:px-14">
+                        {isLogin ? (
+                            <div className="w-full max-w-xl">
+                                <div className="bg-[#F0F2F5] rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
+                                    {children}
+                                </div>
+                            </div>
+                        ) : (
+                            <AuthBranding type="register" />
+                        )}
+                    </div>
+                </motion.div>
+            </div>
+
+            <div className="md:hidden flex flex-col min-h-screen">
+                <div className="bg-[#245D56] flex items-center justify-center py-14 px-6">
                     <AuthBranding type={isLogin ? "login" : "register"} />
-                </motion.div>
-
-                {/* form card */}
-                <motion.div
-                    layout="position"
-                    transition={{ type: "spring", stiffness: 60, damping: 15 }}
-                    className={`w-full md:flex-1 bg-white/60 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 z-20 flex flex-col overflow-hidden min-h-150 lg:min-h-162.5 p-8 md:p-10 ${isLogin ? "order-2" : "order-1"}`}
+                </div>
+                <svg
+                    viewBox="0 0 1440 80"
+                    preserveAspectRatio="none"
+                    className="w-full h-8 block bg-[#F0F2F5] -mt-px"
                 >
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={url}
-                            initial={{ opacity: 0, x: isLogin ? 20 : -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: isLogin ? -20 : 20 }}
-                            transition={{ duration: 0.3 }}
-                            className="w-full h-full flex flex-col"
-                        >
-                            {children}
-                        </motion.div>
-                    </AnimatePresence>
-                </motion.div>
+                    <path
+                        d="M0,0 C360,60 1080,-20 1440,40 L1440,0 L0,0 Z"
+                        fill="#245D56"
+                    />
+                </svg>
+
+                <div className="flex-1 flex items-start justify-center px-6 py-8 overflow-y-auto bg-[#F0F2F5]">
+                    <div className="w-full max-w-md">{children}</div>
+                </div>
             </div>
         </div>
     );
