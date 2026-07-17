@@ -2,17 +2,19 @@ import React from "react";
 import { Head } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import HeroSection from "@/Components/Storefront/HeroSection";
-import InfoBanner from "@/Components/Storefront/InfoBanner";
 import CategorySection from "@/Components/Storefront/CategorySection";
 import ProductCarousel from "@/Components/Storefront/ProductCarousel";
 import StoreFeatures from "@/Components/Storefront/StoreFeatures";
+import MerchantSection from "@/Components/Storefront/MerchantSection";
+import AboutSection from "@/Components/Storefront/AboutSection";
 
 interface Props {
     categories: any[];
     featuredProducts: any[];
+    stores: any[];
 }
 
-export default function Dashboard({ categories, featuredProducts }: Props) {
+export default function Dashboard({ categories, featuredProducts, stores = [] }: Props) {
     // format data produk dari database biar sesuai sama kebutuhan komponen ProductCarousel
     const formattedProducts = featuredProducts.map((product) => ({
         id: product.id,
@@ -44,14 +46,16 @@ export default function Dashboard({ categories, featuredProducts }: Props) {
             <Head title="Home - Cibenda Mart" />
 
             <HeroSection />
-            <InfoBanner />
+            {/* <InfoBanner /> */}
 
             <CategorySection categories={formattedCategories} />
             <ProductCarousel
-                title="Featured Products"
+                title="Top Produk"
                 products={formattedProducts}
             />
 
+            <MerchantSection stores={stores} />
+            <AboutSection />
             <StoreFeatures />
         </StorefrontLayout>
     );
