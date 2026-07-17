@@ -35,7 +35,7 @@ const Register = () => {
             </h2>
 
             <form onSubmit={submit} className="flex flex-col grow h-full">
-                <div className="space-y-6 grow">
+                <div className="space-y-4 grow">
                     <FormInput
                         label="Fullname"
                         id="name"
@@ -69,32 +69,30 @@ const Register = () => {
                         errorMessage={errors.password}
                         required
                     />
-                    <div className="pt-2">
+                    <div className="pt-4">
                         <PrimaryButton disabled={processing}>
                             {processing ? "Memproses..." : "Daftar"}
                         </PrimaryButton>
                     </div>
-                    <div className="text-center mt-6">
-                        <p className="text-sm text-gray-600 mb-3">
-                            Use Social Account
-                        </p>
-                        <a
-                            href={route("google.redirect")}
-                            className="inline-flex items-center justify-center w-10 h-10 bg-white rounded-full shadow hover:shadow-md transition-all duration-300 hover:scale-110"
-                        >
-                            <GoogleIcon className="w-5 h-5" />
-                        </a>
-                    </div>
                 </div>
 
-                <div className="mt-auto pt-6 text-center text-sm text-gray-600 shrink-0">
+                <div className="mt-6 text-center text-sm text-gray-500 shrink-0">
                     Already have an account?{" "}
                     <Link
                         href={route("login")}
-                        className="font-bold text-[#1ABCFE] hover:text-[#2563eb] hover:underline transition-colors duration-200"
+                        className="text-[#1ABCFE] hover:text-[#0c9bd3] transition-colors duration-200 font-medium"
                     >
                         Sign In
                     </Link>
+                </div>
+                
+                <div className="text-center mt-3 shrink-0 flex justify-center">
+                    <a
+                        href={route("google.redirect")}
+                        className="inline-flex items-center justify-center transition-all duration-300 hover:scale-110"
+                    >
+                        <GoogleIcon className="w-20 h-auto" />
+                    </a>
                 </div>
             </form>
         </>

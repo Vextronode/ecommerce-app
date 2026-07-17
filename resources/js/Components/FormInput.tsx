@@ -15,16 +15,16 @@ export default function FormInput({
 }: FormInputProps) {
     return (
         <div className={className}>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 pl-2">
+            <label className="block text-sm font-semibold text-gray-800 mb-1 pl-1">
                 {label} {required && <span className="text-red-500">*</span>}
             </label>
             <input
                 {...props}
                 required={required}
-                className="w-full bg-white/90 border-0 rounded-full px-6 py-3 text-gray-700 shadow-inner focus:ring-2 focus:ring-[#4a7c47] focus:outline-none transition-all duration-300"
+                className="w-full bg-[#f8f9fa] border-0 rounded-xl px-4 py-3 text-gray-700 focus:ring-2 focus:ring-[#245D56] focus:bg-white focus:outline-none transition-all duration-300 shadow-sm inset-shadow-sm"
             />
             {errorMessage && (
-                <p className="text-red-500 text-xs mt-2 pl-2">{errorMessage}</p>
+                <p className="text-red-500 text-xs mt-1 pl-1">{errorMessage}</p>
             )}
         </div>
     );
