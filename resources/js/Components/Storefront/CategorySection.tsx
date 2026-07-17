@@ -9,9 +9,11 @@ export interface Category {
 
 interface CategorySectionProps {
     categories: Category[];
+    title?: string;
+    subtitle?: string;
 }
 
-export default function CategorySection({ categories }: CategorySectionProps) {
+export default function CategorySection({ categories, title = "Popular Category", subtitle = "Temukan produk berdasarkan kategori" }: CategorySectionProps) {
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [currentPage, setCurrentPage] = useState(0);
 
@@ -56,10 +58,10 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                 {/* HEADER */}
                 <div className="flex flex-col items-center justify-center mb-10 text-center">
                     <p className="text-gray-500 text-xs md:text-sm mb-1">
-                        Temukan produk berdasarkan kategori
+                        {subtitle}
                     </p>
                     <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight">
-                        Popular Category
+                        {title}
                     </h2>
                 </div>
 

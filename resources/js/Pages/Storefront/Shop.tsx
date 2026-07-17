@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import HeroSection from "@/Components/Storefront/HeroSection";
 import CategorySection from "@/Components/Storefront/CategorySection";
-import ProductCarousel from "@/Components/Storefront/ProductCarousel";
+import ShopProductRow from "@/Components/Storefront/ShopProductRow";
 
 interface GroupedProduct {
     category_name: string;
@@ -83,12 +83,16 @@ export default function Shop({
             )}
 
             {!searchQuery && (
-                <CategorySection categories={formattedCategories} />
+                <CategorySection 
+                    categories={formattedCategories} 
+                    title="Shop by Category"
+                    subtitle="Temukan produk berdasarkan kategori"
+                />
             )}
 
             {groupedProducts.length > 0 ? (
                 groupedProducts.map((group, index) => (
-                    <ProductCarousel
+                    <ShopProductRow
                         key={index}
                         title={group.category_name}
                         products={group.products.map(formatProduct)}
