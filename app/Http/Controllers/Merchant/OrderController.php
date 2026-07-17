@@ -35,7 +35,7 @@ class OrderController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $totalOrders = Order::where('store_id', $store->id)->count();
+        $totalOrders = Order::where('store_id', $store->id)->where('shipping_status', 'delivered')->count();
         $pendingShipping = Order::where('store_id', $store->id)->where('shipping_status', 'pending')->count();
         $pendingPayment = Order::where('store_id', $store->id)->where('payment_status', 'pending')->count();
 
@@ -66,9 +66,18 @@ class OrderController extends Controller
             abort(403, 'Anda tidak punya akses ke pesanan ini.');
         }
 
-        $order->update([
-            'shipping_status' => $request->shipping_status,
-        ]);
+        if (in_array($order->shipping_status, ['cancelled', 'delivered'])) {
+            return back()->with('error', 'Status pesanan ini sudah tidak bisa diubah lagi.');
+        }
+
+        $updateData = ['shipping_status' => $request->shipping_status];
+
+        if ($request->shipping_status === 'cancelled') {
+            $updateData['payment_status'] = $order->payment_method === 'cod' ? 'failed' : 'refunded';
+            $order->restoreStock();
+        }
+
+        $order->update($updateData);
 
         return back()->with('success', 'Status pesanan berhasil diperbarui!');
     }

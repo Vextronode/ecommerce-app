@@ -7,7 +7,7 @@ const navLinks = [
     { name: "Home", href: "/dashboard" },
     { name: "Shop", href: "/shop" },
     { name: "Order", href: "/checkout" },
-    { name: "Delivery", href: "#" },
+    { name: "History", href: "/history" },
 ];
 
 export default function Navbar() {

@@ -26,6 +26,11 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout');
+    Route::get('/checkout/success', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/history', [\App\Http\Controllers\OrderHistoryController::class, 'index'])->name('history.index');
+    Route::get('/history/{order}', [\App\Http\Controllers\OrderHistoryController::class, 'show'])->name('history.show');
+    Route::post('/history/{order}/cancel', [\App\Http\Controllers\OrderHistoryController::class, 'cancel'])->name('history.cancel');
+    Route::post('/history/{order}/complete', [\App\Http\Controllers\OrderHistoryController::class, 'complete'])->name('history.complete');
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
 
     Route::get('/cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart');
@@ -68,6 +73,76 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
 
         Route::get('/dashboard', function (Illuminate\Http\Request $request) {
             $user = $request->user()->load('store');
+            $storeId = $user->store ? $user->store->id : null;
+
+            $sales = $storeId ? \App\Models\Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->sum('total_amount') : 0;
+            $ordersCount = $storeId ? \App\Models\Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->count() : 0;
+            $customersCount = $storeId ? \App\Models\Order::where('store_id', $storeId)->distinct('user_id')->count('user_id') : 0;
+            $productsCount = $storeId ? \App\Models\Product::where('store_id', $storeId)->count() : 0;
+
+            $pending = $storeId ? \App\Models\Order::where('store_id', $storeId)->where('shipping_status', 'pending')->count() : 0;
+            $processing = $storeId ? \App\Models\Order::where('store_id', $storeId)->where('shipping_status', 'processing')->count() : 0;
+            $shipped = $storeId ? \App\Models\Order::where('store_id', $storeId)->where('shipping_status', 'shipped')->count() : 0;
+            $completed = $storeId ? \App\Models\Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->count() : 0;
+
+            $recentOrders = $storeId ? \App\Models\Order::with(['items.product'])->where('store_id', $storeId)->where('shipping_status', 'delivered')->orderBy('created_at', 'desc')->take(5)->get()->map(function($o) {
+                $firstItem = $o->items->first();
+                return [
+                    'invoice_number' => $o->invoice_number,
+                    'customer_name' => $o->customer_name,
+                    'product_name' => $firstItem ? $firstItem->product_name : 'N/A',
+                    'product_image' => $firstItem && $firstItem->product ? $firstItem->product->image_path : null,
+                    'date' => $o->created_at->format('d M Y'),
+                    'amount' => 'Rp ' . number_format($o->total_amount, 0, ',', '.'),
+                    'status' => ucfirst($o->shipping_status),
+                ];
+            }) : [];
+
+            $topSelling = $storeId ? \App\Models\Product::where('store_id', $storeId)
+                ->withSum('orderItems', 'quantity')
+                ->orderBy('order_items_sum_quantity', 'desc')
+                ->take(3)
+                ->get()
+                ->map(function($p) {
+                    return [
+                        'name' => $p->name,
+                        'category' => $p->category->name ?? 'Uncategorized',
+                        'image' => $p->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47',
+                        'sold' => $p->order_items_sum_quantity ?? 0,
+                        'price' => 'Rp ' . number_format($p->price, 0, ',', '.'),
+                        'status' => $p->stock > 0 ? 'In Stock' : 'Out of Stock',
+                        'statusColor' => $p->stock > 0 ? 'text-green-500' : 'text-red-500',
+                    ];
+                }) : [];
+
+            $chartData = [];
+            if ($storeId) {
+                // Get all delivered orders from last 3 weeks
+                $startDate = now()->startOfWeek()->subWeeks(2); // 3 weeks ago (start of week)
+                $orders = \App\Models\Order::where('store_id', $storeId)
+                    ->where('shipping_status', 'delivered')
+                    ->where('created_at', '>=', $startDate)
+                    ->selectRaw('DATE(created_at) as date, SUM(total_amount) as sales')
+                    ->groupBy('date')
+                    ->get()
+                    ->keyBy('date');
+
+                $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+                for ($i = 0; $i < 7; $i++) {
+                    $dayName = $days[$i];
+                    
+                    $dateW1 = now()->startOfWeek()->addDays($i)->format('Y-m-d');
+                    $dateW2 = now()->startOfWeek()->subWeeks(1)->addDays($i)->format('Y-m-d');
+                    $dateW3 = now()->startOfWeek()->subWeeks(2)->addDays($i)->format('Y-m-d');
+
+                    $chartData[] = [
+                        'name' => $dayName,
+                        'minggu1' => isset($orders[$dateW1]) ? $orders[$dateW1]->sales : 0,
+                        'minggu2' => isset($orders[$dateW2]) ? $orders[$dateW2]->sales : 0,
+                        'minggu3' => isset($orders[$dateW3]) ? $orders[$dateW3]->sales : 0,
+                    ];
+                }
+            }
 
             return Inertia::render('Merchant/Dashboard', [
                 'merchantInfo' => [
@@ -75,19 +150,19 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
                     'store_name' => $user->store ? $user->store->name : 'Toko Anda',
                 ],
                 'stats' => [
-                    'sales' => 0,
-                    'orders' => 0,
-                    'customers' => 0,
-                    'products' => 0,
+                    'sales' => $sales,
+                    'orders' => $ordersCount,
+                    'customers' => $customersCount,
+                    'products' => $productsCount,
                 ],
-                'chartData' => [],
-                'recentOrders' => [],
-                'topSelling' => [],
+                'chartData' => $chartData,
+                'recentOrders' => $recentOrders,
+                'topSelling' => $topSelling,
                 'orderStatus' => [
-                    'pending' => 0,
-                    'processing' => 0,
-                    'shipped' => 0,
-                    'completed' => 0,
+                    'pending' => $pending,
+                    'processing' => $processing,
+                    'shipped' => $shipped,
+                    'completed' => $completed,
                 ],
             ]);
         })->name('merchant.dashboard');

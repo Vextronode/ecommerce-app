@@ -86,11 +86,11 @@ class CheckoutController extends Controller
             $validated['address'] = $address->full_address;
         }
 
-        $order = DB::transaction(function () use ($validated) {
+        $orders = DB::transaction(function () use ($validated, $request) {
             $carts = Cart::query()
                 ->where('user_id', auth()->id())
                 ->whereIn('id', $validated['cart_ids'])
-                ->with(['product.skus'])
+                ->with(['product.skus', 'product.store'])
                 ->lockForUpdate()
                 ->get();
 
@@ -100,71 +100,99 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            $subtotal = 0;
+            // Group carts by store_id
+            $cartsByStore = $carts->groupBy(function ($cart) {
+                // If product has no store, maybe assign a default or error
+                return $cart->product->store_id;
+            });
 
-            foreach ($carts as $cart) {
-                $product = $cart->product()->lockForUpdate()->first();
+            $createdOrders = [];
 
-                if (!$product || !$product->is_active) {
-                    throw ValidationException::withMessages([
-                        'cart_ids' => "Produk {$cart->product_id} sudah tidak tersedia.",
-                    ]);
+            foreach ($cartsByStore as $storeId => $storeCarts) {
+                $subtotal = 0;
+
+                foreach ($storeCarts as $cart) {
+                    $product = $cart->product()->lockForUpdate()->first();
+
+                    if (!$product || !$product->is_active) {
+                        throw ValidationException::withMessages([
+                            'cart_ids' => "Produk {$cart->product_id} sudah tidak tersedia.",
+                        ]);
+                    }
+
+                    $matchingSku = $product->skus->where('variant_name', $cart->preparation_option)->first();
+                    $availableStock = $matchingSku ? $matchingSku->stock : $product->stock;
+                    $itemPrice = $matchingSku ? $matchingSku->price : $product->price;
+
+                    if ($cart->quantity > $availableStock) {
+                        throw ValidationException::withMessages([
+                            'cart_ids' => "Stok {$product->name} tidak mencukupi.",
+                        ]);
+                    }
+
+                    $subtotal += $itemPrice * $cart->quantity;
+                    $cart->setRelation('product', $product);
                 }
 
-                $matchingSku = $product->skus->where('variant_name', $cart->preparation_option)->first();
-                $availableStock = $matchingSku ? $matchingSku->stock : $product->stock;
-                $itemPrice = $matchingSku ? $matchingSku->price : $product->price;
+                $deliveryFee = self::DELIVERY_FEES[$validated['delivery_method']];
+                $adminFee = $validated['payment_method'] === 'cod' ? 0 : self::ADMIN_FEE;
+                $totalAmount = $subtotal + $deliveryFee + $adminFee;
 
-                if ($cart->quantity > $availableStock) {
-                    throw ValidationException::withMessages([
-                        'cart_ids' => "Stok {$product->name} tidak mencukupi.",
-                    ]);
-                }
-
-                $subtotal += $itemPrice * $cart->quantity;
-                $cart->setRelation('product', $product);
-            }
-
-            $deliveryFee = self::DELIVERY_FEES[$validated['delivery_method']];
-
-            $adminFee = $validated['payment_method'] === 'cod' ? 0 : self::ADMIN_FEE;
-
-            $totalAmount = $subtotal + $deliveryFee + $adminFee;
-
-            $order = Order::create([
-                'user_id' => auth()->id(),
-                'shipping_name' => $validated['name'],
-                'shipping_phone' => $validated['phone'],
-                'shipping_address' => $validated['address'],
-                'delivery_method' => $validated['delivery_method'],
-                'payment_method' => $validated['payment_method'],
-                'total_amount' => $totalAmount,
-                'status' => 'pending',
-            ]);
-
-            foreach ($carts as $cart) {
-                $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
-                $itemPrice = $matchingSku ? $matchingSku->price : $cart->product->price;
-
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $cart->product_id,
-                    'quantity' => $cart->quantity,
-                    'price' => $itemPrice,
+                $order = Order::create([
+                    'store_id' => $storeId,
+                    'user_id' => auth()->id(),
+                    'invoice_number' => 'ORD-' . date('YmdHis') . '-' . strtoupper(substr(uniqid(), -4)),
+                    'customer_name' => $validated['name'],
+                    'customer_phone' => $validated['phone'],
+                    'shipping_address' => $validated['address'],
+                    'delivery_method' => $validated['delivery_method'],
+                    'subtotal' => $subtotal,
+                    'shipping_cost' => $deliveryFee,
+                    'total_amount' => $totalAmount,
+                    'payment_method' => $validated['payment_method'],
+                    'payment_status' => 'pending',
+                    'shipping_status' => 'pending',
                 ]);
 
-                if ($matchingSku) {
-                    $matchingSku->decrement('stock', $cart->quantity);
-                } else {
-                    $cart->product->decrement('stock', $cart->quantity);
+                foreach ($storeCarts as $cart) {
+                    $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
+                    $itemPrice = $matchingSku ? $matchingSku->price : $cart->product->price;
+
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $cart->product_id,
+                        'product_name' => $cart->product->name,
+                        'price' => $itemPrice,
+                        'quantity' => $cart->quantity,
+                        'unit' => $cart->product->unit ?? 'pcs',
+                        'variant_name' => $cart->preparation_option,
+                    ]);
+
+                    if ($matchingSku) {
+                        $matchingSku->decrement('stock', $cart->quantity);
+                    } else {
+                        $cart->product->decrement('stock', $cart->quantity);
+                    }
+
+                    $cart->delete();
                 }
 
-                $cart->delete();
+                $createdOrders[] = $order;
             }
 
-            return $order;
+            return $createdOrders;
         });
 
-        return redirect()->route('shop')->with('success', 'Pesanan berhasil dibuat!');
+        // Redirect to success page, passing the first order ID (if any) to view details if needed
+        $firstOrderId = count($orders) > 0 ? $orders[0]->id : null;
+        
+        return redirect()->route('checkout.success', ['order_id' => $firstOrderId]);
+    }
+
+    public function success(\Illuminate\Http\Request $request)
+    {
+        return Inertia::render('Checkout/Success', [
+            'order_id' => $request->query('order_id')
+        ]);
     }
 }

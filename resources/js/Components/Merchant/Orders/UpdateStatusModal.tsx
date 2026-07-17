@@ -43,13 +43,7 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
             label: "Dikirim",
             icon: Truck,
             desc: "Dalam perjalanan ke pembeli",
-        },
-        {
-            id: "delivered",
-            label: "Selesai",
-            icon: CheckCircle,
-            desc: "Pesanan sudah diterima",
-        },
+        }
     ];
 
     return (

@@ -37,4 +37,9 @@ class Product extends Model
     {
         return $this->hasMany(ProductSku::class);
     }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

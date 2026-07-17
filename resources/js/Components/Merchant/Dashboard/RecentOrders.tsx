@@ -45,7 +45,56 @@ export default function RecentOrders({ orders }: Props) {
                                     key={index}
                                     className="hover:bg-gray-50/50 transition-colors"
                                 >
-                                    {/* nanti isi datanya bakal dimasukin ke sini */}
+                                    <td className="py-3 px-5 md:px-0 border-b border-gray-50">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-[#EAF7F7] text-[#245D56] font-bold flex items-center justify-center text-xs shrink-0">
+                                                {order.customer_name ? order.customer_name.charAt(0).toUpperCase() : "?"}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs md:text-sm font-bold text-gray-900">
+                                                    {order.customer_name}
+                                                </p>
+                                                <p className="text-[10px] md:text-xs text-gray-500 font-medium truncate max-w-[100px] md:max-w-none">
+                                                    #{order.invoice_number}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-3 px-5 md:px-0 border-b border-gray-50">
+                                        <div className="flex items-center gap-2">
+                                            <img
+                                                src={order.product_image || "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47"}
+                                                alt="product"
+                                                className="w-8 h-8 rounded border border-gray-100 object-cover"
+                                            />
+                                            <p className="text-xs md:text-sm font-medium text-gray-700 truncate max-w-[100px] md:max-w-none">
+                                                {order.product_name}
+                                            </p>
+                                        </div>
+                                    </td>
+                                    <td className="py-3 px-5 md:px-0 border-b border-gray-50">
+                                        <p className="text-xs md:text-sm text-gray-500">
+                                            {order.date}
+                                        </p>
+                                    </td>
+                                    <td className="py-3 px-5 md:px-0 border-b border-gray-50 text-right md:text-left">
+                                        <p className="text-xs md:text-sm font-bold text-gray-900">
+                                            {order.amount}
+                                        </p>
+                                    </td>
+                                    <td className="py-3 px-5 md:px-0 border-b border-gray-50 text-right">
+                                        <span
+                                            className={`inline-block px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold ${
+                                                order.status === "Delivered" || order.status === "Selesai"
+                                                    ? "bg-[#EAF7F7] text-[#245D56]"
+                                                    : order.status === "Cancelled" || order.status === "Dibatalkan"
+                                                    ? "bg-red-50 text-red-600"
+                                                    : "bg-blue-50 text-blue-600"
+                                            }`}
+                                        >
+                                            {order.status}
+                                        </span>
+                                    </td>
                                 </tr>
                             ))
                         ) : (
