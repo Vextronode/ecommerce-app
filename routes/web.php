@@ -6,18 +6,18 @@ use Inertia\Inertia;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\Merchant\MerchantSetupController;
 
-Route::redirect('/', '/login');
+Route::redirect('/', '/dashboard');
 
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', 'role:user'])
+    ->middleware(['storefront.user'])
     ->name('dashboard');
 
 Route::get('/shop', [\App\Http\Controllers\ShopController::class, 'index'])
-    ->middleware('storefront.user')
+    ->middleware(['auth', 'verified', 'role:user'])
     ->name('shop');
 
 Route::get('/product/{id}', [\App\Http\Controllers\ShopController::class, 'show'])
-    ->middleware('storefront.user')
+    ->middleware(['auth', 'verified', 'role:user'])
     ->name('product.detail');
 
 Route::middleware(['auth', 'role:user'])->group(function () {

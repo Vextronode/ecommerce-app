@@ -70,11 +70,13 @@ export default function Navbar() {
                     </Link>
 
                     {/* cart icon mobile */}
-                    <Link
-                        href={route('cart')}
-                        className="md:hidden p-2 text-white bg-black/10 rounded-lg hover:bg-black/20 transition relative">
-                        <ShoppingCart size={24} />
-                    </Link>
+                    {user && (
+                        <Link
+                            href={route('cart')}
+                            className="md:hidden p-2 text-white bg-black/10 rounded-lg hover:bg-black/20 transition relative">
+                            <ShoppingCart size={24} />
+                        </Link>
+                    )}
                 </div>
 
                 {/* desktop navlinks */}
@@ -99,15 +101,17 @@ export default function Navbar() {
 
                 {/* desktop profile */}
                 <div className="hidden md:flex items-center gap-3">
-                    <Link
-                        href={route('cart')}
-                        className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition shadow-sm border border-gray-100"
-                    >
-                        <ShoppingCart
-                            className="w-5 h-5 text-gray-800"
-                            strokeWidth={2}
-                        />
-                    </Link>
+                    {user && (
+                        <Link
+                            href={route('cart')}
+                            className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition shadow-sm border border-gray-100"
+                        >
+                            <ShoppingCart
+                                className="w-5 h-5 text-gray-800"
+                                strokeWidth={2}
+                            />
+                        </Link>
+                    )}
 
                     {user ? (
                         <Link
@@ -133,12 +137,14 @@ export default function Navbar() {
                     ) : (
                         <Link
                             href={route("login")}
-                            className="flex items-center gap-2 bg-white/90 hover:bg-white px-5 py-2.5 rounded-full transition shadow-sm border border-gray-100"
+                            className="flex items-center gap-3 bg-white/90 hover:bg-white pl-5 pr-1.5 py-1.5 rounded-full transition shadow-sm border border-gray-100"
                         >
-                            <User className="w-4 h-4 text-gray-800" />
                             <span className="font-bold text-gray-800 text-sm">
                                 Login
                             </span>
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#344054] text-white">
+                                <User className="w-4 h-4" />
+                            </div>
                         </Link>
                     )}
                 </div>
