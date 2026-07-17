@@ -16,6 +16,11 @@ class DashboardController extends Controller
         $stores = Store::take(4)->get();
 
         $featuredProducts = Product::with(['store', 'category'])
+            ->withSum(['orderItems as sold' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('shipping_status', 'delivered');
+                });
+            }], 'quantity')
             ->where('is_active', true)
             ->where('stock', '>', 0)
             ->latest()

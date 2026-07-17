@@ -5,6 +5,7 @@ import { Store, ChevronRight } from "lucide-react";
 type OrderItem = {
     id: number;
     product_id: number;
+    product_slug?: string;
     product_name: string;
     variant_name: string | null;
     quantity: number;
@@ -77,11 +78,10 @@ export default function Index({
                                                 { preserveState: true }
                                             )
                                         }
-                                        className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                                            currentStatus === tab.key
+                                        className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${currentStatus === tab.key
                                                 ? "bg-[#245D56] text-white"
                                                 : "text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200"
-                                        }`}
+                                            }`}
                                     >
                                         {tab.label}
                                     </button>
@@ -193,7 +193,7 @@ export default function Index({
                                                         Tampilkan Rincian Pengembalian
                                                     </button>
                                                     <Link
-                                                        href={route("product.detail", order.items[0]?.product_id)}
+                                                        href={route("product.detail", order.items[0]?.product_slug || order.items[0]?.product_id)}
                                                         className="px-6 py-2 bg-[#245D56] text-white text-sm font-medium rounded-lg hover:bg-[#1a4540] transition-colors"
                                                     >
                                                         Beli Lagi

@@ -27,7 +27,7 @@ export default function Dashboard({ categories, featuredProducts, stores = [] }:
             maximumFractionDigits: 0,
         }).format(product.price),
         rating: 5.0, // Sementara hardcode sampai fitur review dibuat
-        sold: "0", // Sementara hardcode sampai ada transaksi beneran
+        sold: product.sold || 0,
         image:
             product.image_path ||
             "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400", // Fallback kalau gak ada foto

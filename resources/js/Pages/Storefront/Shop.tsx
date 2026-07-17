@@ -40,7 +40,7 @@ export default function Shop({
             maximumFractionDigits: 0,
         }).format(product.price),
         rating: 5.0, // Hardcode sementara
-        sold: "0", // Hardcode sementara
+        sold: product.sold || 0,
         image:
             product.image_path ||
             "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400",

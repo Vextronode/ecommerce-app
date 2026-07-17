@@ -13,6 +13,11 @@ class ShopController extends Controller
     {
         $categories = Category::all();
         $query = Product::with(['store', 'category'])
+            ->withSum(['orderItems as sold' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('shipping_status', 'delivered');
+                });
+            }], 'quantity')
             ->where('is_active', true)
             ->where('stock', '>', 0);
 
@@ -46,7 +51,7 @@ class ShopController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show($slug)
     {
         $product = Product::with([
             'store',
@@ -54,9 +59,20 @@ class ShopController extends Controller
             'images',
             'variants.options',
             'skus',
-        ])->findOrFail($id);
+        ])
+        ->withSum(['orderItems as sold' => function ($query) {
+            $query->whereHas('order', function ($q) {
+                $q->where('shipping_status', 'delivered');
+            });
+        }], 'quantity')
+        ->where('slug', $slug)->firstOrFail();
 
         $relatedProducts = Product::with(['store', 'category'])
+            ->withSum(['orderItems as sold' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('shipping_status', 'delivered');
+                });
+            }], 'quantity')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)

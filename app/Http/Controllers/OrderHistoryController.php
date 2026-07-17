@@ -12,7 +12,7 @@ class OrderHistoryController extends Controller
     {
         $status = $request->query('status', 'all');
 
-        $query = Order::with(['items', 'store'])
+        $query = Order::with(['items.product', 'store'])
             ->where('user_id', auth()->id())
             ->latest();
 
@@ -41,6 +41,7 @@ class OrderHistoryController extends Controller
                         'variant_name' => $item->variant_name,
                         'quantity' => $item->quantity,
                         'price' => $item->price,
+                        'product_slug' => $item->product ? $item->product->slug : null,
                         'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
                     ];
                 })
@@ -104,6 +105,7 @@ class OrderHistoryController extends Controller
                     'variant_name' => $item->variant_name,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
+                    'product_slug' => $item->product ? $item->product->slug : null,
                     'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
                 ];
             })

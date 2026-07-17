@@ -53,7 +53,12 @@ class CartController extends Controller
         $cartProductIds = $carts->pluck('product_id')->toArray();
         $cartCategoryIds = $carts->pluck('product.category_id')->filter()->unique()->toArray();
 
-        $recommendations = \App\Models\Product::where('is_active', true)
+        $recommendations = \App\Models\Product::withSum(['orderItems as sold' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('shipping_status', 'delivered');
+                });
+            }], 'quantity')
+            ->where('is_active', true)
             ->where('stock', '>', 0)
             ->whereNotIn('id', $cartProductIds)
             ->when(count($cartCategoryIds) > 0, function ($query) use ($cartCategoryIds) {
@@ -68,7 +73,7 @@ class CartController extends Controller
                     'name' => $product->name,
                     'price' => $product->price,
                     'rating' => 5.0,
-                    'sold' => '10RB+ Terjual',
+                    'sold' => $product->sold ?? 0,
                     'img' => $product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
                 ];
             });

@@ -38,7 +38,7 @@ export default function ProductCarousel({
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 px-2">
                     {products.map((product) => (
                         <Link
-                            href={`/product/${product.id}`}
+                            href={`/product/${product.slug}`}
                             key={product.id}
                             className="bg-gradient-to-b from-[#e0f7fa] to-[#e8fbfb] p-2 rounded-[2rem] shadow-sm hover:shadow-md border border-cyan-50 transition duration-300 relative flex flex-col h-full cursor-pointer group/card overflow-hidden"
                         >

@@ -132,7 +132,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
             maximumFractionDigits: 0,
         }).format(p.price),
         rating: 5.0,
-        sold: "0",
+        sold: p.sold || 0,
         image: p.image_path || mainImage,
     }));
 

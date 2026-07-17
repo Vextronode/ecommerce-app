@@ -219,7 +219,7 @@ export default function Show({ order }: { order: any }) {
                         
                         {order.status === "Selesai" && (
                             <Link
-                                href={route("product.detail", order.items[0]?.product_id)}
+                                href={route("product.detail", order.items[0]?.product_slug || order.items[0]?.product_id)}
                                 className="inline-flex items-center justify-center px-6 py-2.5 bg-[#245D56] text-white text-sm font-bold rounded-lg hover:bg-[#1a4540] transition-colors"
                             >
                                 Beli Lagi

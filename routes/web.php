@@ -16,11 +16,8 @@ Route::get('/shop', [\App\Http\Controllers\ShopController::class, 'index'])
     ->middleware(['auth', 'verified', 'role:user'])
     ->name('shop');
 
-Route::get('/product/{id}', [\App\Http\Controllers\ShopController::class, 'show'])
-    ->middleware(['auth', 'verified', 'role:user'])
-    ->name('product.detail');
-
 Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::get('/product/{slug}', [\App\Http\Controllers\ShopController::class, 'show'])->name('product.detail');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

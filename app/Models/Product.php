@@ -15,6 +15,13 @@ class Product extends Model
         'is_preorder', 'po_days', 'po_hours','unit',
     ];
 
+    protected $appends = ['sold'];
+
+    public function getSoldAttribute()
+    {
+        return $this->attributes['sold'] ?? 0;
+    }
+
     public function store()
     {
         return $this->belongsTo(Store::class);
