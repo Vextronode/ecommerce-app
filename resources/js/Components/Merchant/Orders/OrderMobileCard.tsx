@@ -57,21 +57,23 @@ export default function OrderMobileCard({
             <div className="flex justify-between items-start mb-3">
                 <div>
                     <h4 className="font-bold text-[#41B9C5] text-sm">
-                        {order.invoice_number}
+                        #{order.invoice_number}
                     </h4>
                     <p className="text-[11px] text-gray-400 mt-0.5">
                         {formatDate(order.created_at)}
                     </p>
                 </div>
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenAction(order);
-                    }}
-                    className="text-gray-400 hover:text-[#14433D] p-1"
-                >
-                    <MoreVertical className="w-4 h-4" />
-                </button>
+                {shippingStatus !== "Delivered" && shippingStatus !== "Cancelled" && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenAction(order);
+                        }}
+                        className="text-gray-400 hover:text-[#14433D] p-1"
+                    >
+                        <MoreVertical className="w-4 h-4" />
+                    </button>
+                )}
             </div>
 
             <div className="flex gap-3 mb-4">
@@ -131,7 +133,11 @@ export default function OrderMobileCard({
                     >
                         {paymentStatus}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-100 text-gray-600 text-[10px] font-bold">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold ${
+                        shippingStatus === "Delivered" ? "bg-[#EAF7F7] text-[#245D56]" :
+                        shippingStatus === "Cancelled" ? "bg-red-50 text-red-600" :
+                        "bg-blue-50 text-blue-600"
+                    }`}>
                         {shippingStatus === "Shipped" && (
                             <Truck className="w-3 h-3" />
                         )}

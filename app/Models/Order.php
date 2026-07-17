@@ -39,4 +39,22 @@ class Order extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function restoreStock()
+    {
+        foreach ($this->items as $item) {
+            if ($item->variant_name) {
+                $sku = \App\Models\ProductSku::where('product_id', $item->product_id)
+                    ->where('variant_name', $item->variant_name)
+                    ->first();
+                if ($sku) {
+                    $sku->increment('stock', $item->quantity);
+                    continue;
+                }
+            }
+            if ($item->product) {
+                $item->product->increment('stock', $item->quantity);
+            }
+        }
+    }
 }

@@ -63,7 +63,7 @@ export default function OrderTableRow({
             >
                 <td className="py-4 px-6">
                     <span className="font-bold text-[#41B9C5] text-sm">
-                        {order.invoice_number}
+                        #{order.invoice_number}
                     </span>
                 </td>
                 <td className="py-4 px-6">
@@ -133,7 +133,11 @@ export default function OrderTableRow({
                     </div>
                 </td>
                 <td className="py-4 px-6">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#EAF7F7] text-[#245D56] text-xs font-bold border border-[#41B9C5]/10">
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${
+                        shippingStatus === "Delivered" ? "bg-[#EAF7F7] text-[#245D56] border-[#41B9C5]/20" :
+                        shippingStatus === "Cancelled" ? "bg-red-50 text-red-600 border-red-200" :
+                        "bg-blue-50 text-blue-600 border-blue-200"
+                    }`}>
                         {shippingStatus === "Shipped" && (
                             <Truck className="w-3.5 h-3.5" />
                         )}
@@ -148,15 +152,17 @@ export default function OrderTableRow({
                     </div>
                 </td>
                 <td className="py-4 px-6 text-center">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenAction(order);
-                        }}
-                        className="text-gray-400 hover:text-[#41B9C5] transition-colors p-1 rounded"
-                    >
-                        <MoreVertical className="w-5 h-5" />
-                    </button>
+                    {shippingStatus !== "Delivered" && shippingStatus !== "Cancelled" && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenAction(order);
+                            }}
+                            className="text-gray-400 hover:text-[#41B9C5] transition-colors p-1 rounded"
+                        >
+                            <MoreVertical className="w-5 h-5" />
+                        </button>
+                    )}
                 </td>
             </tr>
 
