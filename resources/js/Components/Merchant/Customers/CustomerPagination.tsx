@@ -23,7 +23,7 @@ export default function CustomerPagination({ from, to, total, links }: CustomerP
             <div className="text-[13px] text-gray-500 font-medium">
                 Showing {from || 0} to {to || 0} of {new Intl.NumberFormat('en-US').format(total)} entries
             </div>
-            
+
             <div className="flex items-center gap-1.5">
                 {links.map((link, i) => {
                     const isPrevious = link.label.includes('Previous');
@@ -45,18 +45,17 @@ export default function CustomerPagination({ from, to, total, links }: CustomerP
                             </Link>
                         );
                     }
-                    
+
                     return (
                         <Link
                             key={i}
                             href={link.url || '#'}
-                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
-                                link.active 
-                                    ? 'bg-[#14433D] text-white shadow-md' 
-                                    : isDots 
-                                        ? 'text-gray-400 cursor-default pointer-events-none' 
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${link.active
+                                    ? 'bg-[#14433D] text-white shadow-md'
+                                    : isDots
+                                        ? 'text-gray-400 cursor-default pointer-events-none'
                                         : 'text-gray-600 hover:bg-gray-100'
-                            }`}
+                                }`}
                             preserveScroll
                             preserveState
                             as={link.url ? 'a' : 'button'}

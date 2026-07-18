@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\Merchant\MerchantSetupController;
+use App\Http\Controllers\Merchant\AnalyticsController;
 
 Route::redirect('/', '/dashboard');
 
@@ -61,12 +62,13 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\CheckMerchantSetup::class])
     ->prefix('pedagang')
     ->group(function () {
+        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('merchant.analytics.index');
 
         Route::get('/setup-store', function () {
             return Inertia::render('Merchant/SetupStore');
         })->name('merchant.store.setup');
 
-        Route::post('/setup-store', [MerchantSetupController::class, 'store'])->name('merchant.store.store');
+        Route::post('/setup-store', [\App\Http\Controllers\Merchant\StoreController::class, 'store'])->name('merchant.store.store');
 
         Route::get('/dashboard', function (Illuminate\Http\Request $request) {
             $user = $request->user()->load('store');
