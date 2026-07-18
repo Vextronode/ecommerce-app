@@ -191,8 +191,15 @@ class CheckoutController extends Controller
 
     public function success(\Illuminate\Http\Request $request)
     {
+        $orderId = $request->query('order_id');
+        $order = null;
+
+        if ($orderId) {
+            $order = \App\Models\Order::with('store')->find($orderId);
+        }
+
         return Inertia::render('Checkout/Success', [
-            'order_id' => $request->query('order_id')
+            'order' => $order
         ]);
     }
 }
