@@ -176,6 +176,8 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
         Route::get('/orders', [\App\Http\Controllers\Merchant\OrderController::class, 'index'])->name('merchant.orders.index');
         Route::put('/merchant/orders/{id}/status', [App\Http\Controllers\Merchant\OrderController::class, 'updateStatus'])->name('merchant.orders.update-status');
         Route::get('/customers', [\App\Http\Controllers\Merchant\CustomerController::class, 'index'])->name('merchant.customers.index');
+        Route::get('/settings', [\App\Http\Controllers\Merchant\SettingsController::class, 'index'])->name('merchant.settings.index');
+        Route::post('/settings', [\App\Http\Controllers\Merchant\SettingsController::class, 'update'])->name('merchant.settings.update');
     });
 
 require __DIR__ . '/auth.php';

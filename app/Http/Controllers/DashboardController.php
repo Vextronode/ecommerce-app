@@ -13,7 +13,16 @@ class DashboardController extends Controller
     public function index()
     {
         $categories = Category::all();
-        $stores = Store::take(4)->get();
+        $stores = Store::with('user')->take(4)->get()->map(function ($store) {
+            return [
+                'id' => $store->id,
+                'name' => $store->name,
+                'description' => $store->description,
+                'image' => $store->user?->profile_photo_path
+                    ? \Illuminate\Support\Facades\Storage::url($store->user->profile_photo_path)
+                    : null,
+            ];
+        });
 
         $featuredProducts = Product::with(['store', 'category'])
             ->withSum(['orderItems as sold' => function ($query) {

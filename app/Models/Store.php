@@ -15,6 +15,8 @@ class Store extends Model
         'slug',
         'logo_path',
         'description',
+        'support_email',
+        'address',
     ];
 
     public function user()
