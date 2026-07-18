@@ -8,6 +8,7 @@ import ProfileHeader from "@/Components/Profile/ProfileHeader";
 import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm";
 import AddressInformation, { Address } from "./Partials/AddressInformation";
 import NotificationSettings from "./Partials/NotificationSettings";
+import SecuritySettings from "./Partials/SecuritySettings";
 
 type EditProfileProps = {
     mustVerifyEmail: boolean;
@@ -73,6 +74,13 @@ export default function Edit({
                         {activeTab === "notifikasi" && (
                             <NotificationSettings
                                 settings={notificationSettings}
+                            />
+                        )}
+
+                        {activeTab === "keamanan" && (
+                            <SecuritySettings 
+                                sessions={usePage().props.sessions}
+                                isOAuth={usePage().props.isOAuth}
                             />
                         )}
                     </div>

@@ -19,11 +19,33 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $sessions = \Illuminate\Support\Facades\DB::table('sessions')
+            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->orderBy('last_activity', 'desc')
+            ->get()->map(function ($session) use ($request) {
+                $agent = new \Jenssegers\Agent\Agent();
+                $agent->setUserAgent($session->user_agent);
+
+                return (object) [
+                    'id' => $session->id,
+                    'agent' => (object) [
+                        'is_desktop' => $agent->isDesktop(),
+                        'platform' => $agent->platform(),
+                        'browser' => $agent->browser(),
+                    ],
+                    'ip_address' => $session->ip_address,
+                    'is_current_device' => $session->id === $request->session()->getId(),
+                    'last_active' => \Carbon\Carbon::createFromTimestamp($session->last_activity)->diffForHumans(),
+                ];
+            });
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
             'addresses' => $request->user()->addresses()->orderBy('is_primary', 'desc')->get(),
             'notificationSettings' => $request->user()->notification_settings ?? [],
+            'sessions' => $sessions,
+            'isOAuth' => !is_null($request->user()->google_id),
         ]);
     }
 
@@ -44,15 +66,27 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Logout from other browser sessions.
      */
+    public function destroyOtherSessions(Request $request): RedirectResponse
+    {
+        \Illuminate\Support\Facades\DB::table('sessions')
+            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
+
+        return Redirect::route('profile.security')->with('status', 'Sesion lainnya berhasil dihapus.');
+    }
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
+        /** @var \App\Models\User $user */
         $user = $request->user();
+
+        if (is_null($user->google_id)) {
+            $request->validate([
+                'password' => ['required', 'current_password'],
+            ]);
+        }
 
         Auth::logout();
 
