@@ -93,8 +93,10 @@ export default function Sidebar() {
             {/* Bottom Actions */}
             <div className="p-5 border-t border-[#41B9C5]/30 space-y-1 mb-2">
                 <Link
-                    href="#"
-                    className="flex items-center gap-4 px-4 py-3 text-gray-500 hover:bg-gray-50 hover:text-gray-800 rounded-xl font-medium transition-all text-sm whitespace-nowrap"
+                    href={route('merchant.settings.index')}
+                    className={`flex items-center gap-4 px-4 py-3 hover:bg-gray-50 hover:text-gray-800 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                        route().current('merchant.settings.*') ? 'bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30' : 'text-gray-500'
+                    }`}
                 >
                     <Settings className="w-5 h-5 shrink-0" />
                     Settings

@@ -2,13 +2,17 @@ import React, { ReactNode, useState } from "react";
 import Sidebar from "@/Components/Merchant/Dashboard/Sidebar";
 import { Search, Bell, Mail, User, Menu } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { router } from "@inertiajs/react";
+import { router, Link, usePage } from "@inertiajs/react";
 
 interface Props {
     children: ReactNode;
 }
 
 export default function MerchantLayout({ children }: Props) {
+    const { auth } = usePage().props as any;
+    const profilePhoto = auth?.user?.profile_photo_path
+        ? `/storage/${auth.user.profile_photo_path}`
+        : null;
     // state buat ngatur sidebar di mobile
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -44,9 +48,8 @@ export default function MerchantLayout({ children }: Props) {
             )}
 
             <div
-                className={`fixed inset-y-0 left-0 z-50 py-4 pl-4 md:py-6 md:pl-6 lg:p-0 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
-                    isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
+                className={`fixed inset-y-0 left-0 z-50 py-4 pl-4 md:py-6 md:pl-6 lg:p-0 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
             >
                 <Sidebar />
             </div>
@@ -101,9 +104,16 @@ export default function MerchantLayout({ children }: Props) {
                             <Mail className="w-5 h-5" />
                         </button>
 
-                        <button className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#F0FAFB] flex items-center justify-center overflow-hidden border border-[#41B9C5]/30 shadow-sm hover:shadow-md transition-all cursor-pointer shrink-0">
-                            <User className="w-4 h-4 md:w-5 md:h-5 text-[#41B9C5]" />
-                        </button>
+                        <Link
+                            href={route("merchant.settings.index")}
+                            className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#F0FAFB] flex items-center justify-center overflow-hidden border border-[#41B9C5]/30 shadow-sm hover:shadow-md transition-all cursor-pointer shrink-0"
+                        >
+                            {profilePhoto ? (
+                                <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <User className="w-4 h-4 md:w-5 md:h-5 text-[#41B9C5]" />
+                            )}
+                        </Link>
                     </div>
                 </header>
 
