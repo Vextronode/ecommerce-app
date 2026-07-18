@@ -71,8 +71,8 @@ export default function ShopProductRow({
                         onClick={prev}
                         disabled={currentPage === 0}
                         className={`absolute top-1/2 -translate-y-1/2 -left-4 md:-left-6 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg border border-gray-100 z-20 transition-all duration-300 ${currentPage === 0
-                                ? "opacity-0 pointer-events-none"
-                                : "opacity-100 hover:scale-110"
+                            ? "opacity-0 pointer-events-none"
+                            : "opacity-100 hover:scale-110"
                             }`}
                     >
                         <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-gray-800" />
@@ -115,7 +115,6 @@ export default function ShopProductRow({
                                                 </div>
                                             </div>
 
-                                            {/* White card */}
                                             <div className="bg-white rounded-[1.5rem] p-4 md:p-5 flex flex-col mt-auto relative z-10 shadow-sm">
                                                 {/* Product Info */}
                                                 <h3 className="font-bold text-[#1F2937] text-sm md:text-base mb-4 line-clamp-2 leading-tight text-center min-h-[36px] md:min-h-[44px] flex items-center justify-center">
@@ -179,8 +178,8 @@ export default function ShopProductRow({
                             currentPage === totalPages - 1 || totalPages === 0
                         }
                         className={`absolute top-1/2 -translate-y-1/2 -right-4 md:-right-6 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg border border-gray-100 z-20 transition-all duration-300 ${currentPage === totalPages - 1 || totalPages === 0
-                                ? "opacity-0 pointer-events-none"
-                                : "opacity-100 hover:scale-110"
+                            ? "opacity-0 pointer-events-none"
+                            : "opacity-100 hover:scale-110"
                             }`}
                     >
                         <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-gray-800" />

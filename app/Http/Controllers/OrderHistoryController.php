@@ -12,44 +12,74 @@ class OrderHistoryController extends Controller
     {
         $status = $request->query('status', 'all');
 
-        $query = Order::with(['items.product', 'store'])
-            ->where('user_id', auth()->id())
-            ->latest();
+        $ratingItems = [];
+        $orders = [];
 
-        if ($status !== 'all') {
-            if ($status === 'unpaid') {
-                $query->where('payment_status', 'pending');
-            } else if ($status === 'cancelled') {
-                $query->where('shipping_status', 'cancelled');
-            } else {
-                $query->where('shipping_status', $status);
-            }
-        }
-
-        $orders = $query->get()->map(function ($order) {
-            return [
-                'id' => $order->id,
-                'invoice_number' => $order->invoice_number,
-                'store_name' => $order->store->name ?? 'Toko',
-                'status' => $this->mapStatusToLabel($order),
-                'total_amount' => $order->total_amount,
-                'items' => $order->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'product_id' => $item->product_id,
-                        'product_name' => $item->product_name,
-                        'variant_name' => $item->variant_name,
-                        'quantity' => $item->quantity,
-                        'price' => $item->price,
-                        'product_slug' => $item->product ? $item->product->slug : null,
-                        'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
-                    ];
+        if ($status === 'rating') {
+            // Ambil semua item pesanan dari pesanan yang sudah 'delivered'
+            $items = \App\Models\OrderItem::with(['product', 'order.store', 'review'])
+                ->whereHas('order', function ($query) {
+                    $query->where('user_id', auth()->id())
+                          ->where('shipping_status', 'delivered');
                 })
-            ];
-        });
+                ->latest()
+                ->get();
+
+            $ratingItems = $items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_slug' => $item->product ? $item->product->slug : null,
+                    'product_name' => $item->product_name,
+                    'variant_name' => $item->variant_name,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                    'store_name' => $item->order->store->name ?? 'Toko',
+                    'rating' => $item->review ? $item->review->rating : null,
+                ];
+            });
+        } else {
+            $query = Order::with(['items.product', 'store'])
+                ->where('user_id', auth()->id())
+                ->latest();
+
+            if ($status !== 'all') {
+                if ($status === 'unpaid') {
+                    $query->where('payment_status', 'pending');
+                } else if ($status === 'cancelled') {
+                    $query->where('shipping_status', 'cancelled');
+                } else {
+                    $query->where('shipping_status', $status);
+                }
+            }
+
+            $orders = $query->get()->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'invoice_number' => $order->invoice_number,
+                    'store_name' => $order->store->name ?? 'Toko',
+                    'status' => $this->mapStatusToLabel($order),
+                    'total_amount' => $order->total_amount,
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'product_id' => $item->product_id,
+                            'product_name' => $item->product_name,
+                            'variant_name' => $item->variant_name,
+                            'quantity' => $item->quantity,
+                            'price' => $item->price,
+                            'product_slug' => $item->product ? $item->product->slug : null,
+                            'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                        ];
+                    })
+                ];
+            });
+        }
 
         return Inertia::render('History/Index', [
             'orders' => $orders,
+            'ratingItems' => $ratingItems,
             'currentStatus' => $status
         ]);
     }

@@ -18,6 +18,7 @@ class ShopController extends Controller
                     $q->where('shipping_status', 'delivered');
                 });
             }], 'quantity')
+            ->withAvg('reviews as rating', 'rating')
             ->where('is_active', true)
             ->where('stock', '>', 0);
 
@@ -54,17 +55,22 @@ class ShopController extends Controller
     public function show($slug)
     {
         $product = Product::with([
-            'store',
+            'store' => function ($query) {
+                $query->withCount(['products', 'followers'])->withAvg('reviews', 'rating');
+            },
             'category',
             'images',
             'variants.options',
             'skus',
+            'reviews.user',
         ])
+        ->withCount('reviews')
         ->withSum(['orderItems as sold' => function ($query) {
             $query->whereHas('order', function ($q) {
                 $q->where('shipping_status', 'delivered');
             });
         }], 'quantity')
+        ->withAvg('reviews as rating', 'rating')
         ->where('slug', $slug)->firstOrFail();
 
         $relatedProducts = Product::with(['store', 'category'])
@@ -73,6 +79,7 @@ class ShopController extends Controller
                     $q->where('shipping_status', 'delivered');
                 });
             }], 'quantity')
+            ->withAvg('reviews as rating', 'rating')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)

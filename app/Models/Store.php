@@ -28,4 +28,14 @@ class Store extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'store_followers');
+    }
 }
