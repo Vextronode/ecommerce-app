@@ -30,6 +30,7 @@ class DashboardController extends Controller
                     $q->where('shipping_status', 'delivered');
                 });
             }], 'quantity')
+            ->withAvg('reviews as rating', 'rating')
             ->where('is_active', true)
             ->where('stock', '>', 0)
             ->latest()

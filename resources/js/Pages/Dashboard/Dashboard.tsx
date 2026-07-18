@@ -26,7 +26,7 @@ export default function Dashboard({ categories, featuredProducts, stores = [] }:
             currency: "IDR",
             maximumFractionDigits: 0,
         }).format(product.price),
-        rating: 5.0, // Sementara hardcode sampai fitur review dibuat
+        rating: product.rating ? Number(product.rating) : 0.0, // Pakai rating asli, default 0 jika belum ada
         sold: product.sold || 0,
         image:
             product.image_path ||
@@ -46,7 +46,6 @@ export default function Dashboard({ categories, featuredProducts, stores = [] }:
             <Head title="Home - Cibenda Mart" />
 
             <HeroSection />
-            {/* <InfoBanner /> */}
 
             <CategorySection categories={formattedCategories} />
             <ProductCarousel

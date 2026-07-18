@@ -28,6 +28,11 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/checkout/success', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/history', [\App\Http\Controllers\OrderHistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{order}', [\App\Http\Controllers\OrderHistoryController::class, 'show'])->name('history.show');
+    
+    // Product Rating Routes
+    Route::get('/history/rating/{order_item}', [\App\Http\Controllers\ProductReviewController::class, 'create'])->name('history.rating.create');
+    Route::post('/history/rating/{order_item_id}', [\App\Http\Controllers\ProductReviewController::class, 'store'])->name('history.rating.store');
+    
     Route::post('/history/{order}/cancel', [\App\Http\Controllers\OrderHistoryController::class, 'cancel'])->name('history.cancel');
     Route::post('/history/{order}/complete', [\App\Http\Controllers\OrderHistoryController::class, 'complete'])->name('history.complete');
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');

@@ -14,6 +14,7 @@ import ShippingGuaranteeCard from "@/Components/Storefront/ProductDetail/Shippin
 import ProductReviewsCard from "@/Components/Storefront/ProductDetail/ProductReviewsCard";
 import ProductCarousel from "@/Components/Storefront/ProductCarousel";
 import VariantSelector from "@/Components/Storefront/ProductDetail/VariantSelector";
+import StoreProfileCard from "@/Components/Storefront/ProductDetail/StoreProfileCard";
 import { GuaranteeItem } from "@/Components/Storefront/ProductDetail/types";
 
 const staticGuarantees: GuaranteeItem[] = [
@@ -131,7 +132,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
             currency: "IDR",
             maximumFractionDigits: 0,
         }).format(p.price),
-        rating: 5.0,
+        rating: p.rating ? Number(p.rating) : 0.0,
         sold: p.sold || 0,
         image: p.image_path || mainImage,
     }));
@@ -204,6 +205,10 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                     </div>
 
                     <div className="mt-10 space-y-6 border-t border-slate-100 pt-8 md:mt-12">
+                        {product.store && (
+                            <StoreProfileCard store={product.store} />
+                        )}
+
                         <ProductTabs
                             activeTab={activeTab}
                             onChangeTab={setActiveTab}
@@ -218,7 +223,11 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                                 />
                             </div>
                         ) : (
-                            <ProductReviewsCard />
+                            <ProductReviewsCard 
+                                reviews={product.reviews || []}
+                                reviewsCount={product.reviews_count || 0}
+                                averageRating={product.rating || 0}
+                            />
                         )}
                     </div>
                 </div>

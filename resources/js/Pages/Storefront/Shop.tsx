@@ -39,7 +39,7 @@ export default function Shop({
             currency: "IDR",
             maximumFractionDigits: 0,
         }).format(product.price),
-        rating: 5.0, // Hardcode sementara
+        rating: product.rating ? Number(product.rating) : 0.0, // Pakai rating asli, default 0
         sold: product.sold || 0,
         image:
             product.image_path ||
