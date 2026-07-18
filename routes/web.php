@@ -22,6 +22,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('/profile/other-sessions', [ProfileController::class, 'destroyOtherSessions'])->name('profile.other-sessions.destroy');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout');
     Route::get('/checkout/success', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
