@@ -16,6 +16,7 @@ class DashboardController extends Controller
         $stores = Store::with('user')->take(4)->get()->map(function ($store) {
             return [
                 'id' => $store->id,
+                'slug' => $store->slug,
                 'name' => $store->name,
                 'description' => $store->description,
                 'image' => $store->user?->profile_photo_path

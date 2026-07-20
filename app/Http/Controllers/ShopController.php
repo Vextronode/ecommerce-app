@@ -93,4 +93,155 @@ class ShopController extends Controller
             'relatedProducts' => $relatedProducts,
         ]);
     }
+
+    public function storeDetail(Request $request, $slug)
+    {
+        $store = \App\Models\Store::withCount(['followers', 'products'])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        // Calculate store rating and sold count across all its products
+        $storeStats = \App\Models\Product::where('store_id', $store->id)
+            ->withAvg('reviews as rating', 'rating')
+            ->withSum(['orderItems as sold' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('shipping_status', 'delivered');
+                });
+            }], 'quantity')
+            ->get();
+
+        $averageRating = $storeStats->avg('rating');
+        $totalSold = $storeStats->sum('sold');
+
+        // Append to store object
+        $store->average_rating = $averageRating ? number_format($averageRating, 1) : 0;
+        $store->total_sold = $totalSold ?? 0;
+        
+        // Filter params
+        $filter = $request->query('filter', 'populer');
+        $tab = $request->query('tab', 'beranda');
+        $search = $request->query('search', '');
+
+        // Fetch Categories inside this store (categories of products in this store)
+        $categoryIds = \App\Models\Product::where('store_id', $store->id)->distinct()->pluck('category_id');
+        $categories = \App\Models\Category::whereIn('id', $categoryIds)
+            ->withCount(['products' => function ($q) use ($store) {
+                $q->where('store_id', $store->id)->where('is_active', true);
+            }])
+            ->get();
+
+        // Query for products
+        $query = \App\Models\Product::with(['category'])
+            ->where('store_id', $store->id)
+            ->where('is_active', true)
+            ->withSum(['orderItems as sold' => function ($q) {
+                $q->whereHas('order', function ($q2) {
+                    $q2->where('shipping_status', 'delivered');
+                });
+            }], 'quantity')
+            ->withAvg('reviews as rating', 'rating');
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // Apply sorting based on filter
+        switch ($filter) {
+            case 'terbaru':
+                $query->latest();
+                break;
+            case 'terlaris':
+                $query->orderByDesc('sold');
+                break;
+            case 'harga_rendah':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'harga_tinggi':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'populer':
+            default:
+                // For popular, we can mix rating and sold, or just sold for now
+                $query->orderByDesc('sold');
+                break;
+        }
+
+        $products = $query->paginate(20)->withQueryString();
+
+        // Group products for Beranda tab
+        $groupedProducts = [];
+        if ($tab === 'beranda' && empty($search)) {
+            // "Semua Produk"
+            $groupedProducts[] = [
+                'title' => 'Semua Produk',
+                'products' => \App\Models\Product::where('store_id', $store->id)
+                    ->where('is_active', true)
+                    ->withSum(['orderItems as sold' => function ($q) {
+                        $q->whereHas('order', function ($q2) {
+                            $q2->where('shipping_status', 'delivered');
+                        });
+                    }], 'quantity')
+                    ->withAvg('reviews as rating', 'rating')
+                    ->latest()
+                    ->take(10)
+                    ->get()
+            ];
+
+            // "Produk Terlaris"
+            $groupedProducts[] = [
+                'title' => 'Produk Terlaris',
+                'products' => \App\Models\Product::where('store_id', $store->id)
+                    ->where('is_active', true)
+                    ->withSum(['orderItems as sold' => function ($q) {
+                        $q->whereHas('order', function ($q2) {
+                            $q2->where('shipping_status', 'delivered');
+                        });
+                    }], 'quantity')
+                    ->withAvg('reviews as rating', 'rating')
+                    ->orderByDesc('sold')
+                    ->take(10)
+                    ->get()
+            ];
+
+            // "Kategori Terbaik" or Specific category
+            if ($categories->isNotEmpty()) {
+                $firstCat = $categories->first();
+                $groupedProducts[] = [
+                    'title' => $firstCat->name,
+                    'products' => \App\Models\Product::where('store_id', $store->id)
+                        ->where('category_id', $firstCat->id)
+                        ->where('is_active', true)
+                        ->withSum(['orderItems as sold' => function ($q) {
+                            $q->whereHas('order', function ($q2) {
+                                $q2->where('shipping_status', 'delivered');
+                            });
+                        }], 'quantity')
+                        ->withAvg('reviews as rating', 'rating')
+                        ->take(10)
+                        ->get()
+                ];
+            }
+        }
+
+        // Check if current user is following the store
+        $isFollowing = auth()->check() ? $store->followers()->where('user_id', auth()->id())->exists() : false;
+
+        return Inertia::render('Storefront/StoreDetail', [
+            'store' => $store,
+            'isFollowing' => $isFollowing,
+            'categories' => $categories,
+            'products' => $products,
+            'groupedProducts' => $groupedProducts,
+            'filters' => [
+                'tab' => $tab,
+                'filter' => $filter,
+                'search' => $search,
+                'category_id' => $request->query('category_id'),
+            ]
+        ]);
+    }
 }
