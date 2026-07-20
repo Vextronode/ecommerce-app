@@ -19,6 +19,7 @@ Route::get('/shop', [\App\Http\Controllers\ShopController::class, 'index'])
 
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/product/{slug}', [\App\Http\Controllers\ShopController::class, 'show'])->name('product.detail');
+    Route::get('/store/{slug}', [\App\Http\Controllers\ShopController::class, 'storeDetail'])->name('store.detail');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -28,11 +29,11 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/checkout/success', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/history', [\App\Http\Controllers\OrderHistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{order}', [\App\Http\Controllers\OrderHistoryController::class, 'show'])->name('history.show');
-    
+
     // Product Rating Routes
     Route::get('/history/rating/{order_item}', [\App\Http\Controllers\ProductReviewController::class, 'create'])->name('history.rating.create');
     Route::post('/history/rating/{order_item_id}', [\App\Http\Controllers\ProductReviewController::class, 'store'])->name('history.rating.store');
-    
+
     Route::post('/history/{order}/cancel', [\App\Http\Controllers\OrderHistoryController::class, 'cancel'])->name('history.cancel');
     Route::post('/history/{order}/complete', [\App\Http\Controllers\OrderHistoryController::class, 'complete'])->name('history.complete');
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
@@ -122,8 +123,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
 
             $chartData = [];
             if ($storeId) {
-                // Get all delivered orders from last 3 weeks
-                $startDate = now()->startOfWeek()->subWeeks(2); // 3 weeks ago (start of week)
+                $startDate = now()->startOfWeek()->subWeeks(2);
                 $orders = \App\Models\Order::where('store_id', $storeId)
                     ->where('shipping_status', 'delivered')
                     ->where('created_at', '>=', $startDate)
@@ -135,7 +135,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
                 $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
                 for ($i = 0; $i < 7; $i++) {
                     $dayName = $days[$i];
-                    
+
                     $dateW1 = now()->startOfWeek()->addDays($i)->format('Y-m-d');
                     $dateW2 = now()->startOfWeek()->subWeeks(1)->addDays($i)->format('Y-m-d');
                     $dateW3 = now()->startOfWeek()->subWeeks(2)->addDays($i)->format('Y-m-d');

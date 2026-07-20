@@ -4,6 +4,7 @@ import { Link } from "@inertiajs/react";
 
 export interface Store {
     id: number | string;
+    slug?: string;
     name: string;
     description: string;
     image?: string;
@@ -51,7 +52,7 @@ export default function MerchantSection({ stores = [] }: MerchantSectionProps) {
 
                         return (
                             <Link
-                                href={`/store/${store.id}`}
+                                href={`/store/${store.slug || store.id}`}
                                 key={`${store.id}-${index}`}
                                 className={`${bgClass} rounded-[2rem] p-5 md:p-6 relative overflow-hidden flex flex-col h-72 hover:shadow-lg transition-shadow duration-300 group`}
                             >
