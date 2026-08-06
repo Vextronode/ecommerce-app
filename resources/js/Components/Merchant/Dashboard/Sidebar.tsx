@@ -6,6 +6,7 @@ import {
     ShoppingCart,
     Users,
     BarChart3,
+    Wallet,
     Settings,
     LogOut,
 } from "lucide-react";
@@ -87,6 +88,17 @@ export default function Sidebar() {
                 >
                     <BarChart3 className="w-5 h-5 shrink-0" />
                     Reports & Analytics
+                </Link>
+                <Link
+                    href={route('merchant.withdrawals.index')}
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                        route().current("merchant.withdrawals.*")
+                            ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30"
+                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                    }`}
+                >
+                    <Wallet className="w-5 h-5 shrink-0" />
+                    Penarikan Saldo
                 </Link>
             </nav>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -59,26 +60,48 @@ class OrderController extends Controller
             'shipping_status' => 'required|in:pending,processing,shipped,delivered,cancelled',
         ]);
 
-        $order = Order::findOrFail($id);
-
         $store = $request->user()->store;
-        if ($order->store_id !== $store->id) {
-            abort(403, 'Anda tidak punya akses ke pesanan ini.');
-        }
 
-        if (in_array($order->shipping_status, ['cancelled', 'delivered'])) {
-            return back()->with('error', 'Status pesanan ini sudah tidak bisa diubah lagi.');
-        }
+        return DB::transaction(function () use ($request, $id, $store) {
+            $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
 
-        $updateData = ['shipping_status' => $request->shipping_status];
+            if ($order->store_id !== $store->id) {
+                abort(403, 'Anda tidak punya akses ke pesanan ini.');
+            }
 
-        if ($request->shipping_status === 'cancelled') {
-            $updateData['payment_status'] = $order->payment_method === 'cod' ? 'failed' : 'refunded';
-            $order->restoreStock();
-        }
+            if (in_array($order->shipping_status, ['cancelled', 'delivered'])) {
+                return back()->with('error', 'Status pesanan ini sudah tidak bisa diubah lagi.');
+            }
 
-        $order->update($updateData);
+            $newStatus = $request->shipping_status;
 
-        return back()->with('success', 'Status pesanan berhasil diperbarui!');
+            // Security Guard (Vuln 8): Prohibit progressing unpaid non-COD orders
+            if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid' && in_array($newStatus, ['processing', 'shipped', 'delivered'])) {
+                return back()->with('error', 'Pesanan non-COD belum dibayar oleh pembeli.');
+            }
+
+            $updateData = ['shipping_status' => $newStatus];
+
+            if ($newStatus === 'delivered') {
+                if ($order->payment_method === 'cod') {
+                    $updateData['payment_status'] = 'paid';
+                }
+                $order->update($updateData);
+
+                // Only credit store balance if payment is actually paid
+                if ($order->payment_status === 'paid' || ($updateData['payment_status'] ?? '') === 'paid') {
+                    $order->creditStoreBalance();
+                }
+            } elseif ($newStatus === 'cancelled') {
+                $updateData['payment_status'] = $order->payment_status === 'paid' ? 'refunded' : 'failed';
+                $order->update($updateData);
+                // Idempotent stock restoration
+                $order->restoreStock();
+            } else {
+                $order->update($updateData);
+            }
+
+            return back()->with('success', 'Status pesanan berhasil diperbarui!');
+        });
     }
 }

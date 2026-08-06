@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -14,6 +15,10 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $user = $request->user()->load('store');
+
+        if (!$user->store) {
+            return redirect()->route('merchant.store.setup');
+        }
 
         $query = $user->store->products()->with(['category', 'images', 'variants.options', 'skus'])->latest();
 
@@ -37,7 +42,6 @@ class ProductController extends Controller
                     break;
             }
         }
-
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
@@ -66,15 +70,21 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
-            'images' => 'nullable|array',
+            'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'is_preorder' => 'boolean',
-            'po_days' => 'nullable|integer|min:0',
+            'po_days' => 'nullable|integer|min:0|max:365',
             'po_hours' => 'nullable|integer|min:0|max:23',
-            'variants' => 'nullable|array',
-            'skus' => 'nullable|array',
-            'price' => 'nullable|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
+            'variants' => 'nullable|array|max:10',
+            'variants.*.name' => 'required|string|max:100',
+            'variants.*.options' => 'nullable|array|max:50',
+            'variants.*.options.*' => 'required|string|max:100',
+            'skus' => 'nullable|array|max:100',
+            'skus.*.variant_name' => 'required|string|max:100',
+            'skus.*.price' => 'required|numeric|min:0|max:1000000000',
+            'skus.*.stock' => 'required|integer|min:0|max:1000000',
+            'price' => 'nullable|numeric|min:0|max:1000000000',
+            'stock' => 'nullable|integer|min:0|max:1000000',
             'unit' => 'nullable|string|max:20',
         ]);
 
@@ -89,6 +99,10 @@ class ProductController extends Controller
         }
 
         $user = $request->user()->load('store');
+
+        if (!$user->store) {
+            return redirect()->route('merchant.store.setup');
+        }
 
         $product = $user->store->products()->create([
             'category_id' => $request->category_id,
@@ -144,7 +158,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        if ($product->store_id !== auth()->user()->store->id) {
+        if ($product->store_id !== auth()->user()->store?->id) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -158,7 +172,7 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        if ($product->store_id !== auth()->user()->store->id) {
+        if ($product->store_id !== auth()->user()->store?->id) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -166,16 +180,23 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
-            'images' => 'nullable|array',
+            'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'deleted_images' => 'nullable|array',
+            'deleted_images.*' => 'integer',
             'is_preorder' => 'boolean',
-            'po_days' => 'nullable|integer|min:0',
+            'po_days' => 'nullable|integer|min:0|max:365',
             'po_hours' => 'nullable|integer|min:0|max:23',
-            'variants' => 'nullable|array',
-            'skus' => 'nullable|array',
-            'price' => 'nullable|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
+            'variants' => 'nullable|array|max:10',
+            'variants.*.name' => 'required|string|max:100',
+            'variants.*.options' => 'nullable|array|max:50',
+            'variants.*.options.*' => 'required|string|max:100',
+            'skus' => 'nullable|array|max:100',
+            'skus.*.variant_name' => 'required|string|max:100',
+            'skus.*.price' => 'required|numeric|min:0|max:1000000000',
+            'skus.*.stock' => 'required|integer|min:0|max:1000000',
+            'price' => 'nullable|numeric|min:0|max:1000000000',
+            'stock' => 'nullable|integer|min:0|max:1000000',
             'unit' => 'nullable|string|max:20',
         ]);
 
@@ -205,9 +226,7 @@ class ProductController extends Controller
         if ($request->has('deleted_images')) {
             $imagesToDelete = $product->images()->whereIn('id', $request->deleted_images)->get();
             foreach ($imagesToDelete as $img) {
-                if (file_exists(public_path($img->image_path))) {
-                    @unlink(public_path($img->image_path));
-                }
+                $this->safeDeleteStoredFile($img->image_path);
                 $img->delete();
             }
         }
@@ -253,22 +272,32 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        if ($product->store_id !== auth()->user()->store->id) {
+        if ($product->store_id !== auth()->user()->store?->id) {
             abort(403, 'Unauthorized action.');
         }
 
-        if ($product->image_path && file_exists(public_path($product->image_path))) {
-            @unlink(public_path($product->image_path));
+        if ($product->image_path) {
+            $this->safeDeleteStoredFile($product->image_path);
         }
 
         foreach ($product->images as $img) {
-            if (file_exists(public_path($img->image_path))) {
-                @unlink(public_path($img->image_path));
-            }
+            $this->safeDeleteStoredFile($img->image_path);
         }
 
         $product->delete();
 
         return redirect()->route('merchant.products.index');
+    }
+
+    private function safeDeleteStoredFile(?string $path): void
+    {
+        if (!$path) {
+            return;
+        }
+
+        $cleanPath = ltrim(str_replace('/storage/', '', $path), '/');
+        if (Storage::disk('public')->exists($cleanPath)) {
+            Storage::disk('public')->delete($cleanPath);
+        }
     }
 }

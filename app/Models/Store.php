@@ -17,6 +17,10 @@ class Store extends Model
         'description',
         'support_email',
         'address',
+        'balance',
+        'bank_name',
+        'bank_account_number',
+        'bank_account_holder',
     ];
 
     public function user()
@@ -37,5 +41,10 @@ class Store extends Model
     public function followers()
     {
         return $this->belongsToMany(User::class, 'store_followers');
+    }
+
+    public function withdrawals()
+    {
+        return $this->hasMany(Withdrawal::class);
     }
 }

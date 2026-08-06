@@ -18,7 +18,7 @@ class AnalyticsController extends Controller
         $store = $request->user()->store;
         
         if (!$store) {
-            return redirect()->route('merchant.setup')->with('error', 'Silakan buat toko terlebih dahulu.');
+            return redirect()->route('merchant.store.setup')->with('error', 'Silakan buat toko terlebih dahulu.');
         }
 
         $now = Carbon::now();

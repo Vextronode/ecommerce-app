@@ -75,7 +75,7 @@ class ProfileController extends Controller
             ->where('id', '!=', $request->session()->getId())
             ->delete();
 
-        return Redirect::route('profile.security')->with('status', 'Sesion lainnya berhasil dihapus.');
+        return Redirect::route('profile.edit')->with('status', 'Sesion lainnya berhasil dihapus.');
     }
     public function destroy(Request $request): RedirectResponse
     {
@@ -103,9 +103,8 @@ class ProfileController extends Controller
      */
     public function updatePhoto(Request $request): RedirectResponse
     {
-        // validasi max ukuran foto adalah 2MB
         $request->validate([
-            'photo' => ['required', 'image', 'max:2048'],
+            'photo' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
         $user = $request->user();

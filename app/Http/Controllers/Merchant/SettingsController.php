@@ -18,7 +18,7 @@ class SettingsController extends Controller
         $store = Store::where('user_id', $user->id)->first();
 
         if (!$store) {
-            return redirect()->route('merchant.store.create');
+            return redirect()->route('merchant.store.setup');
         }
 
         return Inertia::render('Merchant/Settings/Index', [
@@ -49,7 +49,7 @@ class SettingsController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:20'],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             
             'store_name' => ['required', 'string', 'max:255'],
             'support_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
