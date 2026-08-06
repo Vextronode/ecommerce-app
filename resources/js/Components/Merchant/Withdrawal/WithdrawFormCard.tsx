@@ -104,11 +104,10 @@ export default function WithdrawFormCard({
                                 key={preset}
                                 type="button"
                                 onClick={() => handleSelectPreset(preset)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                                    data.amount === preset.toString()
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${data.amount === preset.toString()
                                         ? "bg-[#41B9C5] text-white border-[#41B9C5] shadow-sm shadow-[#41B9C5]/30"
                                         : "bg-[#F0FAFB] hover:bg-[#EAF7F7] text-[#004F54] border-[#41B9C5]/30"
-                                }`}
+                                    }`}
                             >
                                 {(preset / 1000).toLocaleString("id-ID")}rb
                             </button>
@@ -124,7 +123,7 @@ export default function WithdrawFormCard({
                     </div>
                 </div>
 
-                {/* Sisa Saldo breakdown - Spacious padding */}
+                {/* Sisa Saldo breakdown */}
                 {currentNumericAmount > 0 && currentNumericAmount <= availableBalance && (
                     <div className="bg-[#F0FAFB] px-4 py-3 rounded-2xl border border-[#41B9C5]/30 flex items-center justify-between text-xs gap-3">
                         <span className="text-gray-600 font-medium truncate">Sisa Saldo Setelah Penarikan:</span>
