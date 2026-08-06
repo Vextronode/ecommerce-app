@@ -26,7 +26,12 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::delete('/profile/other-sessions', [ProfileController::class, 'destroyOtherSessions'])->name('profile.other-sessions.destroy');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/checkout/success', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/payment/{order}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payment.show');
+    Route::get('/payment/{order}/check-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])
+        ->middleware('throttle:30,1')
+        ->name('payment.check-status');
     Route::get('/history', [\App\Http\Controllers\OrderHistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{order}', [\App\Http\Controllers\OrderHistoryController::class, 'show'])->name('history.show');
 
@@ -36,7 +41,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 
     Route::post('/history/{order}/cancel', [\App\Http\Controllers\OrderHistoryController::class, 'cancel'])->name('history.cancel');
     Route::post('/history/{order}/complete', [\App\Http\Controllers\OrderHistoryController::class, 'complete'])->name('history.complete');
-    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
+
 
     Route::get('/cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart');
     Route::post('/cart', [\App\Http\Controllers\CartController::class, 'store'])->name('cart.store');
@@ -75,7 +80,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
             return Inertia::render('Merchant/SetupStore');
         })->name('merchant.store.setup');
 
-        Route::post('/setup-store', [\App\Http\Controllers\Merchant\StoreController::class, 'store'])->name('merchant.store.store');
+        Route::post('/setup-store', [MerchantSetupController::class, 'store'])->name('merchant.store.store');
 
         Route::get('/dashboard', function (Illuminate\Http\Request $request) {
             $user = $request->user()->load('store');
@@ -183,6 +188,12 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
         Route::get('/customers', [\App\Http\Controllers\Merchant\CustomerController::class, 'index'])->name('merchant.customers.index');
         Route::get('/settings', [\App\Http\Controllers\Merchant\SettingsController::class, 'index'])->name('merchant.settings.index');
         Route::post('/settings', [\App\Http\Controllers\Merchant\SettingsController::class, 'update'])->name('merchant.settings.update');
+        Route::get('/withdrawals', [\App\Http\Controllers\Merchant\WithdrawalController::class, 'index'])->name('merchant.withdrawals.index');
+        Route::post('/withdrawals', [\App\Http\Controllers\Merchant\WithdrawalController::class, 'store'])->name('merchant.withdrawals.store');
+        Route::put('/withdrawals/bank', [\App\Http\Controllers\Merchant\WithdrawalController::class, 'updateBank'])->name('merchant.withdrawals.update-bank');
     });
 
+Route::post('/api/midtrans/callback', [\App\Http\Controllers\MidtransCallbackController::class, 'handle'])->name('midtrans.callback');
+
 require __DIR__ . '/auth.php';
+
