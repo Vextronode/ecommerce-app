@@ -84,7 +84,7 @@ class AuthenticationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    public function test_admin_can_still_authenticate_from_the_default_login_screen(): void
+    public function test_admin_cannot_authenticate_from_the_default_user_login_screen(): void
     {
         $admin = User::factory()->create([
             'role' => 'admin',
@@ -96,8 +96,8 @@ class AuthenticationTest extends TestCase
             'expected_role' => 'user',
         ]);
 
-        $this->assertAuthenticatedAs($admin);
-        $response->assertRedirect('/admin/dashboard');
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
     }
 
     public function test_merchants_are_redirected_away_from_user_storefront(): void

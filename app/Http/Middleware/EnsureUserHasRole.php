@@ -21,9 +21,11 @@ class EnsureUserHasRole
 
     private function dashboardFor(?string $role): string
     {
+        $adminPrefix = config('admin.prefix', 'cibenda-portal');
+
         return match ($role) {
             'pedagang' => '/pedagang/dashboard',
-            'admin' => '/admin/dashboard',
+            'admin' => '/' . $adminPrefix . '/dashboard',
             default => '/dashboard',
         };
     }

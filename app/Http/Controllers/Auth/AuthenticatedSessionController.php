@@ -42,7 +42,7 @@ class AuthenticatedSessionController extends Controller
 
             return redirect()->intended('/pedagang/dashboard');
         } elseif ($role === 'admin') {
-            return redirect()->intended('/admin/dashboard');
+            return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 
         return redirect()->intended(route('dashboard', absolute: false));
@@ -53,11 +53,20 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $redirectTo = $request->input('source') === 'merchant'
+        $adminPrefix = config('admin.prefix', 'cibenda-portal');
+        $isMerchant = $request->input('source') === 'merchant'
             || $request->is('pedagang/*')
-            || str_contains((string) $request->headers->get('referer'), '/pedagang')
-            ? route('merchant.login.view')
-            : route('login');
+            || str_contains((string) $request->headers->get('referer'), '/pedagang');
+        $isAdmin = $request->input('source') === 'admin'
+            || $request->is($adminPrefix . '/*')
+            || str_contains((string) $request->headers->get('referer'), '/' . $adminPrefix);
+
+        $redirectTo = route('login');
+        if ($isMerchant) {
+            $redirectTo = route('merchant.login.view');
+        } elseif ($isAdmin && Route::has('admin.login.view')) {
+            $redirectTo = route('admin.login.view');
+        }
 
         Auth::guard('web')->logout();
 
