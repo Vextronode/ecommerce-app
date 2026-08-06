@@ -95,21 +95,31 @@ class CartController extends Controller
             $product = Product::query()
                 ->where('id', $validated['product_id'])
                 ->where('is_active', true)
+                ->with('skus')
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            $prepOption = $validated['preparation_option'] ?? '';
+            $availableStock = $product->stock;
+            if (!empty($prepOption)) {
+                $matchingSku = $product->skus->where('variant_name', $prepOption)->first();
+                if ($matchingSku) {
+                    $availableStock = $matchingSku->stock;
+                }
+            }
 
             $cart = Cart::query()
                 ->where('user_id', auth()->id())
                 ->where('product_id', $product->id)
-                ->where('preparation_option', $validated['preparation_option'] ?? '')
+                ->where('preparation_option', $prepOption)
                 ->lockForUpdate()
                 ->first();
 
             $newQuantity = ($cart?->quantity ?? 0) + $validated['quantity'];
 
-            if ($newQuantity > $product->stock) {
+            if ($newQuantity > $availableStock) {
                 throw ValidationException::withMessages([
-                    'quantity' => "Stok {$product->name} tidak mencukupi.",
+                    'quantity' => "Stok {$product->name}" . ($prepOption ? " ({$prepOption})" : "") . " tidak mencukupi.",
                 ]);
             }
 
@@ -117,7 +127,7 @@ class CartController extends Controller
                 [
                     'user_id' => auth()->id(),
                     'product_id' => $product->id,
-                    'preparation_option' => $validated['preparation_option'] ?? '',
+                    'preparation_option' => $prepOption,
                 ],
                 [
                     'quantity' => $newQuantity,
@@ -140,9 +150,23 @@ class CartController extends Controller
 
         $validated = $request->validate(['quantity' => 'required|integer|min:1']);
 
-        $cart->load('product');
+        $cart->load(['product.skus']);
 
-        if (!$cart->product || !$cart->product->is_active || $validated['quantity'] > $cart->product->stock) {
+        if (!$cart->product || !$cart->product->is_active) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Produk tidak tersedia.',
+            ]);
+        }
+
+        $availableStock = $cart->product->stock;
+        if (!empty($cart->preparation_option)) {
+            $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
+            if ($matchingSku) {
+                $availableStock = $matchingSku->stock;
+            }
+        }
+
+        if ($validated['quantity'] > $availableStock) {
             throw ValidationException::withMessages([
                 'quantity' => 'Quantity melebihi stok tersedia.',
             ]);

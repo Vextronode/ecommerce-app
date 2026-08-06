@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
+use App\Services\MidtransService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -16,6 +17,29 @@ use Tests\TestCase;
 class CheckoutSecurityTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $mockMidtrans = $this->createMock(MidtransService::class);
+        $mockMidtrans->method('chargeCoreApi')->willReturn([
+            'status_code' => '201',
+            'transaction_status' => 'pending',
+            'payment_type' => 'bank_transfer',
+            'payment_channel' => 'bca_va',
+            'order_id' => 'TRX-TEST-001',
+            'transaction_id' => 'trx-123456',
+            'va_number' => '12345678901',
+            'bill_key' => null,
+            'biller_code' => null,
+            'qr_code_url' => null,
+            'deeplink_url' => null,
+            'expiry_time' => now()->addHours(24),
+            'raw_payload' => [],
+        ]);
+        $this->app->instance(MidtransService::class, $mockMidtrans);
+    }
 
     public function test_user_cannot_checkout_another_users_cart(): void
     {
@@ -27,7 +51,8 @@ class CheckoutSecurityTest extends TestCase
             'phone' => '08123456789',
             'address' => 'Jl. Uji',
             'delivery_method' => 'coastal',
-            'payment_method' => 'card',
+            'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
         ]);
 
         $response->assertSessionHasErrors('cart_ids');
@@ -53,14 +78,14 @@ class CheckoutSecurityTest extends TestCase
             'address' => 'Jl. Aman',
             'delivery_method' => 'standard',
             'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
             'total_amount' => 1,
         ]);
 
-        $response->assertRedirect(route('shop'));
-        $this->assertDatabaseHas('orders', [
-            'user_id' => $user->id,
-            'total_amount' => 37000,
-        ]);
+        $order = Order::where('user_id', $user->id)->first();
+        $this->assertNotNull($order);
+        $response->assertRedirect(route('payment.show', ['order' => $order->id]));
+        $this->assertEquals(37000, (int) $order->total_amount);
     }
 
     public function test_checkout_rejects_quantity_above_stock(): void
@@ -81,6 +106,7 @@ class CheckoutSecurityTest extends TestCase
             'address' => 'Jl. Aman',
             'delivery_method' => 'standard',
             'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
         ]);
 
         $response->assertSessionHasErrors('cart_ids');
@@ -115,13 +141,16 @@ class CheckoutSecurityTest extends TestCase
             'address_id' => $address->id,
             'delivery_method' => 'standard',
             'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
         ]);
 
-        $response->assertRedirect(route('shop'));
+        $order = Order::where('user_id', $user->id)->first();
+        $this->assertNotNull($order);
+        $response->assertRedirect(route('payment.show', ['order' => $order->id]));
         $this->assertDatabaseHas('orders', [
             'user_id' => $user->id,
-            'shipping_name' => 'Pembeli Aman',
-            'shipping_phone' => '+6281234567890',
+            'customer_name' => 'Pembeli Aman',
+            'customer_phone' => '+6281234567890',
             'shipping_address' => 'Jl. Aman No. 1, Pangandaran',
         ]);
     }
@@ -151,6 +180,7 @@ class CheckoutSecurityTest extends TestCase
             'address_id' => $victimAddress->id,
             'delivery_method' => 'standard',
             'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
         ]);
 
         $response->assertNotFound();

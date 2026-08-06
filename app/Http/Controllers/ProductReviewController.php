@@ -53,8 +53,8 @@ class ProductReviewController extends Controller
     {
         $orderItem = OrderItem::with(['order', 'review'])->findOrFail($order_item_id);
 
-        if ($orderItem->order->user_id !== auth()->id()) {
-            abort(403);
+        if ($orderItem->order->user_id !== auth()->id() || $orderItem->order->shipping_status !== 'delivered') {
+            abort(403, 'Anda hanya dapat memberikan ulasan untuk pesanan yang telah selesai.');
         }
 
         $validated = $request->validate([

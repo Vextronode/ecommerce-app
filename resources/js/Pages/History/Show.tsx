@@ -91,7 +91,7 @@ export default function Show({ order }: { order: any }) {
                                     Metode Pembayaran
                                 </h3>
                                 <p className="text-sm text-gray-600 uppercase font-medium">
-                                    {order.payment_method}
+                                    {order.payment_channel ? order.payment_channel.replace('_', ' ') : order.payment_method}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
                                     Status:{" "}
@@ -99,6 +99,16 @@ export default function Show({ order }: { order: any }) {
                                         {order.payment_status === 'pending' ? 'Belum Bayar' : order.payment_status === 'paid' ? 'Sudah Bayar / Lunas' : order.payment_status}
                                     </span>
                                 </p>
+                                {order.payment_status === 'pending' && order.payment_method !== 'cod' && (
+                                    <div className="mt-3">
+                                        <Link
+                                            href={`/payment/${order.id}`}
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#245D56] hover:bg-[#1a4540] px-3.5 py-2 rounded-xl shadow-xs transition"
+                                        >
+                                            Bayar Sekarang
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

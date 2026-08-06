@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -48,13 +50,9 @@ class CheckoutController extends Controller
                 'product_id' => $cart->product->id,
                 'name' => $cart->product->name,
                 'location' => $cart->product->store ? $cart->product->store->name . ' - ' . $cart->product->store->address : 'Cibenda Mart',
-
-                // Set harga dari SKU kalau ada
                 'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
-
                 'qty' => $cart->quantity,
                 'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
-
                 'preparation_option' => $cart->preparation_option,
                 'unit' => $cart->product->unit ?? 'pcs',
             ];
@@ -66,7 +64,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, MidtransService $midtransService)
     {
         $validated = $request->validate([
             'cart_ids' => ['required', 'array', 'min:1'],
@@ -76,7 +74,8 @@ class CheckoutController extends Controller
             'phone' => 'required_without:address_id|string|max:20',
             'address' => 'required_without:address_id|string',
             'delivery_method' => ['required', 'string', 'in:coastal,standard'],
-            'payment_method' => ['required', 'string', 'in:va,card,ewallet,cod'],
+            'payment_method' => ['required', 'string', 'in:va,qris,gopay,cod'],
+            'payment_channel' => ['required', 'string', 'in:bca_va,bni_va,bri_va,permata_va,mandiri_bill,qris,gopay,cod'],
         ]);
 
         if (!empty($validated['address_id'])) {
@@ -86,7 +85,7 @@ class CheckoutController extends Controller
             $validated['address'] = $address->full_address;
         }
 
-        $orders = DB::transaction(function () use ($validated, $request) {
+        $orders = DB::transaction(function () use ($validated) {
             $carts = Cart::query()
                 ->where('user_id', auth()->id())
                 ->whereIn('id', $validated['cart_ids'])
@@ -102,7 +101,6 @@ class CheckoutController extends Controller
 
             // Group carts by store_id
             $cartsByStore = $carts->groupBy(function ($cart) {
-                // If product has no store, maybe assign a default or error
                 return $cart->product->store_id;
             });
 
@@ -150,6 +148,7 @@ class CheckoutController extends Controller
                     'shipping_cost' => $deliveryFee,
                     'total_amount' => $totalAmount,
                     'payment_method' => $validated['payment_method'],
+                    'payment_channel' => $validated['payment_channel'],
                     'payment_status' => 'pending',
                     'shipping_status' => 'pending',
                 ]);
@@ -170,9 +169,8 @@ class CheckoutController extends Controller
 
                     if ($matchingSku) {
                         $matchingSku->decrement('stock', $cart->quantity);
-                    } else {
-                        $cart->product->decrement('stock', $cart->quantity);
                     }
+                    $cart->product->decrement('stock', $cart->quantity);
 
                     $cart->delete();
                 }
@@ -183,23 +181,118 @@ class CheckoutController extends Controller
             return $createdOrders;
         });
 
-        // Redirect to success page, passing the first order ID (if any) to view details if needed
+        // If non-COD, Charge via Midtrans Core API
+        if ($validated['payment_method'] !== 'cod' && count($orders) > 0) {
+            try {
+                $chargeResult = $midtransService->chargeCoreApi(
+                    $orders,
+                    $validated['payment_channel'],
+                    $validated['name'],
+                    $validated['phone'],
+                    $request->user()?->email
+                );
+
+                $parentTrxId = $chargeResult['order_id'] ?? null;
+
+                foreach ($orders as $order) {
+                    $order->update([
+                        'parent_transaction_id' => $parentTrxId,
+                        'payment_type' => $chargeResult['payment_type'],
+                        'payment_channel' => $chargeResult['payment_channel'],
+                        'va_number' => $chargeResult['va_number'],
+                        'bill_key' => $chargeResult['bill_key'],
+                        'biller_code' => $chargeResult['biller_code'],
+                        'qr_code_url' => $chargeResult['qr_code_url'],
+                        'payment_expiry_time' => $chargeResult['expiry_time'],
+                        'payment_payload' => $chargeResult['raw_payload'],
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Midtrans Core API Charge Error: ' . $e->getMessage());
+            }
+        }
+
         $firstOrderId = count($orders) > 0 ? $orders[0]->id : null;
-        
-        return redirect()->route('checkout.success', ['order_id' => $firstOrderId]);
+
+        if ($validated['payment_method'] !== 'cod' && $firstOrderId) {
+            return redirect()->route('payment.show', [
+                'order' => $firstOrderId,
+            ]);
+        }
+
+        return redirect()->route('checkout.success', [
+            'order_id' => $firstOrderId,
+        ]);
     }
 
-    public function success(\Illuminate\Http\Request $request)
+    public function success(Request $request, MidtransService $midtransService)
     {
         $orderId = $request->query('order_id');
         $order = null;
 
         if ($orderId) {
-            $order = \App\Models\Order::with('store')->find($orderId);
+            $order = Order::with(['items.product', 'store'])->find($orderId);
+
+            if ($order && $order->payment_status === 'pending' && $order->payment_method !== 'cod') {
+                return redirect()->route('payment.show', ['order' => $order->id]);
+            }
         }
 
         return Inertia::render('Checkout/Success', [
-            'order' => $order
+            'order' => $order,
+        ]);
+    }
+
+    /**
+     * Real-time payment status check endpoint with multi-order synchronization
+     */
+    public function checkStatus(Request $request, $id, MidtransService $midtransService)
+    {
+        $order = Order::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        if ($order->payment_status === 'pending' && $order->payment_method !== 'cod') {
+            $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+
+            if ($midtransOrderId) {
+                try {
+                    $statusResp = $midtransService->getTransactionStatus($midtransOrderId);
+
+                    if ($statusResp) {
+                        $trxStatus = is_object($statusResp) ? ($statusResp->transaction_status ?? null) : ($statusResp['transaction_status'] ?? null);
+                        $fraudStatus = is_object($statusResp) ? ($statusResp->fraud_status ?? null) : ($statusResp['fraud_status'] ?? null);
+
+                        $siblingOrders = Order::where('parent_transaction_id', $midtransOrderId)
+                            ->orWhere('id', $order->id)
+                            ->get();
+
+                        DB::transaction(function () use ($siblingOrders, $trxStatus, $fraudStatus) {
+                            foreach ($siblingOrders as $sib) {
+                                $lockedSib = Order::where('id', $sib->id)->lockForUpdate()->first();
+                                if (!$lockedSib) continue;
+
+                                if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
+                                    $lockedSib->update(['payment_status' => 'paid']);
+                                } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
+                                    $lockedSib->update(['payment_status' => 'failed']);
+                                    $lockedSib->restoreStock();
+                                }
+                            }
+                        });
+
+                        $order->refresh();
+                    }
+                } catch (\Exception $e) {
+                    // Ignore API connection exceptions
+                }
+            }
+        }
+
+        return response()->json([
+            'order_id' => $order->id,
+            'payment_status' => $order->payment_status,
+            'is_paid' => $order->payment_status === 'paid',
         ]);
     }
 }

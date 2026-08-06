@@ -21,9 +21,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
     const { auth } = usePage().props as any;
     const [cartItems] = useState(initialCartItems);
     const [isAddressPickerOpen, setIsAddressPickerOpen] = useState(false);
-    const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
-        null,
-    );
+    const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
 
     const subtotal = cartItems.reduce(
         (sum, item) => sum + item.price * item.qty,
@@ -31,7 +29,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
     );
     const totalItems = cartItems.reduce((sum, item) => sum + item.qty, 0);
 
-    // Inisialisasi Form Inertia
+    // Inisialisasi Form Inertia dengan payment_method & payment_channel
     const { data, setData, post, processing, errors } = useForm({
         cart_ids: cartItems.map((item) => item.id),
         address_id: null as number | null,
@@ -39,7 +37,8 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
         phone: auth?.user?.phone || "",
         address: "",
         delivery_method: "coastal",
-        payment_method: "cod",
+        payment_method: "va" as "va" | "qris" | "gopay" | "cod",
+        payment_channel: "bca_va",
     });
 
     const applyAddress = (address: CheckoutAddress) => {
@@ -65,6 +64,17 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
         });
     };
 
+    const handlePaymentSelect = (
+        method: "va" | "qris" | "gopay" | "cod",
+        channel: string,
+    ) => {
+        setData((prev) => ({
+            ...prev,
+            payment_method: method,
+            payment_channel: channel,
+        }));
+    };
+
     useEffect(() => {
         if (selectedAddressId || addresses.length === 0) return;
 
@@ -76,9 +86,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
     }, [addresses]);
 
     const deliveryFee = data.delivery_method === "coastal" ? 25000 : 15000;
-
     const adminFee = data.payment_method === "cod" ? 0 : 2000;
-
     const grandTotal = subtotal + deliveryFee + adminFee;
 
     const handlePlaceOrder = () => {
@@ -87,9 +95,12 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
             onSuccess: () => {
                 toast.success("Pesanan berhasil dibuat!");
             },
-            onError: () => {
+            onError: (errs) => {
+                const firstError = Object.values(errs)[0];
                 toast.error(
-                    "Gagal membuat pesanan, pastikan semua form terisi.",
+                    typeof firstError === "string"
+                        ? firstError
+                        : "Gagal membuat pesanan, pastikan semua form terisi.",
                 );
             },
         });
@@ -122,8 +133,9 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                         />
 
                         <PaymentSection
-                            selected={data.payment_method}
-                            onSelect={(val) => setData("payment_method", val)}
+                            selectedMethod={data.payment_method}
+                            selectedChannel={data.payment_channel}
+                            onSelect={handlePaymentSelect}
                         />
                     </div>
 

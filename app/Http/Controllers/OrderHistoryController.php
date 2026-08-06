@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class OrderHistoryController extends Controller
@@ -55,6 +56,33 @@ class OrderHistoryController extends Controller
             }
 
             $orders = $query->get()->map(function ($order) {
+                // Auto sync payment status from Midtrans if pending and non-COD
+                if ($order->payment_status === 'pending' && $order->payment_method !== 'cod') {
+                    $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+                    if ($midtransOrderId) {
+                        try {
+                            $midtransService = app(\App\Services\MidtransService::class);
+                            $statusResp = $midtransService->getTransactionStatus($midtransOrderId);
+
+                            if ($statusResp) {
+                                $trxStatus = is_object($statusResp) ? ($statusResp->transaction_status ?? null) : ($statusResp['transaction_status'] ?? null);
+                                $fraudStatus = is_object($statusResp) ? ($statusResp->fraud_status ?? null) : ($statusResp['fraud_status'] ?? null);
+
+                                if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
+                                    $order->update(['payment_status' => 'paid']);
+                                    $order->payment_status = 'paid';
+                                } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
+                                    $order->update(['payment_status' => 'failed']);
+                                    $order->payment_status = 'failed';
+                                    $order->restoreStock();
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            // ignore network failure
+                        }
+                    }
+                }
+
                 return [
                     'id' => $order->id,
                     'invoice_number' => $order->invoice_number,
@@ -146,39 +174,52 @@ class OrderHistoryController extends Controller
         ]);
     }
 
+    /**
+     * Cancel an unpaid pending order (Protected state machine)
+     */
     public function cancel($id)
     {
-        $order = Order::where('user_id', auth()->id())->findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $order = Order::where('user_id', auth()->id())->lockForUpdate()->findOrFail($id);
 
-        if ($order->shipping_status !== 'pending' && $order->shipping_status !== 'processing') {
-            return back()->with('error', 'Pesanan tidak dapat dibatalkan.');
-        }
+            // Buyers can only self-cancel if the order is still pending and unpaid
+            if ($order->shipping_status !== 'pending' || $order->payment_status === 'paid') {
+                return back()->with('error', 'Pesanan yang sedang dikemas, dikirim, atau telah dibayar tidak dapat dibatalkan langsung. Silakan hubungi penjual.');
+            }
 
-        $paymentStatus = $order->payment_method === 'cod' ? 'failed' : 'refunded';
+            $order->update([
+                'shipping_status' => 'cancelled',
+                'payment_status' => 'failed'
+            ]);
 
-        $order->restoreStock();
+            // Thread-safe stock restoration
+            $order->restoreStock();
 
-        $order->update([
-            'shipping_status' => 'cancelled',
-            'payment_status' => $paymentStatus
-        ]);
-
-        return back()->with('success', 'Pesanan berhasil dibatalkan.');
+            return back()->with('success', 'Pesanan berhasil dibatalkan.');
+        });
     }
 
+    /**
+     * Complete order and safely credit store balance
+     */
     public function complete($id)
     {
-        $order = Order::where('user_id', auth()->id())->findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $order = Order::where('user_id', auth()->id())->lockForUpdate()->findOrFail($id);
 
-        if ($order->shipping_status !== 'shipped') {
-            return back()->with('error', 'Pesanan belum dapat diselesaikan.');
-        }
+            if ($order->shipping_status !== 'shipped') {
+                return back()->with('error', 'Pesanan belum dapat diselesaikan.');
+            }
 
-        $order->update([
-            'shipping_status' => 'delivered',
-            'payment_status' => 'paid'
-        ]);
+            $order->update([
+                'shipping_status' => 'delivered',
+                'payment_status' => 'paid'
+            ]);
 
-        return back()->with('success', 'Pesanan berhasil diselesaikan.');
+            // Idempotent and thread-safe balance credit to store
+            $order->creditStoreBalance();
+
+            return back()->with('success', 'Pesanan berhasil diselesaikan.');
+        });
     }
 }
