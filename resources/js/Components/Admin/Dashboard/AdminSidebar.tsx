@@ -66,14 +66,17 @@ export default function AdminSidebar() {
                     Tambah User
                 </Link>
 
-                <button
-                    type="button"
-                    onClick={() => toast("Modul Laporan Keuangan & Platform segera hadir.")}
-                    className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl font-semibold transition-all text-sm whitespace-nowrap text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-200/80 cursor-pointer bg-white"
+                <Link
+                    href={route("admin.reports.index")}
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${
+                        route().current("admin.reports.*")
+                            ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
+                    }`}
                 >
-                    <BarChart2 className="w-5 h-5 shrink-0 text-gray-500" />
+                    <BarChart2 className="w-5 h-5 shrink-0" />
                     Laporan
-                </button>
+                </Link>
             </nav>
 
             {/* Bottom Logout Button */}
