@@ -66,14 +66,9 @@ class LoginRequest extends FormRequest
             Auth::guard('web')->logout();
             RateLimiter::hit($this->throttleKey());
 
-            $message = match ($expectedRole) {
-                'pedagang' => 'Akun ini bukan akun pedagang.',
-                'admin' => 'Akun ini tidak memiliki hak akses administrator.',
-                default => 'Akun ini tidak bisa dipakai untuk login sebagai pembeli.',
-            };
-
+            // Generic error message to prevent User Enumeration and Role Disclosure
             throw ValidationException::withMessages([
-                'email' => $message,
+                'email' => trans('auth.failed'),
             ]);
         }
 
@@ -86,8 +81,9 @@ class LoginRequest extends FormRequest
                 Auth::guard('web')->logout();
                 RateLimiter::hit($this->throttleKey());
 
+                // Generic error message to prevent information leakage
                 throw ValidationException::withMessages([
-                    'name' => 'Nama lengkap admin tidak sesuai dengan akun terdaftar.',
+                    'email' => trans('auth.failed'),
                 ]);
             }
         }
