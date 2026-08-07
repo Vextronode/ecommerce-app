@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Camera, BadgeCheck } from "lucide-react";
 import { router } from "@inertiajs/react";
+import toast from "react-hot-toast";
 
 export default function ProfileHeader({ user }: { user: any }) {
     // referensi untuk input file yang disembunyiin
@@ -18,14 +19,23 @@ export default function ProfileHeader({ user }: { user: any }) {
     // handle change photo
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error("Ukuran foto maksimal 2MB.");
+                return;
+            }
+
             const formData = new FormData();
-            formData.append("photo", e.target.files[0]);
+            formData.append("photo", file);
 
             // kirim request ke backend untuk update foto profil
             router.post("/profile/photo", formData, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    console.log("Foto berhasil diperbarui!");
+                    toast.success("Foto profil berhasil diperbarui!");
+                },
+                onError: () => {
+                    toast.error("Gagal mengunggah foto profil.");
                 },
             });
         }

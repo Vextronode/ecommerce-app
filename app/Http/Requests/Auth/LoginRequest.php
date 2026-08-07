@@ -28,6 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['nullable', 'string', 'max:255', 'required_if:expected_role,admin'],
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
             'expected_role' => ['nullable', 'string', 'in:user,pedagang,admin'],
@@ -52,23 +53,39 @@ class LoginRequest extends FormRequest
         }
 
         $expectedRole = $this->string('expected_role')->toString() ?: 'user';
+        $authenticatedUser = Auth::user();
+        $authenticatedRole = $authenticatedUser?->role;
 
-        $authenticatedRole = Auth::user()?->role;
         $roleMismatch = match ($expectedRole) {
             'pedagang' => $authenticatedRole !== 'pedagang',
             'admin' => $authenticatedRole !== 'admin',
-            default => $authenticatedRole === 'pedagang',
+            default => $authenticatedRole !== 'user',
         };
 
         if ($roleMismatch) {
             Auth::guard('web')->logout();
             RateLimiter::hit($this->throttleKey());
 
+            // Generic error message to prevent User Enumeration and Role Disclosure
             throw ValidationException::withMessages([
-                'email' => $expectedRole === 'pedagang'
-                    ? 'Akun ini bukan akun pedagang.'
-                    : 'Akun ini tidak bisa dipakai untuk login sebagai pembeli.',
+                'email' => trans('auth.failed'),
             ]);
+        }
+
+        // Additional Security Check for Admin: Verify Full Name Matches
+        if ($expectedRole === 'admin') {
+            $inputName = trim((string) $this->input('name'));
+            $registeredName = trim((string) $authenticatedUser->name);
+
+            if (strcasecmp($inputName, $registeredName) !== 0) {
+                Auth::guard('web')->logout();
+                RateLimiter::hit($this->throttleKey());
+
+                // Generic error message to prevent information leakage
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.failed'),
+                ]);
+            }
         }
 
         RateLimiter::clear($this->throttleKey());

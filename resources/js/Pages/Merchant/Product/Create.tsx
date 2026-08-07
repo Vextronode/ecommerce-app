@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
 import toast from "react-hot-toast";
@@ -8,6 +8,7 @@ import ProductPreview, {
 } from "@/Components/Merchant/Product/ProductPreview";
 import ImageUpload from "@/Components/Merchant/Product/ImageUpload";
 import ProductForm from "@/Components/Merchant/Product/ProductForm";
+import { useProductImageUpload } from "@/Hooks/Merchant/useProductImageUpload";
 
 interface Category {
     id: number;
@@ -34,82 +35,27 @@ export default function Create({ categories }: Props) {
         unit: "",
     });
 
-    // state buat nyimpen URL preview gambar yang banyak
-    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const {
+        previewList,
+        handleImageChange,
+        handleRemoveImage,
+        validateImageSizes,
+    } = useProductImageUpload([], (newFiles) => setData("images", newFiles));
 
-    // handler multiple image
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0) {
-            // gabungin file lama sama file baru
-            setData("images", [...data.images, ...files]);
-
-            // bikin URL preview buat masing" file baru
-            const newPreviews = files.map((file) => URL.createObjectURL(file));
-            setImagePreviews([...imagePreviews, ...newPreviews]);
-        }
-    };
-
-    // handler buat delete image klo salah pilih
-    const handleRemoveImage = (index: number) => {
-        const newImages = [...data.images];
-        newImages.splice(index, 1);
-        setData("images", newImages);
-
-        const newPreviews = [...imagePreviews];
-        newPreviews.splice(index, 1);
-        setImagePreviews(newPreviews);
-    };
+    const imagePreviews = previewList.map((p) => p.url);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const MAX_TOTAL_SIZE = 8 * 1024 * 1024; // 8 MB
-        const MAX_SINGLE_SIZE = 2 * 1024 * 1024; // 2 MB
-
-        let totalSize = 0;
-        let hasOversizedFile = false;
-
-        data.images.forEach((file) => {
-            totalSize += file.size;
-            if (file.size > MAX_SINGLE_SIZE) {
-                hasOversizedFile = true;
-            }
-        });
-
-        if (hasOversizedFile) {
-            toast.error(
-                "Ada foto yang ukurannya lebih dari 2MB. Silakan kompres dulu.",
-                {
-                    position: "top-right",
-                },
-            );
-            return;
-        }
-
-        if (totalSize > MAX_TOTAL_SIZE) {
-            toast.error(
-                "Total ukuran semua foto melebihi 8MB. Kurangi jumlah foto.",
-                {
-                    position: "top-right",
-                },
-            );
-            return;
-        }
+        if (!validateImageSizes(data.images)) return;
 
         post(route("merchant.products.store"), {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success("Produk berhasil ditambahkan!");
             },
-            onError: (errors) => {
-                console.error("Validasi Backend Gagal:", errors);
-                toast.error(
-                    "Gagal menyimpan! Periksa kembali isian form Anda.",
-                    {
-                        position: "top-right",
-                    },
-                );
+            onError: () => {
+                toast.error("Gagal menyimpan! Periksa kembali isian form Anda.");
             },
         });
     };
@@ -118,7 +64,6 @@ export default function Create({ categories }: Props) {
         <MerchantLayout>
             <Head title="Add Product" />
 
-            {/* Header Section */}
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-extrabold text-[#41B9C5]">

@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import { useForm } from "@inertiajs/react";
+import React from "react";
 import { Building2, CreditCard, Check, Edit2, ShieldCheck, X } from "lucide-react";
-import toast from "react-hot-toast";
+import { useMerchantBankAccount } from "@/Hooks/Merchant/useMerchantBankAccount";
 
 interface BankAccountCardProps {
     store: {
@@ -13,29 +12,15 @@ interface BankAccountCardProps {
 }
 
 export default function BankAccountCard({ store }: BankAccountCardProps) {
-    const [isEditing, setIsEditing] = useState(
-        !store.bank_name || !store.bank_account_number || !store.bank_account_holder
-    );
-
-    const { data, setData, put, processing, errors } = useForm({
-        bank_name: store.bank_name || "bca",
-        bank_account_number: store.bank_account_number || "",
-        bank_account_holder: store.bank_account_holder || "",
-    });
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        put(route("merchant.withdrawals.update-bank"), {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success("Informasi rekening bank berhasil diperbarui!");
-                setIsEditing(false);
-            },
-            onError: () => {
-                toast.error("Gagal menyimpan rekening bank. Periksa inputan kamu.");
-            },
-        });
-    };
+    const {
+        isEditing,
+        setIsEditing,
+        data,
+        setData,
+        processing,
+        errors,
+        handleSubmit,
+    } = useMerchantBankAccount({ store });
 
     return (
         <div className="bg-white rounded-3xl p-5 md:p-6 border border-[#41B9C5]/30 shadow-sm space-y-5">

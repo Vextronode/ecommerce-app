@@ -183,24 +183,24 @@ class MidtransService
         $qrCodeUrl = null;
         $deeplinkUrl = null;
 
-        // 1. Virtual Account (BCA, BNI, BRI)
+        // Virtual Account (BCA, BNI, BRI)
         if (!empty($resp['va_numbers']) && is_array($resp['va_numbers'])) {
             $vaObj = (array) $resp['va_numbers'][0];
             $vaNumber = $vaObj['va_number'] ?? null;
         }
 
-        // 2. Permata VA
+        //  Permata VA
         if (empty($vaNumber) && !empty($resp['permata_va_number'])) {
             $vaNumber = $resp['permata_va_number'];
         }
 
-        // 3. Mandiri Bill (echannel)
+        //  Mandiri Bill (echannel)
         if (!empty($resp['bill_key'])) {
             $billKey = $resp['bill_key'];
             $billerCode = $resp['biller_code'] ?? '70012';
         }
 
-        // 4. QRIS & GoPay Actions (QR Code URL & Deeplink)
+        //  QRIS & GoPay Actions (QR Code URL & Deeplink)
         if (!empty($resp['actions']) && is_array($resp['actions'])) {
             foreach ($resp['actions'] as $action) {
                 $act = (array) $action;
@@ -221,7 +221,7 @@ class MidtransService
             $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($resp['qr_string']);
         }
 
-        // 5. Expiry Time
+        //  Expiry Time
         $expiryTime = null;
         if (!empty($resp['expiry_time'])) {
             try {

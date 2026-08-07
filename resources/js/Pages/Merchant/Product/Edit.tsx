@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Head, useForm } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
 import toast from "react-hot-toast";
@@ -8,6 +8,7 @@ import ProductPreview, {
 } from "@/Components/Merchant/Product/ProductPreview";
 import ImageUpload from "@/Components/Merchant/Product/ImageUpload";
 import ProductForm from "@/Components/Merchant/Product/ProductForm";
+import { useProductImageUpload } from "@/Hooks/Merchant/useProductImageUpload";
 
 export default function Edit({ product, categories }: any) {
     const { data, setData, post, processing, errors } = useForm({
@@ -30,90 +31,27 @@ export default function Edit({ product, categories }: any) {
         unit: product.unit || "",
     });
 
-    // nyimpe array object biar tau mana foto lama (punya ID) dan foto baru
-    const [previewList, setPreviewList] = useState<
-        { id?: number; url: string }[]
-    >(
-        (product.images || []).map((img: any) => ({
-            id: img.id,
-            url: img.image_path,
-        })),
+    const {
+        previewList,
+        handleImageChange,
+        handleRemoveImage,
+        validateImageSizes,
+    } = useProductImageUpload(
+        product.images || [],
+        (newFiles) => setData("images", newFiles),
+        (newDeleted) => setData("deleted_images", newDeleted),
     );
-
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0) {
-            setData("images", [...data.images, ...files]);
-
-            const newPreviews = files.map((file) => ({
-                url: URL.createObjectURL(file),
-            }));
-            setPreviewList([...previewList, ...newPreviews]);
-        }
-    };
-
-    const handleRemoveImage = (index: number) => {
-        const item = previewList[index];
-
-        if (item.id) {
-            // kalau foto lama dihapus, catet ID nya buat dikirim ke server
-            setData("deleted_images", [...data.deleted_images, item.id]);
-        } else {
-            // kalau foto baru dihapus, cari dan buang dari array File
-            const newImagesOnly = previewList.filter((p) => !p.id);
-            const fileIndex = newImagesOnly.findIndex(
-                (p) => p.url === item.url,
-            );
-
-            if (fileIndex !== -1) {
-                const newImages = [...data.images];
-                newImages.splice(fileIndex, 1);
-                setData("images", newImages);
-            }
-        }
-
-        // hapus dari UI
-        const newList = [...previewList];
-        newList.splice(index, 1);
-        setPreviewList(newList);
-    };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // validasi ukuran max 8MB
-        const MAX_TOTAL_SIZE = 8 * 1024 * 1024;
-        const MAX_SINGLE_SIZE = 2 * 1024 * 1024;
-        let totalSize = 0;
-        let hasOversizedFile = false;
-
-        data.images.forEach((file) => {
-            totalSize += file.size;
-            if (file.size > MAX_SINGLE_SIZE) hasOversizedFile = true;
-        });
-
-        if (hasOversizedFile) {
-            toast.error("Ada foto yang ukurannya lebih dari 2MB.", {
-                position: "top-right",
-            });
-            return;
-        }
-
-        if (totalSize > MAX_TOTAL_SIZE) {
-            toast.error("Total ukuran foto baru melebihi 8MB.", {
-                position: "top-right",
-            });
-            return;
-        }
+        if (!validateImageSizes(data.images)) return;
 
         post(route("merchant.products.update", product.slug), {
             preserveScroll: true,
             onSuccess: () => toast.success("Produk berhasil diupdate!"),
-            onError: (err) => {
-                console.error(err);
-                toast.error("Gagal menyimpan! Periksa form Anda.", {
-                    position: "top-right",
-                });
+            onError: () => {
+                toast.error("Gagal menyimpan! Periksa form Anda.");
             },
         });
     };

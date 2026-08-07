@@ -1,7 +1,6 @@
 import React from "react";
-import { useForm } from "@inertiajs/react";
 import { Send, Sparkles } from "lucide-react";
-import toast from "react-hot-toast";
+import { useMerchantWithdrawals } from "@/Hooks/Merchant/useMerchantWithdrawals";
 
 interface WithdrawFormCardProps {
     availableBalance: number;
@@ -14,50 +13,22 @@ export default function WithdrawFormCard({
     hasBankAccount,
     onRequestEditBank,
 }: WithdrawFormCardProps) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        amount: "",
+    const {
+        data,
+        setData,
+        errors,
+        processing,
+        presetAmounts,
+        currentNumericAmount,
+        remainingBalance,
+        handleSelectPreset,
+        handleSelectAll,
+        handleSubmit,
+    } = useMerchantWithdrawals({
+        availableBalance,
+        hasBankAccount,
+        onRequestEditBank,
     });
-
-    const presetAmounts = [50000, 100000, 250000, 500000];
-
-    const handleSelectPreset = (amount: number) => {
-        if (amount > availableBalance) {
-            toast.error("Nominal melebihi saldo yang tersedia.");
-            return;
-        }
-        setData("amount", amount.toString());
-    };
-
-    const handleSelectAll = () => {
-        if (availableBalance < 10000) {
-            toast.error("Minimal penarikan adalah Rp 10.000");
-            return;
-        }
-        setData("amount", Math.floor(availableBalance).toString());
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!hasBankAccount) {
-            toast.error("Silakan lengkapi data rekening bank terlebih dahulu.");
-            onRequestEditBank();
-            return;
-        }
-
-        post(route("merchant.withdrawals.store"), {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success("Penarikan saldo berhasil diproses!");
-                reset("amount");
-            },
-            onError: (errs) => {
-                toast.error(errs.amount || "Gagal memproses penarikan saldo.");
-            },
-        });
-    };
-
-    const currentNumericAmount = parseFloat(data.amount) || 0;
-    const remainingBalance = Math.max(0, availableBalance - currentNumericAmount);
 
     return (
         <div className="bg-white rounded-3xl p-5 md:p-6 border border-[#41B9C5]/30 shadow-sm space-y-5">
@@ -104,11 +75,10 @@ export default function WithdrawFormCard({
                                 key={preset}
                                 type="button"
                                 onClick={() => handleSelectPreset(preset)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                                    data.amount === preset.toString()
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${data.amount === preset.toString()
                                         ? "bg-[#41B9C5] text-white border-[#41B9C5] shadow-sm shadow-[#41B9C5]/30"
                                         : "bg-[#F0FAFB] hover:bg-[#EAF7F7] text-[#004F54] border-[#41B9C5]/30"
-                                }`}
+                                    }`}
                             >
                                 {(preset / 1000).toLocaleString("id-ID")}rb
                             </button>
@@ -124,7 +94,7 @@ export default function WithdrawFormCard({
                     </div>
                 </div>
 
-                {/* Sisa Saldo breakdown - Spacious padding */}
+                {/* Sisa Saldo breakdown */}
                 {currentNumericAmount > 0 && currentNumericAmount <= availableBalance && (
                     <div className="bg-[#F0FAFB] px-4 py-3 rounded-2xl border border-[#41B9C5]/30 flex items-center justify-between text-xs gap-3">
                         <span className="text-gray-600 font-medium truncate">Sisa Saldo Setelah Penarikan:</span>

@@ -1,8 +1,10 @@
-import { Head, Link, router } from "@inertiajs/react";
+import React from "react";
+import { Head, Link } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import { Store, Star } from "lucide-react";
 import RatingItemCard, { RatingItemType } from "@/Components/History/RatingItemCard";
 import OrderItemCard, { OrderType } from "@/Components/History/OrderItemCard";
+import { useOrderHistoryActions } from "@/Hooks/Storefront/useOrderHistoryActions";
 
 export default function Index({
     orders,
@@ -13,6 +15,8 @@ export default function Index({
     ratingItems?: RatingItemType[];
     currentStatus: string;
 }) {
+    const { navigateTab } = useOrderHistoryActions();
+
     const tabs = [
         { key: "all", label: "Semua" },
         { key: "unpaid", label: "Belum Bayar" },
@@ -40,13 +44,7 @@ export default function Index({
                                 {tabs.map((tab) => (
                                     <button
                                         key={tab.key}
-                                        onClick={() =>
-                                            router.get(
-                                                route("history.index"),
-                                                { status: tab.key },
-                                                { preserveState: true }
-                                            )
-                                        }
+                                        onClick={() => navigateTab(tab.key)}
                                         className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                                             currentStatus === tab.key
                                                 ? "bg-[#245D56] text-white"

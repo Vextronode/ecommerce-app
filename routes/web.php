@@ -53,22 +53,46 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::put('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications.update');
 });
 
-Route::middleware(['auth', 'verified', 'role:admin'])
-    ->prefix('admin')
-    ->group(function () {
-        Route::get('/dashboard', function () {
-            return Inertia::render('Admin/Dashboard');
-        })->name('admin.dashboard');
-    });
+$adminPrefix = config('admin.prefix', 'cibenda-portal');
 
-Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('google.redirect');
-Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->name('google.callback');
-
-Route::middleware('guest')->group(function () {
+Route::middleware('guest')->group(function () use ($adminPrefix) {
     Route::get('/pedagang/login', function () {
         return Inertia::render('Merchant/Login');
     })->name('merchant.login.view');
+
+    Route::get("/{$adminPrefix}/login", function () {
+        return Inertia::render('Admin/Login');
+    })->name('admin.login.view');
 });
+
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix($adminPrefix)
+    ->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
+
+        // Manajemen Pedagang (Merchant Management)
+        Route::get('/pedagang', [\App\Http\Controllers\Admin\MerchantController::class, 'index'])->name('admin.merchants.index');
+        Route::get('/pedagang/create', [\App\Http\Controllers\Admin\MerchantController::class, 'create'])->name('admin.merchants.create');
+        Route::post('/pedagang', [\App\Http\Controllers\Admin\MerchantController::class, 'store'])->name('admin.merchants.store');
+        Route::put('/pedagang/{id}', [\App\Http\Controllers\Admin\MerchantController::class, 'update'])->name('admin.merchants.update');
+        Route::patch('/pedagang/{id}/status', [\App\Http\Controllers\Admin\MerchantController::class, 'updateStatus'])->name('admin.merchants.status');
+        Route::patch('/pedagang/{id}/verification', [\App\Http\Controllers\Admin\MerchantController::class, 'updateVerification'])->name('admin.merchants.verification');
+        Route::delete('/pedagang/{id}', [\App\Http\Controllers\Admin\MerchantController::class, 'destroy'])->name('admin.merchants.destroy');
+
+        // Laporan Penjualan (Best Selling Products & Platform Reports)
+        Route::get('/laporan', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('admin.reports.index');
+        Route::get('/laporan/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('admin.reports.export');
+    });
+
+// Obfuscation Masking: Return 404 for obvious guessable admin URLs if admin prefix is customized
+if ($adminPrefix !== 'admin') {
+    Route::any('/admin{any}', fn () => abort(404))->where('any', '.*');
+    Route::any('/cibenda-admin{any}', fn () => abort(404))->where('any', '.*');
+    Route::any('/login/admin{any}', fn () => abort(404))->where('any', '.*');
+}
+
+Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->name('google.callback');
 
 // route dashboard pedagang (auth)
 Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\CheckMerchantSetup::class])
@@ -76,8 +100,11 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
     ->group(function () {
         Route::get('/analytics', [AnalyticsController::class, 'index'])->name('merchant.analytics.index');
 
-        Route::get('/setup-store', function () {
-            return Inertia::render('Merchant/SetupStore');
+        Route::get('/setup-store', function (Illuminate\Http\Request $request) {
+            $user = $request->user()->load('store');
+            return Inertia::render('Merchant/SetupStore', [
+                'initialStoreName' => $user->store?->name ?? '',
+            ]);
         })->name('merchant.store.setup');
 
         Route::post('/setup-store', [MerchantSetupController::class, 'store'])->name('merchant.store.store');

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import { ShoppingBasket } from "lucide-react";
@@ -6,6 +6,7 @@ import { ShoppingBasket } from "lucide-react";
 import CartStoreGroup from "@/Components/Cart/CartStoreGroup";
 import CartSummary from "@/Components/Cart/CartSummary";
 import ProductRecommendations from "@/Components/Cart/ProductRecommendations";
+import { useCartSelection } from "@/Hooks/Storefront/useCartSelection";
 
 interface CartProps {
     cartData: any[];
@@ -13,50 +14,14 @@ interface CartProps {
 }
 
 export default function Cart({ cartData, recommendations }: CartProps) {
-    const allItemIds = cartData.flatMap((store) =>
-        store.items.map((i: any) => i.id),
-    );
-    const [selectedIds, setSelectedIds] = useState<number[]>(allItemIds);
-
-    useEffect(() => {
-        setSelectedIds((prev) => prev.filter((id) => allItemIds.includes(id)));
-    }, [cartData]);
-
-    const toggleItem = (id: number) => {
-        setSelectedIds((prev) =>
-            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
-        );
-    };
-
-    const toggleStore = (storeId: number, itemIds: number[]) => {
-        const isAllSelected = itemIds.every((id) => selectedIds.includes(id));
-        if (isAllSelected) {
-            setSelectedIds((prev) =>
-                prev.filter((id) => !itemIds.includes(id)),
-            );
-        } else {
-            const newSelections = itemIds.filter(
-                (id) => !selectedIds.includes(id),
-            );
-            setSelectedIds((prev) => [...prev, ...newSelections]);
-        }
-    };
-
-    const toggleAll = () => {
-        if (selectedIds.length === allItemIds.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(allItemIds);
-        }
-    };
-
-    const selectedItemsData = cartData
-        .flatMap((store) => store.items)
-        .filter((item: any) => selectedIds.includes(item.id));
-    const subtotal = selectedItemsData.reduce(
-        (sum, item) => sum + item.price * item.qty,
-        0,
-    );
+    const {
+        selectedIds,
+        isAllSelected,
+        toggleItem,
+        toggleStore,
+        toggleAll,
+        subtotal,
+    } = useCartSelection(cartData);
 
     return (
         <StorefrontLayout>
@@ -74,11 +39,7 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                                 <label className="flex items-center gap-3 cursor-pointer w-fit">
                                     <input
                                         type="checkbox"
-                                        checked={
-                                            selectedIds.length ===
-                                                allItemIds.length &&
-                                            allItemIds.length > 0
-                                        }
+                                        checked={isAllSelected}
                                         onChange={toggleAll}
                                         className="w-5 h-5 rounded text-[#245D56] focus:ring-[#245D56] border-slate-300"
                                     />
@@ -100,29 +61,23 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                                 />
                             ))
                         ) : (
-                            <div className="bg-white rounded-2xl p-10 shadow-sm border border-slate-100 text-center">
-                                <div className="flex flex-col items-center justify-center py-12 px-4">
-                                    <div className="w-24 h-24 bg-[#EAF7F7] text-[#41B9C5] rounded-full flex items-center justify-center mb-6 shadow-sm border border-[#41B9C5]/20">
-                                        <ShoppingBasket
-                                            className="w-12 h-12"
-                                            strokeWidth={1.5}
-                                        />
-                                    </div>
-
-                                    <h3 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-2 text-center">
-                                        Keranjang belanjaanmu kosong
-                                    </h3>
-                                    <p className="text-sm text-gray-500 mb-8 text-center max-w-sm">
-                                        Yuk cari produk unggulan dari nelayan
-                                        dan petani lokal!
-                                    </p>
-                                    <Link
-                                        href={route("shop")}
-                                        className="bg-[#245D56] hover:bg-[#1a443f] text-white px-8 py-3 rounded-full font-bold transition shadow-md inline-block"
-                                    >
-                                        Mulai Belanja
-                                    </Link>
+                            <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm">
+                                <div className="w-20 h-20 bg-[#F0FAFB] rounded-full flex items-center justify-center mx-auto mb-4 text-[#41B9C5]">
+                                    <ShoppingBasket className="w-10 h-10" />
                                 </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                    Keranjang Kamu Masih Kosong
+                                </h3>
+                                <p className="text-gray-500 mb-6 max-w-sm mx-auto text-sm">
+                                    Yuk jelajahi produk segar pilihan dari pedagang
+                                    lokal terbaik di sekitarmu!
+                                </p>
+                                <Link
+                                    href={route("shop")}
+                                    className="inline-block bg-[#245D56] text-white px-8 py-3.5 rounded-full font-bold shadow-md hover:bg-[#1b4641] transition-all text-sm"
+                                >
+                                    Mulai Belanja
+                                </Link>
                             </div>
                         )}
                     </div>
@@ -136,7 +91,9 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                     </div>
                 </div>
 
-                <ProductRecommendations recommendations={recommendations} />
+                {recommendations && recommendations.length > 0 && (
+                    <ProductRecommendations recommendations={recommendations} />
+                )}
             </div>
         </StorefrontLayout>
     );

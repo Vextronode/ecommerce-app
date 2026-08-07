@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { Head, useForm, Link } from '@inertiajs/react';
+import React from 'react';
+import { Head, Link } from '@inertiajs/react';
 import Navbar from '@/Components/Global/Navbar';
 import StarRating from '@/Components/Global/StarRating';
 import ReviewImageUploader from '@/Components/History/ReviewImageUploader';
 import ReviewAdditionalRatings from '@/Components/History/ReviewAdditionalRatings';
 import InputError from '@/Components/InputError';
+
+import { useProductReviewForm } from '@/Hooks/Storefront/useProductReviewForm';
 
 interface Props {
     orderItem: {
@@ -29,26 +31,18 @@ interface Props {
 }
 
 export default function RatingForm({ orderItem }: Props) {
-    const existing = orderItem.existing_review;
-
-    const [previewImages, setPreviewImages] = useState<string[]>(existing?.images || []);
-
-    const { data, setData, post, processing, errors } = useForm({
-        rating: existing?.rating || 5,
-        comment: existing?.comment || '',
-        is_anonymous: existing?.is_anonymous || false,
-        seller_rating: existing?.seller_rating || 5,
-        shipping_rating: existing?.shipping_rating || 5,
-        courier_rating: existing?.courier_rating || 5,
-        images: [] as File[],
+    const {
+        data,
+        setData,
+        previewImages,
+        setPreviewImages,
+        processing,
+        errors,
+        handleSubmit,
+    } = useProductReviewForm({
+        orderItemId: orderItem.id,
+        existingReview: orderItem.existing_review,
     });
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(route('history.rating.store', orderItem.id), {
-            forceFormData: true,
-        });
-    };
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
@@ -56,7 +50,7 @@ export default function RatingForm({ orderItem }: Props) {
             <Navbar />
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-32">
-                <form onSubmit={submit} className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden flex flex-col md:flex-row">
+                <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden flex flex-col md:flex-row">
 
                     {/* Product Info & Main Rating */}
                     <div className="w-full md:w-5/12 p-6 md:p-8 md:border-r border-b md:border-b-0 border-gray-100 bg-gray-50/50">

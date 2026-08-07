@@ -46,9 +46,7 @@ export default function PaymentStatusChecker({
                         onStatusChange("paid", data.redirect_url);
                         toast.success("Pembayaran terverifikasi!");
                     } else {
-                        toast("Pembayaran belum terdeteksi. Silakan transfer terlebih dahulu.", {
-                            icon: "⏳",
-                        });
+                        toast("Pembayaran belum terdeteksi. Silakan transfer terlebih dahulu.");
                     }
                 }
             } else if (!isSilent) {

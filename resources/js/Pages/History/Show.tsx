@@ -1,36 +1,20 @@
-import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import React from "react";
+import { Head, Link } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import ConfirmModal from "@/Components/ConfirmModal";
 import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle } from "lucide-react";
+import { useOrderHistoryActions } from "@/Hooks/Storefront/useOrderHistoryActions";
 
 export default function Show({ order }: { order: any }) {
-    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-    const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
-
-    const handleCancel = () => {
-        router.post(route("history.cancel", order.id), {}, { preserveState: true });
-    };
-
-    const handleComplete = () => {
-        router.post(route("history.complete", order.id), {}, { preserveState: true });
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "Selesai":
-                return "text-[#245D56] bg-[#245D56]/10 border-[#245D56]";
-            case "Dibatalkan":
-                return "text-red-600 bg-red-50 border-red-600";
-            case "Belum Bayar":
-                return "text-orange-500 bg-orange-50 border-orange-500";
-            case "Dikemas":
-            case "Dikirim":
-                return "text-blue-500 bg-blue-50 border-blue-500";
-            default:
-                return "text-gray-600 bg-gray-50 border-gray-600";
-        }
-    };
+    const {
+        isCancelModalOpen,
+        setIsCancelModalOpen,
+        isCompleteModalOpen,
+        setIsCompleteModalOpen,
+        handleCancelOrder,
+        handleCompleteOrder,
+        getStatusColor,
+    } = useOrderHistoryActions();
 
     const canCancel = order.shipping_status === 'pending';
     const canComplete = order.shipping_status === 'shipped';
@@ -245,7 +229,7 @@ export default function Show({ order }: { order: any }) {
                 message="Apakah Anda yakin ingin membatalkan pesanan ini? Aksi ini tidak dapat diurungkan."
                 confirmText="Ya, Batalkan"
                 cancelText="Tutup"
-                onConfirm={handleCancel}
+                onConfirm={() => handleCancelOrder(order.id)}
                 onClose={() => setIsCancelModalOpen(false)}
                 isDanger={true}
             />
@@ -256,7 +240,7 @@ export default function Show({ order }: { order: any }) {
                 message="Apakah Anda yakin pesanan telah diterima dengan baik? Jika ya, dana akan diteruskan ke penjual."
                 confirmText="Ya, Pesanan Diterima"
                 cancelText="Batal"
-                onConfirm={handleComplete}
+                onConfirm={() => handleCompleteOrder(order.id)}
                 onClose={() => setIsCompleteModalOpen(false)}
             />
         </div>

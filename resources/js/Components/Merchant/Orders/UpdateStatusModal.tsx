@@ -1,29 +1,15 @@
-import React, { useEffect } from "react";
-import { useForm } from "@inertiajs/react";
+import React from "react";
 import { X, Truck, Package, Clock, CheckCircle } from "lucide-react";
+import { useOrderStatusModal } from "@/Hooks/Merchant/useOrderStatusModal";
 
 export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
-    const { data, setData, put, processing, reset } = useForm({
-        shipping_status: "pending",
+    const { data, setData, processing, handleSubmit } = useOrderStatusModal({
+        isOpen,
+        order,
+        onClose,
     });
 
-    useEffect(() => {
-        if (order) {
-            setData("shipping_status", order.shipping_status);
-        }
-    }, [order, isOpen]);
-
     if (!isOpen || !order) return null;
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        put(route("merchant.orders.update-status", order.id), {
-            onSuccess: () => {
-                onClose();
-                reset();
-            },
-        });
-    };
 
     const statuses = [
         {
@@ -69,7 +55,7 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
                     </button>
                 </div>
 
-                <form onSubmit={submit} className="p-5">
+                <form onSubmit={handleSubmit} className="p-5">
                     <div className="space-y-3 mb-6">
                         {statuses.map((s) => (
                             <label

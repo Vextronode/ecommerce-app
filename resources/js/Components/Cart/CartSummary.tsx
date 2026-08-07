@@ -5,14 +5,17 @@ import { Link, router } from "@inertiajs/react";
 interface Props {
     subtotal: number;
     selectedCount: number;
-    selectedIds: number[];
+    selectedIds?: number[];
+    selectedItemIds?: number[];
 }
 
 export default function CartSummary({
     subtotal,
     selectedCount,
     selectedIds,
+    selectedItemIds,
 }: Props) {
+    const finalSelectedIds = selectedIds ?? selectedItemIds ?? [];
     const deliveryFee = selectedCount > 0 ? 25000 : 0;
     const packagingFee = selectedCount > 0 ? 15000 : 0;
     const totalPayment = subtotal + deliveryFee + packagingFee;
@@ -21,7 +24,7 @@ export default function CartSummary({
     const handleCheckout = () => {
         if (selectedCount === 0) return;
         // Ini bakal bikin URL jadi: /checkout?items[]=1&items[]=2
-        router.get(route("checkout"), { items: selectedIds });
+        router.get(route("checkout"), { items: finalSelectedIds });
     };
 
     return (

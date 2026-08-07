@@ -1,20 +1,15 @@
 import React from "react";
-import { Head, useForm } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import AuthGlassLayout from "@/Layouts/AuthGlassLayout";
+import { useSetupStoreForm } from "@/Hooks/Merchant/useSetupStoreForm";
 
-export default function SetupStore() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        store_name: "",
-        password: "",
-        password_confirmation: "",
-    });
+interface Props {
+    initialStoreName?: string;
+}
 
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(route("merchant.store.store"), {
-            onError: () => reset("password", "password_confirmation"),
-        });
-    };
+export default function SetupStore({ initialStoreName = "" }: Props) {
+    const { data, setData, processing, errors, handleSubmit } =
+        useSetupStoreForm(initialStoreName);
 
     return (
         <>
@@ -24,7 +19,7 @@ export default function SetupStore() {
                 title="Lengkapi Profil"
                 subtitle="Atur password baru dan nama toko Anda"
             >
-                <form onSubmit={submit} className="space-y-7 w-full">
+                <form onSubmit={handleSubmit} className="space-y-7 w-full">
                     {/* Input Store Name */}
                     <div>
                         <label className="block text-white text-sm mb-2 font-medium">

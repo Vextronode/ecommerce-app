@@ -4,10 +4,16 @@ import { router } from "@inertiajs/react";
 import toast from "react-hot-toast";
 
 interface Props {
-    recommendations: any[];
+    recommendations?: any[];
+    products?: any[];
 }
 
-export default function ProductRecommendations({ recommendations }: Props) {
+export default function ProductRecommendations({
+    recommendations,
+    products,
+}: Props) {
+    const items = recommendations || products || [];
+
     // Fungsi buat quick add dari rekomendasi
     const handleQuickAdd = (productId: number) => {
         router.post(
@@ -25,7 +31,7 @@ export default function ProductRecommendations({ recommendations }: Props) {
         );
     };
 
-    if (recommendations.length === 0) return null;
+    if (items.length === 0) return null;
 
     return (
         <div className="mt-16 pt-12 border-t border-slate-200/60 relative">
@@ -34,7 +40,7 @@ export default function ProductRecommendations({ recommendations }: Props) {
             </h2>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {recommendations.map((prod, idx) => (
+                {items.map((prod, idx) => (
                     <div
                         key={idx}
                         className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 hover:shadow-md transition group"
@@ -73,7 +79,7 @@ export default function ProductRecommendations({ recommendations }: Props) {
             </div>
 
             {/* chevron icon, hidden kalo di hp */}
-            {recommendations.length >= 6 && (
+            {items.length >= 6 && (
                 <button className="absolute top-[60%] -right-5 -translate-y-1/2 w-10 h-10 bg-[#40E0D0] text-white rounded-full items-center justify-center shadow-lg hover:bg-[#35c9ba] transition z-10 hidden xl:flex">
                     <ChevronRight className="w-6 h-6" />
                 </button>
