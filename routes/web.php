@@ -69,6 +69,15 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix($adminPrefix)
     ->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
+
+        // Manajemen Pedagang (Merchant Management)
+        Route::get('/pedagang', [\App\Http\Controllers\Admin\MerchantController::class, 'index'])->name('admin.merchants.index');
+        Route::get('/pedagang/create', [\App\Http\Controllers\Admin\MerchantController::class, 'create'])->name('admin.merchants.create');
+        Route::post('/pedagang', [\App\Http\Controllers\Admin\MerchantController::class, 'store'])->name('admin.merchants.store');
+        Route::put('/pedagang/{id}', [\App\Http\Controllers\Admin\MerchantController::class, 'update'])->name('admin.merchants.update');
+        Route::patch('/pedagang/{id}/status', [\App\Http\Controllers\Admin\MerchantController::class, 'updateStatus'])->name('admin.merchants.status');
+        Route::patch('/pedagang/{id}/verification', [\App\Http\Controllers\Admin\MerchantController::class, 'updateVerification'])->name('admin.merchants.verification');
+        Route::delete('/pedagang/{id}', [\App\Http\Controllers\Admin\MerchantController::class, 'destroy'])->name('admin.merchants.destroy');
     });
 
 // Obfuscation Masking: Return 404 for obvious guessable admin URLs if admin prefix is customized

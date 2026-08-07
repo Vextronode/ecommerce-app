@@ -75,7 +75,7 @@ class OrderController extends Controller
 
             $newStatus = $request->shipping_status;
 
-            // Security Guard (Vuln 8): Prohibit progressing unpaid non-COD orders
+            // Security Guard (Vuln 8)
             if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid' && in_array($newStatus, ['processing', 'shipped', 'delivered'])) {
                 return back()->with('error', 'Pesanan non-COD belum dibayar oleh pembeli.');
             }

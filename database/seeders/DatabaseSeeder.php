@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
         $storeAsep = Store::create([
             'user_id' => $asep->id,
             'name' => 'Warung Sembako Kang Asep',
-            'slug' => Str::slug('Warung Sembako Kang Asep-' . uniqid()),
+            'slug' => 'warung-sembako-kang-asep',
             'description' => 'Sedia beras, gula, minyak goreng, dan bumbu dapur lengkap dengan harga grosir.',
         ]);
 
@@ -65,7 +65,7 @@ class DatabaseSeeder extends Seeder
         $storeEuis = Store::create([
             'user_id' => $euis->id,
             'name' => 'Toko Baju Euis',
-            'slug' => Str::slug('Toko Baju Euis-' . uniqid()),
+            'slug' => 'toko-baju-euis',
             'description' => 'Koleksi pakaian terbaru, kaos, kemeja, dan celana jeans berkualitas export.',
         ]);
 
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
         $storeUdin = Store::create([
             'user_id' => $udin->id,
             'name' => 'TokoSegar Buah',
-            'slug' => Str::slug('TokoSegar Buah-' . uniqid()),
+            'slug' => 'tokosegar-buah',
             'description' => 'Menyediakan buah-buahan segar lokal dan impor kualitas terbaik setiap hari.',
         ]);
 
@@ -93,7 +93,7 @@ class DatabaseSeeder extends Seeder
         $storeSiti = Store::create([
             'user_id' => $siti->id,
             'name' => 'Sayur Mayur Siti',
-            'slug' => Str::slug('Sayur Mayur Siti-' . uniqid()),
+            'slug' => 'sayur-mayur-siti',
             'description' => 'Sayur mayur organik hidroponik dan bumbu dapur segar petik langsung dari kebun.',
         ]);
 
