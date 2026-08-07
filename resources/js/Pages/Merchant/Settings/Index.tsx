@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import React from 'react';
+import { Head } from '@inertiajs/react';
 import MerchantLayout from '@/Layouts/MerchantLayout';
 import { Save, UserCircle, Store, MapPin } from 'lucide-react';
 import InputError from '@/Components/InputError';
+import { useMerchantSettings } from '@/Hooks/Merchant/useMerchantSettings';
 
 interface SettingsProps {
     merchantUser: {
@@ -16,6 +17,7 @@ interface SettingsProps {
     merchantStore: {
         id: number;
         name: string;
+        username?: string | null;
         support_email: string | null;
         description: string | null;
         address: string | null;
@@ -23,35 +25,19 @@ interface SettingsProps {
 }
 
 export default function Index({ merchantUser, merchantStore }: SettingsProps) {
-    const [activeTab, setActiveTab] = useState('Information');
-    const photoInput = useRef<HTMLInputElement>(null);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(merchantUser.profile_photo_path);
-
-    const { data, setData, post, processing, errors, isDirty } = useForm({
-        name: merchantUser.name || '',
-        email: merchantUser.email || '',
-        phone: merchantUser.phone || '',
-        photo: null as File | null,
-        store_name: merchantStore.name || '',
-        support_email: merchantStore.support_email || '',
-        store_description: merchantStore.description || '',
-        store_address: merchantStore.address || '',
-    });
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(route('merchant.settings.update'), { preserveScroll: true });
-    };
-
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setData('photo', file);
-            const reader = new FileReader();
-            reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-            reader.readAsDataURL(file);
-        }
-    };
+    const {
+        activeTab,
+        setActiveTab,
+        photoInput,
+        photoPreview,
+        data,
+        setData,
+        processing,
+        errors,
+        isDirty,
+        handlePhotoChange,
+        handleSubmit,
+    } = useMerchantSettings({ merchantUser, merchantStore });
 
     const tabItems = ['Information', 'Payment', 'Notifikasi', 'Keamanan'];
 
@@ -60,7 +46,7 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
     return (
         <MerchantLayout>
             <Head title="Settings" />
-            <form onSubmit={submit}>
+            <form onSubmit={handleSubmit}>
                 <div className="px-3 sm:px-4 py-4 sm:py-6 max-w-5xl mx-auto">
 
                     {/* Header */}
@@ -81,7 +67,7 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
 
                     <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 items-start">
 
-                        {/* Tab Nav - horizontal scroll on mobile, sidebar on desktop */}
+                        {/* Tab Nav */}
                         <div className="w-full lg:w-48 lg:shrink-0 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
                             <div className="flex flex-wrap lg:flex-col">
                                 {tabItems.map((tab) => {
@@ -91,11 +77,10 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                             key={tab}
                                             type="button"
                                             onClick={() => setActiveTab(tab)}
-                                            className={`flex-1 lg:flex-none lg:w-full flex items-center justify-center lg:justify-between px-4 sm:px-5 py-3 lg:py-3.5 text-sm font-medium transition-colors border-b border-b-gray-100 border-r border-r-gray-100 lg:border-r-0 last:border-r-0 ${
-                                                isActive
-                                                    ? 'bg-[#d5eeec] text-[#1a4a44]'
-                                                    : 'text-gray-500 hover:bg-gray-50'
-                                            }`}
+                                            className={`flex-1 lg:flex-none lg:w-full flex items-center justify-center lg:justify-between px-4 sm:px-5 py-3 lg:py-3.5 text-sm font-medium transition-colors border-b border-b-gray-100 border-r border-r-gray-100 lg:border-r-0 last:border-r-0 ${isActive
+                                                ? 'bg-[#d5eeec] text-[#1a4a44]'
+                                                : 'text-gray-500 hover:bg-gray-50'
+                                                }`}
                                         >
                                             {tab}
                                             {isActive && <span className="text-lg text-[#1a4a44] leading-none hidden lg:inline">›</span>}
@@ -205,6 +190,23 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                 <InputError message={errors.store_name} className="mt-1" />
                                             </div>
                                             <div>
+                                                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Store Username / URL Slug</label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">@</span>
+                                                    <input
+                                                        type="text"
+                                                        value={data.username}
+                                                        onChange={(e) => setData('username', e.target.value.toLowerCase().replace(/[^a-z0-9_\-\.]/g, ''))}
+                                                        placeholder="tokoudin"
+                                                        className={`${inputClass} pl-7`}
+                                                    />
+                                                </div>
+                                                <InputError message={errors.username} className="mt-1" />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 sm:gap-y-5 mb-4 sm:mb-5">
+                                            <div>
                                                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Support Email</label>
                                                 <input
                                                     type="email"
@@ -215,9 +217,23 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                 />
                                                 <InputError message={errors.support_email} className="mt-1" />
                                             </div>
+                                            <div>
+                                                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Address</label>
+                                                <div className="relative">
+                                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                    <input
+                                                        type="text"
+                                                        value={data.store_address}
+                                                        onChange={(e) => setData('store_address', e.target.value)}
+                                                        placeholder="Store physical address"
+                                                        className="w-full pl-9 pr-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition-all"
+                                                    />
+                                                </div>
+                                                <InputError message={errors.store_address} className="mt-1" />
+                                            </div>
                                         </div>
 
-                                        <div className="mb-4 sm:mb-5">
+                                        <div className="mb-2">
                                             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Store Description</label>
                                             <textarea
                                                 value={data.store_description}
@@ -226,21 +242,6 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                 className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition-all resize-none"
                                             />
                                             <InputError message={errors.store_description} className="mt-1" />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Address</label>
-                                            <div className="relative">
-                                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                <input
-                                                    type="text"
-                                                    value={data.store_address}
-                                                    onChange={(e) => setData('store_address', e.target.value)}
-                                                    placeholder="Store physical address"
-                                                    className="w-full pl-9 pr-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition-all"
-                                                />
-                                            </div>
-                                            <InputError message={errors.store_address} className="mt-1" />
                                         </div>
                                     </div>
                                 </>

@@ -96,8 +96,11 @@ Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\Che
     ->group(function () {
         Route::get('/analytics', [AnalyticsController::class, 'index'])->name('merchant.analytics.index');
 
-        Route::get('/setup-store', function () {
-            return Inertia::render('Merchant/SetupStore');
+        Route::get('/setup-store', function (Illuminate\Http\Request $request) {
+            $user = $request->user()->load('store');
+            return Inertia::render('Merchant/SetupStore', [
+                'initialStoreName' => $user->store?->name ?? '',
+            ]);
         })->name('merchant.store.setup');
 
         Route::post('/setup-store', [MerchantSetupController::class, 'store'])->name('merchant.store.store');
