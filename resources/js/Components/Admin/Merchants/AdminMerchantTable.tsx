@@ -1,20 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import {
     MoreVertical,
     Edit2,
     Trash2,
-    ShieldAlert,
     ShieldCheck,
     Store,
-    Inbox,
     CheckCircle2,
     Ban,
-    AlertCircle,
 } from "lucide-react";
-import { router } from "@inertiajs/react";
-import toast from "react-hot-toast";
 import EditMerchantModal from "./EditMerchantModal";
 import DeleteMerchantModal from "./DeleteMerchantModal";
+import { useMerchantTableActions } from "@/Hooks/Admin/useMerchantTableActions";
 
 export interface MerchantItem {
     id: number;
@@ -44,49 +40,17 @@ interface Props {
 }
 
 export default function AdminMerchantTable({ merchants, onResetFilter }: Props) {
-    const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
-    const [selectedForEdit, setSelectedForEdit] = useState<MerchantItem | null>(null);
-    const [selectedForDelete, setSelectedForDelete] = useState<MerchantItem | null>(null);
-
-    const toggleDropdown = (id: number) => {
-        setActiveDropdown((prev) => (prev === id ? null : id));
-    };
-
-    const handleQuickStatus = (id: number, newStatus: string) => {
-        setActiveDropdown(null);
-        router.patch(
-            route("admin.merchants.status", id),
-            { status: newStatus },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success(`Status akun berhasil diubah menjadi ${newStatus}.`);
-                },
-            },
-        );
-    };
-
-    const handleQuickVerification = (storeId: number | undefined, newSidStatus: string) => {
-        if (!storeId) return;
-        setActiveDropdown(null);
-        router.patch(
-            route("admin.merchants.verification", storeId),
-            { sid_status: newSidStatus },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success(`Status verifikasi toko berhasil diubah menjadi ${newSidStatus}.`);
-                },
-            },
-        );
-    };
-
-    // Close dropdown on click outside
-    React.useEffect(() => {
-        const handleClickOutside = () => setActiveDropdown(null);
-        window.addEventListener("click", handleClickOutside);
-        return () => window.removeEventListener("click", handleClickOutside);
-    }, []);
+    const {
+        activeDropdown,
+        setActiveDropdown,
+        toggleDropdown,
+        selectedForEdit,
+        setSelectedForEdit,
+        selectedForDelete,
+        setSelectedForDelete,
+        handleQuickStatus,
+        handleQuickVerification,
+    } = useMerchantTableActions();
 
     if (!merchants || merchants.length === 0) {
         return (

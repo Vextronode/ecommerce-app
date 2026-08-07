@@ -66,7 +66,7 @@ export default function AdminMerchantsIndex({
                 {/* Header Title & Actions */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                        <h1 className="text-2xl md:text-3xl font-extrabold text-[#004F54] tracking-tight">
                             Manajemen Pedagang
                         </h1>
                         <p className="text-xs md:text-sm text-gray-400 mt-1 font-medium">
@@ -91,7 +91,7 @@ export default function AdminMerchantsIndex({
                             )}
                         </button>
 
-                        {/* + Create Account Button */}
+                        {/* Create Account Button */}
                         <Link
                             href={route("admin.merchants.create")}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/25 transition-all cursor-pointer"

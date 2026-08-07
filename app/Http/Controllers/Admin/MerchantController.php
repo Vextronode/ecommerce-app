@@ -144,39 +144,43 @@ class MerchantController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'string', 'email', 'max:150', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:25'],
+            'merchant_name' => ['required', 'string', 'min:3', 'max:100'],
+            'owner_name' => ['required', 'string', 'min:3', 'max:100'],
+            'username' => ['nullable', 'string', 'regex:/^[a-zA-Z0-9_\-\.]+$/', 'min:3', 'max:50'],
+            'email' => ['required', 'string', 'email:rfc', 'max:150', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'regex:/^(\+62|62|08)[0-9]{7,13}$/'],
             'password' => ['required', 'string', 'min:8'],
-            'store_name' => ['required', 'string', 'max:100'],
-            'description' => ['nullable', 'string', 'max:500'],
-            'subdistrict' => ['nullable', 'string', 'max:100'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'string', 'in:active,warning,suspended,inactive'],
-            'sid_status' => ['required', 'string', 'in:verified,pending,rejected'],
         ], [
-            'name.required' => 'Nama pemilik wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.unique' => 'Email ini sudah terdaftar.',
+            'merchant_name.required' => 'Nama toko (Store Name) wajib diisi.',
+            'merchant_name.min' => 'Nama toko minimal 3 karakter.',
+            'merchant_name.max' => 'Nama toko maksimal 100 karakter.',
+            'owner_name.required' => 'Nama lengkap pemilik wajib diisi.',
+            'owner_name.min' => 'Nama pemilik minimal 3 karakter.',
+            'owner_name.max' => 'Nama pemilik maksimal 100 karakter.',
+            'username.regex' => 'Username hanya boleh mengandung huruf, angka, tanda minus (-), titik (.), atau garis bawah (_).',
+            'username.min' => 'Username minimal 3 karakter.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format alamat email tidak valid (contoh: pedagang@domain.com).',
+            'email.unique' => 'Alamat email ini sudah terdaftar di sistem.',
+            'phone.regex' => 'Format nomor telepon tidak valid. Gunakan format Indonesia (contoh: 081234567890 atau +6281234567890).',
             'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal 8 karakter.',
-            'store_name.required' => 'Nama toko wajib diisi.',
+            'password.min' => 'Password minimal terdiri dari 8 karakter.',
         ]);
 
         DB::transaction(function () use ($validated) {
             $user = User::create([
-                'name' => $validated['name'],
+                'name' => $validated['owner_name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($validated['password']),
                 'role' => 'pedagang',
-                'status' => $validated['status'],
+                'status' => 'active',
                 'is_password_changed' => false,
                 'email_verified_at' => now(),
             ]);
 
-            $baseSlug = Str::slug($validated['store_name']);
-            $slug = $baseSlug;
+            $baseSlug = !empty($validated['username']) ? Str::slug($validated['username']) : Str::slug($validated['merchant_name']);
+            $slug = $baseSlug ?: 'toko-' . $user->id;
             $count = 1;
             while (Store::where('slug', $slug)->exists()) {
                 $slug = $baseSlug . '-' . $count++;
@@ -184,13 +188,13 @@ class MerchantController extends Controller
 
             Store::create([
                 'user_id' => $user->id,
-                'name' => $validated['store_name'],
+                'name' => $validated['merchant_name'],
                 'slug' => $slug,
-                'description' => $validated['description'] ?? null,
-                'subdistrict' => $validated['subdistrict'] ?? 'Cibenda',
-                'address' => $validated['address'] ?? null,
+                'description' => null,
+                'subdistrict' => 'Cibenda',
+                'address' => null,
                 'support_email' => $validated['email'],
-                'sid_status' => $validated['sid_status'],
+                'sid_status' => 'verified',
             ]);
         });
 
