@@ -78,6 +78,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::patch('/pedagang/{id}/status', [\App\Http\Controllers\Admin\MerchantController::class, 'updateStatus'])->name('admin.merchants.status');
         Route::patch('/pedagang/{id}/verification', [\App\Http\Controllers\Admin\MerchantController::class, 'updateVerification'])->name('admin.merchants.verification');
         Route::delete('/pedagang/{id}', [\App\Http\Controllers\Admin\MerchantController::class, 'destroy'])->name('admin.merchants.destroy');
+
+        // Laporan Penjualan (Best Selling Products & Platform Reports)
+        Route::get('/laporan', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('admin.reports.index');
+        Route::get('/laporan/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('admin.reports.export');
     });
 
 // Obfuscation Masking: Return 404 for obvious guessable admin URLs if admin prefix is customized
