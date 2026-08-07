@@ -42,23 +42,29 @@ export default function AdminSidebar() {
                     Dashboard
                 </Link>
 
-                <button
-                    type="button"
-                    onClick={() => toast("Modul Manajemen Pedagang segera hadir.")}
-                    className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl font-semibold transition-all text-sm whitespace-nowrap text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-200/80 cursor-pointer bg-white"
+                <Link
+                    href={route("admin.merchants.index")}
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${
+                        route().current("admin.merchants.index")
+                            ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
+                    }`}
                 >
-                    <Store className="w-5 h-5 shrink-0 text-gray-500" />
+                    <Store className="w-5 h-5 shrink-0" />
                     Pedagang
-                </button>
+                </Link>
 
-                <button
-                    type="button"
-                    onClick={() => toast("Modul Tambah User segera hadir.")}
-                    className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl font-semibold transition-all text-sm whitespace-nowrap text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-200/80 cursor-pointer bg-white"
+                <Link
+                    href={route("admin.merchants.create")}
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${
+                        route().current("admin.merchants.create")
+                            ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
+                    }`}
                 >
-                    <UserPlus className="w-5 h-5 shrink-0 text-gray-500" />
+                    <UserPlus className="w-5 h-5 shrink-0" />
                     Tambah User
-                </button>
+                </Link>
 
                 <button
                     type="button"
