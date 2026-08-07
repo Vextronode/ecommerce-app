@@ -25,7 +25,6 @@ interface Props {
 export default function AdminDashboard({ stats, chartData, registrations, activities }: Props) {
     const [greeting, setGreeting] = useState("Selamat Datang, Admin");
 
-    // Menghitung sapaan dinamis (Pagi, Siang, Sore, Malam) berdasarkan jam lokal browser admin (tanpa emoji)
     useEffect(() => {
         const hours = new Date().getHours();
         if (hours >= 4 && hours < 11) {
@@ -45,7 +44,7 @@ export default function AdminDashboard({ stats, chartData, registrations, activi
 
             {/* Header */}
             <div className="mb-6 md:mb-8">
-                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                <h1 className="text-2xl md:text-3xl font-extrabold text-[#004F54] tracking-tight">
                     {greeting}
                 </h1>
                 <p className="text-gray-500 mt-1 text-xs md:text-sm font-medium">

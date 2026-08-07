@@ -1,6 +1,6 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
-import { X } from "lucide-react";
+import { X, Search } from "lucide-react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import HeroSection from "@/Components/Storefront/HeroSection";
 import CategorySection from "@/Components/Storefront/CategorySection";
@@ -100,7 +100,7 @@ export default function Shop({
                 ))
             ) : (
                 <div className="w-full text-center py-32 flex flex-col items-center">
-                    <div className="text-6xl mb-4">🔍</div>
+                    <Search className="w-16 h-16 text-gray-300 mb-4" />
                     <h3 className="text-2xl font-bold text-gray-800 mb-2">
                         Produk Tidak Ditemukan
                     </h3>

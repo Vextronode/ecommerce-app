@@ -1,5 +1,6 @@
 import React from 'react';
 import { Camera, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import InputError from '@/Components/InputError';
 
 interface ReviewImageUploaderProps {
@@ -17,15 +18,22 @@ export default function ReviewImageUploader({
     onPreviewImagesChange,
     error
 }: ReviewImageUploaderProps) {
-    
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
-            
+
             // Limit to max 3 files
             if (images.length + files.length > 3) {
-                alert('Maksimal 3 file (foto/video).');
+                toast.error('Maksimal 3 file (foto/video).');
                 return;
+            }
+
+            for (const f of files) {
+                if (f.size > 2 * 1024 * 1024) {
+                    toast.error(`Ukuran file "${f.name}" melebihi 2MB.`);
+                    return;
+                }
             }
 
             const newFiles = [...images, ...files];
@@ -51,7 +59,7 @@ export default function ReviewImageUploader({
     return (
         <div>
             <label className="block text-sm font-semibold text-gray-800 mb-3">Tambahkan foto dan video (opsional)</label>
-            
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {previewImages.map((src, idx) => (
                     <div key={idx} className="relative aspect-square rounded-xl border border-gray-200 overflow-hidden group shadow-sm">
@@ -74,10 +82,10 @@ export default function ReviewImageUploader({
                     <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors text-gray-500 hover:text-gray-700 hover:border-gray-400 bg-gray-50/50">
                         <Camera className="w-7 h-7 mb-2 text-gray-400" />
                         <span className="text-[11px] text-center px-2 font-medium">Video/Foto</span>
-                        <input 
-                            type="file" 
-                            className="hidden" 
-                            multiple 
+                        <input
+                            type="file"
+                            className="hidden"
+                            multiple
                             accept="image/*,video/mp4,video/quicktime"
                             onChange={handleImageChange}
                         />

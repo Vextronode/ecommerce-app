@@ -40,7 +40,7 @@ export default function Dashboard({
 
             {/* Header */}
             <div className="mb-6 md:mb-8">
-                <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                <h1 className="text-xl md:text-2xl font-extrabold text-[#004F54] flex items-center gap-2">
                     Selamat pagi, {merchantInfo.name}
                 </h1>
                 <p className="text-gray-500 mt-1 text-xs md:text-sm font-medium">

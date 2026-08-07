@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
+import toast from "react-hot-toast";
 
 const customMarker = L.icon({
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -65,7 +66,7 @@ export function useAddressMap(
                 setIsLocating(false);
             },
             () => {
-                alert("Gagal ambil lokasi, pastikan izin GPS nyala.");
+                toast.error("Gagal ambil lokasi, pastikan izin GPS nyala.");
                 setIsLocating(false);
             },
         );
