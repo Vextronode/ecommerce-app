@@ -127,6 +127,8 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         id: p.id,
         name: p.name,
         slug: p.slug,
+        store: p.store,
+        store_name: p.store?.name,
         category: p.category,
         category_name: p.category?.name || "Produk",
         price: p.price,

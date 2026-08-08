@@ -1,12 +1,14 @@
 import React from "react";
 import { Link, router } from "@inertiajs/react";
-import { Star, ShoppingCart } from "lucide-react";
+import { Star, ShoppingCart, Store } from "lucide-react";
 import toast from "react-hot-toast";
 
 export interface ProductCardData {
     id: number | string;
     name: string;
     slug?: string;
+    store?: { id?: number; name?: string; slug?: string } | string;
+    store_name?: string;
     category?: { id?: number; name?: string; slug?: string } | string;
     category_name?: string;
     price: number | string;
@@ -19,6 +21,15 @@ export interface ProductCardData {
 export default function ProductCard({ product }: { product: any }) {
     const name = product.name || "Produk Cibenda";
     const slug = product.slug || String(product.id);
+
+    // Resolve store name
+    const storeName =
+        product.store_name ||
+        (typeof product.store === "object" && product.store?.name
+            ? product.store.name
+            : typeof product.store === "string"
+            ? product.store
+            : null);
 
     // Resolve category name
     const categoryName =
@@ -114,11 +125,21 @@ export default function ProductCard({ product }: { product: any }) {
 
                 {/* Product Title */}
                 <h3
-                    className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 leading-snug mb-2 group-hover/card:text-[#004F54] transition-colors"
+                    className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 leading-snug mb-1 group-hover/card:text-[#004F54] transition-colors"
                     title={name}
                 >
                     {name}
                 </h3>
+
+                {/* Store Name */}
+                {storeName && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                        <Store className="w-3.5 h-3.5 text-[#215B63] shrink-0" />
+                        <span className="truncate font-medium hover:text-[#215B63] transition-colors">
+                            {storeName}
+                        </span>
+                    </div>
+                )}
 
                 {/* Rating & Sold Row */}
                 <div className="flex items-center justify-between text-xs sm:text-sm mb-3">

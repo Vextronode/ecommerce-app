@@ -1,5 +1,5 @@
 import React from "react";
-import { Star, ShoppingCart, ChevronRight } from "lucide-react";
+import { Star, ShoppingCart, ChevronRight, Store } from "lucide-react";
 import { Link, router } from "@inertiajs/react";
 import toast from "react-hot-toast";
 
@@ -71,6 +71,14 @@ export default function ProductRecommendations({
                         return `${qty} Terjual`;
                     };
 
+                    const storeName =
+                        prod.store_name ||
+                        (typeof prod.store === "object" && prod.store?.name
+                            ? prod.store.name
+                            : typeof prod.store === "string"
+                            ? prod.store
+                            : null);
+
                     const categoryName =
                         prod.category_name ||
                         (typeof prod.category === "object" && prod.category?.name
@@ -106,11 +114,19 @@ export default function ProductRecommendations({
                                     {categoryName}
                                 </span>
                                 <h3
-                                    className="font-bold text-gray-900 text-xs line-clamp-1 mb-1.5 group-hover/card:text-[#004F54] transition-colors"
+                                    className="font-bold text-gray-900 text-xs line-clamp-1 mb-1 group-hover/card:text-[#004F54] transition-colors"
                                     title={prod.name}
                                 >
                                     {prod.name}
                                 </h3>
+                                {storeName && (
+                                    <div className="flex items-center gap-1 text-[10px] text-gray-500 mb-1.5">
+                                        <Store className="w-3 h-3 text-[#215B63] shrink-0" />
+                                        <span className="truncate font-medium hover:text-[#215B63] transition-colors">
+                                            {storeName}
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-between text-[11px] mb-2">
                                     <div className="flex items-center gap-1">
                                         <Star className="w-3 h-3 text-[#FF7A00] fill-[#FF7A00]" />

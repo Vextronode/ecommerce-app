@@ -34,6 +34,8 @@ export default function Shop({
         id: product.id,
         name: product.name,
         slug: product.slug,
+        store: product.store,
+        store_name: product.store?.name || product.store_name,
         category: product.category,
         category_name: product.category?.name || product.category_name || categoryFallback || "Produk",
         price: product.price,

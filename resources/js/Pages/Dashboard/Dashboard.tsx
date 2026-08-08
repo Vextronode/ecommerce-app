@@ -15,11 +15,12 @@ interface Props {
 }
 
 export default function Dashboard({ categories, featuredProducts, stores = [] }: Props) {
-    // format data produk dari database biar sesuai sama kebutuhan komponen ProductCarousel
     const formattedProducts = featuredProducts.map((product) => ({
         id: product.id,
         name: product.name,
         slug: product.slug,
+        store: product.store,
+        store_name: product.store?.name || product.store_name,
         category: product.category,
         category_name: product.category?.name || product.category_name || "Produk",
         price: product.price,
