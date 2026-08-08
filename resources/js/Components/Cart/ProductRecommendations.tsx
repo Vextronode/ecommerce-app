@@ -57,8 +57,12 @@ export default function ProductRecommendations({
                             : 0;
 
                     const formattedPrice = `Rp. ${rawPrice.toLocaleString("id-ID")}`;
-                    const ratingNum = prod.rating ? Number(prod.rating) : 5.0;
-                    const ratingDisplay = (isNaN(ratingNum) || ratingNum <= 0 ? 5.0 : ratingNum).toFixed(1);
+                    const rawRating =
+                        prod.rating !== undefined && prod.rating !== null
+                            ? Number(prod.rating)
+                            : 0;
+                    const ratingNum = isNaN(rawRating) ? 0 : rawRating;
+                    const ratingDisplay = ratingNum.toFixed(1);
 
                     const soldCount = prod.sold ? Number(prod.sold) : 0;
                     const formatSold = (qty: number) => {

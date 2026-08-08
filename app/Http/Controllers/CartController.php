@@ -53,11 +53,13 @@ class CartController extends Controller
         $cartProductIds = $carts->pluck('product_id')->toArray();
         $cartCategoryIds = $carts->pluck('product.category_id')->filter()->unique()->toArray();
 
-        $recommendations = \App\Models\Product::withSum(['orderItems as sold' => function ($query) {
+        $recommendations = \App\Models\Product::with(['category', 'store'])
+            ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
                     $q->where('shipping_status', 'delivered');
                 });
             }], 'quantity')
+            ->withAvg('reviews as rating', 'rating')
             ->where('is_active', true)
             ->where('stock', '>', 0)
             ->whereNotIn('id', $cartProductIds)
@@ -71,8 +73,11 @@ class CartController extends Controller
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
+                    'slug' => $product->slug,
+                    'category' => $product->category,
+                    'category_name' => $product->category?->name ?? 'Produk',
                     'price' => $product->price,
-                    'rating' => 5.0,
+                    'rating' => $product->rating ? (float) $product->rating : 0.0,
                     'sold' => $product->sold ?? 0,
                     'img' => $product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
                 ];

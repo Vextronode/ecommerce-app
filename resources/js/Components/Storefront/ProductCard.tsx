@@ -41,9 +41,13 @@ export default function ProductCard({ product }: { product: any }) {
 
     const formattedPrice = `Rp. ${rawPrice.toLocaleString("id-ID")}`;
 
-    // Format rating (e.g. 5.0)
-    const ratingNum = product.rating ? Number(product.rating) : 5.0;
-    const ratingDisplay = (isNaN(ratingNum) || ratingNum <= 0 ? 5.0 : ratingNum).toFixed(1);
+    // Format rating (e.g. 5.0, 4.8, 0.0)
+    const rawRating =
+        product.rating !== undefined && product.rating !== null
+            ? Number(product.rating)
+            : 0;
+    const ratingNum = isNaN(rawRating) ? 0 : rawRating;
+    const ratingDisplay = ratingNum.toFixed(1);
 
     // Format sold count (e.g. 10rb+Terjual, 12 Terjual)
     const soldCount = product.sold ? Number(product.sold) : 0;
