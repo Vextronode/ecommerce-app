@@ -51,10 +51,10 @@ export default function ProductRecommendations({
                         typeof prod.price === "number"
                             ? prod.price
                             : !isNaN(Number(prod.price))
-                            ? Number(prod.price)
-                            : typeof prod.price === "string"
-                            ? Number(prod.price.replace(/[^0-9]/g, "")) || 0
-                            : 0;
+                                ? Number(prod.price)
+                                : typeof prod.price === "string"
+                                    ? Number(prod.price.replace(/[^0-9]/g, "")) || 0
+                                    : 0;
 
                     const formattedPrice = `Rp. ${rawPrice.toLocaleString("id-ID")}`;
                     const rawRating =
@@ -76,8 +76,8 @@ export default function ProductRecommendations({
                         (typeof prod.category === "object" && prod.category?.name
                             ? prod.category.name
                             : typeof prod.category === "string"
-                            ? prod.category
-                            : "Pilihan");
+                                ? prod.category
+                                : "Pilihan");
 
                     const image =
                         prod.img ||
