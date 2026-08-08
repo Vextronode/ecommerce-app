@@ -30,8 +30,20 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
+
+        $role = $request->user()->role;
+        $isPasswordChanged = $request->user()->is_password_changed;
+
+        if ($role === 'pedagang') {
+            if (!$isPasswordChanged) {
+                return redirect()->intended(route('merchant.store.setup', absolute: false));
+            }
+
+            return redirect()->intended('/pedagang/dashboard');
+        } elseif ($role === 'admin') {
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
@@ -41,12 +53,27 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $adminPrefix = config('admin.prefix', 'cibenda-portal');
+        $isMerchant = $request->input('source') === 'merchant'
+            || $request->is('pedagang/*')
+            || str_contains((string) $request->headers->get('referer'), '/pedagang');
+        $isAdmin = $request->input('source') === 'admin'
+            || $request->is($adminPrefix . '/*')
+            || str_contains((string) $request->headers->get('referer'), '/' . $adminPrefix);
+
+        $redirectTo = route('login');
+        if ($isMerchant) {
+            $redirectTo = route('merchant.login.view');
+        } elseif ($isAdmin && Route::has('admin.login.view')) {
+            $redirectTo = route('admin.login.view');
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect($redirectTo);
     }
 }

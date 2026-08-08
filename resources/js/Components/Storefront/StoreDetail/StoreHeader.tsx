@@ -1,0 +1,68 @@
+import React from 'react';
+import { Share2, Star } from 'lucide-react';
+
+interface Props {
+    store: any;
+    isFollowing: boolean;
+    onFollow: () => void;
+}
+
+export default function StoreHeader({ store, isFollowing, onFollow }: Props) {
+    const defaultCover = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop";
+
+    return (
+        <div className="bg-white rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-sm border border-gray-100 relative overflow-hidden">
+            <div
+                className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{ backgroundImage: `url(${defaultCover})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            />
+
+            {/* Avatar */}
+            <div className="relative z-10 w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-50 flex-shrink-0">
+                {store.logo_path ? (
+                    <img src={store.logo_path.startsWith('http') ? store.logo_path : `/storage/${store.logo_path}`} alt={store.name} className="w-full h-full object-cover" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-teal-700 bg-teal-50">
+                        {store.name.substring(0, 2).toUpperCase()}
+                    </div>
+                )}
+            </div>
+
+            {/* Store Info */}
+            <div className="relative z-10 flex-1 flex flex-col md:flex-row items-center md:items-center justify-between w-full">
+                <div className="text-center md:text-left space-y-2">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{store.name}</h1>
+                    <p className="text-gray-500 text-sm md:text-base">
+                        {store.address || "Kab. Pangandaran"}
+                    </p>
+                    <div className="flex items-center gap-3 pt-2 justify-center md:justify-start">
+                        <button
+                            onClick={onFollow}
+                            className={`px-8 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm ${isFollowing
+                                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    : "bg-[#245D56] text-white hover:bg-[#1a443f]"
+                                }`}
+                        >
+                            {isFollowing ? "Mengikuti" : "Follow"}
+                        </button>
+                        <button className="p-2.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                            <Share2 className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Rating & Sold Stats */}
+                <div className="mt-6 md:mt-0 flex items-center justify-center md:justify-end">
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-1.5 mb-1">
+                            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                            <span className="font-bold text-lg text-gray-900">{store.average_rating}</span>
+                            <span className="text-gray-900 font-bold text-lg">({store.total_sold > 1000 ? (store.total_sold / 1000).toFixed(1) + 'rb' : store.total_sold} terjual)</span>
+                        </div>
+                        <p className="text-sm text-gray-500 font-medium">Rating & Penjualan</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

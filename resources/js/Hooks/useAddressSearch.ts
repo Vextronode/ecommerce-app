@@ -7,7 +7,7 @@ interface SuggestionItem {
     address: any;
 }
 
-export function useAddressSearch(setData: any) {
+export function useAddressSearch(setData: any, currentProvinsi: string = "") {
     const [provSuggestions, setProvSuggestions] = useState<SuggestionItem[]>(
         [],
     );
@@ -22,7 +22,9 @@ export function useAddressSearch(setData: any) {
     const [provQuery, setProvQuery] = useState("");
     const [jalanQuery, setJalanQuery] = useState("");
 
-    const baseUrl = import.meta.env.VITE_NOMINATIM_URL;
+    const baseUrl =
+        import.meta.env.VITE_NOMINATIM_URL ||
+        "https://nominatim.openstreetmap.org";
 
     const parseAddressResult = (address: any) => {
         const city =
@@ -79,18 +81,32 @@ export function useAddressSearch(setData: any) {
         setSearchLoading(true);
         const timer = setTimeout(async () => {
             try {
-                // Tambahin &accept-language=id
+                const fullQuery = currentProvinsi
+                    ? `${jalanQuery}, ${currentProvinsi}`
+                    : jalanQuery;
+
                 const response = await fetch(
-                    `${baseUrl}/search?format=json&q=${encodeURIComponent(jalanQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
+                    `${baseUrl}/search?format=json&q=${encodeURIComponent(fullQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
                 );
-                setJalanSuggestions(await response.json());
+                const results = await response.json();
+
+                if (results && results.length > 0) {
+                    setJalanSuggestions(results);
+                } else {
+                    const fallbackRes = await fetch(
+                        `${baseUrl}/search?format=json&q=${encodeURIComponent(jalanQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
+                    );
+                    setJalanSuggestions(await fallbackRes.json());
+                }
             } catch (error) {
                 console.error(error);
             } finally {
                 setSearchLoading(false);
             }
         }, 1500);
-    }, [jalanQuery, baseUrl]);
+
+        return () => clearTimeout(timer);
+    }, [jalanQuery, currentProvinsi, baseUrl]);
 
     return {
         provSuggestions,

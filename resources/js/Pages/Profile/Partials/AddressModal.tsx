@@ -1,104 +1,32 @@
-import React, { useEffect } from "react";
-import { useForm } from "@inertiajs/react";
-
+import React from "react";
 import AddressFields from "./AddressFields";
 import AddressSuggestionInput from "./AddressSuggestionInput";
 import AddressMapSection from "./AddressMapSection";
-
-import { useAddressSearch } from "@/Hooks/useAddressSearch";
-import { useAddressMap } from "@/Hooks/useAddressMap";
+import { useAddressModalForm } from "@/Hooks/Storefront/useAddressModalForm";
 
 interface AddressModalProps {
     isOpen: boolean;
     onClose: () => void;
     addressToEdit?: any;
+    storeRoute?: string;
+    updateRoute?: (id: number | string) => string;
 }
 
 export default function AddressModal({
     isOpen,
     onClose,
     addressToEdit,
+    storeRoute = route("profile.address.store"),
+    updateRoute = (id) => route("profile.address.update", id),
 }: AddressModalProps) {
-    const { data, setData, post, put, processing, reset } = useForm({
-        recipient_name: "",
-        phone: "",
-        provinsi: "",
-        jalan: "",
-        detail: "",
-        label: "Rumah",
-        is_primary: false,
-        full_address: "",
-    });
-
-    const search = useAddressSearch(setData);
-
-    const handleCoordsChange = async (lat: number, lng: number) => {
-        try {
-            const baseUrl = import.meta.env.VITE_NOMINATIM_URL;
-            const response = await fetch(
-                `${baseUrl}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
-            );
-            const result = await response.json();
-            if (result.address) {
-                const parsed = search.parseAddressResult(result.address);
-                setData((prev) => ({
-                    ...prev,
-                    provinsi: parsed.provinsi,
-                    jalan: parsed.jalan || prev.jalan,
-                }));
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const map = useAddressMap(isOpen, handleCoordsChange);
-
-    useEffect(() => {
-        if (isOpen && addressToEdit) {
-            const parts = addressToEdit.full_address.split(", ");
-            const prov = parts.length > 2 ? parts.pop() : "";
-            const det = parts.length > 1 ? parts.pop() : "";
-            const jal = parts.join(", ");
-            let cleanPhone = addressToEdit.phone.startsWith("+62")
-                ? addressToEdit.phone.slice(3)
-                : addressToEdit.phone;
-
-            setData({
-                recipient_name: addressToEdit.recipient_name,
-                phone: cleanPhone,
-                provinsi: prov || addressToEdit.full_address,
-                jalan: jal || addressToEdit.full_address,
-                detail: det || "",
-                label: addressToEdit.label,
-                is_primary: addressToEdit.is_primary,
-                full_address: addressToEdit.full_address,
-            });
-        } else if (!isOpen) {
-            reset();
-        }
-    }, [isOpen, addressToEdit]);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const separatorDetail = data.detail ? `, ${data.detail}` : "";
-        data.full_address = `${data.jalan}${separatorDetail}, ${data.provinsi}`;
-        data.phone = data.phone.startsWith("0")
-            ? data.phone
-            : `+62${data.phone}`;
-
-        const options = {
-            onSuccess: () => {
-                reset();
-                onClose();
-            },
-        };
-        if (addressToEdit) {
-            put(route("profile.address.update", addressToEdit.id), options);
-        } else {
-            post(route("profile.address.store"), options);
-        }
-    };
+    const { data, setData, processing, search, map, handleSubmit } =
+        useAddressModalForm({
+            isOpen,
+            onClose,
+            addressToEdit,
+            storeRoute,
+            updateRoute,
+        });
 
     if (!isOpen) return null;
 

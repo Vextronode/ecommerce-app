@@ -2,17 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { ShoppingCart, User, Menu, X } from "lucide-react";
 import logoParigi from "@/assets/images/parigi_logo.png";
+import { PageProps } from "@/types";
 
 const navLinks = [
     { name: "Home", href: "/dashboard" },
     { name: "Shop", href: "/shop" },
     { name: "Order", href: "/checkout" },
-    { name: "Delivery", href: "#" },
+    { name: "History", href: "/history" },
 ];
 
 export default function Navbar() {
-    const user = usePage().props.auth.user;
+    const { auth, cart_count = 0 } = usePage<PageProps>().props;
+    const user = auth.user;
     const { url } = usePage();
+    const cartCount = typeof cart_count === "number" ? cart_count : 0;
 
     const [isVisible, setIsVisible] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -70,11 +73,19 @@ export default function Navbar() {
                     </Link>
 
                     {/* cart icon mobile */}
-                    <Link
-                        href={route('cart')}
-                        className="md:hidden p-2 text-white bg-black/10 rounded-lg hover:bg-black/20 transition relative">
-                        <ShoppingCart size={24} />
-                    </Link>
+                    {user && (
+                        <Link
+                            href={route('cart')}
+                            className="md:hidden p-2 text-white bg-black/10 rounded-lg hover:bg-black/20 transition relative"
+                        >
+                            <ShoppingCart size={24} />
+                            {cartCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-[#FF7A00] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full shadow-sm border border-white leading-none">
+                                    {cartCount > 99 ? "99+" : cartCount}
+                                </span>
+                            )}
+                        </Link>
+                    )}
                 </div>
 
                 {/* desktop navlinks */}
@@ -99,15 +110,23 @@ export default function Navbar() {
 
                 {/* desktop profile */}
                 <div className="hidden md:flex items-center gap-3">
-                    <Link
-                        href={route('cart')}
-                        className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition shadow-sm border border-gray-100"
-                    >
-                        <ShoppingCart
-                            className="w-5 h-5 text-gray-800"
-                            strokeWidth={2}
-                        />
-                    </Link>
+                    {user && (
+                        <Link
+                            href={route('cart')}
+                            className="relative w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition shadow-sm border border-gray-100 group"
+                            title="Keranjang Belanja"
+                        >
+                            <ShoppingCart
+                                className="w-5 h-5 text-gray-800 group-hover:text-[#004F54] transition-colors"
+                                strokeWidth={2}
+                            />
+                            {cartCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-[#FF7A00] text-white text-[11px] font-bold min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full shadow-md border-2 border-white leading-none">
+                                    {cartCount > 99 ? "99+" : cartCount}
+                                </span>
+                            )}
+                        </Link>
+                    )}
 
                     {user ? (
                         <Link
@@ -133,12 +152,14 @@ export default function Navbar() {
                     ) : (
                         <Link
                             href={route("login")}
-                            className="flex items-center gap-2 bg-white/90 hover:bg-white px-5 py-2.5 rounded-full transition shadow-sm border border-gray-100"
+                            className="flex items-center gap-3 bg-white/90 hover:bg-white pl-5 pr-1.5 py-1.5 rounded-full transition shadow-sm border border-gray-100"
                         >
-                            <User className="w-4 h-4 text-gray-800" />
                             <span className="font-bold text-gray-800 text-sm">
                                 Login
                             </span>
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#344054] text-white">
+                                <User className="w-4 h-4" />
+                            </div>
                         </Link>
                     )}
                 </div>

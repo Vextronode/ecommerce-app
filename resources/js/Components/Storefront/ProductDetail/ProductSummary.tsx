@@ -3,7 +3,7 @@ import { MapPin } from "lucide-react";
 interface Props {
     location: string;
     name: string;
-    price: number;
+    price: number | string;
     unit: string;
 }
 
@@ -23,7 +23,10 @@ export default function ProductSummary({ location, name, price, unit }: Props) {
             {/* price */}
             <div className="flex items-baseline gap-2 mb-6">
                 <span className="text-3xl font-black text-[#1a443f]">
-                    Rp {price.toLocaleString("id-ID")}
+                    Rp{" "}
+                    {typeof price === "number"
+                        ? price.toLocaleString("id-ID")
+                        : price}
                 </span>
                 <span className="text-gray-500 font-medium">/ {unit}</span>
             </div>

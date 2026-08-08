@@ -49,6 +49,81 @@ class AuthenticationTest extends TestCase
         $response = $this->actingAs($user)->post('/logout');
 
         $this->assertGuest();
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('login'));
+    }
+
+    public function test_user_login_rejects_merchant_accounts(): void
+    {
+        $merchant = User::factory()->create([
+            'role' => 'pedagang',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $merchant->email,
+            'password' => 'password',
+            'expected_role' => 'user',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_merchant_login_rejects_user_accounts(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'user',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+            'expected_role' => 'pedagang',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_admin_cannot_authenticate_from_the_default_user_login_screen(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $admin->email,
+            'password' => 'password',
+            'expected_role' => 'user',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_merchants_are_redirected_away_from_user_storefront(): void
+    {
+        $merchant = User::factory()->create([
+            'role' => 'pedagang',
+        ]);
+
+        $response = $this->actingAs($merchant)->get('/shop');
+
+        $response->assertRedirect('/pedagang/dashboard');
+    }
+
+    public function test_merchant_logout_returns_to_merchant_login(): void
+    {
+        $merchant = User::factory()->create([
+            'role' => 'pedagang',
+        ]);
+
+        $response = $this
+            ->actingAs($merchant)
+            ->post('/logout', [
+                'source' => 'merchant',
+            ]);
+
+        $this->assertGuest();
+        $response->assertRedirect(route('merchant.login.view'));
     }
 }

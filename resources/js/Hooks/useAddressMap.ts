@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
+import toast from "react-hot-toast";
 
 const customMarker = L.icon({
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -21,7 +22,7 @@ export function useAddressMap(
         if (!isOpen || !mapContainerRef.current) return;
 
         if (!mapRef.current) {
-            const initialPos: [number, number] = [-6.9175, 107.6191]; // Bandung
+            const initialPos: [number, number] = [-7.6876, 108.6506]; // Pangandaran
             const map = L.map(mapContainerRef.current).setView(initialPos, 13);
 
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -65,7 +66,7 @@ export function useAddressMap(
                 setIsLocating(false);
             },
             () => {
-                alert("Gagal ambil lokasi, pastikan izin GPS nyala.");
+                toast.error("Gagal ambil lokasi, pastikan izin GPS nyala.");
                 setIsLocating(false);
             },
         );

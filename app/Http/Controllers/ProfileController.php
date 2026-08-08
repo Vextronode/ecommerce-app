@@ -19,10 +19,33 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $sessions = \Illuminate\Support\Facades\DB::table('sessions')
+            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->orderBy('last_activity', 'desc')
+            ->get()->map(function ($session) use ($request) {
+                $agent = new \Jenssegers\Agent\Agent();
+                $agent->setUserAgent($session->user_agent);
+
+                return (object) [
+                    'id' => $session->id,
+                    'agent' => (object) [
+                        'is_desktop' => $agent->isDesktop(),
+                        'platform' => $agent->platform(),
+                        'browser' => $agent->browser(),
+                    ],
+                    'ip_address' => $session->ip_address,
+                    'is_current_device' => $session->id === $request->session()->getId(),
+                    'last_active' => \Carbon\Carbon::createFromTimestamp($session->last_activity)->diffForHumans(),
+                ];
+            });
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
             'addresses' => $request->user()->addresses()->orderBy('is_primary', 'desc')->get(),
+            'notificationSettings' => $request->user()->notification_settings ?? [],
+            'sessions' => $sessions,
+            'isOAuth' => !is_null($request->user()->google_id),
         ]);
     }
 
@@ -43,15 +66,27 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Logout from other browser sessions.
      */
+    public function destroyOtherSessions(Request $request): RedirectResponse
+    {
+        \Illuminate\Support\Facades\DB::table('sessions')
+            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
+
+        return Redirect::route('profile.edit')->with('status', 'Sesion lainnya berhasil dihapus.');
+    }
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
+        /** @var \App\Models\User $user */
         $user = $request->user();
+
+        if (is_null($user->google_id)) {
+            $request->validate([
+                'password' => ['required', 'current_password'],
+            ]);
+        }
 
         Auth::logout();
 
@@ -68,9 +103,8 @@ class ProfileController extends Controller
      */
     public function updatePhoto(Request $request): RedirectResponse
     {
-        // validasi max ukuran foto adalah 2MB
         $request->validate([
-            'photo' => ['required', 'image', 'max:2048'],
+            'photo' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
         $user = $request->user();
@@ -93,7 +127,7 @@ class ProfileController extends Controller
 
     public function storeAddress(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'recipient_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'full_address' => 'required|string',
@@ -105,7 +139,7 @@ class ProfileController extends Controller
             $request->user()->addresses()->update(['is_primary' => false]);
         }
 
-        $request->user()->addresses()->create($request->all());
+        $request->user()->addresses()->create($validated);
 
         return back();
     }
@@ -114,7 +148,7 @@ class ProfileController extends Controller
     {
         $address = $request->user()->addresses()->findOrFail($id);
 
-        $request->validate([
+        $validated = $request->validate([
             'recipient_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'full_address' => 'required|string',
@@ -126,7 +160,7 @@ class ProfileController extends Controller
             $request->user()->addresses()->update(['is_primary' => false]);
         }
 
-        $address->update($request->all());
+        $address->update($validated);
 
         return back();
     }
@@ -135,6 +169,24 @@ class ProfileController extends Controller
     {
         $address = $request->user()->addresses()->findOrFail($id);
         $address->delete();
+
+        return back();
+    }
+
+    public function updateNotifications(Request $request)
+    {
+        $validated = $request->validate([
+            'menunggu_pembayaran' => 'sometimes|boolean',
+            'menunggu_konfirmasi' => 'sometimes|boolean',
+            'pesanan_diproses' => 'sometimes|boolean',
+            'pesanan_dikirim' => 'sometimes|boolean',
+            'pesanan_selesai' => 'sometimes|boolean',
+            'pengingat' => 'sometimes|boolean',
+        ]);
+
+        $request->user()->update([
+            'notification_settings' => $validated,
+        ]);
 
         return back();
     }

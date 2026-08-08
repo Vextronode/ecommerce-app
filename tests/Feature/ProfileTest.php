@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -41,6 +44,69 @@ class ProfileTest extends TestCase
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
+    }
+
+    public function test_extended_profile_information_can_be_updated(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => '81234567890',
+                'gender' => 'male',
+                'dob' => '2000-01-31',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $user->refresh();
+
+        $this->assertSame('81234567890', $user->phone);
+        $this->assertSame('male', $user->gender);
+        $this->assertSame('2000-01-31', $user->dob);
+    }
+
+    public function test_profile_date_of_birth_requires_at_least_thirteen_years_old(): void
+    {
+        Carbon::setTestNow('2026-07-11');
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'dob' => '2026-01-01',
+            ]);
+
+        $response->assertSessionHasErrors('dob');
+
+        $this->assertNull($user->refresh()->dob);
+        Carbon::setTestNow();
+    }
+
+    public function test_profile_photo_can_be_updated(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->post('/profile/photo', [
+                'photo' => UploadedFile::fake()->image('avatar.jpg'),
+            ]);
+
+        $response->assertSessionHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertNotNull($user->profile_photo_path);
+        Storage::disk('public')->assertExists($user->profile_photo_path);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void

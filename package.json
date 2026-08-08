@@ -30,6 +30,9 @@
         "framer-motion": "^12.40.0",
         "leaflet": "^1.9.4",
         "lucide-react": "^1.17.0",
-        "react-leaflet": "^5.0.0"
+        "react-hot-toast": "^2.6.0",
+        "react-is": "^19.2.7",
+        "react-leaflet": "^5.0.0",
+        "recharts": "^3.9.2"
     }
 }

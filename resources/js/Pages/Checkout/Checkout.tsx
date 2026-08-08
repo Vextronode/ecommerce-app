@@ -1,42 +1,74 @@
-import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import React from "react";
+import { Head } from "@inertiajs/react";
 
-import StorefrontLayout from '@/Layouts/StorefrontLayout';
-import CartSection from '@/Components/Checkout/CartSection';
-import ShippingSection from '@/Components/Checkout/ShippingSection';
-import DeliverySection from '@/Components/Checkout/DeliverySection';
-import PaymentSection from '@/Components/Checkout/PaymentSection';
-import OrderSummary from '@/Components/Checkout/OrderSummary';
+import StorefrontLayout from "@/Layouts/StorefrontLayout";
+import CartSection from "@/Components/Checkout/CartSection";
+import ShippingSection from "@/Components/Checkout/ShippingSection";
+import DeliverySection from "@/Components/Checkout/DeliverySection";
+import PaymentSection from "@/Components/Checkout/PaymentSection";
+import OrderSummary from "@/Components/Checkout/OrderSummary";
+import AddressPickerModal, {
+    CheckoutAddress,
+} from "@/Components/Checkout/AddressPickerModal";
+import { useCheckoutForm } from "@/Hooks/Storefront/useCheckoutForm";
 
-export default function Checkout() {
-    const [cartItems] = useState([
-        { id: 1, name: "Udang Besar", location: "Pangandaran - Parigi", price: 120000, qty: 1, img: "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200" },
-        { id: 2, name: "Ikan Kakap Merah", location: "Pangandaran - Cibenda", price: 85000, qty: 2, img: "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?auto=format&fit=crop&q=80&w=200" },
-    ]);
-    const [deliveryMethod, setDeliveryMethod] = useState('coastal');
-    const [paymentMethod, setPaymentMethod] = useState('card');
+interface Props {
+    initialCartItems: any[];
+    addresses: CheckoutAddress[];
+}
 
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const totalItems = cartItems.reduce((sum, item) => sum + item.qty, 0);
-    const deliveryFee = deliveryMethod === 'coastal' ? 25000 : 15000;
+export default function Checkout({ initialCartItems, addresses }: Props) {
+    const {
+        cartItems,
+        subtotal,
+        totalItems,
+        data,
+        setData,
+        processing,
+        errors,
+        deliveryFee,
+        adminFee,
+        grandTotal,
+        isAddressPickerOpen,
+        setIsAddressPickerOpen,
+        applyAddress,
+        handleShippingChange,
+        handlePaymentSelect,
+        handlePlaceOrder,
+    } = useCheckoutForm({ initialCartItems, addresses });
+
+    const selectedAddress = addresses.find(
+        (address) => address.id === data.address_id,
+    );
 
     return (
         <StorefrontLayout>
-            <Head title="Checkout - ParigiMart" />
+            <Head title="Checkout - Cibenda Mart" />
 
             <div className="max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-24">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
                     <div className="lg:col-span-8 space-y-6">
                         <CartSection items={cartItems} />
-                        <ShippingSection />
-                        <DeliverySection
-                            selected={deliveryMethod}
-                            onSelect={setDeliveryMethod}
+
+                        <ShippingSection
+                            data={data}
+                            setData={handleShippingChange}
+                            errors={errors}
+                            selectedAddress={selectedAddress}
+                            onOpenAddressPicker={() =>
+                                setIsAddressPickerOpen(true)
+                            }
                         />
+
+                        <DeliverySection
+                            selected={data.delivery_method}
+                            onSelect={(val) => setData("delivery_method", val)}
+                        />
+
                         <PaymentSection
-                            selected={paymentMethod}
-                            onSelect={setPaymentMethod}
+                            selectedMethod={data.payment_method}
+                            selectedChannel={data.payment_channel}
+                            onSelect={handlePaymentSelect}
                         />
                     </div>
 
@@ -44,12 +76,22 @@ export default function Checkout() {
                         <OrderSummary
                             subtotal={subtotal}
                             deliveryFee={deliveryFee}
+                            adminFee={adminFee}
                             totalItems={totalItems}
+                            onPlaceOrder={handlePlaceOrder}
+                            processing={processing}
                         />
                     </div>
-
                 </div>
             </div>
+
+            <AddressPickerModal
+                isOpen={isAddressPickerOpen}
+                addresses={addresses}
+                selectedAddressId={data.address_id}
+                onClose={() => setIsAddressPickerOpen(false)}
+                onSelect={applyAddress}
+            />
         </StorefrontLayout>
     );
 }

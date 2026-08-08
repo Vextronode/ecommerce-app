@@ -13,9 +13,9 @@ export default function SettingsSidebar({ activeTab, setActiveTab }: any) {
     const menus = [
         { id: "biodata", name: "Biodata Diri", icon: User },
         { id: "alamat", name: "Alamat", icon: MapPin },
-        { id: "payment", name: "Payment", icon: CreditCard },
+        { id: "payment", name: "Pembayaran", icon: CreditCard },
         { id: "notifikasi", name: "Notifikasi", icon: Bell },
-        { id: "keamanan", name: "Keamanan", icon: ShieldCheck },
+        { id: "keamanan", name: "Password & Keamanan", icon: ShieldCheck },
     ];
 
     return (
