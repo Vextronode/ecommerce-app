@@ -15,7 +15,7 @@ Dibangun dengan arsitektur monolitik modern menggunakan **Laravel 11**, **Inerti
 | **Adapter Layer** | [Inertia.js v1](https://inertiajs.com) (Server-driven Single Page Application) |
 | **Styling & UI** | [Tailwind CSS](https://tailwindcss.com), [Lucide React Icons](https://lucide.dev) |
 | **Database** | MySQL / MariaDB |
-| **Payment Gateway** | Midtrans (Snap API) |
+| **Payment & Payout Gateway** | Midtrans Core API (Direct Charge) & Midtrans IRIS (Payouts) |
 | **Mapping / Geolocation** | Leaflet.js / OpenStreetMap |
 
 ---
