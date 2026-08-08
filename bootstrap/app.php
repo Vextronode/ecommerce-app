@@ -5,6 +5,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\PostTooLargeException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -39,6 +41,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn(Request $request) => $request->is('api/*'),
         );
+
+        // Render HTTP errors (404, 403, 500, 503) sebagai halaman Inertia
+        $exceptions->render(function (HttpException $e, Request $request) {
+            $status = $e->getStatusCode();
+
+            if (in_array($status, [404, 403, 500, 503]) && !$request->is('api/*') && !$request->expectsJson()) {
+                return Inertia::render('Error', ['status' => $status])
+                    ->toResponse($request)
+                    ->setStatusCode($status);
+            }
+        });
 
         $exceptions->render(function (PostTooLargeException $e, Request $request) {
             return redirect()->back()->with('error', 'Ukuran total file terlalu besar! Server menolak.');
