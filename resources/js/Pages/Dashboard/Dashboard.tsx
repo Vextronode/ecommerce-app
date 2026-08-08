@@ -20,12 +20,9 @@ export default function Dashboard({ categories, featuredProducts, stores = [] }:
         id: product.id,
         name: product.name,
         slug: product.slug,
-        // format mata uang
-        price: new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-        }).format(product.price),
+        category: product.category,
+        category_name: product.category?.name || product.category_name || "Produk",
+        price: product.price,
         rating: product.rating ? Number(product.rating) : 0.0, // Pakai rating asli, default 0 jika belum ada
         sold: product.sold || 0,
         image:

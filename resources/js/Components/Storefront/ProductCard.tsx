@@ -1,86 +1,154 @@
-import React from 'react';
-import { Link, router } from '@inertiajs/react';
-import { Star, ShoppingCart } from 'lucide-react';
-import toast from 'react-hot-toast';
+import React from "react";
+import { Link, router } from "@inertiajs/react";
+import { Star, ShoppingCart } from "lucide-react";
+import toast from "react-hot-toast";
+
+export interface ProductCardData {
+    id: number | string;
+    name: string;
+    slug?: string;
+    category?: { id?: number; name?: string; slug?: string } | string;
+    category_name?: string;
+    price: number | string;
+    rating?: number | string;
+    sold?: number | string;
+    image?: string;
+    image_path?: string;
+}
 
 export default function ProductCard({ product }: { product: any }) {
-    // Pastikan field sesuai dengan format produk dari controller
-    const name = product.name;
-    const priceStr = typeof product.price === 'number' || !isNaN(Number(product.price))
-        ? new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(product.price))
-        : product.price;
+    const name = product.name || "Produk Cibenda";
+    const slug = product.slug || String(product.id);
 
-    const rating = product.rating ? Number(product.rating) : 0.0;
-    const sold = product.sold || 0;
-    const image = product.image || product.image_path || "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400";
+    // Resolve category name
+    const categoryName =
+        product.category_name ||
+        (typeof product.category === "object" && product.category?.name
+            ? product.category.name
+            : typeof product.category === "string"
+            ? product.category
+            : "Produk");
+
+    // Format price: e.g. Rp. 150.000
+    const rawPrice =
+        typeof product.price === "number"
+            ? product.price
+            : !isNaN(Number(product.price))
+            ? Number(product.price)
+            : typeof product.price === "string"
+            ? Number(product.price.replace(/[^0-9]/g, "")) || 0
+            : 0;
+
+    const formattedPrice = `Rp. ${rawPrice.toLocaleString("id-ID")}`;
+
+    // Format rating (e.g. 5.0)
+    const ratingNum = product.rating ? Number(product.rating) : 5.0;
+    const ratingDisplay = (isNaN(ratingNum) || ratingNum <= 0 ? 5.0 : ratingNum).toFixed(1);
+
+    // Format sold count (e.g. 10rb+Terjual, 12 Terjual)
+    const soldCount = product.sold ? Number(product.sold) : 0;
+    const formatSold = (qty: number) => {
+        if (qty >= 10000) {
+            return `${Math.floor(qty / 1000)}rb+Terjual`;
+        }
+        if (qty >= 1000) {
+            return `${(qty / 1000).toFixed(1).replace(".0", "")}rb+Terjual`;
+        }
+        return `${qty} Terjual`;
+    };
+    const soldDisplay = formatSold(soldCount);
+
+    // Image with clean fallback
+    const image =
+        product.image ||
+        product.image_path ||
+        "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400";
+
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        router.post(
+            "/cart",
+            {
+                product_id: product.id,
+                quantity: 1,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success("Produk berhasil ditambahkan ke keranjang!");
+                },
+                onError: () => {
+                    toast.error("Gagal menambahkan produk ke keranjang.");
+                },
+            }
+        );
+    };
 
     return (
         <Link
-            href={route('product.detail', product.slug)}
-            className="bg-gradient-to-b from-[#e0f7fa] to-[#e8fbfb] p-2 rounded-[2rem] shadow-sm hover:shadow-md border border-cyan-50 transition duration-300 relative flex flex-col h-full cursor-pointer group/card overflow-hidden"
+            href={route("product.detail", slug)}
+            className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-gray-200 transition-all duration-300 flex flex-col h-full overflow-hidden p-3 sm:p-3.5 group/card cursor-pointer"
         >
-            {/* Badge & image */}
-            <div className="relative flex flex-col items-center justify-center pt-2 pb-4">
-                {/* Badge */}
-                <div className="absolute top-2 left-2 bg-white text-orange-500 px-3 py-1 rounded-md text-[10px] md:text-xs font-bold flex items-center gap-1 z-10 shadow-sm">
-                    <Star className="w-3 h-3 md:w-3.5 md:h-3.5 fill-orange-500 text-orange-500" />
-                    Star Seller
-                </div>
-
-                {/* Image */}
-                <div className="w-full aspect-square flex items-center justify-center mt-6">
-                    <img
-                        src={image}
-                        alt={name}
-                        className="object-contain w-3/4 h-3/4 group-hover/card:scale-105 transition-transform duration-500 ease-in-out drop-shadow-xl"
-                    />
-                </div>
+            {/* Product Image Area */}
+            <div className="w-full aspect-square rounded-xl bg-[#F8FAFC] overflow-hidden flex items-center justify-center relative mb-3">
+                <img
+                    src={image}
+                    alt={name}
+                    className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500 ease-out"
+                    loading="lazy"
+                />
             </div>
 
-            <div className="bg-white rounded-[1.5rem] p-4 md:p-5 flex flex-col mt-auto relative z-10 shadow-sm flex-1">
-                {/* Product Info */}
-                <h3 className="font-bold text-[#1F2937] text-sm md:text-base mb-4 line-clamp-2 leading-tight text-center min-h-[36px] md:min-h-[44px] flex items-center justify-center">
+            {/* Product Meta Info */}
+            <div className="flex flex-col flex-1">
+                {/* Category */}
+                <span className="text-xs sm:text-sm font-medium text-gray-500 line-clamp-1 mb-1">
+                    {categoryName}
+                </span>
+
+                {/* Product Title */}
+                <h3
+                    className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 leading-snug mb-2 group-hover/card:text-[#004F54] transition-colors"
+                    title={name}
+                >
                     {name}
                 </h3>
 
-                <div className="flex items-center justify-between w-full text-[11px] md:text-xs text-gray-700 mb-2 mt-auto">
+                {/* Rating & Sold Row */}
+                <div className="flex items-center justify-between text-xs sm:text-sm mb-3">
+                    {/* Rating */}
                     <div className="flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5 md:w-4 md:h-4 fill-yellow-400 text-yellow-400" />
-                        <span>({rating.toFixed(1)})</span>
+                        <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF7A00] fill-[#FF7A00]" />
+                        <span className="font-semibold text-gray-800 text-xs sm:text-sm">
+                            ({ratingDisplay})
+                        </span>
                     </div>
-                    <span>
-                        {sold} Terjual
+
+                    {/* Total Sold */}
+                    <span className="font-medium text-gray-800 text-xs sm:text-sm">
+                        {soldDisplay}
                     </span>
                 </div>
 
-                {/* Price */}
-                <p className="text-[#004F54] font-black text-base md:text-lg mb-4 text-left w-full">
-                    {priceStr}
-                </p>
+                {/* Price & Add to Cart Action Row */}
+                <div className="flex items-center justify-between mt-auto pt-1">
+                    {/* Price */}
+                    <span className="text-base sm:text-lg md:text-xl font-bold text-gray-900 tracking-tight">
+                        {formattedPrice}
+                    </span>
 
-                {/* Button */}
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        router.post(
-                            "/cart",
-                            {
-                                product_id: product.id,
-                                quantity: 1,
-                            },
-                            {
-                                preserveScroll: true,
-                                onSuccess: () => {
-                                    toast.success("Produk berhasil ditambahkan ke keranjang!");
-                                },
-                            }
-                        );
-                    }}
-                    className="w-full bg-[#40E0D0] hover:bg-[#38c9ba] text-white py-2 md:py-2.5 rounded-full font-bold text-[11px] md:text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-[#40E0D0]/20"
-                >
-                    <ShoppingCart className="w-4 h-4" />
-                    Add to Cart
-                </button>
+                    {/* Shopping Cart Button */}
+                    <button
+                        type="button"
+                        onClick={handleAddToCart}
+                        className="p-1 text-[#FF7A00] hover:text-[#E06900] hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                        title="Tambah ke Keranjang"
+                    >
+                        <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+                    </button>
+                </div>
             </div>
         </Link>
     );
