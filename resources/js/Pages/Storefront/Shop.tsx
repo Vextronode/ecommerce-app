@@ -30,15 +30,13 @@ export default function Shop({
             `https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400&sig=${index}`,
     }));
 
-    const formatProduct = (product: any) => ({
+    const formatProduct = (product: any, categoryFallback?: string) => ({
         id: product.id,
         name: product.name,
         slug: product.slug,
-        price: new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-        }).format(product.price),
+        category: product.category,
+        category_name: product.category?.name || product.category_name || categoryFallback || "Produk",
+        price: product.price,
         rating: product.rating ? Number(product.rating) : 0.0, // Pakai rating asli, default 0
         sold: product.sold || 0,
         image:
@@ -95,7 +93,9 @@ export default function Shop({
                     <ShopProductRow
                         key={index}
                         title={group.category_name}
-                        products={group.products.map(formatProduct)}
+                        products={group.products.map((p) =>
+                            formatProduct(p, group.category_name)
+                        )}
                     />
                 ))
             ) : (

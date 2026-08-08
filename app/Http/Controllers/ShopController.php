@@ -178,7 +178,8 @@ class ShopController extends Controller
             // "Semua Produk"
             $groupedProducts[] = [
                 'title' => 'Semua Produk',
-                'products' => \App\Models\Product::where('store_id', $store->id)
+                'products' => \App\Models\Product::with(['category', 'store'])
+                    ->where('store_id', $store->id)
                     ->where('is_active', true)
                     ->withSum(['orderItems as sold' => function ($q) {
                         $q->whereHas('order', function ($q2) {
@@ -194,7 +195,8 @@ class ShopController extends Controller
             // "Produk Terlaris"
             $groupedProducts[] = [
                 'title' => 'Produk Terlaris',
-                'products' => \App\Models\Product::where('store_id', $store->id)
+                'products' => \App\Models\Product::with(['category', 'store'])
+                    ->where('store_id', $store->id)
                     ->where('is_active', true)
                     ->withSum(['orderItems as sold' => function ($q) {
                         $q->whereHas('order', function ($q2) {
@@ -212,7 +214,8 @@ class ShopController extends Controller
                 $firstCat = $categories->first();
                 $groupedProducts[] = [
                     'title' => $firstCat->name,
-                    'products' => \App\Models\Product::where('store_id', $store->id)
+                    'products' => \App\Models\Product::with(['category', 'store'])
+                        ->where('store_id', $store->id)
                         ->where('category_id', $firstCat->id)
                         ->where('is_active', true)
                         ->withSum(['orderItems as sold' => function ($q) {
