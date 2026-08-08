@@ -44,6 +44,9 @@ class HandleInertiaRequests extends Middleware
                     'is_password_changed' => $request->user()->is_password_changed,
                 ] : null,
             ],
+            'cart_count' => $request->user()
+                ? \App\Models\Cart::where('user_id', $request->user()->id)->count()
+                : 0,
         ];
     }
 }

@@ -18,4 +18,5 @@ export type PageProps<
     auth: {
         user: User;
     };
+    cart_count?: number;
 };
