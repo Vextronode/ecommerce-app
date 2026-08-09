@@ -39,6 +39,8 @@ class SettingsController extends Controller
                 'support_email' => $store->support_email,
                 'description' => $store->description,
                 'address' => $store->address,
+                'latitude' => (float) $store->latitude,
+                'longitude' => (float) $store->longitude,
             ]
         ]);
     }
@@ -59,6 +61,8 @@ class SettingsController extends Controller
             'support_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
             'store_description' => ['nullable', 'string'],
             'store_address' => ['nullable', 'string'],
+            'latitude' => ['nullable', 'numeric'],
+            'longitude' => ['nullable', 'numeric'],
         ], [
             'name.required' => 'Nama lengkap pemilik wajib diisi.',
             'store_name.required' => 'Nama toko wajib diisi.',
@@ -87,6 +91,11 @@ class SettingsController extends Controller
         $store->support_email = $request->support_email;
         $store->description = $request->store_description;
         $store->address = $request->store_address;
+        
+        if ($request->filled('latitude') && $request->filled('longitude')) {
+            $store->latitude = $request->latitude;
+            $store->longitude = $request->longitude;
+        }
 
         $store->save();
 

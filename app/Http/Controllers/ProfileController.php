@@ -133,6 +133,8 @@ class ProfileController extends Controller
             'full_address' => 'required|string',
             'label' => 'required|string|in:Rumah,Kantor',
             'is_primary' => 'boolean',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         if ($request->is_primary) {
@@ -154,6 +156,8 @@ class ProfileController extends Controller
             'full_address' => 'required|string',
             'label' => 'required|string|in:Rumah,Kantor',
             'is_primary' => 'boolean',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         if ($request->is_primary) {

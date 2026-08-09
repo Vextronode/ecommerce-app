@@ -20,13 +20,15 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
     );
     const totalItems = cartItems.reduce((sum, item) => sum + item.qty, 0);
 
+    const [deliveryFee, setDeliveryFee] = useState(0);
+
     const { data, setData, post, processing, errors } = useForm({
         cart_ids: cartItems.map((item) => item.id),
         address_id: null as number | null,
         name: auth?.user?.name || "",
         phone: auth?.user?.phone || "",
         address: "",
-        delivery_method: "coastal",
+        delivery_method: "local_delivery",
         payment_method: "va" as "va" | "qris" | "gopay" | "cod",
         payment_channel: "bca_va",
     });
@@ -75,7 +77,43 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         applyAddress(primaryAddress);
     }, [addresses]);
 
-    const deliveryFee = data.delivery_method === "coastal" ? 25000 : 15000;
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchFee = async () => {
+            try {
+                let url = `/checkout/calculate-fee?delivery_method=${data.delivery_method}`;
+                
+                if (data.address_id) {
+                    url += `&address_id=${data.address_id}`;
+                }
+                
+                data.cart_ids.forEach(id => {
+                    url += `&cart_ids[]=${id}`;
+                });
+
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (isMounted && result.delivery_fee !== undefined) {
+                    setDeliveryFee(result.delivery_fee);
+                }
+            } catch (error) {
+                console.error("Failed to fetch delivery fee", error);
+            }
+        };
+
+        if (data.delivery_method === "self_pickup") {
+            setDeliveryFee(0);
+        } else {
+            fetchFee();
+        }
+
+        return () => {
+            isMounted = false;
+        };
+    }, [data.delivery_method, data.address_id, data.cart_ids]);
+
     const adminFee = data.payment_method === "cod" ? 0 : 2000;
     const grandTotal = subtotal + deliveryFee + adminFee;
 

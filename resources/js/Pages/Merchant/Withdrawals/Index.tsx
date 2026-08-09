@@ -10,7 +10,8 @@ import WithdrawalHistoryTable from "@/Components/Merchant/Withdrawal/WithdrawalH
 interface StoreInfo {
     id: number;
     name: string;
-    balance: number;
+    available_balance: number;
+    pending_balance: number;
     bank_name: string;
     bank_account_number: string;
     bank_account_holder: string;
@@ -33,6 +34,7 @@ interface Props {
     withdrawals: WithdrawalItem[];
     stats: {
         available_balance: number;
+        pending_balance: number;
         total_withdrawn: number;
         total_earnings: number;
     };
@@ -70,6 +72,7 @@ export default function Index({ store, withdrawals, stats }: Props) {
 
             <WithdrawalStats
                 availableBalance={stats.available_balance}
+                pendingBalance={stats.pending_balance}
                 totalWithdrawn={stats.total_withdrawn}
                 totalEarnings={stats.total_earnings}
             />

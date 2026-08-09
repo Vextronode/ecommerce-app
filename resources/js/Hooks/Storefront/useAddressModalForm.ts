@@ -28,6 +28,8 @@ export function useAddressModalForm({
         label: "Rumah",
         is_primary: false,
         full_address: "",
+        latitude: null as number | null,
+        longitude: null as number | null,
     });
 
     const search = useAddressSearch(setData, data.provinsi);
@@ -41,10 +43,19 @@ export function useAddressModalForm({
             const result = await response.json();
             if (result.address) {
                 const parsed = search.parseAddressResult(result.address);
+                
+                // Fallback to the first part of display_name if road is empty
+                let streetName = parsed.jalan;
+                if (!streetName && result.display_name) {
+                    streetName = result.display_name.split(',')[0];
+                }
+
                 setData((prev) => ({
                     ...prev,
                     provinsi: parsed.provinsi,
-                    jalan: parsed.jalan || prev.jalan,
+                    jalan: streetName || prev.jalan,
+                    latitude: lat,
+                    longitude: lng,
                 }));
             }
         } catch (error) {
@@ -52,7 +63,12 @@ export function useAddressModalForm({
         }
     };
 
-    const map = useAddressMap(isOpen, handleCoordsChange);
+    const map = useAddressMap(
+        isOpen, 
+        handleCoordsChange,
+        addressToEdit?.latitude,
+        addressToEdit?.longitude
+    );
 
     useEffect(() => {
         if (isOpen && addressToEdit) {
@@ -73,6 +89,8 @@ export function useAddressModalForm({
                 label: addressToEdit.label,
                 is_primary: addressToEdit.is_primary,
                 full_address: addressToEdit.full_address,
+                latitude: addressToEdit.latitude,
+                longitude: addressToEdit.longitude,
             });
         } else if (!isOpen) {
             reset();

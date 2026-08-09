@@ -21,6 +21,45 @@ class CheckoutController extends Controller
 
     private const ADMIN_FEE = 2000;
 
+    private function haversineDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($dLon / 2) * sin($dLon / 2);
+        
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return $earthRadius * $c;
+    }
+
+    private function calculateShippingCost($store, $addressLat, $addressLon, $method)
+    {
+        if ($method === 'self_pickup') {
+            return 0;
+        }
+        
+        if ($method === 'local_delivery') {
+            if (!$store->latitude || !$store->longitude || !$addressLat || !$addressLon) {
+                return 15000;
+            }
+
+            $distance = $this->haversineDistance((float)$store->latitude, (float)$store->longitude, (float)$addressLat, (float)$addressLon);
+            
+            $baseFee = 5000;
+            if ($distance <= 2) {
+                return $baseFee;
+            } else {
+                $extraDistance = ceil($distance - 2);
+                return $baseFee + ($extraDistance * 2000);
+            }
+        }
+
+        return 15000;
+    }
+
     public function index(Request $request)
     {
         $selectedItems = array_filter((array) $request->query('items', []));
@@ -50,6 +89,8 @@ class CheckoutController extends Controller
                 'product_id' => $cart->product->id,
                 'name' => $cart->product->name,
                 'location' => $cart->product->store ? $cart->product->store->name . ' - ' . $cart->product->store->address : 'Cibenda Mart',
+                'store_lat' => $cart->product->store ? $cart->product->store->latitude : null,
+                'store_lon' => $cart->product->store ? $cart->product->store->longitude : null,
                 'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
                 'qty' => $cart->quantity,
                 'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
@@ -73,19 +114,24 @@ class CheckoutController extends Controller
             'name' => 'required_without:address_id|string|max:255',
             'phone' => 'required_without:address_id|string|max:20',
             'address' => 'required_without:address_id|string',
-            'delivery_method' => ['required', 'string', 'in:coastal,standard'],
+            'delivery_method' => ['required', 'string', 'in:local_delivery,self_pickup'],
             'payment_method' => ['required', 'string', 'in:va,qris,gopay,cod'],
             'payment_channel' => ['required', 'string', 'in:bca_va,bni_va,bri_va,permata_va,mandiri_bill,qris,gopay,cod'],
         ]);
+
+        $addressLat = null;
+        $addressLon = null;
 
         if (!empty($validated['address_id'])) {
             $address = $request->user()->addresses()->findOrFail($validated['address_id']);
             $validated['name'] = $address->recipient_name;
             $validated['phone'] = $address->phone;
             $validated['address'] = $address->full_address;
+            $addressLat = $address->latitude;
+            $addressLon = $address->longitude;
         }
 
-        $orders = DB::transaction(function () use ($validated) {
+        $orders = DB::transaction(function () use ($validated, $addressLat, $addressLon) {
             $carts = Cart::query()
                 ->where('user_id', auth()->id())
                 ->whereIn('id', $validated['cart_ids'])
@@ -108,6 +154,7 @@ class CheckoutController extends Controller
 
             foreach ($cartsByStore as $storeId => $storeCarts) {
                 $subtotal = 0;
+                $store = $storeCarts->first()->product->store;
 
                 foreach ($storeCarts as $cart) {
                     $product = $cart->product()->lockForUpdate()->first();
@@ -132,7 +179,7 @@ class CheckoutController extends Controller
                     $cart->setRelation('product', $product);
                 }
 
-                $deliveryFee = self::DELIVERY_FEES[$validated['delivery_method']];
+                $deliveryFee = $this->calculateShippingCost($store, $addressLat, $addressLon, $validated['delivery_method']);
                 $adminFee = $validated['payment_method'] === 'cod' ? 0 : self::ADMIN_FEE;
                 $totalAmount = $subtotal + $deliveryFee + $adminFee;
 
@@ -143,6 +190,9 @@ class CheckoutController extends Controller
                     'customer_name' => $validated['name'],
                     'customer_phone' => $validated['phone'],
                     'shipping_address' => $validated['address'],
+                    'shipping_latitude' => $addressLat,
+                    'shipping_longitude' => $addressLon,
+                    'shipping_pin' => str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT),
                     'delivery_method' => $validated['delivery_method'],
                     'subtotal' => $subtotal,
                     'shipping_cost' => $deliveryFee,
@@ -241,6 +291,46 @@ class CheckoutController extends Controller
         return Inertia::render('Checkout/Success', [
             'order' => $order,
         ]);
+    }
+
+    public function calculateFee(Request $request)
+    {
+        $addressLat = null;
+        $addressLon = null;
+        
+        if ($request->has('address_id')) {
+            $address = $request->user()->addresses()->find($request->query('address_id'));
+            if ($address) {
+                $addressLat = $address->latitude;
+                $addressLon = $address->longitude;
+            }
+        }
+
+        $cartIds = $request->query('cart_ids', []);
+        $method = $request->query('delivery_method', 'local_delivery');
+        
+        if (empty($cartIds)) {
+            return response()->json(['delivery_fee' => 0]);
+        }
+
+        $carts = Cart::with(['product.store'])
+            ->where('user_id', auth()->id())
+            ->whereIn('id', $cartIds)
+            ->get();
+            
+        $cartsByStore = $carts->groupBy(function ($cart) {
+            return $cart->product->store_id;
+        });
+
+        $totalDeliveryFee = 0;
+
+        foreach ($cartsByStore as $storeId => $storeCarts) {
+            $store = $storeCarts->first()->product->store;
+            $fee = $this->calculateShippingCost($store, $addressLat, $addressLon, $method);
+            $totalDeliveryFee += $fee;
+        }
+
+        return response()->json(['delivery_fee' => $totalDeliveryFee]);
     }
 
     /**

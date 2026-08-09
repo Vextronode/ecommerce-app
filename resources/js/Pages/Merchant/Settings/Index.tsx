@@ -4,6 +4,8 @@ import MerchantLayout from '@/Layouts/MerchantLayout';
 import { Save, UserCircle, Store, MapPin } from 'lucide-react';
 import InputError from '@/Components/InputError';
 import { useMerchantSettings } from '@/Hooks/Merchant/useMerchantSettings';
+import AddressMapSection from '@/Pages/Profile/Partials/AddressMapSection';
+import { useAddressMap } from '@/Hooks/useAddressMap';
 
 interface SettingsProps {
     merchantUser: {
@@ -21,6 +23,8 @@ interface SettingsProps {
         support_email: string | null;
         description: string | null;
         address: string | null;
+        latitude: number | null;
+        longitude: number | null;
     };
 }
 
@@ -38,6 +42,33 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
         handlePhotoChange,
         handleSubmit,
     } = useMerchantSettings({ merchantUser, merchantStore });
+
+    const { mapContainerRef, isLocating, handleGetLocation } = useAddressMap(
+        true, // isOpen is always true here
+        async (lat, lng) => {
+            setData((prevData: any) => ({
+                ...prevData,
+                latitude: lat,
+                longitude: lng
+            }));
+
+            // Auto fill address
+            try {
+                const baseUrl = import.meta.env.VITE_NOMINATIM_URL || "https://nominatim.openstreetmap.org";
+                const response = await fetch(
+                    `${baseUrl}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
+                );
+                const result = await response.json();
+                if (result.display_name) {
+                    setData('store_address', result.display_name);
+                }
+            } catch (error) {
+                console.error("Reverse geocoding error:", error);
+            }
+        },
+        merchantStore.latitude,
+        merchantStore.longitude
+    );
 
     const tabItems = ['Information', 'Payment', 'Notifikasi', 'Keamanan'];
 
@@ -231,6 +262,15 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                 </div>
                                                 <InputError message={errors.store_address} className="mt-1" />
                                             </div>
+                                        </div>
+
+                                        <div className="mb-5">
+                                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Pin Lokasi Peta (Koordinat)</label>
+                                            <AddressMapSection
+                                                mapContainerRef={mapContainerRef}
+                                                isLocating={isLocating}
+                                                onGetLocation={handleGetLocation}
+                                            />
                                         </div>
 
                                         <div className="mb-2">

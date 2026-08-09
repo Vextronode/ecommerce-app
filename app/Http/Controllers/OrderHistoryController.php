@@ -155,6 +155,7 @@ class OrderHistoryController extends Controller
             'shipping_address' => $order->shipping_address,
             'delivery_method' => $order->delivery_method,
             'payment_method' => $order->payment_method,
+            'shipping_pin' => $order->shipping_pin,
             'items' => $order->items->map(function ($item) {
                 return [
                     'id' => $item->id,

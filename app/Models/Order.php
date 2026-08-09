@@ -16,6 +16,9 @@ class Order extends Model
         'customer_name',
         'customer_phone',
         'shipping_address',
+        'shipping_latitude',
+        'shipping_longitude',
+        'shipping_pin',
         'delivery_method',
         'subtotal',
         'shipping_cost',
@@ -117,11 +120,19 @@ class Order extends Model
 
             $store = Store::where('id', $order->store_id)->lockForUpdate()->first();
             if ($store) {
-                // Credit net product subtotal (exclude delivery and platform admin fees)
-                $netEarnings = (float) ($order->subtotal ?? ($order->total_amount - $order->shipping_cost));
-                $store->increment('balance', $netEarnings);
+                // Move total amount from pending_balance to available_balance
+                $amount = (float) $order->total_amount;
+                
+                // Ensure we don't drop pending_balance below 0 due to old data
+                if ($store->pending_balance >= $amount) {
+                    $store->decrement('pending_balance', $amount);
+                } else {
+                    $store->update(['pending_balance' => 0]);
+                }
+                
+                $store->increment('available_balance', $amount);
 
-                Log::info("Credited net earnings Rp {$netEarnings} to store ID {$store->id} for order #{$order->invoice_number}");
+                Log::info("Escrow Released: Moved Rp {$amount} from pending to available for store ID {$store->id} for order #{$order->invoice_number}");
             }
 
             $order->update(['balance_credited_at' => now()]);
