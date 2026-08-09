@@ -61,11 +61,19 @@ class MidtransCallbackController extends Controller
                 if (!$lockedOrder) continue;
 
                 if ($transactionStatus === 'capture') {
-                    if ($fraudStatus === 'accept') {
+                    if ($fraudStatus === 'accept' && $lockedOrder->payment_status !== 'paid') {
                         $lockedOrder->update(['payment_status' => 'paid']);
+                        if ($lockedOrder->store) {
+                            $lockedOrder->store->increment('pending_balance', $lockedOrder->total_amount);
+                        }
                     }
                 } elseif ($transactionStatus === 'settlement') {
-                    $lockedOrder->update(['payment_status' => 'paid']);
+                    if ($lockedOrder->payment_status !== 'paid') {
+                        $lockedOrder->update(['payment_status' => 'paid']);
+                        if ($lockedOrder->store) {
+                            $lockedOrder->store->increment('pending_balance', $lockedOrder->total_amount);
+                        }
+                    }
                 } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
                     if ($lockedOrder->payment_status !== 'paid') {
                         $lockedOrder->update(['payment_status' => 'failed']);

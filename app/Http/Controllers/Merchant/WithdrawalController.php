@@ -41,14 +41,16 @@ class WithdrawalController extends Controller
             'store' => [
                 'id' => $store->id,
                 'name' => $store->name,
-                'balance' => (float) $store->balance,
+                'available_balance' => (float) $store->available_balance,
+                'pending_balance' => (float) $store->pending_balance,
                 'bank_name' => $store->bank_name ?? '',
                 'bank_account_number' => $store->bank_account_number ?? '',
                 'bank_account_holder' => $store->bank_account_holder ?? '',
             ],
             'withdrawals' => $withdrawals,
             'stats' => [
-                'available_balance' => (float) $store->balance,
+                'available_balance' => (float) $store->available_balance,
+                'pending_balance' => (float) $store->pending_balance,
                 'total_withdrawn' => (float) $totalWithdrawn,
                 'total_earnings' => (float) $totalEarnings,
             ],
@@ -103,14 +105,14 @@ class WithdrawalController extends Controller
                 // Pessimistic lock on store record to eliminate double spending
                 $lockedStore = Store::where('id', $store->id)->lockForUpdate()->firstOrFail();
 
-                if ($lockedStore->balance < $amount) {
+                if ($lockedStore->available_balance < $amount) {
                     throw ValidationException::withMessages([
-                        'amount' => 'Saldo yang dapat ditarik tidak mencukupi (Tersedia: Rp ' . number_format($lockedStore->balance, 0, ',', '.') . ').',
+                        'amount' => 'Saldo yang dapat ditarik tidak mencukupi (Tersedia: Rp ' . number_format($lockedStore->available_balance, 0, ',', '.') . ').',
                     ]);
                 }
 
                 // Decrement balance atomically inside locked transaction
-                $lockedStore->decrement('balance', $amount);
+                $lockedStore->decrement('available_balance', $amount);
 
                 $withdrawal = Withdrawal::create([
                     'store_id' => $lockedStore->id,
