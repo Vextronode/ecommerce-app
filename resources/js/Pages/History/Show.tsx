@@ -2,7 +2,7 @@ import React from "react";
 import { Head, Link } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import ConfirmModal from "@/Components/ConfirmModal";
-import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle } from "lucide-react";
+import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle, Navigation } from "lucide-react";
 import { useOrderHistoryActions } from "@/Hooks/Storefront/useOrderHistoryActions";
 
 export default function Show({ order }: { order: any }) {
@@ -68,6 +68,13 @@ export default function Show({ order }: { order: any }) {
                                     <p className="whitespace-pre-line leading-relaxed">
                                         {order.shipping_address}
                                     </p>
+                                    {order.shipping_status === 'shipped' && order.delivery_method === 'local_delivery' && order.shipping_pin && (
+                                        <div className="mt-4 bg-[#EAF7F7] p-4 rounded-xl border border-[#41B9C5]/30">
+                                            <p className="text-xs font-bold text-[#14433D] uppercase tracking-wider mb-1">PIN Pengiriman</p>
+                                            <div className="text-3xl font-black text-[#41B9C5] tracking-[0.2em]">{order.shipping_pin}</div>
+                                            <p className="text-[10px] text-gray-500 mt-1">Berikan PIN ini kepada kurir toko saat menerima barang untuk menyelesaikan pesanan.</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div>
@@ -83,6 +90,7 @@ export default function Show({ order }: { order: any }) {
                                         {order.payment_status === 'pending' ? 'Belum Bayar' : order.payment_status === 'paid' ? 'Sudah Bayar / Lunas' : order.payment_status}
                                     </span>
                                 </p>
+                                
                                 {order.payment_status === 'pending' && order.payment_method !== 'cod' && (
                                     <div className="mt-3">
                                         <Link
@@ -91,6 +99,20 @@ export default function Show({ order }: { order: any }) {
                                         >
                                             Bayar Sekarang
                                         </Link>
+                                    </div>
+                                )}
+
+                                {/* Lacak Pengiriman Button */}
+                                {order.shipping_status === 'shipped' && order.delivery_method === 'local_delivery' && (
+                                    <div className="mt-4 pt-4 border-t border-gray-100">
+                                        <a
+                                            href={`/tracker/${order.invoice_number}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center justify-center w-full gap-2 text-xs font-bold text-white bg-[#41B9C5] hover:bg-[#3498a3] px-4 py-2.5 rounded-xl shadow-md shadow-[#41B9C5]/30 transition"
+                                        >
+                                            <Navigation className="w-4 h-4" /> Lacak Pengiriman Live
+                                        </a>
                                     </div>
                                 )}
                             </div>
