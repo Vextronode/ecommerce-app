@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { router } from '@inertiajs/react';
 import {
     Truck,
     Package,
@@ -6,8 +7,13 @@ import {
     Clock,
     ChevronDown,
     ChevronUp,
+    QrCode,
+    X,
+    Navigation,
 } from "lucide-react";
+import { QRCodeSVG } from 'qrcode.react';
 import OrderExpandedDetail from "./OrderExpandedDetail";
+import Modal from "@/Components/Modal";
 
 export default function OrderTableRow({
     order,
@@ -17,6 +23,7 @@ export default function OrderTableRow({
     onOpenAction: (order: any) => void;
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [showQRModal, setShowQRModal] = useState(false);
 
     const formatRupiah = (angka: number) => {
         return new Intl.NumberFormat("id-ID", {
@@ -35,6 +42,19 @@ export default function OrderTableRow({
             year: "numeric",
         };
         return new Date(dateString).toLocaleDateString("en-US", options);
+    };
+
+    const handleSelfDelivery = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        router.put(
+            route('merchant.orders.update-status', order.id),
+            { shipping_status: 'shipped' },
+            {
+                onSuccess: () => {
+                    window.open(`/tracker/${order.invoice_number}`, '_blank');
+                },
+            }
+        );
     };
 
     const totalItems =
@@ -170,13 +190,79 @@ export default function OrderTableRow({
                 <tr className="bg-gray-50/50 border-b border-gray-100">
                     <td colSpan={8} className="py-4 px-6">
                         <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm ml-12">
-                            <h5 className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">
-                                Daftar Lengkap Pesanan
-                            </h5>
+                            <div className="flex justify-between items-start mb-3">
+                                <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Daftar Lengkap Pesanan
+                                </h5>
+                                {order.delivery_method === 'local_delivery' && ['shipped', 'delivered'].includes(order.shipping_status) && (
+                                    <div className="flex flex-col items-end gap-1 text-right">
+                                        <a href={`/tracker/${order.invoice_number}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-[#EAF7F7] text-[#14433D] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-[#41B9C5] hover:text-white transition-colors">
+                                            Tracker Pengiriman
+                                        </a>
+                                        {order.shipping_status === 'shipped' && order.shipping_pin && (
+                                            <span className="text-[10px] text-gray-400 font-medium">
+                                                Informasikan ke Kurir untuk input PIN
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                                {order.delivery_method === 'local_delivery' && order.shipping_status === 'processing' && (
+                                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 text-right">
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setShowQRModal(true);
+                                            }}
+                                            className="inline-flex items-center gap-2 bg-[#EAF7F7] text-[#14433D] hover:bg-[#41B9C5] hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm border border-[#41B9C5]/30"
+                                        >
+                                            <QrCode className="w-4 h-4" />
+                                            Diserahkan ke Kurir
+                                        </button>
+                                        <button 
+                                            onClick={handleSelfDelivery}
+                                            className="inline-flex items-center gap-2 bg-[#14433D] text-white hover:bg-[#1f635a] px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+                                        >
+                                            <Navigation className="w-4 h-4" />
+                                            Saya Antar Sendiri
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                             <OrderExpandedDetail items={order.items} />
                         </div>
                     </td>
                 </tr>
+            )}
+
+            {/* QR Code Modal */}
+            {order.handover_url && (
+                <Modal show={showQRModal} onClose={() => setShowQRModal(false)} maxWidth="sm">
+                    <div className="p-6 relative text-center">
+                        <button
+                            onClick={() => setShowQRModal(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full p-2 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="w-16 h-16 bg-[#EAF7F7] text-[#41B9C5] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <QrCode className="w-8 h-8" />
+                        </div>
+                        
+                        <h3 className="text-xl font-extrabold text-[#14433D] mb-2">QR Serah Terima</h3>
+                        <p className="text-sm text-gray-500 mb-6">
+                            Minta kurir untuk melakukan <strong>Scan QR Code</strong> ini menggunakan kamera HP mereka. Status pesanan akan otomatis menjadi "Dikirim".
+                        </p>
+
+                        <div className="bg-white p-4 rounded-xl border border-gray-100 flex justify-center mb-4">
+                            <QRCodeSVG value={order.handover_url} size={256} className="w-full h-auto max-w-[256px]" />
+                        </div>
+
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            Invoice: #{order.invoice_number}
+                        </div>
+                    </div>
+                </Modal>
             )}
         </>
     );
