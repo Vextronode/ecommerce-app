@@ -18,6 +18,8 @@ class Store extends Model
         'sid_status',
         'support_email',
         'address',
+        'latitude',
+        'longitude',
         'subdistrict',
         'available_balance',
         'pending_balance',

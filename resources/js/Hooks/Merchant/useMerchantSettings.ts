@@ -18,6 +18,8 @@ interface MerchantStore {
     support_email: string | null;
     description: string | null;
     address: string | null;
+    latitude: number | null;
+    longitude: number | null;
 }
 
 interface UseMerchantSettingsOptions {
@@ -45,6 +47,8 @@ export function useMerchantSettings({
         support_email: merchantStore.support_email || "",
         store_description: merchantStore.description || "",
         store_address: merchantStore.address || "",
+        latitude: merchantStore.latitude || null,
+        longitude: merchantStore.longitude || null,
     });
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

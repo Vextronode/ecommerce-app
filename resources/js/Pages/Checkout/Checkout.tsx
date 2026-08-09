@@ -63,6 +63,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                         <DeliverySection
                             selected={data.delivery_method}
                             onSelect={(val) => setData("delivery_method", val)}
+                            deliveryFee={deliveryFee}
                         />
 
                         <PaymentSection

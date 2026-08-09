@@ -29,3 +29,6 @@ Thumbs.db
 skills-lock.json
 .direnv/
 session.md
+
+# Agents Customizations
+.agents/session/

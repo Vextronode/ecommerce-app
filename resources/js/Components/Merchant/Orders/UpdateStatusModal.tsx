@@ -24,13 +24,16 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
             icon: Package,
             desc: "Sedang disiapkan / dipacking",
         },
-        {
-            id: "shipped",
-            label: "Dikirim",
-            icon: Truck,
-            desc: "Dalam perjalanan ke pembeli",
-        }
     ];
+
+    if (order.delivery_method !== 'local_delivery' || order.shipping_status === 'shipped') {
+        statuses.push({
+            id: "shipped",
+            label: order.delivery_method === 'local_delivery' ? "Dikirim" : "Siap Diambil",
+            icon: Truck,
+            desc: order.delivery_method === 'local_delivery' ? "Dalam perjalanan ke pembeli" : "Barang siap diambil di toko",
+        });
+    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
@@ -60,11 +63,10 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
                         {statuses.map((s) => (
                             <label
                                 key={s.id}
-                                className={`flex items-center p-3 border rounded-xl cursor-pointer transition-all ${
-                                    data.shipping_status === s.id
+                                className={`flex items-center p-3 border rounded-xl cursor-pointer transition-all ${data.shipping_status === s.id
                                         ? "border-[#41B9C5] bg-[#EAF7F7]"
                                         : "border-gray-200 hover:border-[#41B9C5]/50 hover:bg-gray-50"
-                                }`}
+                                    }`}
                             >
                                 <div className="flex items-center">
                                     <input

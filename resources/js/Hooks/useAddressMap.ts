@@ -12,6 +12,8 @@ const customMarker = L.icon({
 export function useAddressMap(
     isOpen: boolean,
     onCoordsChange: (lat: number, lng: number) => void,
+    initialLat?: number | null,
+    initialLng?: number | null
 ) {
     const [isLocating, setIsLocating] = useState(false);
     const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,9 @@ export function useAddressMap(
         if (!isOpen || !mapContainerRef.current) return;
 
         if (!mapRef.current) {
-            const initialPos: [number, number] = [-7.6876, 108.6506]; // Pangandaran
+            const initialPos: [number, number] = (initialLat && initialLng) 
+                ? [initialLat, initialLng] 
+                : [-7.6876, 108.6506]; // Pangandaran
             const map = L.map(mapContainerRef.current).setView(initialPos, 13);
 
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -69,6 +73,7 @@ export function useAddressMap(
                 toast.error("Gagal ambil lokasi, pastikan izin GPS nyala.");
                 setIsLocating(false);
             },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     };
 

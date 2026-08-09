@@ -36,6 +36,17 @@ class OrderController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $orders->getCollection()->transform(function ($order) {
+            if ($order->delivery_method === 'local_delivery' && in_array($order->shipping_status, ['processing', 'pending'])) {
+                $order->handover_url = \Illuminate\Support\Facades\URL::signedRoute(
+                    'tracker.handover',
+                    ['invoice_number' => $order->invoice_number],
+                    now()->addHours(24) // Valid for 24 hours
+                );
+            }
+            return $order;
+        });
+
         $totalOrders = Order::where('store_id', $store->id)->where('shipping_status', 'delivered')->count();
         $pendingShipping = Order::where('store_id', $store->id)->where('shipping_status', 'pending')->count();
         $pendingPayment = Order::where('store_id', $store->id)->where('payment_status', 'pending')->count();
@@ -70,17 +81,23 @@ class OrderController extends Controller
             }
 
             if (in_array($order->shipping_status, ['cancelled', 'delivered'])) {
-                return back()->with('error', 'Status pesanan ini sudah tidak bisa diubah lagi.');
+                return redirect()->route('merchant.orders.index')->with('error', 'Status pesanan ini sudah tidak bisa diubah lagi.');
             }
 
             $newStatus = $request->shipping_status;
 
             // Security Guard (Vuln 8)
             if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid' && in_array($newStatus, ['processing', 'shipped', 'delivered'])) {
-                return back()->with('error', 'Pesanan non-COD belum dibayar oleh pembeli.');
+                return redirect()->route('merchant.orders.index')->with('error', 'Pesanan non-COD belum dibayar oleh pembeli.');
             }
 
             $updateData = ['shipping_status' => $newStatus];
+
+            if ($newStatus === 'shipped') {
+                if (empty($order->shipping_pin)) {
+                    $updateData['shipping_pin'] = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+                }
+            }
 
             if ($newStatus === 'delivered') {
                 if ($order->payment_method === 'cod') {
@@ -101,7 +118,7 @@ class OrderController extends Controller
                 $order->update($updateData);
             }
 
-            return back()->with('success', 'Status pesanan berhasil diperbarui!');
+            return redirect()->route('merchant.orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
         });
     }
 }

@@ -27,6 +27,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/calculate-fee', [\App\Http\Controllers\CheckoutController::class, 'calculateFee'])->name('checkout.calculate-fee');
     Route::get('/checkout/success', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/payment/{order}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payment.show');
     Route::get('/payment/{order}/check-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])
@@ -93,6 +94,13 @@ if ($adminPrefix !== 'admin') {
 
 Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->name('google.callback');
+
+// Delivery Tracker Routes (Publicly accessible with invoice number)
+Route::get('/tracker/{invoice_number}', [\App\Http\Controllers\DeliveryTrackerController::class, 'show'])->name('tracker.show');
+Route::get('/tracker/{invoice_number}/handover', [\App\Http\Controllers\DeliveryTrackerController::class, 'handover'])->name('tracker.handover')->middleware('signed');
+Route::get('/tracker/{invoice_number}/location', [\App\Http\Controllers\DeliveryTrackerController::class, 'getLocation'])->name('tracker.getLocation');
+Route::post('/tracker/{invoice_number}/location', [\App\Http\Controllers\DeliveryTrackerController::class, 'updateLocation'])->name('tracker.location');
+Route::post('/tracker/{invoice_number}/complete', [\App\Http\Controllers\DeliveryTrackerController::class, 'complete'])->name('tracker.complete');
 
 // route dashboard pedagang (auth)
 Route::middleware(['auth', 'verified', 'role:pedagang', \App\Http\Middleware\CheckMerchantSetup::class])
