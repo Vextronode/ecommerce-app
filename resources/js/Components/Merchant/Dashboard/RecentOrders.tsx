@@ -42,7 +42,7 @@ export default function RecentOrders({ orders }: Props) {
                         {orders && orders.length > 0 ? (
                             orders.map((order, index) => (
                                 <tr
-                                    key={index}
+                                    key={order.id || order.invoice_number || index}
                                     className="hover:bg-gray-50/50 transition-colors"
                                 >
                                     <td className="py-3 px-5 md:px-0 border-b border-gray-50">

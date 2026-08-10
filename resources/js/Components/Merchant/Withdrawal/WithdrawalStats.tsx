@@ -1,5 +1,6 @@
 import React from "react";
 import { Wallet, ArrowUpRight, TrendingUp } from "lucide-react";
+import { formatRupiah } from "@/utils/formatters";
 
 interface StatsProps {
     availableBalance: number;
@@ -14,13 +15,6 @@ export default function WithdrawalStats({
     totalWithdrawn,
     totalEarnings,
 }: StatsProps) {
-    const formatRupiah = (amount: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-        }).format(amount);
-    };
 
     const stats = [
         {
@@ -58,7 +52,7 @@ export default function WithdrawalStats({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
             {stats.map((stat, index) => (
                 <div
-                    key={index}
+                    key={stat.title}
                     className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
                 >
                     <div className="flex justify-between items-start mb-6">

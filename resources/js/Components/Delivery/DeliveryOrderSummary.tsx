@@ -44,8 +44,8 @@ export default function DeliveryOrderSummary({ order }: DeliveryOrderSummaryProp
             <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
                 <h3 className="text-sm font-bold text-gray-900 mb-3">Ringkasan Pesanan</h3>
                 <div className="space-y-2 mb-4">
-                    {order.items.map((item: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center text-xs text-gray-600">
+                    {order.items.map((item: any, index: number) => (
+                        <div key={item.id || index} className="flex justify-between items-center text-xs text-gray-600">
                             <span>{item.qty}x {item.name}</span>
                             <span className="font-medium">Rp {(item.qty * item.price).toLocaleString('id-ID')}</span>
                         </div>

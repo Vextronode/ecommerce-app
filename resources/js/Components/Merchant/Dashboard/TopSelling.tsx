@@ -8,9 +8,9 @@ interface Props {
 export default function TopSelling({ products }: Props) {
     return (
         <div className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm flex flex-col h-full">
-            <div className="flex justify-between items-center mb-5">
+            <div aria-label="Pilih opsi yang tersedia" className="flex justify-between items-center mb-5">
                 <h3 className="text-lg font-bold text-gray-800">Top Selling</h3>
-                <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                <button aria-label="Tampilkan rincian lebih lanjut" className="text-gray-400 hover:text-gray-600 transition-colors">
                     <MoreHorizontal className="w-5 h-5" />
                 </button>
             </div>
@@ -20,7 +20,7 @@ export default function TopSelling({ products }: Props) {
                     <div className="space-y-5">
                         {products.map((product, index) => (
                             <div
-                                key={index}
+                                key={product.id || index}
                                 className="flex items-center justify-between"
                             >
                                 <div className="flex items-center gap-3">
