@@ -41,7 +41,8 @@ class ReportController extends Controller
         $transformed = $paginated->through(function ($product, $index) use ($startRank) {
             $imagePath = $product->image_path;
             if ($imagePath && ! str_starts_with($imagePath, 'http')) {
-                $imagePath = '/storage/'.ltrim($imagePath, '/');
+                $cleanPath = ltrim($imagePath, '/');
+                $imagePath = str_starts_with($cleanPath, 'storage/') ? '/' . $cleanPath : '/storage/' . $cleanPath;
             }
 
             $storeName = $product->store?->name ?? 'Toko Mitra';
@@ -61,7 +62,8 @@ class ReportController extends Controller
 
             $logoPath = $product->store?->logo_path;
             if ($logoPath && ! str_starts_with($logoPath, 'http')) {
-                $logoPath = '/storage/'.ltrim($logoPath, '/');
+                $cleanLogo = ltrim($logoPath, '/');
+                $logoPath = str_starts_with($cleanLogo, 'storage/') ? '/' . $cleanLogo : '/storage/' . $cleanLogo;
             }
 
             $revenue = (float) $product->total_revenue;
