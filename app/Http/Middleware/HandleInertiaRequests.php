@@ -45,6 +45,10 @@ class HandleInertiaRequests extends Middleware
                     'is_password_changed' => $request->user()->is_password_changed,
                 ] : null,
             ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
             'cart_count' => $request->user()
                 ? Cart::where('user_id', $request->user()->id)->count()
                 : 0,
