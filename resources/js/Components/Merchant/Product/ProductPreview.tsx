@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
 import { Image as ImageIcon, Clock } from "lucide-react";
+import { formatRupiah } from "@/utils/formatters";
 
 export interface VariantType {
     name: string;
@@ -28,13 +29,6 @@ export default function ProductPreview({
 }: Props) {
     const mainImage = imagePreviews.length > 0 ? imagePreviews[0] : null;
 
-    const formatRupiah = (angka: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-        }).format(angka);
-    };
 
     // nentuin harga yang nampil di preview
     const getDisplayPrice = () => {

@@ -31,7 +31,7 @@ export default function OrderTable({
                                 "ACTIONS",
                             ].map((th, idx) => (
                                 <th
-                                    key={idx}
+                                    key={th}
                                     className={`py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider ${th === "ACTIONS" ? "text-center" : ""}`}
                                 >
                                     {th}
@@ -43,7 +43,7 @@ export default function OrderTable({
                         {orders?.data?.length > 0 ? (
                             orders.data.map((order: any, idx: number) => (
                                 <OrderTableRow
-                                    key={idx}
+                                    key={order.id}
                                     order={order}
                                     onOpenAction={onOpenAction}
                                 />
@@ -67,7 +67,7 @@ export default function OrderTable({
                 {orders?.data?.length > 0 ? (
                     orders.data.map((order: any, idx: number) => (
                         <OrderMobileCard
-                            key={idx}
+                            key={order.id}
                             order={order}
                             onOpenAction={onOpenAction}
                         />
