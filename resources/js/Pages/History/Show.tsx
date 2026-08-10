@@ -203,10 +203,26 @@ export default function Show({ order }: { order: any }) {
 
                     {/* Action Buttons */}
                     <div className="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end bg-white">
-                        <button className="inline-flex items-center justify-center px-6 py-2.5 border border-[#245D56] text-[#245D56] text-sm font-bold rounded-lg hover:bg-[#EAF7F7] transition-colors">
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Hubungi Penjual
-                        </button>
+                        {(() => {
+                            if (order.shipping_status === 'cancelled') return null;
+                            if (order.shipping_status === 'delivered' && order.updated_at) {
+                                const updatedTime = new Date(order.updated_at).getTime();
+                                const currentTime = new Date().getTime();
+                                // Hide after 30 minutes
+                                if (currentTime - updatedTime > 1800000) return null;
+                            }
+                            return (
+                                <a 
+                                    href={order.store_phone ? `https://wa.me/${order.store_phone.replace(/\D/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo admin ${order.store_name}, saya pembeli dengan nomor pesanan #${order.invoice_number}. Saya ingin bertanya mengenai pesanan saya...`)}` : '#'}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center justify-center px-6 py-2.5 border border-[#245D56] text-[#245D56] text-sm font-bold rounded-lg hover:bg-[#EAF7F7] transition-colors"
+                                >
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    Hubungi Penjual
+                                </a>
+                            );
+                        })()}
                         
                         {(order.shipping_status === 'pending' || order.shipping_status === 'processing') && (
                             <button

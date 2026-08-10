@@ -10,6 +10,7 @@ import {
     QrCode,
     X,
     Navigation,
+    MessageSquare,
 } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 import OrderExpandedDetail from "./OrderExpandedDetail";
@@ -172,17 +173,41 @@ export default function OrderTableRow({
                     </div>
                 </td>
                 <td className="py-4 px-6 text-center">
-                    {shippingStatus !== "Delivered" && shippingStatus !== "Cancelled" && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onOpenAction(order);
-                            }}
-                            className="text-gray-400 hover:text-[#41B9C5] transition-colors p-1 rounded"
-                        >
-                            <MoreVertical className="w-5 h-5" />
-                        </button>
-                    )}
+                    <div className="flex items-center justify-center gap-2">
+                        {(() => {
+                            if (shippingStatus === 'Cancelled') return null;
+                            if (shippingStatus === 'Delivered' && order.updated_at) {
+                                const updatedTime = new Date(order.updated_at).getTime();
+                                const currentTime = new Date().getTime();
+                                // Hide after 30 minutes
+                                if (currentTime - updatedTime > 1800000) return null;
+                            }
+                            return order.customer_phone ? (
+                                <a
+                                    href={`https://wa.me/${order.customer_phone.replace(/\D/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo kak ${order.customer_name}, saya dari toko ingin mengonfirmasi pesanan Anda dengan invoice #${order.invoice_number}...`)}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="text-[#41B9C5] bg-[#EAF7F7] hover:bg-[#41B9C5] hover:text-white transition-colors p-1.5 rounded-lg shadow-sm"
+                                    title="Chat Pembeli via WA"
+                                >
+                                    <MessageSquare className="w-4 h-4" />
+                                </a>
+                            ) : null;
+                        })()}
+                        {shippingStatus !== "Delivered" && shippingStatus !== "Cancelled" && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onOpenAction(order);
+                                }}
+                                className="text-gray-400 hover:text-[#41B9C5] bg-gray-50 hover:bg-[#EAF7F7] transition-colors p-1.5 rounded-lg"
+                                title="Ubah Status"
+                            >
+                                <MoreVertical className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
                 </td>
             </tr>
 
