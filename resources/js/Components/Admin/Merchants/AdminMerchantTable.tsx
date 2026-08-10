@@ -1,4 +1,6 @@
 import React from "react";
+
+import StoreAvatar from '@/Components/Global/StoreAvatar';
 import {
     MoreVertical,
     Edit2,
@@ -108,17 +110,11 @@ export default function AdminMerchantTable({ merchants, onResetFilter }: Props) 
                                         {/* MERCHANT NAME */}
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3.5">
-                                                {merchant.store?.logo_path ? (
-                                                    <img
-                                                        src={merchant.store.logo_path}
-                                                        alt={storeName}
-                                                        className="w-10 h-10 rounded-2xl object-cover border border-gray-100 shadow-2xs shrink-0"
-                                                    />
-                                                ) : (
-                                                    <div className="w-10 h-10 rounded-2xl bg-[#E6F8F9] border border-[#41B9C5]/30 flex items-center justify-center text-[#245D56] font-extrabold text-sm shrink-0 shadow-2xs">
-                                                        {storeName.charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
+                                                <StoreAvatar 
+                                                    logoPath={merchant.store?.logo_path} 
+                                                    storeName={storeName} 
+                                                    className="w-10 h-10 rounded-2xl text-sm"
+                                                />
                                                 <div>
                                                     <div className="font-bold text-gray-900 text-sm">
                                                         {storeName}

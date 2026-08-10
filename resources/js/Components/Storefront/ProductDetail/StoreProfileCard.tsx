@@ -1,6 +1,7 @@
 import React from 'react';
 import { Store, ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import StoreAvatar from '@/Components/Global/StoreAvatar';
 
 interface StoreProfileProps {
     store: {
@@ -50,10 +51,10 @@ export default function StoreProfileCard({ store }: StoreProfileProps) {
             {/* Left Side: Store Info */}
             <div className="flex items-start gap-4 md:w-5/12 shrink-0">
                 <div className="w-16 h-16 rounded-full border border-gray-100 overflow-hidden bg-gray-50 shrink-0">
-                    <img
-                        src={store.logo_path ? `/storage/${store.logo_path}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(store.name) + '&background=e0f7fa&color=004f54'}
-                        alt={store.name}
-                        className="w-full h-full object-cover"
+                    <StoreAvatar 
+                        logoPath={store.logo_path} 
+                        storeName={store.name} 
+                        className="w-full h-full"
                     />
                 </div>
                 <div className="flex flex-col">

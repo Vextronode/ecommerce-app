@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
 import { Package, ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
+import StoreAvatar from '@/Components/Global/StoreAvatar';
 import RankBadge from "./RankBadge";
 
 export interface BestSellingProductItem {
@@ -137,18 +138,12 @@ export default function BestSellingTable({
                                     {/* MERCHANT */}
                                     <td className="py-4 px-6 align-middle whitespace-nowrap">
                                         <div className="flex items-center gap-3">
-                                            {item.store.logo_path ? (
-                                                <img
-                                                    src={item.store.logo_path}
-                                                    alt={item.store.name}
-                                                    className="w-7 h-7 rounded-full object-cover border border-gray-100 shadow-2xs shrink-0"
-                                                />
-                                            ) : (
-                                                <div className="w-7 h-7 rounded-full bg-[#E0F7FA] border border-[#80DEEA]/50 flex items-center justify-center text-[#00838F] text-[10px] font-extrabold shrink-0 shadow-2xs">
-                                                    {item.store.initials}
-                                                </div>
-                                            )}
-                                            <span className="font-medium text-gray-700 text-xs">
+                                            <StoreAvatar 
+                                                logoPath={item.store.logo_path} 
+                                                storeName={item.store.name} 
+                                                className="w-7 h-7 rounded-full text-[10px]"
+                                            />
+                                            <span className="text-xs font-medium text-gray-700">
                                                 {item.store.name}
                                             </span>
                                         </div>

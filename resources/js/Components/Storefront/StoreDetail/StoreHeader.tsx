@@ -1,5 +1,6 @@
 import React from 'react';
 import { Share2, Star } from 'lucide-react';
+import StoreAvatar from '@/Components/Global/StoreAvatar';
 
 interface Props {
     store: any;
@@ -19,13 +20,11 @@ export default function StoreHeader({ store, isFollowing, onFollow }: Props) {
 
             {/* Avatar */}
             <div className="relative z-10 w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-50 flex-shrink-0">
-                {store.logo_path ? (
-                    <img src={store.logo_path.startsWith('http') ? store.logo_path : `/storage/${store.logo_path}`} alt={store.name} className="w-full h-full object-cover" />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-teal-700 bg-teal-50">
-                        {store.name.substring(0, 2).toUpperCase()}
-                    </div>
-                )}
+                <StoreAvatar 
+                    logoPath={store.logo_path} 
+                    storeName={store.name} 
+                    className="w-full h-full text-3xl"
+                />
             </div>
 
             {/* Store Info */}
