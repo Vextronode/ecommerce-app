@@ -37,9 +37,6 @@ class MidtransCallbackController extends Controller
             ->orWhereJsonContains('payment_payload->order_id', $orderId)
             ->get();
 
-        if ($orders->isEmpty() && $request->has('snap_token')) {
-            $orders = Order::where('snap_token', $request->input('snap_token'))->get();
-        }
 
         if ($orders->isEmpty()) {
             Log::warning('Midtrans Webhook Order Not Found: ' . $orderId);

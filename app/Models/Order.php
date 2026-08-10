@@ -35,7 +35,6 @@ class Order extends Model
         'payment_status',
         'balance_credited_at',
         'stock_restored_at',
-        'snap_token',
         'shipping_status',
         'notes',
     ];
