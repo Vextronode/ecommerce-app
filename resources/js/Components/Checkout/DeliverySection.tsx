@@ -15,7 +15,7 @@ export default function DeliverySection({ selected, onSelect, deliveryFee }: Pro
                 <h2 className="text-xl font-bold text-gray-900">Metode Pengiriman</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div
+                <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
                     onClick={() => onSelect('local_delivery')}
                     className={`relative p-5 rounded-2xl border-2 cursor-pointer transition ${selected === 'local_delivery' ? 'border-[#40E0D0] bg-[#40E0D0]/5' : 'border-slate-100 hover:border-slate-200'}`}
                 >
@@ -32,7 +32,7 @@ export default function DeliverySection({ selected, onSelect, deliveryFee }: Pro
                     </p>
                 </div>
 
-                <div
+                <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
                     onClick={() => onSelect('self_pickup')}
                     className={`relative p-5 rounded-2xl border-2 cursor-pointer transition ${selected === 'self_pickup' ? 'border-[#40E0D0] bg-[#40E0D0]/5' : 'border-slate-100 hover:border-slate-200'}`}
                 >

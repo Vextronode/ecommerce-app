@@ -18,6 +18,7 @@ const Register = () => {
 
     useEffect(() => {
         return () => reset("password", "password_confirmation");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const submit: FormEventHandler = (e) => {
@@ -86,10 +87,10 @@ const Register = () => {
                     </Link>
                 </div>
                 
-                <div className="text-center mt-3 shrink-0 flex justify-center">
-                    <a
+                <div aria-label="Pilih opsi yang tersedia" className="text-center mt-3 shrink-0 flex justify-center">
+                    <a aria-label="Tampilkan rincian lebih lanjut"
                         href={route("google.redirect")}
-                        className="inline-flex items-center justify-center transition-all duration-300 hover:scale-110"
+                        className="inline-flex items-center justify-center transition duration-300 hover:scale-110"
                     >
                         <GoogleIcon className="w-20 h-auto" />
                     </a>
@@ -99,5 +100,5 @@ const Register = () => {
     );
 };
 
-Register.layout = (page: React.ReactNode) => <AuthLayout children={page} />;
+Register.layout = (page: React.ReactNode) => <AuthLayout>{page}</AuthLayout>;
 export default Register;

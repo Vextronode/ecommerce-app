@@ -42,8 +42,8 @@ export default function ProductActions({ product }: Props) {
 
     return (
         <>
-            <div className="relative inline-block text-left" ref={dropdownRef}>
-                <button
+            <div aria-label="Pilih opsi yang tersedia" className="relative inline-block text-left" ref={dropdownRef}>
+                <button aria-label="Tampilkan rincian lebih lanjut"
                     onClick={() => setIsOpen(!isOpen)}
                     className="text-gray-400 hover:text-[#41B9C5] p-1 md:p-2 rounded-lg hover:bg-[#E0F7FA] transition-colors focus:outline-none"
                 >
@@ -78,13 +78,13 @@ export default function ProductActions({ product }: Props) {
             {/* Custom Modal Delete */}
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div
-                        className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+                    <button type="button" aria-label="Tutup modal"
+                        className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity w-full cursor-default"
                         onClick={() => !processing && setShowDeleteModal(false)}
-                    ></div>
+                    />
 
                     {/* Modal Content */}
-                    <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-xl border border-[#41B9C5]/30 transform transition-all flex flex-col items-center text-center">
+                    <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-xl border border-[#41B9C5]/30 transform transition flex flex-col items-center text-center">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 border-4 border-red-100">
                             <AlertCircle className="w-8 h-8 text-red-500" />
                         </div>
@@ -105,14 +105,14 @@ export default function ProductActions({ product }: Props) {
                             <button
                                 onClick={() => setShowDeleteModal(false)}
                                 disabled={processing}
-                                className="flex-1 py-3 rounded-full border border-gray-200 text-gray-600 text-sm font-bold text-center hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-70 whitespace-nowrap"
+                                className="flex-1 py-3 rounded-full border border-gray-200 text-gray-600 text-sm font-bold text-center hover:bg-gray-50 hover:border-gray-300 transition disabled:opacity-70 whitespace-nowrap"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleDelete}
                                 disabled={processing}
-                                className="flex-1 py-3 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm font-bold text-center transition-all disabled:opacity-70 shadow-md shadow-red-500/30 whitespace-nowrap"
+                                className="flex-1 py-3 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm font-bold text-center transition disabled:opacity-70 shadow-md shadow-red-500/30 whitespace-nowrap"
                             >
                                 {processing ? "Menghapus..." : "Ya, Hapus"}
                             </button>

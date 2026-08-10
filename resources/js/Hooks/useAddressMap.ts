@@ -44,15 +44,27 @@ export function useAddressMap(
 
             mapRef.current = map;
             markerRef.current = marker;
-            setTimeout(() => map.invalidateSize(), 150);
+            const timerId = setTimeout(() => map.invalidateSize(), 150);
+
+            return () => {
+                clearTimeout(timerId);
+                map.off("click");
+                if (mapRef.current) {
+                    mapRef.current.remove();
+                    mapRef.current = null;
+                }
+            };
         }
 
+        // If map was already initialized but we are cleaning up, we don't have the local references,
+        // but the above return only happens when initializing.
         return () => {
             if (mapRef.current) {
                 mapRef.current.remove();
                 mapRef.current = null;
             }
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const handleGetLocation = () => {

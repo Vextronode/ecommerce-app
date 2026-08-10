@@ -28,6 +28,9 @@ interface SettingsProps {
     };
 }
 
+const tabItems = ['Information', 'Payment', 'Notifikasi', 'Keamanan'];
+const inputClass = "w-full px-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition";
+
 export default function Index({ merchantUser, merchantStore }: SettingsProps) {
     const {
         activeTab,
@@ -58,6 +61,7 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                 const response = await fetch(
                     `${baseUrl}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
                 );
+                if (!response.ok) throw new Error("Failed");
                 const result = await response.json();
                 if (result.display_name) {
                     setData('store_address', result.display_name);
@@ -70,9 +74,7 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
         merchantStore.longitude
     );
 
-    const tabItems = ['Information', 'Payment', 'Notifikasi', 'Keamanan'];
 
-    const inputClass = "w-full px-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition-all";
 
     return (
         <MerchantLayout>
@@ -127,7 +129,7 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                 <>
                                     {/* Profile Card */}
                                     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                                        <div
+                                        <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
                                             className="flex flex-col items-center justify-center py-7 sm:py-8 px-6 cursor-pointer group relative"
                                             style={{ background: 'linear-gradient(135deg, #41B9C5 0%, #34a0aa 100%)' }}
                                             onClick={() => photoInput.current?.click()}
@@ -158,9 +160,9 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                         {/* Form Fields */}
                                         <div className="px-4 sm:px-8 py-5 sm:py-7">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 sm:gap-y-5">
-                                                <div>
-                                                    <label className="block text-sm text-gray-600 mb-1.5">Full Name</label>
-                                                    <input
+                                                <div aria-label="Action">
+                                                    <label htmlFor="field_162" className="block text-sm text-gray-600 mb-1.5">Full Name</label>
+                                                    <input id="field_162"
                                                         type="text"
                                                         value={data.name}
                                                         onChange={(e) => setData('name', e.target.value)}
@@ -168,9 +170,9 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                     />
                                                     <InputError message={errors.name} className="mt-1" />
                                                 </div>
-                                                <div>
-                                                    <label className="block text-sm text-gray-600 mb-1.5">Email Address</label>
-                                                    <input
+                                                <div aria-label="Action">
+                                                    <label htmlFor="field_172" className="block text-sm text-gray-600 mb-1.5">Email Address</label>
+                                                    <input id="field_172"
                                                         type="email"
                                                         value={data.email}
                                                         onChange={(e) => setData('email', e.target.value)}
@@ -179,8 +181,8 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                     <InputError message={errors.email} className="mt-1" />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm text-gray-600 mb-1.5">Phone Number</label>
-                                                    <input
+                                                    <label htmlFor="field_182" className="block text-sm text-gray-600 mb-1.5">Phone Number</label>
+                                                    <input aria-label="Input field" id="field_182"
                                                         type="text"
                                                         value={data.phone}
                                                         onChange={(e) => setData('phone', e.target.value)}
@@ -189,9 +191,9 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                     />
                                                     <InputError message={errors.phone} className="mt-1" />
                                                 </div>
-                                                <div>
-                                                    <label className="block text-sm text-gray-600 mb-1.5">Role</label>
-                                                    <input
+                                                <div aria-label="Action">
+                                                    <label htmlFor="field_193" className="block text-sm text-gray-600 mb-1.5">Role</label>
+                                                    <input id="field_193"
                                                         type="text"
                                                         value={merchantUser.role}
                                                         readOnly
@@ -210,9 +212,9 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 sm:gap-y-5 mb-4 sm:mb-5">
-                                            <div>
-                                                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Store Name</label>
-                                                <input
+                                            <div aria-label="Action">
+                                                <label htmlFor="field_214" className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Store Name</label>
+                                                <input id="field_214"
                                                     type="text"
                                                     value={data.store_name}
                                                     onChange={(e) => setData('store_name', e.target.value)}
@@ -221,10 +223,10 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                 <InputError message={errors.store_name} className="mt-1" />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Store Username / URL Slug</label>
+                                                <label htmlFor="field_224" className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Store Username / URL Slug</label>
                                                 <div className="relative">
                                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">@</span>
-                                                    <input
+                                                    <input aria-label="Input field" id="field_224"
                                                         type="text"
                                                         value={data.username}
                                                         onChange={(e) => setData('username', e.target.value.toLowerCase().replace(/[^a-z0-9_\-\.]/g, ''))}
@@ -238,8 +240,8 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 sm:gap-y-5 mb-4 sm:mb-5">
                                             <div>
-                                                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Support Email</label>
-                                                <input
+                                                <label htmlFor="field_241" className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Support Email</label>
+                                                <input aria-label="Input field" id="field_241"
                                                     type="email"
                                                     value={data.support_email}
                                                     onChange={(e) => setData('support_email', e.target.value)}
@@ -249,15 +251,15 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                                 <InputError message={errors.support_email} className="mt-1" />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Address</label>
+                                                <label htmlFor="field_252" className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Address</label>
                                                 <div className="relative">
                                                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                    <input
+                                                    <input aria-label="Input field" id="field_252"
                                                         type="text"
                                                         value={data.store_address}
                                                         onChange={(e) => setData('store_address', e.target.value)}
                                                         placeholder="Store physical address"
-                                                        className="w-full pl-9 pr-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition-all"
+                                                        className="w-full pl-9 pr-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition"
                                                     />
                                                 </div>
                                                 <InputError message={errors.store_address} className="mt-1" />
@@ -265,7 +267,7 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                         </div>
 
                                         <div className="mb-5">
-                                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Pin Lokasi Peta (Koordinat)</label>
+                                            <label htmlFor="field_268" className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Pin Lokasi Peta (Koordinat)</label>
                                             <AddressMapSection
                                                 mapContainerRef={mapContainerRef}
                                                 isLocating={isLocating}
@@ -273,13 +275,13 @@ export default function Index({ merchantUser, merchantStore }: SettingsProps) {
                                             />
                                         </div>
 
-                                        <div className="mb-2">
-                                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Store Description</label>
-                                            <textarea
+                                        <div aria-label="Action" className="mb-2">
+                                            <label htmlFor="field_277" className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Store Description</label>
+                                            <textarea id="field_277"
                                                 value={data.store_description}
                                                 onChange={(e) => setData('store_description', e.target.value)}
                                                 rows={3}
-                                                className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition-all resize-none"
+                                                className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm text-gray-800 focus:outline-none focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]/30 transition resize-none"
                                             />
                                             <InputError message={errors.store_description} className="mt-1" />
                                         </div>

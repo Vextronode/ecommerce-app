@@ -110,7 +110,7 @@ export default function Error({ status }: Props) {
                         {/* Tombol utama */}
                         <Link
                             href="/dashboard"
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#215B63] to-[#389f9f] hover:from-[#1a464d] hover:to-[#2d8282] text-white font-bold px-7 py-3.5 rounded-full shadow-lg shadow-[#215B63]/20 hover:shadow-xl hover:shadow-[#215B63]/30 hover:-translate-y-0.5 transition-all duration-300"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#215B63] to-[#389f9f] hover:from-[#1a464d] hover:to-[#2d8282] text-white font-bold px-7 py-3.5 rounded-full shadow-lg shadow-[#215B63]/20 hover:shadow-xl hover:shadow-[#215B63]/30 hover:-translate-y-0.5 transition duration-300"
                         >
                             <Home className="w-5 h-5" />
                             Kembali ke Home
@@ -119,7 +119,7 @@ export default function Error({ status }: Props) {
                         {/* Tombol sekunder */}
                         <Link
                             href="/shop"
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white hover:bg-gray-50 text-gray-700 font-bold px-7 py-3.5 rounded-full border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white hover:bg-gray-50 text-gray-700 font-bold px-7 py-3.5 rounded-full border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition duration-300"
                         >
                             <ShoppingBag className="w-5 h-5" />
                             Cari Produk

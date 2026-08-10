@@ -37,14 +37,14 @@ export default function StoreHeader({ store, isFollowing, onFollow }: Props) {
                     <div className="flex items-center gap-3 pt-2 justify-center md:justify-start">
                         <button
                             onClick={onFollow}
-                            className={`px-8 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm ${isFollowing
+                            className={`px-8 py-2.5 rounded-full font-bold text-sm transition shadow-sm ${isFollowing
                                     ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     : "bg-[#245D56] text-white hover:bg-[#1a443f]"
                                 }`}
                         >
                             {isFollowing ? "Mengikuti" : "Follow"}
                         </button>
-                        <button className="p-2.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                        <button aria-label="Action" className="p-2.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
                             <Share2 className="w-5 h-5" />
                         </button>
                     </div>

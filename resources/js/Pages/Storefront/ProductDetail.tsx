@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
 import { Head } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import mainImage from "@/assets/images/kakap.png";
@@ -78,8 +79,9 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         ? product.variants.every((v: any) => selectedVariants[v.name])
         : true;
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const formatNumber = (angka: number) =>
-        new Intl.NumberFormat("id-ID").format(angka);
+        formatNumberId(angka);
 
     const getDisplayPrice = () => {
         if (isAllVariantsSelected && currentSku)

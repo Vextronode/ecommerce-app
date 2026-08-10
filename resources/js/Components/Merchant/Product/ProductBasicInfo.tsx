@@ -27,15 +27,15 @@ export default function ProductBasicInfo({
             {/* Baris 1: Nama Produk & Kategori */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="field_30" className="block text-sm font-semibold text-gray-700 mb-2">
                         Nama Produk
                     </label>
-                    <input
+                    <input aria-label="Input field" id="field_30"
                         type="text"
                         placeholder="Contoh: Ikan Kerapu Segar / Baju Pantai"
                         value={data.name}
                         onChange={(e) => setData("name", e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition-all bg-gray-50/30"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition bg-gray-50/30"
                         required
                     />
                     {errors.name && (
@@ -45,13 +45,13 @@ export default function ProductBasicInfo({
                     )}
                 </div>
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="field_48" className="block text-sm font-semibold text-gray-700 mb-2">
                         Kategori Produk
                     </label>
-                    <select
+                    <select id="field_48"
                         value={data.category_id}
                         onChange={(e) => setData("category_id", e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition-all bg-gray-50/30 appearance-none"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition bg-gray-50/30 appearance-none"
                         required
                     >
                         <option value="" disabled>
@@ -81,15 +81,15 @@ export default function ProductBasicInfo({
 
             {/*Deskripsi Produk */}
             <div className="mt-8">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="field_84" className="block text-sm font-semibold text-gray-700 mb-2">
                     Deskripsi Lengkap Produk
                 </label>
-                <textarea
+                <textarea aria-label="Input field" id="field_84"
                     rows={5}
                     placeholder="Jelaskan detail produk, keunggulan, cara penyimpanan, dll..."
                     value={data.description}
                     onChange={(e) => setData("description", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition-all bg-gray-50/30 resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition bg-gray-50/30 resize-none"
                 ></textarea>
                 {errors.description && (
                     <p className="text-red-500 text-xs mt-1">

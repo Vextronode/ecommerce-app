@@ -1,15 +1,7 @@
 import React from "react";
+import { formatRupiah } from "@/utils/formatters";
 
 export default function OrderExpandedDetail({ items }: { items: any[] }) {
-    const formatRupiah = (angka: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-        })
-            .format(angka)
-            .replace("Rp", "Rp.");
-    };
 
     if (!items || items.length === 0) return null;
 
@@ -17,7 +9,7 @@ export default function OrderExpandedDetail({ items }: { items: any[] }) {
         <div className="space-y-3">
             {items.map((item: any, i: number) => (
                 <div
-                    key={i}
+                    key={item.id}
                     className="flex justify-between items-center pb-2 border-b border-gray-50 last:border-0 last:pb-0"
                 >
                     <div>

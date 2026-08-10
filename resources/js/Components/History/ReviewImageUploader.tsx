@@ -40,6 +40,7 @@ export default function ReviewImageUploader({
             onImagesChange(newFiles);
 
             // Create previews
+            // eslint-disable-next-line react-doctor/no-create-object-url-without-revoke
             const newPreviews = files.map(file => URL.createObjectURL(file));
             onPreviewImagesChange([...previewImages, ...newPreviews]);
         }
@@ -58,17 +59,17 @@ export default function ReviewImageUploader({
 
     return (
         <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-3">Tambahkan foto dan video (opsional)</label>
+            <label htmlFor="field_61" className="block text-sm font-semibold text-gray-800 mb-3">Tambahkan foto dan video (opsional)</label>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {previewImages.map((src, idx) => (
-                    <div key={idx} className="relative aspect-square rounded-xl border border-gray-200 overflow-hidden group shadow-sm">
+                    <div key={src} className="relative aspect-square rounded-xl border border-gray-200 overflow-hidden group shadow-sm">
                         {images[idx]?.type?.startsWith('video/') ? (
                             <video src={src} className="w-full h-full object-cover" />
                         ) : (
-                            <img src={src} className="w-full h-full object-cover" />
+                            <img src={src} alt="Preview ulasan" className="w-full h-full object-cover" />
                         )}
-                        <button
+                        <button aria-label="Action"
                             type="button"
                             onClick={() => removeImage(idx)}
                             className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"

@@ -32,7 +32,7 @@ class MerchantController extends Controller
             ->latest('id');
 
         // Search across user name, email, phone, and store attributes
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -47,19 +47,19 @@ class MerchantController extends Controller
         }
 
         // Filter by Account Status (active, warning, suspended, inactive)
-        if (!empty($statusFilter) && in_array($statusFilter, ['active', 'warning', 'suspended', 'inactive'])) {
+        if (! empty($statusFilter) && in_array($statusFilter, ['active', 'warning', 'suspended', 'inactive'])) {
             $query->where('status', $statusFilter);
         }
 
         // Filter by SID / Verification Status (verified, pending, rejected)
-        if (!empty($sidFilter) && in_array($sidFilter, ['verified', 'pending', 'rejected'])) {
+        if (! empty($sidFilter) && in_array($sidFilter, ['verified', 'pending', 'rejected'])) {
             $query->whereHas('store', function ($sq) use ($sidFilter) {
                 $sq->where('sid_status', $sidFilter);
             });
         }
 
         // Filter by Subdistrict if provided
-        if (!empty($subdistrictFilter)) {
+        if (! empty($subdistrictFilter)) {
             $query->whereHas('store', function ($sq) use ($subdistrictFilter) {
                 $sq->where('subdistrict', $subdistrictFilter);
             });
@@ -81,7 +81,7 @@ class MerchantController extends Controller
             $store = $user->store;
             $subdistrict = $store?->subdistrict;
 
-            if (empty($subdistrict) && !empty($store?->address)) {
+            if (empty($subdistrict) && ! empty($store?->address)) {
                 // Heuristic: Extract first district/village mentioned in address if available
                 $parts = explode(',', $store->address);
                 $subdistrict = trim($parts[0] ?? 'Pangandaran');
@@ -109,7 +109,7 @@ class MerchantController extends Controller
                     'sid_status' => $store?->sid_status ?: 'verified',
                     'balance' => (int) ($store?->balance ?? 0),
                 ],
-                'username' => '@' . preg_replace('/-[0-9a-f]{10,}$/i', '', $store?->slug ?: Str::slug($user->name)),
+                'username' => '@'.preg_replace('/-[0-9a-f]{10,}$/i', '', $store?->slug ?: Str::slug($user->name)),
             ];
         });
 
@@ -179,11 +179,11 @@ class MerchantController extends Controller
                 'email_verified_at' => now(),
             ]);
 
-            $baseSlug = !empty($validated['username']) ? Str::slug($validated['username']) : Str::slug($validated['merchant_name']);
-            $slug = $baseSlug ?: 'toko-' . $user->id;
+            $baseSlug = ! empty($validated['username']) ? Str::slug($validated['username']) : Str::slug($validated['merchant_name']);
+            $slug = $baseSlug ?: 'toko-'.$user->id;
             $count = 1;
             while (Store::where('slug', $slug)->exists()) {
-                $slug = $baseSlug . '-' . $count++;
+                $slug = $baseSlug.'-'.$count++;
             }
 
             Store::create([
@@ -229,7 +229,7 @@ class MerchantController extends Controller
                 'status' => $validated['status'],
             ];
 
-            if (!empty($validated['password'])) {
+            if (! empty($validated['password'])) {
                 $userPayload['password'] = Hash::make($validated['password']);
             }
 
@@ -249,7 +249,7 @@ class MerchantController extends Controller
                 $slug = $baseSlug;
                 $count = 1;
                 while (Store::where('slug', $slug)->exists()) {
-                    $slug = $baseSlug . '-' . $count++;
+                    $slug = $baseSlug.'-'.$count++;
                 }
 
                 Store::create([
@@ -281,6 +281,7 @@ class MerchantController extends Controller
         $user->update(['status' => $validated['status']]);
 
         $statusLabel = ucfirst($validated['status']);
+
         return redirect()->back()->with('success', "Status akun berhasil diubah menjadi {$statusLabel}.");
     }
 
@@ -297,6 +298,7 @@ class MerchantController extends Controller
         $store->update(['sid_status' => $validated['sid_status']]);
 
         $label = ucfirst($validated['sid_status']);
+
         return redirect()->back()->with('success', "Status verifikasi toko berhasil diubah menjadi {$label}.");
     }
 

@@ -30,7 +30,7 @@ export default function ReportHeader({
                 <button
                     type="button"
                     onClick={onOpenFilter}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${activeFiltersCount > 0
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition cursor-pointer shadow-2xs ${activeFiltersCount > 0
                             ? "bg-[#E6F8F9] border-[#41B9C5] text-[#004F54]"
                             : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300"
                         }`}
@@ -48,7 +48,7 @@ export default function ReportHeader({
                 <button
                     type="button"
                     onClick={onExport}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-[#41B9C5] hover:bg-[#38a3ae] text-white shadow-md shadow-[#41B9C5]/25 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-[#41B9C5] hover:bg-[#38a3ae] text-white shadow-md shadow-[#41B9C5]/25 transition cursor-pointer"
                 >
                     <Download className="w-3.5 h-3.5" />
                     <span>Export</span>

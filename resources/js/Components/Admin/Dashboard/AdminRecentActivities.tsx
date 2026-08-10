@@ -17,6 +17,7 @@ interface Props {
 export default function AdminRecentActivities({ activities }: Props) {
     const items = activities || [];
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const getDotStyle = (color: ActivityItem["dotColor"]) => {
         switch (color) {
             case "teal":

@@ -8,6 +8,8 @@ interface UseMerchantWithdrawalsOptions {
     onRequestEditBank: () => void;
 }
 
+const presetAmounts = [50000, 100000, 250000, 500000];
+
 export function useMerchantWithdrawals({
     availableBalance,
     hasBankAccount,
@@ -17,7 +19,7 @@ export function useMerchantWithdrawals({
         amount: "",
     });
 
-    const presetAmounts = [50000, 100000, 250000, 500000];
+
 
     const handleSelectPreset = (amount: number) => {
         if (amount > availableBalance) {

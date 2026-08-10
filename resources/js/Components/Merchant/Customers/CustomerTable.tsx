@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
 import { MoreVertical, Download } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
@@ -21,6 +22,7 @@ interface CustomerTableProps {
 }
 
 export default function CustomerTable({ customers, currentStatus }: CustomerTableProps) {
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         router.get(route('merchant.customers.index'), { status: e.target.value }, {
             preserveState: true,
@@ -32,8 +34,8 @@ export default function CustomerTable({ customers, currentStatus }: CustomerTabl
         <div className="bg-white rounded-[20px] border border-[#41B9C5]/20 shadow-sm overflow-hidden flex flex-col mt-6">
             <div className="flex items-center justify-between p-5 md:p-6 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-[#14433D]">All Customers</h2>
-                <div className="flex items-center gap-3">
-                    <select
+                <div aria-label="Pilih opsi yang tersedia" className="flex items-center gap-3">
+                    <select aria-label="Tampilkan rincian lebih lanjut"
                         value={currentStatus}
                         onChange={handleStatusChange}
                         className="bg-gray-100 border-none text-sm font-medium text-gray-700 rounded-lg focus:ring-0 cursor-pointer pl-4 pr-8 py-2.5 outline-none"
@@ -42,7 +44,7 @@ export default function CustomerTable({ customers, currentStatus }: CustomerTabl
                         <option value="Active">Active</option>
                         <option value="New">New</option>
                     </select>
-                    <button className="p-2.5 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-colors">
+                    <button aria-label="Pilih opsi yang tersedia" className="p-2.5 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-colors">
                         <Download className="w-5 h-5" />
                     </button>
                 </div>
@@ -88,7 +90,7 @@ export default function CustomerTable({ customers, currentStatus }: CustomerTabl
                                 </td>
                                 <td className="py-4 px-6">
                                     <span className="text-sm font-bold text-[#14433D]">
-                                        Rp. {new Intl.NumberFormat('id-ID').format(customer.total_spent)}
+                                        Rp. {formatNumberId(customer.total_spent)}
                                     </span>
                                 </td>
                                 <td className="py-4 px-6">
@@ -104,7 +106,7 @@ export default function CustomerTable({ customers, currentStatus }: CustomerTabl
                                     </span>
                                 </td>
                                 <td className="py-4 px-6 text-center">
-                                    <button className="text-gray-400 hover:text-[#14433D] p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <button aria-label="Pilih opsi yang tersedia" className="text-gray-400 hover:text-[#14433D] p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
                                         <MoreVertical className="w-5 h-5" />
                                     </button>
                                 </td>

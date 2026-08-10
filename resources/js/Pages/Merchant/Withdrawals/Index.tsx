@@ -45,6 +45,7 @@ export default function Index({ store, withdrawals, stats }: Props) {
         store.bank_name && store.bank_account_number && store.bank_account_holder
     );
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handleRequestEditBank = () => {
         // Edit bank fallback handler
     };

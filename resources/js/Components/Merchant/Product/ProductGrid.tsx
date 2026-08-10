@@ -1,4 +1,5 @@
 import React from "react";
+import { formatRupiah } from "@/utils/formatters";
 import { Image as ImageIcon } from "lucide-react";
 import ProductActions from "./ProductActions";
 
@@ -40,11 +41,7 @@ export default function ProductGrid({ products, getStockIndicator }: Props) {
                             </p>
                             <div className="flex items-center justify-between mb-3">
                                 <span className="font-bold text-[#41B9C5] text-sm md:text-base">
-                                    {new Intl.NumberFormat("id-ID", {
-                                        style: "currency",
-                                        currency: "IDR",
-                                        maximumFractionDigits: 0,
-                                    }).format(product.price)}
+                                    {formatRupiah(Number(product.price))}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between pt-3 border-t border-gray-100">

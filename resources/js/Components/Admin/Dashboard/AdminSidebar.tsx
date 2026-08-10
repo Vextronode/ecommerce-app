@@ -32,7 +32,7 @@ export default function AdminSidebar() {
             <nav className="flex-1 px-4 py-2 space-y-2.5 overflow-y-auto">
                 <Link
                     href={route("admin.dashboard")}
-                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
                         route().current("admin.dashboard")
                             ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
@@ -44,7 +44,7 @@ export default function AdminSidebar() {
 
                 <Link
                     href={route("admin.merchants.index")}
-                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
                         route().current("admin.merchants.index")
                             ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
@@ -56,7 +56,7 @@ export default function AdminSidebar() {
 
                 <Link
                     href={route("admin.merchants.create")}
-                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
                         route().current("admin.merchants.create")
                             ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
@@ -68,7 +68,7 @@ export default function AdminSidebar() {
 
                 <Link
                     href={route("admin.reports.index")}
-                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
                         route().current("admin.reports.*")
                             ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
@@ -86,7 +86,7 @@ export default function AdminSidebar() {
                     method="post"
                     data={{ source: "admin" }}
                     as="button"
-                    className="flex items-center justify-start gap-3 w-full px-4 py-2.5 text-rose-500 hover:bg-rose-50 border border-rose-200 rounded-2xl font-semibold transition-all text-sm cursor-pointer"
+                    className="flex items-center justify-start gap-3 w-full px-4 py-2.5 text-rose-500 hover:bg-rose-50 border border-rose-200 rounded-2xl font-semibold transition text-sm cursor-pointer"
                 >
                     <LogOut className="w-4 h-4 shrink-0 text-rose-500" />
                     Logout

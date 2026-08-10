@@ -20,7 +20,7 @@ export default function BestSellingProductsTable({ products }: BestSellingProduc
             
             <div className="space-y-6">
                 {products.map((product, index) => (
-                    <div key={index}>
+                    <div key={product.id || index}>
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-gray-700 font-medium truncate max-w-[70%]">{product.name}</span>
                             <span className="text-sm font-bold text-[#14433D]">{product.sold} sold</span>

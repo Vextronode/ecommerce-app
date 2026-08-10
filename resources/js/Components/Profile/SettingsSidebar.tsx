@@ -9,14 +9,16 @@ import {
     LogOut,
 } from "lucide-react";
 
+const menus = [
+    { id: "biodata", name: "Biodata Diri", icon: User },
+    { id: "alamat", name: "Alamat", icon: MapPin },
+    { id: "payment", name: "Pembayaran", icon: CreditCard },
+    { id: "notifikasi", name: "Notifikasi", icon: Bell },
+    { id: "keamanan", name: "Password & Keamanan", icon: ShieldCheck },
+];
+
 export default function SettingsSidebar({ activeTab, setActiveTab }: any) {
-    const menus = [
-        { id: "biodata", name: "Biodata Diri", icon: User },
-        { id: "alamat", name: "Alamat", icon: MapPin },
-        { id: "payment", name: "Pembayaran", icon: CreditCard },
-        { id: "notifikasi", name: "Notifikasi", icon: Bell },
-        { id: "keamanan", name: "Password & Keamanan", icon: ShieldCheck },
-    ];
+
 
     return (
         <div className="w-full lg:w-64 flex flex-col gap-2.5">

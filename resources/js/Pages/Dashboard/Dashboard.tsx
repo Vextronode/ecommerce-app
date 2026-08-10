@@ -14,7 +14,9 @@ interface Props {
     stores: any[];
 }
 
-export default function Dashboard({ categories, featuredProducts, stores = [] }: Props) {
+const EMPTY_ARRAY: any[] = [];
+
+export default function Dashboard({ categories, featuredProducts, stores = EMPTY_ARRAY }: Props) {
     const formattedProducts = featuredProducts.map((product) => ({
         id: product.id,
         name: product.name,

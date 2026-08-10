@@ -7,6 +7,7 @@ export default function ProfileHeader({ user }: { user: any }) {
     // referensi untuk input file yang disembunyiin
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const getInitials = (name: string) => {
         return name
             .split(" ")
@@ -17,6 +18,7 @@ export default function ProfileHeader({ user }: { user: any }) {
     };
 
     // handle change photo
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
@@ -68,12 +70,12 @@ export default function ProfileHeader({ user }: { user: any }) {
                     />
 
                     {/* change pp button */}
-                    <div
+                    <button type="button" aria-label="Ubah foto profil"
                         onClick={() => fileInputRef.current?.click()}
                         className="absolute bottom-0 right-0 p-1.5 bg-[#245D56] rounded-full text-white cursor-pointer hover:bg-[#1a443f] transition shadow-sm"
                     >
                         <Camera className="w-3.5 h-3.5" />
-                    </div>
+                    </button>
                 </div>
 
                 {/* nama */}

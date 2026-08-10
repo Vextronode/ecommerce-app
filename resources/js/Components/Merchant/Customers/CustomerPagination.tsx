@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { formatNumberEn } from '@/utils/formatters';
 
 interface LinkType {
     url: string | null;
@@ -21,7 +22,7 @@ export default function CustomerPagination({ from, to, total, links }: CustomerP
     return (
         <div className="flex items-center justify-between px-6 py-5 bg-white border-t border-gray-100 rounded-b-2xl">
             <div className="text-[13px] text-gray-500 font-medium">
-                Showing {from || 0} to {to || 0} of {new Intl.NumberFormat('en-US').format(total)} entries
+                Showing {from || 0} to {to || 0} of {formatNumberEn(total)} entries
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -33,9 +34,9 @@ export default function CustomerPagination({ from, to, total, links }: CustomerP
                     if (isPrevious || isNext) {
                         return (
                             <Link
-                                key={i}
+                                key={link.label}
                                 href={link.url || '#'}
-                                className={`p-2 rounded-lg border ${link.url ? 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300' : 'border-transparent text-gray-300 cursor-not-allowed'} transition-all`}
+                                className={`p-2 rounded-lg border ${link.url ? 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300' : 'border-transparent text-gray-300 cursor-not-allowed'} transition-colors`}
                                 preserveScroll
                                 preserveState
                                 as={link.url ? 'a' : 'button'}
@@ -48,9 +49,9 @@ export default function CustomerPagination({ from, to, total, links }: CustomerP
 
                     return (
                         <Link
-                            key={i}
+                            key={link.label}
                             href={link.url || '#'}
-                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${link.active
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${link.active
                                     ? 'bg-[#14433D] text-white shadow-md'
                                     : isDots
                                         ? 'text-gray-400 cursor-default pointer-events-none'

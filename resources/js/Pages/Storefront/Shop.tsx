@@ -17,6 +17,22 @@ interface Props {
     searchQuery: string;
 }
 
+const formatProduct = (product: any, categoryFallback?: string) => ({
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    store: product.store,
+    store_name: product.store?.name || product.store_name,
+    category: product.category,
+    category_name: product.category?.name || product.category_name || categoryFallback || "Produk",
+    price: product.price,
+    rating: product.rating ? Number(product.rating) : 0.0, // Pakai rating asli, default 0
+    sold: product.sold || 0,
+    image:
+        product.image_path ||
+        "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400",
+});
+
 export default function Shop({
     categories,
     groupedProducts,
@@ -29,22 +45,6 @@ export default function Shop({
             cat.image_path ||
             `https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400&sig=${index}`,
     }));
-
-    const formatProduct = (product: any, categoryFallback?: string) => ({
-        id: product.id,
-        name: product.name,
-        slug: product.slug,
-        store: product.store,
-        store_name: product.store?.name || product.store_name,
-        category: product.category,
-        category_name: product.category?.name || product.category_name || categoryFallback || "Produk",
-        price: product.price,
-        rating: product.rating ? Number(product.rating) : 0.0, // Pakai rating asli, default 0
-        sold: product.sold || 0,
-        image:
-            product.image_path ||
-            "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400",
-    });
 
     return (
         <StorefrontLayout>

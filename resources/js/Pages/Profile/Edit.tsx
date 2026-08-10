@@ -23,7 +23,8 @@ export default function Edit({
     addresses,
     notificationSettings,
 }: PageProps<EditProfileProps>) {
-    const user = usePage().props.auth.user;
+    const { auth, sessions, isOAuth } = usePage().props as any;
+    const user = auth.user;
 
     // State buat ngatur tab, defaultnya nampilin 'biodata'
     const [activeTab, setActiveTab] = useState<string>("biodata");
@@ -79,8 +80,8 @@ export default function Edit({
 
                         {activeTab === "keamanan" && (
                             <SecuritySettings 
-                                sessions={usePage().props.sessions}
-                                isOAuth={usePage().props.isOAuth}
+                                sessions={sessions}
+                                isOAuth={isOAuth}
                             />
                         )}
                     </div>

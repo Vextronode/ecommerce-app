@@ -27,7 +27,7 @@ export default function CreateMerchantForm() {
             {/* Store Name */}
             <div>
                 <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-semibold text-gray-700">
+                    <label htmlFor="field_30" className="block text-xs font-semibold text-gray-700">
                         Store Name <span className="text-rose-500">*</span>
                     </label>
                     <span className="text-[11px] text-gray-400">
@@ -35,7 +35,7 @@ export default function CreateMerchantForm() {
                     </span>
                 </div>
                 <div className="relative">
-                    <input
+                    <input aria-label="Input field" id="field_30"
                         type="text"
                         required
                         value={data.merchant_name}
@@ -44,7 +44,7 @@ export default function CreateMerchantForm() {
                         }
                         onBlur={() => handleBlur("merchant_name")}
                         placeholder="Contoh: Toko Udin Sembako"
-                        className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition-all ${errors.merchant_name || fieldErrors.merchant_name
+                        className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.merchant_name || fieldErrors.merchant_name
                             ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                             : "border-gray-300/70 focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
                             }`}
@@ -63,7 +63,7 @@ export default function CreateMerchantForm() {
                 {/* Owner Name */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-semibold text-gray-700">
+                        <label htmlFor="field_66" className="block text-xs font-semibold text-gray-700">
                             Nama Pemilik (Owner Name) <span className="text-rose-500">*</span>
                         </label>
                         <span className="text-[11px] text-gray-400">
@@ -71,7 +71,7 @@ export default function CreateMerchantForm() {
                         </span>
                     </div>
                     <div className="relative">
-                        <input
+                        <input aria-label="Input field" id="field_66"
                             type="text"
                             required
                             value={data.owner_name}
@@ -80,7 +80,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("owner_name")}
                             placeholder="Contoh: Udin Sutarman"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition-all ${errors.owner_name || fieldErrors.owner_name
+                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.owner_name || fieldErrors.owner_name
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
                                 }`}
@@ -97,7 +97,7 @@ export default function CreateMerchantForm() {
                 {/* Username */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-semibold text-gray-700">
+                        <label htmlFor="field_100" className="block text-xs font-semibold text-gray-700">
                             Store Username / URL Slug
                         </label>
                         {data.username && (
@@ -107,7 +107,7 @@ export default function CreateMerchantForm() {
                         )}
                     </div>
                     <div className="relative">
-                        <input
+                        <input aria-label="Input field" id="field_100"
                             type="text"
                             value={data.username}
                             onChange={(e) =>
@@ -115,7 +115,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("username")}
                             placeholder="tokoudin (otomatis dari nama toko)"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition-all ${errors.username || fieldErrors.username
+                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.username || fieldErrors.username
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
                                 }`}
@@ -139,7 +139,7 @@ export default function CreateMerchantForm() {
                 {/* Email Address */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-semibold text-gray-700">
+                        <label htmlFor="field_142" className="block text-xs font-semibold text-gray-700">
                             Email Address <span className="text-rose-500">*</span>
                         </label>
                         <span className="text-[11px] text-gray-400">
@@ -147,7 +147,7 @@ export default function CreateMerchantForm() {
                         </span>
                     </div>
                     <div className="relative">
-                        <input
+                        <input aria-label="Input field" id="field_142"
                             type="email"
                             required
                             value={data.email}
@@ -156,7 +156,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("email")}
                             placeholder="pedagang@domain.com"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition-all ${errors.email || fieldErrors.email
+                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.email || fieldErrors.email
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
                                 }`}
@@ -172,7 +172,7 @@ export default function CreateMerchantForm() {
                 {/* Phone Number */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-semibold text-gray-700">
+                        <label htmlFor="field_175" className="block text-xs font-semibold text-gray-700">
                             Phone Number
                         </label>
                         <span className="text-[11px] text-gray-400">
@@ -180,7 +180,7 @@ export default function CreateMerchantForm() {
                         </span>
                     </div>
                     <div className="relative">
-                        <input
+                        <input aria-label="Input field" id="field_175"
                             type="tel"
                             inputMode="numeric"
                             value={data.phone}
@@ -189,7 +189,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("phone")}
                             placeholder="081234567890"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition-all ${errors.phone || fieldErrors.phone
+                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.phone || fieldErrors.phone
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
                                 }`}
@@ -207,7 +207,7 @@ export default function CreateMerchantForm() {
             {/* Password */}
             <div>
                 <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-semibold text-gray-700">
+                    <label htmlFor="field_210" className="block text-xs font-semibold text-gray-700">
                         Password <span className="text-rose-500">*</span>
                     </label>
                     <button
@@ -220,7 +220,7 @@ export default function CreateMerchantForm() {
                     </button>
                 </div>
                 <div className="relative">
-                    <input
+                    <input id="field_210"
                         type={showPassword ? "text" : "password"}
                         required
                         value={data.password}
@@ -229,12 +229,12 @@ export default function CreateMerchantForm() {
                         }
                         onBlur={() => handleBlur("password")}
                         placeholder="Minimal 8 karakter"
-                        className={`w-full pl-4 pr-11 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 font-mono placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:bg-white transition-all ${errors.password || fieldErrors.password
+                        className={`w-full pl-4 pr-11 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 font-mono placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.password || fieldErrors.password
                             ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                             : "border-gray-300/70 focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
                             }`}
                     />
-                    <button
+                    <button aria-label="Action"
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors p-1"
@@ -265,14 +265,14 @@ export default function CreateMerchantForm() {
             <div className="flex items-center justify-end gap-3.5">
                 <Link
                     href={route("admin.merchants.index")}
-                    className="px-6 py-2.5 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-all cursor-pointer shadow-2xs"
+                    className="px-6 py-2.5 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition cursor-pointer shadow-2xs"
                 >
                     Cancel
                 </Link>
                 <button
                     type="submit"
                     disabled={processing}
-                    className="px-7 py-2.5 rounded-xl text-xs font-bold bg-[#319EA8] text-white hover:bg-[#28838c] transition-all cursor-pointer shadow-sm disabled:opacity-50 flex items-center gap-2"
+                    className="px-7 py-2.5 rounded-xl text-xs font-bold bg-[#319EA8] text-white hover:bg-[#28838c] transition cursor-pointer shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
                     {processing ? "Submitting..." : "Submit"}
                 </button>

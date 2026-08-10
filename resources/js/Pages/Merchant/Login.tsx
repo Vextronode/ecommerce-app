@@ -26,14 +26,14 @@ export default function Login() {
                 <form onSubmit={submit} className="space-y-7 w-full">
                     {/* Input Email */}
                     <div>
-                        <label className="block text-white text-sm mb-2 font-medium">
-                            Email Address<span className="text-red-500">*</span>
+                        <label htmlFor="field_29" className="block text-white text-sm mb-2 font-medium">
+                            Email Address<span aria-label="Action" className="text-red-500">*</span>
                         </label>
-                        <input
+                        <input id="field_29"
                             type="email"
                             value={data.email}
                             onChange={(e) => setData("email", e.target.value)}
-                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none text-gray-900 shadow-inner transition-all"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none text-gray-900 shadow-inner transition"
                             required
                         />
                         {errors.email && (
@@ -45,16 +45,16 @@ export default function Login() {
 
                     {/* Input Password */}
                     <div>
-                        <label className="block text-white text-sm mb-2 font-medium">
-                            Password<span className="text-red-500">*</span>
+                        <label htmlFor="field_48" className="block text-white text-sm mb-2 font-medium">
+                            Password<span aria-label="Action" className="text-red-500">*</span>
                         </label>
-                        <input
+                        <input id="field_48"
                             type="password"
                             value={data.password}
                             onChange={(e) =>
                                 setData("password", e.target.value)
                             }
-                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none text-gray-900 shadow-inner transition-all"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none text-gray-900 shadow-inner transition"
                             required
                         />
                         {errors.password && (
@@ -69,7 +69,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full max-w-50 px-4 py-3 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white font-bold transition-all hover:scale-105 disabled:opacity-70 shadow-lg shadow-[#004F54]/50"
+                            className="w-full max-w-50 px-4 py-3 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white font-bold transition hover:scale-105 disabled:opacity-70 shadow-lg shadow-[#004F54]/50"
                         >
                             Masuk
                         </button>

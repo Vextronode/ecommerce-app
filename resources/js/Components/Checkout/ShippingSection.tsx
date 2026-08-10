@@ -60,10 +60,10 @@ export default function ShippingSection({
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                    <label className="text-xs font-bold text-slate-500 mb-2 block">
+                    <label htmlFor="field_63" className="text-xs font-bold text-slate-500 mb-2 block">
                         Full Name
                     </label>
-                    <input
+                    <input id="field_63"
                         type="text"
                         value={data.name}
                         onChange={(e) => setData("name", e.target.value)}
@@ -76,10 +76,10 @@ export default function ShippingSection({
                     )}
                 </div>
                 <div>
-                    <label className="text-xs font-bold text-slate-500 mb-2 block">
+                    <label htmlFor="field_79" className="text-xs font-bold text-slate-500 mb-2 block">
                         Phone Number
                     </label>
-                    <input
+                    <input id="field_79"
                         type="text"
                         value={data.phone}
                         onChange={(e) => setData("phone", e.target.value)}
@@ -92,10 +92,10 @@ export default function ShippingSection({
                     )}
                 </div>
                 <div className="md:col-span-2">
-                    <label className="text-xs font-bold text-slate-500 mb-2 block">
+                    <label htmlFor="field_95" className="text-xs font-bold text-slate-500 mb-2 block">
                         Full Address
                     </label>
-                    <textarea
+                    <textarea aria-label="Input field" id="field_95"
                         rows={3}
                         value={data.address}
                         onChange={(e) => setData("address", e.target.value)}

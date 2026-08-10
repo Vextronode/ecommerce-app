@@ -40,6 +40,9 @@ export function useAddressModalForm({
             const response = await fetch(
                 `${baseUrl}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
             );
+            if (!response.ok) {
+                throw new Error("Failed to fetch address");
+            }
             const result = await response.json();
             if (result.address) {
                 const parsed = search.parseAddressResult(result.address);
@@ -95,6 +98,7 @@ export function useAddressModalForm({
         } else if (!isOpen) {
             reset();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, addressToEdit]);
 
     const handleSubmit = (e: React.FormEvent) => {

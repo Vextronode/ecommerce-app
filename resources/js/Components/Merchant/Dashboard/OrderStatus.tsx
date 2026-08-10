@@ -36,7 +36,7 @@ export default function OrderStatus({ statusData }: Props) {
             <div className="space-y-4 flex-1">
                 {statuses.map((item, index) => (
                     <div
-                        key={index}
+                        key={item.label}
                         className="flex justify-between items-center"
                     >
                         <div className="flex items-center gap-3">

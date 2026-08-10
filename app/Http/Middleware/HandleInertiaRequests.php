@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Cart;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,8 +45,12 @@ class HandleInertiaRequests extends Middleware
                     'is_password_changed' => $request->user()->is_password_changed,
                 ] : null,
             ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
             'cart_count' => $request->user()
-                ? \App\Models\Cart::where('user_id', $request->user()->id)->count()
+                ? Cart::where('user_id', $request->user()->id)->count()
                 : 0,
         ];
     }

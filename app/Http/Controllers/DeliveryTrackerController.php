@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class DeliveryTrackerController extends Controller
 {
@@ -54,21 +55,21 @@ class DeliveryTrackerController extends Controller
                 'total_amount' => $order->total_amount,
                 'payment_method' => $order->payment_method,
                 'payment_status' => $order->payment_status,
-                'items' => $order->items->map(function($item) {
+                'items' => $order->items->map(function ($item) {
                     return [
                         'name' => $item->product_name,
                         'qty' => $item->quantity,
-                        'price' => $item->price
+                        'price' => $item->price,
                     ];
-                })
-            ]
+                }),
+            ],
         ]);
     }
 
     public function complete(Request $request, $invoice_number)
     {
         $request->validate([
-            'pin' => 'required|string|size:4'
+            'pin' => 'required|string|size:4',
         ]);
 
         return DB::transaction(function () use ($request, $invoice_number) {
@@ -83,7 +84,7 @@ class DeliveryTrackerController extends Controller
             }
 
             $updateData = [
-                'shipping_status' => 'delivered'
+                'shipping_status' => 'delivered',
             ];
 
             if ($order->payment_method === 'cod') {
@@ -107,7 +108,7 @@ class DeliveryTrackerController extends Controller
             'longitude' => 'required|numeric',
         ]);
 
-        \Illuminate\Support\Facades\Cache::put("driver_loc_{$invoice_number}", [
+        Cache::put("driver_loc_{$invoice_number}", [
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
         ], 3600); // 1 hour
@@ -117,13 +118,14 @@ class DeliveryTrackerController extends Controller
 
     public function getLocation($invoice_number)
     {
-        $loc = \Illuminate\Support\Facades\Cache::get("driver_loc_{$invoice_number}");
+        $loc = Cache::get("driver_loc_{$invoice_number}");
+
         return response()->json($loc ?: null);
     }
 
     public function handover(Request $request, $invoice_number)
     {
-        if (!$request->hasValidSignature()) {
+        if (! $request->hasValidSignature()) {
             abort(401, 'Link QR Code kadaluarsa atau tidak valid.');
         }
 

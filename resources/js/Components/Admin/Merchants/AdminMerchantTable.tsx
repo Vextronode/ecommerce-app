@@ -70,7 +70,7 @@ export default function AdminMerchantTable({ merchants, onResetFilter }: Props) 
                     <button
                         type="button"
                         onClick={onResetFilter}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/20 transition-all cursor-pointer"
+                        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/20 transition-colors cursor-pointer"
                     >
                         Reset Filter Pencarian
                     </button>
@@ -193,8 +193,8 @@ export default function AdminMerchantTable({ merchants, onResetFilter }: Props) 
 
                                         {/* ACTIONS */}
                                         <td className="py-4 px-6 text-right whitespace-nowrap relative">
-                                            <div className="relative inline-block text-left">
-                                                <button
+                                            <div aria-label="Pilih opsi yang tersedia" className="relative inline-block text-left">
+                                                <button aria-label="Tampilkan rincian lebih lanjut"
                                                     type="button"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -209,7 +209,7 @@ export default function AdminMerchantTable({ merchants, onResetFilter }: Props) 
                                                 {activeDropdown === merchant.id && (
                                                     <div
                                                         onClick={(e) => e.stopPropagation()}
-                                                        className="absolute right-0 top-full mt-1 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-30 animate-in fade-in zoom-in-95 duration-150"
+                                                        className="absolute right-0 top-full mt-1 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-30 animate-in fade-in zoom-in-95 transition-opacity duration-150"
                                                     >
                                                         {/* Edit Merchant */}
                                                         <button

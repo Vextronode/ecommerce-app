@@ -62,6 +62,7 @@ export default function ProductCard({ product }: { product: any }) {
 
     // Format sold count (e.g. 10rb+Terjual, 12 Terjual)
     const soldCount = product.sold ? Number(product.sold) : 0;
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const formatSold = (qty: number) => {
         if (qty >= 10000) {
             return `${Math.floor(qty / 1000)}rb+Terjual`;
@@ -104,7 +105,7 @@ export default function ProductCard({ product }: { product: any }) {
     return (
         <Link
             href={route("product.detail", slug)}
-            className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-gray-200 transition-all duration-300 flex flex-col h-full overflow-hidden p-3 sm:p-3.5 group/card cursor-pointer"
+            className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-gray-200 transition duration-300 flex flex-col h-full overflow-hidden p-3 sm:p-3.5 group/card cursor-pointer"
         >
             {/* Product Image Area */}
             <div className="w-full aspect-square rounded-xl bg-[#F8FAFC] overflow-hidden flex items-center justify-center relative mb-3">
@@ -168,7 +169,7 @@ export default function ProductCard({ product }: { product: any }) {
                     <button
                         type="button"
                         onClick={handleAddToCart}
-                        className="p-1 text-[#FF7A00] hover:text-[#E06900] hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                        className="p-1 text-[#FF7A00] hover:text-[#E06900] hover:scale-110 active:scale-95 transition cursor-pointer flex items-center justify-center shrink-0"
                         title="Tambah ke Keranjang"
                     >
                         <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />

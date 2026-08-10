@@ -74,7 +74,7 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                                 </p>
                                 <Link
                                     href={route("shop")}
-                                    className="inline-block bg-[#245D56] text-white px-8 py-3.5 rounded-full font-bold shadow-md hover:bg-[#1b4641] transition-all text-sm"
+                                    className="inline-block bg-[#245D56] text-white px-8 py-3.5 rounded-full font-bold shadow-md hover:bg-[#1b4641] transition text-sm"
                                 >
                                     Mulai Belanja
                                 </Link>

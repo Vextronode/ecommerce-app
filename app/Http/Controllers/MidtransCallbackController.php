@@ -17,8 +17,9 @@ class MidtransCallbackController extends Controller
         Log::info('Midtrans Webhook Received', $notificationData);
 
         // Verify Midtrans SHA-512 Signature Key
-        if (!$midtransService->verifySignatureKey($notificationData)) {
+        if (! $midtransService->verifySignatureKey($notificationData)) {
             Log::warning('Midtrans Webhook Invalid Signature Key', $notificationData);
+
             return response()->json(['message' => 'Invalid signature key'], 403);
         }
 
@@ -27,7 +28,7 @@ class MidtransCallbackController extends Controller
         $fraudStatus = $notificationData['fraud_status'] ?? null;
         $incomingGross = (float) ($notificationData['gross_amount'] ?? 0);
 
-        if (!$orderId) {
+        if (! $orderId) {
             return response()->json(['message' => 'Order ID is missing'], 400);
         }
 
@@ -37,9 +38,9 @@ class MidtransCallbackController extends Controller
             ->orWhereJsonContains('payment_payload->order_id', $orderId)
             ->get();
 
-
         if ($orders->isEmpty()) {
-            Log::warning('Midtrans Webhook Order Not Found: ' . $orderId);
+            Log::warning('Midtrans Webhook Order Not Found: '.$orderId);
+
             return response()->json(['message' => 'Order not found'], 404);
         }
 
@@ -47,6 +48,7 @@ class MidtransCallbackController extends Controller
         $expectedGross = (float) $orders->sum('total_amount');
         if (abs($incomingGross - $expectedGross) > 1.0) {
             Log::critical("SECURITY ALERT: Midtrans Gross Amount Mismatch! Expected: {$expectedGross}, Received: {$incomingGross} for Order ID: {$orderId}");
+
             return response()->json(['message' => 'Gross amount mismatch'], 400);
         }
 
@@ -55,7 +57,9 @@ class MidtransCallbackController extends Controller
             foreach ($orders as $order) {
                 // Lock row
                 $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
-                if (!$lockedOrder) continue;
+                if (! $lockedOrder) {
+                    continue;
+                }
 
                 if ($transactionStatus === 'capture') {
                     if ($fraudStatus === 'accept' && $lockedOrder->payment_status !== 'paid') {

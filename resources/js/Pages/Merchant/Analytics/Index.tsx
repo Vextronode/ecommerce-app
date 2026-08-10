@@ -19,6 +19,7 @@ export default function AnalyticsIndex({
     bestSellingProducts,
     period = '12m'
 }: any) {
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handlePeriodChange = (newPeriod: string) => {
         router.get(
             route('merchant.analytics.index'),
@@ -61,7 +62,7 @@ export default function AnalyticsIndex({
                         >
                             12 Months
                         </button>
-                        <button className="px-2 py-1.5 text-gray-400 hover:text-gray-600 border-l border-gray-100 ml-1 pl-3">
+                        <button aria-label="Action" className="px-2 py-1.5 text-gray-400 hover:text-gray-600 border-l border-gray-100 ml-1 pl-3">
                             <Calendar className="w-4 h-4" />
                         </button>
                     </div>

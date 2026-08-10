@@ -38,7 +38,7 @@ export default function BankAccountCard({ store }: BankAccountCardProps) {
                 {!isEditing && (
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F0FAFB] hover:bg-[#EAF7F7] border border-[#41B9C5]/30 rounded-full text-xs font-bold text-[#004F54] transition-all"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F0FAFB] hover:bg-[#EAF7F7] border border-[#41B9C5]/30 rounded-full text-xs font-bold text-[#004F54] transition"
                     >
                         <Edit2 className="w-3.5 h-3.5 text-[#41B9C5]" />
                         Ubah
@@ -49,13 +49,13 @@ export default function BankAccountCard({ store }: BankAccountCardProps) {
             {isEditing ? (
                 <form onSubmit={handleSubmit} className="space-y-4 pt-2">
                     <div>
-                        <label className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                        <label htmlFor="field_52" className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
                             Bank Tujuan
                         </label>
-                        <select
+                        <select id="field_52"
                             value={data.bank_name}
                             onChange={(e) => setData("bank_name", e.target.value)}
-                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] text-xs font-bold text-gray-800 uppercase transition-all"
+                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] text-xs font-bold text-gray-800 uppercase transition"
                         >
                             <option value="bca">Bank BCA (Bank Central Asia)</option>
                             <option value="mandiri">Bank Mandiri</option>
@@ -68,15 +68,15 @@ export default function BankAccountCard({ store }: BankAccountCardProps) {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                        <label htmlFor="field_71" className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
                             Nomor Rekening
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_71"
                             type="text"
                             placeholder="Contoh: 1234567890"
                             value={data.bank_account_number}
                             onChange={(e) => setData("bank_account_number", e.target.value)}
-                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] text-xs font-mono font-bold text-[#004F54] transition-all"
+                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] text-xs font-mono font-bold text-[#004F54] transition"
                         />
                         {errors.bank_account_number && (
                             <p className="text-xs text-red-500 mt-1">{errors.bank_account_number}</p>
@@ -84,15 +84,15 @@ export default function BankAccountCard({ store }: BankAccountCardProps) {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                        <label htmlFor="field_87" className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
                             Nama Pemilik Rekening
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_87"
                             type="text"
                             placeholder="Contoh: Budi Santoso (sesuai buku tabungan)"
                             value={data.bank_account_holder}
                             onChange={(e) => setData("bank_account_holder", e.target.value)}
-                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] text-xs font-bold text-gray-800 transition-all"
+                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] text-xs font-bold text-gray-800 transition"
                         />
                         {errors.bank_account_holder && (
                             <p className="text-xs text-red-500 mt-1">{errors.bank_account_holder}</p>
@@ -103,7 +103,7 @@ export default function BankAccountCard({ store }: BankAccountCardProps) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex-1 py-3 bg-[#004F54] hover:bg-[#003b3f] disabled:opacity-50 text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider"
+                            className="flex-1 py-3 bg-[#004F54] hover:bg-[#003b3f] disabled:opacity-50 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 uppercase tracking-wider"
                         >
                             <Check className="w-4 h-4 text-[#41B9C5]" />
                             Simpan Rekening
@@ -112,7 +112,7 @@ export default function BankAccountCard({ store }: BankAccountCardProps) {
                             <button
                                 type="button"
                                 onClick={() => setIsEditing(false)}
-                                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition-all flex items-center gap-1"
+                                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition flex items-center gap-1"
                             >
                                 <X className="w-4 h-4" />
                                 Batal

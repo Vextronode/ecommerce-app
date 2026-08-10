@@ -227,12 +227,13 @@ export default function Show({ order }: { order: any }) {
                         {(order.shipping_status === 'pending' || order.shipping_status === 'processing') && (
                             <button
                                 onClick={() => setIsCancelModalOpen(true)}
-                                disabled={order.shipping_status === 'processing'}
+                                disabled={order.shipping_status === 'processing' || order.payment_status === 'paid'}
                                 className={`inline-flex items-center justify-center px-6 py-2.5 bg-white border text-sm font-bold rounded-lg transition-colors ${
-                                    order.shipping_status === 'processing' 
+                                    order.shipping_status === 'processing' || order.payment_status === 'paid'
                                     ? 'border-gray-200 text-gray-400 cursor-not-allowed'
                                     : 'border-red-500 text-red-500 hover:bg-red-50'
                                 }`}
+                                title={order.payment_status === 'paid' ? 'Pesanan yang sudah dibayar tidak dapat dibatalkan secara langsung' : ''}
                             >
                                 <AlertCircle className="w-4 h-4 mr-2" />
                                 Batalkan Pesanan

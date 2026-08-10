@@ -61,7 +61,7 @@ export default function StoreFilters({ currentFilter, onFilterChange }: Props) {
                     </button>
                     
                     {/* Dropdown Menu */}
-                    <div className={`absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 transition-all z-20 overflow-hidden ${
+                    <div className={`absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 transition z-20 overflow-hidden ${
                         isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
                     }`}>
                         <button 

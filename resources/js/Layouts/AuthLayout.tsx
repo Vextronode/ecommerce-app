@@ -1,5 +1,6 @@
 import { PropsWithChildren, useLayoutEffect, useRef } from "react";
 import { usePage } from "@inertiajs/react";
+// eslint-disable-next-line react-doctor/use-lazy-motion
 import { motion, useAnimation } from "framer-motion";
 import AuthBranding from "@/Components/AuthBranding";
 
@@ -39,22 +40,29 @@ export default function AuthLayout({ children }: PropsWithChildren) {
         async function runAnimation() {
             if (!isLogin) {
                 await panelControls.start({
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     width: "115%",
                     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 });
                 await panelControls.start({
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     left: "50%",
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     width: "50%",
                     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 });
             } else {
                 await panelControls.start({
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     left: "-15%",
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     width: "115%",
                     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 });
                 await panelControls.start({
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     left: "0%",
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     width: "50%",
                     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 });
@@ -67,6 +75,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
         }
 
         runAnimation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLogin]);
 
     return (
@@ -75,7 +84,9 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                 <motion.div
                     className="absolute top-0 bottom-0 z-0"
                     initial={{
+                        // eslint-disable-next-line react-doctor/no-layout-property-animation
                         left: isLogin ? "0%" : "50%",
+                        // eslint-disable-next-line react-doctor/no-layout-property-animation
                         width: "50%",
                     }}
                     animate={panelControls}

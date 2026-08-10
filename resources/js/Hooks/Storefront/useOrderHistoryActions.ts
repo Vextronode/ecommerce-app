@@ -7,6 +7,7 @@ export function useOrderHistoryActions() {
     const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const navigateTab = (statusKey: string) => {
         router.get(
             route("history.index"),
@@ -21,9 +22,17 @@ export function useOrderHistoryActions() {
             {},
             {
                 preserveState: true,
-                onSuccess: () => {
-                    toast.success("Pesanan berhasil dibatalkan.");
-                    setIsCancelModalOpen(false);
+                onSuccess: (page) => {
+                    const flash = page.props.flash as any;
+                    if (flash?.error) {
+                        toast.error(flash.error);
+                    } else if (flash?.success) {
+                        toast.success(flash.success);
+                        setIsCancelModalOpen(false);
+                    } else {
+                        toast.success("Pesanan berhasil dibatalkan.");
+                        setIsCancelModalOpen(false);
+                    }
                 },
                 onError: () => {
                     toast.error("Gagal membatalkan pesanan.");
@@ -38,9 +47,17 @@ export function useOrderHistoryActions() {
             {},
             {
                 preserveState: true,
-                onSuccess: () => {
-                    toast.success("Pesanan selesai! Terima kasih telah berbelanja.");
-                    setIsCompleteModalOpen(false);
+                onSuccess: (page) => {
+                    const flash = page.props.flash as any;
+                    if (flash?.error) {
+                        toast.error(flash.error);
+                    } else if (flash?.success) {
+                        toast.success(flash.success);
+                        setIsCompleteModalOpen(false);
+                    } else {
+                        toast.success("Pesanan selesai! Terima kasih telah berbelanja.");
+                        setIsCompleteModalOpen(false);
+                    }
                 },
                 onError: () => {
                     toast.error("Gagal menyelesaikan pesanan.");
@@ -49,6 +66,7 @@ export function useOrderHistoryActions() {
         );
     };
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const getStatusColor = (status: string) => {
         switch (status) {
             case "Selesai":

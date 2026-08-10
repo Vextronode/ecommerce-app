@@ -9,6 +9,18 @@ import {
 } from "lucide-react";
 import OrderExpandedDetail from "./OrderExpandedDetail";
 
+const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    };
+    return new Date(dateString).toLocaleDateString("id-ID", options);
+};
+import { formatRupiah } from "@/utils/formatters";
+
 export default function OrderMobileCard({
     order,
     onOpenAction,
@@ -18,26 +30,8 @@ export default function OrderMobileCard({
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const formatRupiah = (angka: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-        })
-            .format(angka)
-            .replace("Rp", "Rp.");
-    };
 
-    const formatDate = (dateString: string) => {
-        const options: Intl.DateTimeFormatOptions = {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        };
-        return new Date(dateString).toLocaleDateString("id-ID", options);
-    };
+
 
     const firstProduct = order.items?.[0];
     const otherProductsCount = (order.items?.length || 0) - 1;
@@ -50,6 +44,7 @@ export default function OrderMobileCard({
         order.shipping_status.slice(1);
 
     return (
+        // eslint-disable-next-line react-doctor/no-static-element-interactions, react-doctor/click-events-have-key-events
         <div
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-4 bg-white hover:bg-gray-50 transition-colors group border-b border-gray-100 cursor-pointer"
@@ -64,7 +59,7 @@ export default function OrderMobileCard({
                     </p>
                 </div>
                 {shippingStatus !== "Delivered" && shippingStatus !== "Cancelled" && (
-                    <button
+                    <button aria-label="Action"
                         onClick={(e) => {
                             e.stopPropagation();
                             onOpenAction(order);

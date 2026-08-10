@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
 import { Users, UserPlus } from 'lucide-react';
 
 interface CustomerStatsCardProps {
@@ -18,7 +19,7 @@ export default function CustomerStatsCard({ title, value, growth, type }: Custom
                     <div>
                         <h3 className="text-sm font-bold text-gray-700 mb-1">{title}</h3>
                         <p className="text-3xl font-bold text-[#41B9C5]">
-                            {new Intl.NumberFormat('en-US').format(value)}
+                            {formatNumberEn(value)}
                         </p>
                     </div>
                     <div className="p-3 rounded-lg bg-[#EAF7F7] text-[#41B9C5]">

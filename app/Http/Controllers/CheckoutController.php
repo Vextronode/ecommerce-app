@@ -30,8 +30,9 @@ class CheckoutController extends Controller
         $a = sin($dLat / 2) * sin($dLat / 2) +
              cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
              sin($dLon / 2) * sin($dLon / 2);
-        
+
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
         return $earthRadius * $c;
     }
 
@@ -40,19 +41,20 @@ class CheckoutController extends Controller
         if ($method === 'self_pickup') {
             return 0;
         }
-        
+
         if ($method === 'local_delivery') {
-            if (!$store->latitude || !$store->longitude || !$addressLat || !$addressLon) {
+            if (! $store->latitude || ! $store->longitude || ! $addressLat || ! $addressLon) {
                 return 15000;
             }
 
-            $distance = $this->haversineDistance((float)$store->latitude, (float)$store->longitude, (float)$addressLat, (float)$addressLon);
-            
+            $distance = $this->haversineDistance((float) $store->latitude, (float) $store->longitude, (float) $addressLat, (float) $addressLon);
+
             $baseFee = 5000;
             if ($distance <= 2) {
                 return $baseFee;
             } else {
                 $extraDistance = ceil($distance - 2);
+
                 return $baseFee + ($extraDistance * 2000);
             }
         }
@@ -88,7 +90,7 @@ class CheckoutController extends Controller
                 'id' => $cart->id,
                 'product_id' => $cart->product->id,
                 'name' => $cart->product->name,
-                'location' => $cart->product->store ? $cart->product->store->name . ' - ' . $cart->product->store->address : 'Cibenda Mart',
+                'location' => $cart->product->store ? $cart->product->store->name.' - '.$cart->product->store->address : 'Cibenda Mart',
                 'store_lat' => $cart->product->store ? $cart->product->store->latitude : null,
                 'store_lon' => $cart->product->store ? $cart->product->store->longitude : null,
                 'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
@@ -122,7 +124,7 @@ class CheckoutController extends Controller
         $addressLat = null;
         $addressLon = null;
 
-        if (!empty($validated['address_id'])) {
+        if (! empty($validated['address_id'])) {
             $address = $request->user()->addresses()->findOrFail($validated['address_id']);
             $validated['name'] = $address->recipient_name;
             $validated['phone'] = $address->phone;
@@ -159,7 +161,7 @@ class CheckoutController extends Controller
                 foreach ($storeCarts as $cart) {
                     $product = $cart->product()->lockForUpdate()->first();
 
-                    if (!$product || !$product->is_active) {
+                    if (! $product || ! $product->is_active) {
                         throw ValidationException::withMessages([
                             'cart_ids' => "Produk {$cart->product_id} sudah tidak tersedia.",
                         ]);
@@ -186,7 +188,7 @@ class CheckoutController extends Controller
                 $order = Order::create([
                     'store_id' => $storeId,
                     'user_id' => auth()->id(),
-                    'invoice_number' => 'ORD-' . date('YmdHis') . '-' . strtoupper(substr(uniqid(), -4)),
+                    'invoice_number' => 'ORD-'.date('YmdHis').'-'.strtoupper(substr(uniqid(), -4)),
                     'customer_name' => $validated['name'],
                     'customer_phone' => $validated['phone'],
                     'shipping_address' => $validated['address'],
@@ -258,7 +260,7 @@ class CheckoutController extends Controller
                     ]);
                 }
             } catch (\Exception $e) {
-                Log::error('Midtrans Core API Charge Error: ' . $e->getMessage());
+                Log::error('Midtrans Core API Charge Error: '.$e->getMessage());
             }
         }
 
@@ -297,7 +299,7 @@ class CheckoutController extends Controller
     {
         $addressLat = null;
         $addressLon = null;
-        
+
         if ($request->has('address_id')) {
             $address = $request->user()->addresses()->find($request->query('address_id'));
             if ($address) {
@@ -308,7 +310,7 @@ class CheckoutController extends Controller
 
         $cartIds = $request->query('cart_ids', []);
         $method = $request->query('delivery_method', 'local_delivery');
-        
+
         if (empty($cartIds)) {
             return response()->json(['delivery_fee' => 0]);
         }
@@ -317,7 +319,7 @@ class CheckoutController extends Controller
             ->where('user_id', auth()->id())
             ->whereIn('id', $cartIds)
             ->get();
-            
+
         $cartsByStore = $carts->groupBy(function ($cart) {
             return $cart->product->store_id;
         });
@@ -332,5 +334,4 @@ class CheckoutController extends Controller
 
         return response()->json(['delivery_fee' => $totalDeliveryFee]);
     }
-
 }

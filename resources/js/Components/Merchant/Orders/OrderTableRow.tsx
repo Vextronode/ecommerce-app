@@ -1,5 +1,19 @@
 import React, { useState } from "react";
 import { router } from '@inertiajs/react';
+import { formatRupiah } from "@/utils/formatters";
+
+const formatRp = (angka: number) => {
+    return formatRupiah(angka).replace("Rp", "Rp.");
+};
+
+const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    };
+    return new Date(dateString).toLocaleDateString("en-US", options);
+};
 import {
     Truck,
     Package,
@@ -26,24 +40,7 @@ export default function OrderTableRow({
     const [isExpanded, setIsExpanded] = useState(false);
     const [showQRModal, setShowQRModal] = useState(false);
 
-    const formatRupiah = (angka: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-        })
-            .format(angka)
-            .replace("Rp", "Rp.");
-    };
 
-    const formatDate = (dateString: string) => {
-        const options: Intl.DateTimeFormatOptions = {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        };
-        return new Date(dateString).toLocaleDateString("en-US", options);
-    };
 
     const handleSelfDelivery = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -78,6 +75,7 @@ export default function OrderTableRow({
 
     return (
         <>
+            {/* eslint-disable-next-line react-doctor/no-static-element-interactions, react-doctor/click-events-have-key-events */}
             <tr
                 onClick={() => setIsExpanded(!isExpanded)}
                 className={`border-b border-gray-50 hover:bg-gray-50/50 transition-colors group cursor-pointer ${isExpanded ? "bg-gray-50/50" : ""}`}
@@ -86,6 +84,40 @@ export default function OrderTableRow({
                     <span className="font-bold text-[#41B9C5] text-sm">
                         #{order.invoice_number}
                     </span>
+                    {/* QR Code Modal */}
+                    {order.handover_url && (
+                        <Modal show={showQRModal} onClose={() => setShowQRModal(false)} maxWidth="sm">
+                            <div aria-label="Action" className="p-6 relative text-center">
+                                <button
+                                    aria-label="Tutup modal"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowQRModal(false);
+                                    }}
+                                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full p-2 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+
+                                <div className="w-16 h-16 bg-[#EAF7F7] text-[#41B9C5] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <QrCode className="w-8 h-8" />
+                                </div>
+                                
+                                <h3 className="text-xl font-extrabold text-[#14433D] mb-2">QR Serah Terima</h3>
+                                <p className="text-sm text-gray-500 mb-6">
+                                    Minta kurir untuk melakukan <strong>Scan QR Code</strong> ini menggunakan kamera HP mereka. Status pesanan akan otomatis menjadi "Dikirim".
+                                </p>
+
+                                <div className="bg-white p-4 rounded-xl border border-gray-100 flex justify-center mb-4">
+                                    <QRCodeSVG value={order.handover_url} size={256} className="w-full h-auto max-w-[256px]" />
+                                </div>
+
+                                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                    Invoice: #{order.invoice_number}
+                                </div>
+                            </div>
+                        </Modal>
+                    )}
                 </td>
                 <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
@@ -238,14 +270,14 @@ export default function OrderTableRow({
                                                 e.stopPropagation();
                                                 setShowQRModal(true);
                                             }}
-                                            className="inline-flex items-center gap-2 bg-[#EAF7F7] text-[#14433D] hover:bg-[#41B9C5] hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm border border-[#41B9C5]/30"
+                                            className="inline-flex items-center gap-2 bg-[#EAF7F7] text-[#14433D] hover:bg-[#41B9C5] hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm border border-[#41B9C5]/30"
                                         >
                                             <QrCode className="w-4 h-4" />
                                             Diserahkan ke Kurir
                                         </button>
                                         <button 
                                             onClick={handleSelfDelivery}
-                                            className="inline-flex items-center gap-2 bg-[#14433D] text-white hover:bg-[#1f635a] px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+                                            className="inline-flex items-center gap-2 bg-[#14433D] text-white hover:bg-[#1f635a] px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm"
                                         >
                                             <Navigation className="w-4 h-4" />
                                             Saya Antar Sendiri
@@ -259,36 +291,7 @@ export default function OrderTableRow({
                 </tr>
             )}
 
-            {/* QR Code Modal */}
-            {order.handover_url && (
-                <Modal show={showQRModal} onClose={() => setShowQRModal(false)} maxWidth="sm">
-                    <div className="p-6 relative text-center">
-                        <button
-                            onClick={() => setShowQRModal(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full p-2 transition-colors"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
 
-                        <div className="w-16 h-16 bg-[#EAF7F7] text-[#41B9C5] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <QrCode className="w-8 h-8" />
-                        </div>
-                        
-                        <h3 className="text-xl font-extrabold text-[#14433D] mb-2">QR Serah Terima</h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Minta kurir untuk melakukan <strong>Scan QR Code</strong> ini menggunakan kamera HP mereka. Status pesanan akan otomatis menjadi "Dikirim".
-                        </p>
-
-                        <div className="bg-white p-4 rounded-xl border border-gray-100 flex justify-center mb-4">
-                            <QRCodeSVG value={order.handover_url} size={256} className="w-full h-auto max-w-[256px]" />
-                        </div>
-
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                            Invoice: #{order.invoice_number}
-                        </div>
-                    </div>
-                </Modal>
-            )}
         </>
     );
 }

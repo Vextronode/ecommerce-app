@@ -22,6 +22,7 @@ export default function AddressInformation({
 
     // state buat modal delete
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    // eslint-disable-next-line react-doctor/rerender-state-only-in-handlers
     const [addressToDelete, setAddressToDelete] = useState<number | null>(null);
 
     // fungsi buat open modal ketika button delete/hapus di klik
@@ -132,7 +133,7 @@ export default function AddressInformation({
             {/* popup modal buat hapus alamat */}
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-xl text-center transform transition-all scale-100">
+                    <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-xl text-center transform transition scale-100">
                         <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
                             <Trash2 className="w-8 h-8" />
                         </div>

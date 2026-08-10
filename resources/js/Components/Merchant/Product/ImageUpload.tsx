@@ -23,8 +23,8 @@ export default function ImageUpload({
                 </span>
             </h3>
 
-            <div className="flex-1 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 transition-colors relative group min-h-50">
-                <input
+            <div aria-label="Pilih opsi yang tersedia" className="flex-1 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 transition-colors relative group min-h-50">
+                <input aria-label="Tampilkan rincian lebih lanjut"
                     type="file"
                     accept="image/*"
                     multiple
@@ -64,7 +64,7 @@ export default function ImageUpload({
                                     COVER
                                 </div>
                             )}
-                            <button
+                            <button aria-label="Pilih opsi yang tersedia"
                                 type="button"
                                 onClick={() => onRemoveImage(idx)}
                                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20"

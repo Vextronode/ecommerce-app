@@ -44,14 +44,14 @@ export default function SkuMatrix({ data, setData }: Props) {
                     <tbody className="divide-y divide-gray-100">
                         {data.skus.map((sku: SkuType, index: number) => (
                             <tr
-                                key={index}
+                                key={sku.variant_name || index}
                                 className="hover:bg-gray-50/50 transition-colors"
                             >
                                 <td className="px-4 py-3 font-medium text-gray-800">
                                     {sku.variant_name}
                                 </td>
                                 <td className="px-4 py-3">
-                                    <input
+                                    <input aria-label="Input field"
                                         type="number"
                                         placeholder="Harga..."
                                         value={sku.price}
@@ -67,7 +67,7 @@ export default function SkuMatrix({ data, setData }: Props) {
                                     />
                                 </td>
                                 <td className="px-4 py-3">
-                                    <input
+                                    <input aria-label="Input field"
                                         type="number"
                                         placeholder="Stok..."
                                         value={sku.stock}

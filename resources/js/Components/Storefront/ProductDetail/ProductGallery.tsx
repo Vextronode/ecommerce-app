@@ -58,7 +58,7 @@ export default function ProductGallery({
                                     onSelectImage(index);
                                 }
                             }}
-                            className={`relative flex-1 aspect-square rounded-xl overflow-hidden transition-all duration-200 focus:outline-none ${
+                            className={`relative flex-1 aspect-square rounded-xl overflow-hidden transition-colors duration-200 focus:outline-none ${
                                 index === selectedImageIndex &&
                                 !(isLastThumbnail && hasMore)
                                     ? "border-2 border-[#41B9C5] shadow-md p-0.5"
@@ -98,7 +98,7 @@ export default function ProductGallery({
                                 <h3 className="text-xl md:text-2xl font-extrabold text-gray-900">
                                     Semua Foto ({images.length})
                                 </h3>
-                                <button
+                                <button aria-label="Action"
                                     onClick={() => setIsModalOpen(false)}
                                     className="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full flex items-center justify-center transition-colors"
                                 >
@@ -115,7 +115,7 @@ export default function ProductGallery({
                                             onSelectImage(idx);
                                             setIsModalOpen(false);
                                         }}
-                                        className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all group ${
+                                        className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-colors group ${
                                             idx === selectedImageIndex
                                                 ? "border-[#41B9C5] shadow-md p-1"
                                                 : "border-transparent hover:border-gray-200"

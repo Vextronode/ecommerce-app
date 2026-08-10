@@ -1,6 +1,11 @@
 import React, { useState } from "react";
+import { formatRupiah } from "@/utils/formatters";
 import { Copy, Check, Info } from "lucide-react";
 import toast from "react-hot-toast";
+
+const formatVaNumber = (va: string) => {
+    return va.replace(/(\d{4})/g, "$1 ").trim();
+};
 
 interface Props {
     channel: string;
@@ -58,17 +63,7 @@ export default function VirtualAccountCard({
         }
     };
 
-    const formatRupiah = (amount: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-        }).format(amount);
-    };
 
-    const formatVaNumber = (va: string) => {
-        return va.replace(/(\d{4})/g, "$1 ").trim();
-    };
 
     return (
         <div className="w-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-9 border border-slate-100 shadow-xs space-y-5">

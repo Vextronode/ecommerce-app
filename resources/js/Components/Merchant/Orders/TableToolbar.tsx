@@ -34,11 +34,11 @@ export default function TableToolbar() {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="w-4 h-4 text-gray-400" />
                 </div>
-                <input
+                <input aria-label="Input field"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#41B9C5]/50 focus:border-[#41B9C5] transition-all"
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#41B9C5]/50 focus:border-[#41B9C5] transition"
                     placeholder="Cari ID Pesanan atau Nama..."
                 />
             </div>
@@ -49,7 +49,7 @@ export default function TableToolbar() {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Filter className="w-4 h-4 text-gray-400" />
                     </div>
-                    <select
+                    <select aria-label="Tampilkan rincian lebih lanjut"
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="w-full sm:w-auto pl-10 pr-8 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#41B9C5]/50 focus:border-[#41B9C5] appearance-none cursor-pointer"

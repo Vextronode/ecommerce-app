@@ -34,7 +34,7 @@ export default function Sidebar() {
             <nav className="flex-1 px-5 py-2 space-y-2 overflow-y-auto">
                 <Link
                     href={route("merchant.dashboard")}
-                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-semibold transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-semibold transition text-sm whitespace-nowrap ${
                         route().current("merchant.dashboard")
                             ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
                             : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
@@ -45,7 +45,7 @@ export default function Sidebar() {
                 </Link>
                 <Link
                     href={route("merchant.products.index")}
-                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
                         route().current("merchant.products.*")
                             ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30"
                             : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
@@ -57,7 +57,7 @@ export default function Sidebar() {
 
                 <Link
                     href={route("merchant.orders.index")}
-                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
                         route().current("merchant.orders.*")
                             ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30"
                             : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
@@ -69,7 +69,7 @@ export default function Sidebar() {
 
                 <Link
                     href={route("merchant.customers.index")}
-                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
                         route().current("merchant.customers.*")
                             ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30"
                             : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
@@ -80,7 +80,7 @@ export default function Sidebar() {
                 </Link>
                 <Link
                     href={route('merchant.analytics.index')}
-                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
                         route().current("merchant.analytics.*")
                             ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30"
                             : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
@@ -91,7 +91,7 @@ export default function Sidebar() {
                 </Link>
                 <Link
                     href={route('merchant.withdrawals.index')}
-                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
                         route().current("merchant.withdrawals.*")
                             ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30"
                             : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
@@ -106,7 +106,7 @@ export default function Sidebar() {
             <div className="p-5 border-t border-[#41B9C5]/30 space-y-1 mb-2">
                 <Link
                     href={route('merchant.settings.index')}
-                    className={`flex items-center gap-4 px-4 py-3 hover:bg-gray-50 hover:text-gray-800 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+                    className={`flex items-center gap-4 px-4 py-3 hover:bg-gray-50 hover:text-gray-800 rounded-xl font-medium transition text-sm whitespace-nowrap ${
                         route().current('merchant.settings.*') ? 'bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30' : 'text-gray-500'
                     }`}
                 >
@@ -118,7 +118,7 @@ export default function Sidebar() {
                     method="post"
                     data={{ source: "merchant" }}
                     as="button"
-                    className="flex items-center w-full gap-4 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-all text-sm whitespace-nowrap"
+                    className="flex items-center w-full gap-4 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl font-medium transition text-sm whitespace-nowrap"
                 >
                     <LogOut className="w-5 h-5 shrink-0" />
                     Logout

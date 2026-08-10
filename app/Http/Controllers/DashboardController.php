@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Store;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -20,7 +20,7 @@ class DashboardController extends Controller
                 'name' => $store->name,
                 'description' => $store->description,
                 'image' => $store->user?->profile_photo_path
-                    ? \Illuminate\Support\Facades\Storage::url($store->user->profile_photo_path)
+                    ? Storage::url($store->user->profile_photo_path)
                     : null,
             ];
         });

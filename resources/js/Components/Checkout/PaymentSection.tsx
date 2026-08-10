@@ -113,10 +113,10 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                         {VA_CHANNELS.map((item) => {
                             const isSelected = selectedChannel === item.channel;
                             return (
-                                <div
+                                <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
                                     key={item.id}
                                     onClick={() => onSelect(item.method, item.channel)}
-                                    className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${isSelected
+                                    className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${isSelected
                                             ? "border-[#245D56] bg-[#245D56]/5 shadow-sm"
                                             : "border-slate-100 hover:border-slate-300 bg-white"
                                         }`}
@@ -136,7 +136,7 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                                         </div>
                                     </div>
                                     <div
-                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
+                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${isSelected ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
                                             }`}
                                     >
                                         {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
@@ -160,10 +160,10 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                         {EWALLET_CHANNELS.map((item) => {
                             const isSelected = selectedChannel === item.channel;
                             return (
-                                <div
+                                <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
                                     key={item.id}
                                     onClick={() => onSelect(item.method, item.channel)}
-                                    className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${isSelected
+                                    className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${isSelected
                                             ? "border-[#245D56] bg-[#245D56]/5 shadow-sm"
                                             : "border-slate-100 hover:border-slate-300 bg-white"
                                         }`}
@@ -187,7 +187,7 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                                         </div>
                                     </div>
                                     <div
-                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
+                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${isSelected ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
                                             }`}
                                     >
                                         {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
@@ -204,9 +204,9 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                         <Banknote className="w-4 h-4 text-[#245D56]" />
                         <h3 className="text-sm font-bold text-gray-800">Bayar di Tempat</h3>
                     </div>
-                    <div
+                    <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
                         onClick={() => onSelect(COD_OPTION.method, COD_OPTION.channel)}
-                        className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${selectedChannel === COD_OPTION.channel
+                        className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${selectedChannel === COD_OPTION.channel
                                 ? "border-[#245D56] bg-[#245D56]/5 shadow-sm"
                                 : "border-slate-100 hover:border-slate-300 bg-white"
                             }`}
@@ -226,7 +226,7 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                             </div>
                         </div>
                         <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedChannel === COD_OPTION.channel ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${selectedChannel === COD_OPTION.channel ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
                                 }`}
                         >
                             {selectedChannel === COD_OPTION.channel && (

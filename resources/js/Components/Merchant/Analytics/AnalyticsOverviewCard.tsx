@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
 import { LucideIcon } from 'lucide-react';
 
 interface AnalyticsOverviewCardProps {
@@ -19,8 +20,8 @@ export default function AnalyticsOverviewCard({
     isCurrency = false
 }: AnalyticsOverviewCardProps) {
     const formattedValue = isCurrency 
-        ? `Rp. ${new Intl.NumberFormat('id-ID').format(Number(value))}` 
-        : (typeof value === 'number' ? new Intl.NumberFormat('en-US').format(value) : value);
+        ? `Rp. ${formatNumberId(Number(value))}` 
+        : (typeof value === 'number' ? formatNumberEn(value) : value);
 
     return (
         <div className="bg-white rounded-[20px] border border-[#41B9C5]/20 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">

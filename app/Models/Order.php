@@ -75,13 +75,13 @@ class Order extends Model
             // Lock this order row for atomic update
             $order = self::where('id', $this->id)->lockForUpdate()->first();
 
-            if (!$order || $order->stock_restored_at !== null) {
+            if (! $order || $order->stock_restored_at !== null) {
                 return false; // Already restored, skip to prevent double restore
             }
 
             foreach ($order->items as $item) {
                 if ($item->variant_name) {
-                    $sku = \App\Models\ProductSku::where('product_id', $item->product_id)
+                    $sku = ProductSku::where('product_id', $item->product_id)
                         ->where('variant_name', $item->variant_name)
                         ->lockForUpdate()
                         ->first();
@@ -90,7 +90,7 @@ class Order extends Model
                     }
                 }
 
-                $product = \App\Models\Product::where('id', $item->product_id)
+                $product = Product::where('id', $item->product_id)
                     ->lockForUpdate()
                     ->first();
                 if ($product) {
@@ -113,7 +113,7 @@ class Order extends Model
         return DB::transaction(function () {
             $order = self::where('id', $this->id)->lockForUpdate()->first();
 
-            if (!$order || $order->balance_credited_at !== null || !$order->store_id) {
+            if (! $order || $order->balance_credited_at !== null || ! $order->store_id) {
                 return false; // Already credited or no store, prevent double-crediting
             }
 
@@ -121,14 +121,14 @@ class Order extends Model
             if ($store) {
                 // Move total amount from pending_balance to available_balance
                 $amount = (float) $order->total_amount;
-                
+
                 // Ensure we don't drop pending_balance below 0 due to old data
                 if ($store->pending_balance >= $amount) {
                     $store->decrement('pending_balance', $amount);
                 } else {
                     $store->update(['pending_balance' => 0]);
                 }
-                
+
                 $store->increment('available_balance', $amount);
 
                 Log::info("Escrow Released: Moved Rp {$amount} from pending to available for store ID {$store->id} for order #{$order->invoice_number}");

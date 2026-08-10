@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\OrderItem;
 use App\Models\ProductReview;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -17,11 +16,11 @@ class ProductReviewController extends Controller
             ->where('id', $order_item_id)
             ->whereHas('order', function ($query) {
                 $query->where('user_id', auth()->id())
-                      ->where('shipping_status', 'delivered');
+                    ->where('shipping_status', 'delivered');
             })
             ->first();
 
-        if (!$orderItem) {
+        if (! $orderItem) {
             return redirect()->route('history.index', ['status' => 'rating'])
                 ->with('error', 'Produk tidak ditemukan atau belum selesai.');
         }
@@ -45,7 +44,7 @@ class ProductReviewController extends Controller
                     'courier_rating' => $orderItem->review->courier_rating,
                     'images' => $orderItem->review->images ?? [],
                 ] : null,
-            ]
+            ],
         ]);
     }
 
@@ -71,11 +70,11 @@ class ProductReviewController extends Controller
         $imagePaths = $orderItem->review ? ($orderItem->review->images ?? []) : [];
         if ($request->hasFile('images')) {
             // Kita bisa menghapus gambar lama di storage jika diperlukan, untuk simpelnya kita tumpuk saja
-            $imagePaths = []; 
+            $imagePaths = [];
             $files = is_array($request->file('images')) ? $request->file('images') : [$request->file('images')];
             foreach ($files as $file) {
                 $path = $file->store('reviews', 'public');
-                $imagePaths[] = '/storage/' . $path;
+                $imagePaths[] = '/storage/'.$path;
             }
         }
 
@@ -88,8 +87,8 @@ class ProductReviewController extends Controller
             'courier_rating' => $validated['courier_rating'] ?? null,
             'images' => count($imagePaths) > 0 ? $imagePaths : null, // keep old ones if no new files? Actually if they don't upload new, keep old. wait, the frontend might send files again or not. We'll simplify: if they upload new ones, overwrite. Otherwise keep old.
         ];
-        
-        if (!$request->hasFile('images')) {
+
+        if (! $request->hasFile('images')) {
             $reviewData['images'] = $orderItem->review ? $orderItem->review->images : null;
         }
 
