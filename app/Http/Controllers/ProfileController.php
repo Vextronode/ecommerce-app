@@ -120,6 +120,14 @@ class ProfileController extends Controller
             $user->update([
                 'profile_photo_path' => $path,
             ]);
+
+            // Sync with store logo if they have a store
+            if ($user->store) {
+                if ($user->store->logo_path && $user->store->logo_path !== $path) {
+                    Storage::disk('public')->delete($user->store->logo_path);
+                }
+                $user->store->update(['logo_path' => $path]);
+            }
         }
 
         return back();

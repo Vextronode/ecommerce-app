@@ -33,6 +33,16 @@ class Store extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function getLogoPathAttribute($value)
+    {
+        if ($value) {
+            return $value;
+        }
+
+        // Jika logo_path null, ambil dari profile_photo_path milik user
+        return $this->user ? $this->user->profile_photo_path : null;
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class);

@@ -78,8 +78,13 @@ class SettingsController extends Controller
             if ($user->profile_photo_path) {
                 Storage::disk('public')->delete($user->profile_photo_path);
             }
+            if ($store->logo_path && $store->logo_path !== $user->profile_photo_path) {
+                Storage::disk('public')->delete($store->logo_path);
+            }
+            
             $path = $request->file('photo')->store('profile-photos', 'public');
             $user->profile_photo_path = $path;
+            $store->logo_path = $path;
         }
 
         $user->save();
