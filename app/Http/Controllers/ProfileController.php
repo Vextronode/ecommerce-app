@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Jenssegers\Agent\Agent;
 
 class ProfileController extends Controller
 {
@@ -19,11 +23,11 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        $sessions = \Illuminate\Support\Facades\DB::table('sessions')
+        $sessions = DB::table('sessions')
             ->where('user_id', $request->user()->getAuthIdentifier())
             ->orderBy('last_activity', 'desc')
             ->get()->map(function ($session) use ($request) {
-                $agent = new \Jenssegers\Agent\Agent();
+                $agent = new Agent;
                 $agent->setUserAgent($session->user_agent);
 
                 return (object) [
@@ -35,7 +39,7 @@ class ProfileController extends Controller
                     ],
                     'ip_address' => $session->ip_address,
                     'is_current_device' => $session->id === $request->session()->getId(),
-                    'last_active' => \Carbon\Carbon::createFromTimestamp($session->last_activity)->diffForHumans(),
+                    'last_active' => Carbon::createFromTimestamp($session->last_activity)->diffForHumans(),
                 ];
             });
 
@@ -45,7 +49,7 @@ class ProfileController extends Controller
             'addresses' => $request->user()->addresses()->orderBy('is_primary', 'desc')->get(),
             'notificationSettings' => $request->user()->notification_settings ?? [],
             'sessions' => $sessions,
-            'isOAuth' => !is_null($request->user()->google_id),
+            'isOAuth' => ! is_null($request->user()->google_id),
         ]);
     }
 
@@ -70,16 +74,17 @@ class ProfileController extends Controller
      */
     public function destroyOtherSessions(Request $request): RedirectResponse
     {
-        \Illuminate\Support\Facades\DB::table('sessions')
+        DB::table('sessions')
             ->where('user_id', $request->user()->getAuthIdentifier())
             ->where('id', '!=', $request->session()->getId())
             ->delete();
 
         return Redirect::route('profile.edit')->with('status', 'Sesion lainnya berhasil dihapus.');
     }
+
     public function destroy(Request $request): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         if (is_null($user->google_id)) {

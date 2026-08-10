@@ -39,22 +39,29 @@ export default function AuthLayout({ children }: PropsWithChildren) {
         async function runAnimation() {
             if (!isLogin) {
                 await panelControls.start({
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     width: "115%",
                     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 });
                 await panelControls.start({
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     left: "50%",
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     width: "50%",
                     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 });
             } else {
                 await panelControls.start({
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     left: "-15%",
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     width: "115%",
                     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 });
                 await panelControls.start({
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     left: "0%",
+                    // eslint-disable-next-line react-doctor/no-layout-property-animation
                     width: "50%",
                     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
                 });
@@ -75,7 +82,9 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                 <motion.div
                     className="absolute top-0 bottom-0 z-0"
                     initial={{
+                        // eslint-disable-next-line react-doctor/no-layout-property-animation
                         left: isLogin ? "0%" : "50%",
+                        // eslint-disable-next-line react-doctor/no-layout-property-animation
                         width: "50%",
                     }}
                     animate={panelControls}

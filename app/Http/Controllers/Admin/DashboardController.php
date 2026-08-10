@@ -9,7 +9,6 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,7 +25,7 @@ class DashboardController extends Controller
         $lastMonthMerchants = User::where('role', 'pedagang')
             ->where('created_at', '<', now()->startOfMonth())
             ->count();
-        $merchantsTrend = $lastMonthMerchants > 0 
+        $merchantsTrend = $lastMonthMerchants > 0
             ? round((($totalMerchants - $lastMonthMerchants) / $lastMonthMerchants) * 100, 1)
             : 0;
 
@@ -44,7 +43,7 @@ class DashboardController extends Controller
 
         $lastMonthSold = (int) OrderItem::whereHas('order', function ($q) {
             $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
-              ->where('created_at', '<', now()->startOfMonth());
+                ->where('created_at', '<', now()->startOfMonth());
         })->sum('quantity');
 
         $soldTrend = $lastMonthSold > 0
@@ -54,21 +53,21 @@ class DashboardController extends Controller
         // Produk Terlaris / Toko Terpopuler
         $topProduct = Product::with(['store', 'category'])
             ->withSum(['orderItems as total_sold' => function ($q) {
-                $q->whereHas('order', fn($o) => $o->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success']));
+                $q->whereHas('order', fn ($o) => $o->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success']));
             }], 'quantity')
             ->orderByDesc('total_sold')
             ->first();
 
         $topStore = null;
-        if (!$topProduct || !$topProduct->total_sold) {
+        if (! $topProduct || ! $topProduct->total_sold) {
             $topStore = Store::with('user')->withCount('products')->orderByDesc('products_count')->first();
         }
 
-        $topProductName = $topProduct && $topProduct->total_sold > 0 
+        $topProductName = $topProduct && $topProduct->total_sold > 0
             ? ($topProduct->store?->name ?: $topProduct->name)
             : ($topStore?->name ?: 'Belum ada data');
 
-        $topCategoryName = $topProduct?->category?->name 
+        $topCategoryName = $topProduct?->category?->name
             ?: (Category::first()?->name ?: 'Umum');
 
         // Pendaftaran Pedagang (Toko Mitra Terbaru)
@@ -89,12 +88,12 @@ class DashboardController extends Controller
         // Grafik Product Sales (Data Real Penjualan 3 Minggu Terakhir)
         $chartData = [];
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        
+
         $startDate = now()->startOfWeek()->subWeeks(2);
         $weeklySales = OrderItem::whereHas('order', function ($q) use ($startDate) {
-                $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
-                  ->where('created_at', '>=', $startDate);
-            })
+            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+                ->where('created_at', '>=', $startDate);
+        })
             ->selectRaw('DATE(created_at) as date, SUM(quantity) as units')
             ->groupBy('date')
             ->get()
@@ -120,15 +119,15 @@ class DashboardController extends Controller
 
         // Aktivitas Terbaru Real-Time
         $activities = [];
-        
+
         // Pendaftaran pedagang terbaru
         $latestStores = Store::with('user')->latest()->take(2)->get();
         foreach ($latestStores as $store) {
             $activities[] = [
-                'id' => 'store-' . $store->id,
+                'id' => 'store-'.$store->id,
                 'time' => $store->created_at->diffForHumans(),
                 'title' => 'Pendaftaran Pedagang',
-                'description' => $store->name . ' telah menyelesaikan proses pendaftaran sebagai pedagang mitra.',
+                'description' => $store->name.' telah menyelesaikan proses pendaftaran sebagai pedagang mitra.',
                 'dotColor' => 'teal',
             ];
         }
@@ -137,10 +136,10 @@ class DashboardController extends Controller
         $latestOrders = Order::with('user')->latest()->take(2)->get();
         foreach ($latestOrders as $order) {
             $activities[] = [
-                'id' => 'order-' . $order->id,
+                'id' => 'order-'.$order->id,
                 'time' => $order->created_at->diffForHumans(),
-                'title' => 'Pesanan Baru #' . $order->order_number,
-                'description' => 'Transaksi baru senilai Rp ' . number_format($order->total_amount, 0, ',', '.') . ' dibuat oleh ' . ($order->user?->name ?: 'Pelanggan') . '.',
+                'title' => 'Pesanan Baru #'.$order->order_number,
+                'description' => 'Transaksi baru senilai Rp '.number_format($order->total_amount, 0, ',', '.').' dibuat oleh '.($order->user?->name ?: 'Pelanggan').'.',
                 'dotColor' => 'amber',
             ];
         }
@@ -152,9 +151,9 @@ class DashboardController extends Controller
                 'total_sold' => $totalSold,
                 'top_product_name' => $topProductName,
                 'top_category_name' => $topCategoryName,
-                'merchants_trend' => ($merchantsTrend >= 0 ? '+' : '') . $merchantsTrend . '%',
-                'products_trend' => ($productsTrend >= 0 ? '+' : '') . $productsTrend . '%',
-                'sold_trend' => ($soldTrend >= 0 ? '+' : '') . $soldTrend . '%',
+                'merchants_trend' => ($merchantsTrend >= 0 ? '+' : '').$merchantsTrend.'%',
+                'products_trend' => ($productsTrend >= 0 ? '+' : '').$productsTrend.'%',
+                'sold_trend' => ($soldTrend >= 0 ? '+' : '').$soldTrend.'%',
             ],
             'chartData' => $chartData,
             'registrations' => $recentStores,

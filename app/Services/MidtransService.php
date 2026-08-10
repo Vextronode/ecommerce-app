@@ -31,10 +31,10 @@ class MidtransService
     ): array {
         $transactionId = count($orders) === 1
             ? $orders[0]->invoice_number
-            : 'TRX-' . date('YmdHis') . '-' . strtoupper(substr(uniqid(), -4));
+            : 'TRX-'.date('YmdHis').'-'.strtoupper(substr(uniqid(), -4));
 
         $itemDetails = $this->buildItemDetails($orders);
-        $grossAmount = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $itemDetails));
+        $grossAmount = array_sum(array_map(fn ($item) => $item['price'] * $item['quantity'], $itemDetails));
 
         $basePayload = [
             'transaction_details' => [
@@ -77,25 +77,25 @@ class MidtransService
 
             foreach ($order->items as $item) {
                 $itemDetails[] = [
-                    'id' => 'ITEM-' . $item->id,
+                    'id' => 'ITEM-'.$item->id,
                     'price' => (int) $item->price,
                     'quantity' => (int) $item->quantity,
-                    'name' => mb_strimwidth($item->product_name . ($item->variant_name ? " ({$item->variant_name})" : ""), 0, 45, '...'),
+                    'name' => mb_strimwidth($item->product_name.($item->variant_name ? " ({$item->variant_name})" : ''), 0, 45, '...'),
                 ];
             }
 
             if ($order->shipping_cost > 0) {
                 $storeName = $order->store ? $order->store->name : 'Toko';
                 $itemDetails[] = [
-                    'id' => 'SHIP-' . $order->id,
+                    'id' => 'SHIP-'.$order->id,
                     'price' => (int) $order->shipping_cost,
                     'quantity' => 1,
-                    'name' => mb_strimwidth('Ongkir (' . $storeName . ')', 0, 45, '...'),
+                    'name' => mb_strimwidth('Ongkir ('.$storeName.')', 0, 45, '...'),
                 ];
             }
         }
 
-        $itemsSum = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $itemDetails));
+        $itemsSum = array_sum(array_map(fn ($item) => $item['price'] * $item['quantity'], $itemDetails));
         if ($grossAmount > $itemsSum) {
             $itemDetails[] = [
                 'id' => 'ADMIN-FEE',
@@ -142,7 +142,7 @@ class MidtransService
                 'payment_type' => 'echannel',
                 'echannel' => [
                     'bill_info1' => 'Pembayaran Belanja:',
-                    'bill_info2' => 'Pesanan ' . mb_strimwidth($transactionId, 0, 10, ''),
+                    'bill_info2' => 'Pesanan '.mb_strimwidth($transactionId, 0, 10, ''),
                 ],
             ],
             'qris' => [
@@ -184,24 +184,24 @@ class MidtransService
         $deeplinkUrl = null;
 
         // Virtual Account (BCA, BNI, BRI)
-        if (!empty($resp['va_numbers']) && is_array($resp['va_numbers'])) {
+        if (! empty($resp['va_numbers']) && is_array($resp['va_numbers'])) {
             $vaObj = (array) $resp['va_numbers'][0];
             $vaNumber = $vaObj['va_number'] ?? null;
         }
 
         //  Permata VA
-        if (empty($vaNumber) && !empty($resp['permata_va_number'])) {
+        if (empty($vaNumber) && ! empty($resp['permata_va_number'])) {
             $vaNumber = $resp['permata_va_number'];
         }
 
         //  Mandiri Bill (echannel)
-        if (!empty($resp['bill_key'])) {
+        if (! empty($resp['bill_key'])) {
             $billKey = $resp['bill_key'];
             $billerCode = $resp['biller_code'] ?? '70012';
         }
 
         //  QRIS & GoPay Actions (QR Code URL & Deeplink)
-        if (!empty($resp['actions']) && is_array($resp['actions'])) {
+        if (! empty($resp['actions']) && is_array($resp['actions'])) {
             foreach ($resp['actions'] as $action) {
                 $act = (array) $action;
                 $actionName = $act['name'] ?? '';
@@ -216,14 +216,14 @@ class MidtransService
         }
 
         // Fallback for QR Code URL if returned directly
-        if (empty($qrCodeUrl) && !empty($resp['qr_string'])) {
+        if (empty($qrCodeUrl) && ! empty($resp['qr_string'])) {
             // Use QR code generator API URL if raw qr_string is given
-            $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($resp['qr_string']);
+            $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='.urlencode($resp['qr_string']);
         }
 
         //  Expiry Time
         $expiryTime = null;
-        if (!empty($resp['expiry_time'])) {
+        if (! empty($resp['expiry_time'])) {
             try {
                 $expiryTime = Carbon::parse($resp['expiry_time']);
             } catch (\Exception $e) {
@@ -261,7 +261,7 @@ class MidtransService
         $serverKey = config('services.midtrans.server_key');
 
         $inputSignature = $notificationData['signature_key'] ?? '';
-        $calculatedSignature = hash("sha512", $orderId . $statusCode . $grossAmount . $serverKey);
+        $calculatedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
 
         return $inputSignature === $calculatedSignature;
     }
@@ -274,7 +274,8 @@ class MidtransService
         try {
             return Transaction::status($orderId);
         } catch (\Exception $e) {
-            Log::warning("Midtrans getTransactionStatus error for {$orderId}: " . $e->getMessage());
+            Log::warning("Midtrans getTransactionStatus error for {$orderId}: ".$e->getMessage());
+
             return null;
         }
     }
@@ -287,7 +288,8 @@ class MidtransService
         try {
             return Transaction::cancel($orderId);
         } catch (\Exception $e) {
-            Log::warning("Midtrans cancelTransaction error for {$orderId}: " . $e->getMessage());
+            Log::warning("Midtrans cancelTransaction error for {$orderId}: ".$e->getMessage());
+
             return null;
         }
     }

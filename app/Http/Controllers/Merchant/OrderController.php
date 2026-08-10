@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -14,7 +15,7 @@ class OrderController extends Controller
     {
         $store = $request->user()->store;
 
-        if (!$store) {
+        if (! $store) {
             return redirect()->route('merchant.store.setup');
         }
 
@@ -26,7 +27,7 @@ class OrderController extends Controller
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('invoice_number', 'like', "%{$search}%")
-                      ->orWhere('customer_name', 'like', "%{$search}%");
+                        ->orWhere('customer_name', 'like', "%{$search}%");
                 });
             })
             ->when($status !== 'all', function ($query) use ($status) {
@@ -38,12 +39,13 @@ class OrderController extends Controller
 
         $orders->getCollection()->transform(function ($order) {
             if ($order->delivery_method === 'local_delivery' && in_array($order->shipping_status, ['processing', 'pending'])) {
-                $order->handover_url = \Illuminate\Support\Facades\URL::signedRoute(
+                $order->handover_url = URL::signedRoute(
                     'tracker.handover',
                     ['invoice_number' => $order->invoice_number],
                     now()->addHours(24) // Valid for 24 hours
                 );
             }
+
             return $order;
         });
 

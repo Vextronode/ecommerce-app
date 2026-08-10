@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Merchant;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Order;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class CustomerController extends Controller
 {
@@ -16,7 +16,7 @@ class CustomerController extends Controller
         $user = $request->user()->load('store');
         $storeId = $user->store ? $user->store->id : null;
 
-        if (!$storeId) {
+        if (! $storeId) {
             return redirect()->route('merchant.store.setup');
         }
 
@@ -28,14 +28,14 @@ class CustomerController extends Controller
         // Total Customers Last Month Metric
         $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
         $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
-        
+
         $totalCustomersLastMonth = Order::where('store_id', $storeId)
             ->where('created_at', '<', Carbon::now()->startOfMonth())
             ->distinct('user_id')
             ->count('user_id');
 
-        $totalCustomersGrowth = $totalCustomersLastMonth > 0 
-            ? (($totalCustomers - $totalCustomersLastMonth) / $totalCustomersLastMonth) * 100 
+        $totalCustomersGrowth = $totalCustomersLastMonth > 0
+            ? (($totalCustomers - $totalCustomersLastMonth) / $totalCustomersLastMonth) * 100
             : ($totalCustomers > 0 ? 100 : 0);
 
         // New Customers This Month Metric
@@ -62,54 +62,54 @@ class CustomerController extends Controller
         $query = User::whereHas('orders', function ($query) use ($storeId) {
             $query->where('store_id', $storeId);
         })
-        ->withCount(['orders as store_orders_count' => function ($query) use ($storeId) {
-            $query->where('store_id', $storeId);
-        }])
-        ->withSum(['orders as store_total_spent' => function ($query) use ($storeId) {
-            $query->where('store_id', $storeId);
-        }], 'total_amount')
-        ->addSelect([
-            'join_date' => Order::selectRaw('MIN(created_at)')
-                ->whereColumn('user_id', 'users.id')
-                ->where('store_id', $storeId)
-                ->limit(1),
-            'latest_phone' => Order::select('customer_phone')
-                ->whereColumn('user_id', 'users.id')
-                ->where('store_id', $storeId)
-                ->orderByDesc('created_at')
-                ->limit(1)
-        ]);
+            ->withCount(['orders as store_orders_count' => function ($query) use ($storeId) {
+                $query->where('store_id', $storeId);
+            }])
+            ->withSum(['orders as store_total_spent' => function ($query) use ($storeId) {
+                $query->where('store_id', $storeId);
+            }], 'total_amount')
+            ->addSelect([
+                'join_date' => Order::selectRaw('MIN(created_at)')
+                    ->whereColumn('user_id', 'users.id')
+                    ->where('store_id', $storeId)
+                    ->limit(1),
+                'latest_phone' => Order::select('customer_phone')
+                    ->whereColumn('user_id', 'users.id')
+                    ->where('store_id', $storeId)
+                    ->orderByDesc('created_at')
+                    ->limit(1),
+            ]);
 
         // Filter by Status
         if ($statusFilter === 'New') {
             $thirtyDaysAgo = Carbon::now()->subDays(30);
-            $query->whereIn('id', function($q) use ($storeId, $thirtyDaysAgo) {
+            $query->whereIn('id', function ($q) use ($storeId, $thirtyDaysAgo) {
                 $q->select('user_id')
-                  ->from('orders')
-                  ->where('store_id', $storeId)
-                  ->groupBy('user_id')
-                  ->havingRaw('MIN(created_at) >= ?', [$thirtyDaysAgo]);
+                    ->from('orders')
+                    ->where('store_id', $storeId)
+                    ->groupBy('user_id')
+                    ->havingRaw('MIN(created_at) >= ?', [$thirtyDaysAgo]);
             });
         } elseif ($statusFilter === 'Active') {
             $thirtyDaysAgo = Carbon::now()->subDays(30);
-            $query->whereIn('id', function($q) use ($storeId, $thirtyDaysAgo) {
+            $query->whereIn('id', function ($q) use ($storeId, $thirtyDaysAgo) {
                 $q->select('user_id')
-                  ->from('orders')
-                  ->where('store_id', $storeId)
-                  ->groupBy('user_id')
-                  ->havingRaw('MIN(created_at) < ?', [$thirtyDaysAgo]);
+                    ->from('orders')
+                    ->where('store_id', $storeId)
+                    ->groupBy('user_id')
+                    ->havingRaw('MIN(created_at) < ?', [$thirtyDaysAgo]);
             });
         }
 
         $customers = $query->paginate(10)->through(function ($user) {
             $joinDate = Carbon::parse($user->join_date);
             $isNew = $joinDate->diffInDays(Carbon::now()) <= 30;
-            
+
             return [
                 'id' => $user->id,
-                'customer_id' => '#CUS-' . str_pad($user->id, 2, '0', STR_PAD_LEFT),
+                'customer_id' => '#CUS-'.str_pad($user->id, 2, '0', STR_PAD_LEFT),
                 'name' => $user->name,
-                'avatar' => $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : null,
+                'avatar' => $user->profile_photo_path ? asset('storage/'.$user->profile_photo_path) : null,
                 'email' => $user->email,
                 'phone' => $user->latest_phone ?? $user->phone ?? '-',
                 'orders_count' => $user->store_orders_count,
@@ -128,8 +128,8 @@ class CustomerController extends Controller
             ],
             'customers' => $customers,
             'filters' => [
-                'status' => $statusFilter
-            ]
+                'status' => $statusFilter,
+            ],
         ]);
     }
 }

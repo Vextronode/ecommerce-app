@@ -20,7 +20,7 @@ class WithdrawalController extends Controller
         $user = $request->user()->load('store');
         $store = $user->store;
 
-        if (!$store) {
+        if (! $store) {
             return redirect()->route('merchant.store.setup');
         }
 
@@ -79,11 +79,11 @@ class WithdrawalController extends Controller
         $user = $request->user();
         $store = $user->store;
 
-        if (!$store) {
+        if (! $store) {
             return back()->with('error', 'Toko tidak ditemukan.');
         }
 
-        if (!$store->bank_name || !$store->bank_account_number || !$store->bank_account_holder) {
+        if (! $store->bank_name || ! $store->bank_account_number || ! $store->bank_account_holder) {
             return back()->with('error', 'Silakan lengkapi informasi rekening bank terlebih dahulu.');
         }
 
@@ -98,7 +98,7 @@ class WithdrawalController extends Controller
         ]);
 
         $amount = (float) $validated['amount'];
-        $refNo = 'WD-' . date('YmdHis') . '-' . strtoupper(substr(uniqid(), -4));
+        $refNo = 'WD-'.date('YmdHis').'-'.strtoupper(substr(uniqid(), -4));
 
         try {
             DB::transaction(function () use ($store, $amount, $refNo, $irisService) {
@@ -107,7 +107,7 @@ class WithdrawalController extends Controller
 
                 if ($lockedStore->available_balance < $amount) {
                     throw ValidationException::withMessages([
-                        'amount' => 'Saldo yang dapat ditarik tidak mencukupi (Tersedia: Rp ' . number_format($lockedStore->available_balance, 0, ',', '.') . ').',
+                        'amount' => 'Saldo yang dapat ditarik tidak mencukupi (Tersedia: Rp '.number_format($lockedStore->available_balance, 0, ',', '.').').',
                     ]);
                 }
 
@@ -131,7 +131,7 @@ class WithdrawalController extends Controller
                     'beneficiary_account' => $lockedStore->bank_account_number,
                     'beneficiary_bank' => $lockedStore->bank_name,
                     'amount' => $amount,
-                    'notes' => 'Withdrawal ' . $refNo,
+                    'notes' => 'Withdrawal '.$refNo,
                 ]);
 
                 Log::info("Withdrawal {$refNo} completed for store {$lockedStore->id}, amount: Rp {$amount}", (array) $irisResult);
@@ -139,10 +139,11 @@ class WithdrawalController extends Controller
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
-            Log::error("Withdrawal failed for store {$store->id}: " . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan sistem saat memproses penarikan: ' . $e->getMessage());
+            Log::error("Withdrawal failed for store {$store->id}: ".$e->getMessage());
+
+            return back()->with('error', 'Terjadi kesalahan sistem saat memproses penarikan: '.$e->getMessage());
         }
 
-        return back()->with('success', 'Penarikan saldo sebesar Rp ' . number_format($amount, 0, ',', '.') . ' berhasil diproses!');
+        return back()->with('success', 'Penarikan saldo sebesar Rp '.number_format($amount, 0, ',', '.').' berhasil diproses!');
     }
 }

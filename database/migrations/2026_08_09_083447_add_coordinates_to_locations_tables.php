@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('stores', 'latitude')) {
+        if (! Schema::hasColumn('stores', 'latitude')) {
             Schema::table('stores', function (Blueprint $table) {
                 $table->decimal('latitude', 10, 8)->nullable()->after('address');
                 $table->decimal('longitude', 11, 8)->nullable()->after('latitude');

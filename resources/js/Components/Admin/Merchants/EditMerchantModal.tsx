@@ -16,17 +16,15 @@ export default function EditMerchantModal({
     onClose,
     merchant,
 }: Props) {
-    if (!isOpen || !merchant) return null;
-
-    const [name, setName] = useState(merchant.name || "");
-    const [email, setEmail] = useState(merchant.email || "");
-    const [phone, setPhone] = useState(merchant.phone === "-" ? "" : merchant.phone || "");
-    const [storeName, setStoreName] = useState(merchant.store?.name || "");
-    const [subdistrict, setSubdistrict] = useState(merchant.store?.subdistrict || "Cibenda");
-    const [address, setAddress] = useState(merchant.store?.address === "-" ? "" : merchant.store?.address || "");
-    const [description, setDescription] = useState(merchant.store?.description || "");
-    const [status, setStatus] = useState(merchant.status || "active");
-    const [sidStatus, setSidStatus] = useState(merchant.store?.sid_status || "verified");
+    const [name, setName] = useState(merchant?.name || "");
+    const [email, setEmail] = useState(merchant?.email || "");
+    const [phone, setPhone] = useState(merchant?.phone === "-" ? "" : merchant?.phone || "");
+    const [storeName, setStoreName] = useState(merchant?.store?.name || "");
+    const [subdistrict, setSubdistrict] = useState(merchant?.store?.subdistrict || "Cibenda");
+    const [address, setAddress] = useState(merchant?.store?.address === "-" ? "" : merchant?.store?.address || "");
+    const [description, setDescription] = useState(merchant?.store?.description || "");
+    const [status, setStatus] = useState(merchant?.status || "active");
+    const [sidStatus, setSidStatus] = useState(merchant?.store?.sid_status || "verified");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,6 +42,8 @@ export default function EditMerchantModal({
             setPassword("");
         }
     }, [merchant]);
+
+    if (!isOpen || !merchant) return null;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

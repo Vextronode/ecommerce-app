@@ -46,7 +46,9 @@ class PaymentController extends Controller
                         DB::transaction(function () use ($siblingOrders, $trxStatus, $fraudStatus) {
                             foreach ($siblingOrders as $sib) {
                                 $lockedSib = Order::where('id', $sib->id)->lockForUpdate()->first();
-                                if (!$lockedSib) continue;
+                                if (! $lockedSib) {
+                                    continue;
+                                }
 
                                 if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
                                     $lockedSib->update(['payment_status' => 'paid']);
@@ -73,7 +75,7 @@ class PaymentController extends Controller
 
         // Build structured payment info
         $deeplinkUrl = null;
-        if (!empty($order->payment_payload['actions']) && is_array($order->payment_payload['actions'])) {
+        if (! empty($order->payment_payload['actions']) && is_array($order->payment_payload['actions'])) {
             foreach ($order->payment_payload['actions'] as $action) {
                 $act = (array) $action;
                 if (in_array($act['name'] ?? '', ['deeplink-redirect', 'mobile-deeplink-redirect'])) {
@@ -131,7 +133,9 @@ class PaymentController extends Controller
                         DB::transaction(function () use ($siblingOrders, $trxStatus, $fraudStatus) {
                             foreach ($siblingOrders as $sib) {
                                 $lockedSib = Order::where('id', $sib->id)->lockForUpdate()->first();
-                                if (!$lockedSib) continue;
+                                if (! $lockedSib) {
+                                    continue;
+                                }
 
                                 if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
                                     $lockedSib->update(['payment_status' => 'paid']);

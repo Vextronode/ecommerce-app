@@ -20,9 +20,9 @@ export default function DeleteMerchantModal({
     onClose,
     merchant,
 }: Props) {
-    if (!isOpen || !merchant) return null;
-
     const [isDeleting, setIsDeleting] = useState(false);
+
+    if (!isOpen || !merchant) return null;
 
     const handleDelete = () => {
         setIsDeleting(true);

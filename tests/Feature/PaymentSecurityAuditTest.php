@@ -2,14 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductSku;
-use App\Models\ProductVariant;
 use App\Models\Store;
 use App\Models\User;
 use App\Models\Withdrawal;
@@ -34,7 +32,7 @@ class PaymentSecurityAuditTest extends TestCase
         $store = Store::create([
             'user_id' => $merchant->id,
             'name' => 'Toko Nelayan',
-            'slug' => 'toko-nelayan-' . Str::random(6),
+            'slug' => 'toko-nelayan-'.Str::random(6),
             'balance' => 50000,
             'bank_name' => 'BCA',
             'bank_account_number' => '1234567890',
@@ -65,7 +63,7 @@ class PaymentSecurityAuditTest extends TestCase
         $store = Store::create([
             'user_id' => $merchant->id,
             'name' => 'Toko Segar',
-            'slug' => 'toko-segar-' . Str::random(6),
+            'slug' => 'toko-segar-'.Str::random(6),
             'balance' => 0,
         ]);
 
@@ -108,17 +106,17 @@ class PaymentSecurityAuditTest extends TestCase
         $store = Store::create([
             'user_id' => $merchant->id,
             'name' => 'Toko Ikan',
-            'slug' => 'toko-ikan-' . Str::random(6),
+            'slug' => 'toko-ikan-'.Str::random(6),
         ]);
         $category = Category::create([
             'name' => 'Ikan Laut',
-            'slug' => 'ikan-laut-' . Str::random(6),
+            'slug' => 'ikan-laut-'.Str::random(6),
         ]);
         $product = Product::create([
             'store_id' => $store->id,
             'category_id' => $category->id,
             'name' => 'Ikan Cakalang',
-            'slug' => 'ikan-cakalang-' . Str::random(6),
+            'slug' => 'ikan-cakalang-'.Str::random(6),
             'price' => 50000,
             'stock' => 10,
             'is_active' => true,
@@ -170,7 +168,7 @@ class PaymentSecurityAuditTest extends TestCase
         $store = Store::create([
             'user_id' => $merchant->id,
             'name' => 'Toko Udang',
-            'slug' => 'toko-udang-' . Str::random(6),
+            'slug' => 'toko-udang-'.Str::random(6),
         ]);
         $buyer = User::factory()->create(['role' => 'user']);
         $order = Order::create([
@@ -218,12 +216,12 @@ class PaymentSecurityAuditTest extends TestCase
         $store1 = Store::create([
             'user_id' => User::factory()->create(['role' => 'pedagang'])->id,
             'name' => 'Store 1',
-            'slug' => 'store-1-' . Str::random(6),
+            'slug' => 'store-1-'.Str::random(6),
         ]);
         $store2 = Store::create([
             'user_id' => User::factory()->create(['role' => 'pedagang'])->id,
             'name' => 'Store 2',
-            'slug' => 'store-2-' . Str::random(6),
+            'slug' => 'store-2-'.Str::random(6),
         ]);
 
         $parentTrxId = 'TRX-MULTI-STORE-999';
@@ -291,7 +289,7 @@ class PaymentSecurityAuditTest extends TestCase
         $store = Store::create([
             'user_id' => User::factory()->create(['role' => 'pedagang'])->id,
             'name' => 'Store Nelayan',
-            'slug' => 'store-nelayan-' . Str::random(6),
+            'slug' => 'store-nelayan-'.Str::random(6),
         ]);
 
         $order = Order::create([
@@ -384,8 +382,8 @@ class PaymentSecurityAuditTest extends TestCase
                     'variant_name' => 'Blue Rim',
                     'price' => -50000, // Negative price exploit!
                     'stock' => -10,   // Negative stock!
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $response->assertSessionHasErrors(['skus.0.price', 'skus.0.stock']);
@@ -549,7 +547,7 @@ class PaymentSecurityAuditTest extends TestCase
         $store = Store::create([
             'user_id' => $merchant->id,
             'name' => 'Toko Aman',
-            'slug' => 'toko-aman-' . Str::random(6),
+            'slug' => 'toko-aman-'.Str::random(6),
         ]);
         $buyer = User::factory()->create(['role' => 'user']);
         $order = Order::create([
@@ -570,7 +568,7 @@ class PaymentSecurityAuditTest extends TestCase
         ]);
 
         $serverKey = config('services.midtrans.server_key', 'dummy_server_key');
-        $rawSignature = 'ORD-ALREADY-PAID200110000.00' . $serverKey;
+        $rawSignature = 'ORD-ALREADY-PAID200110000.00'.$serverKey;
         $signatureKey = hash('sha512', $rawSignature);
 
         // Send a late 'expire' notification
@@ -596,17 +594,17 @@ class PaymentSecurityAuditTest extends TestCase
         $store = Store::create([
             'user_id' => $merchant->id,
             'name' => 'Toko Seafood',
-            'slug' => 'toko-seafood-' . Str::random(6),
+            'slug' => 'toko-seafood-'.Str::random(6),
         ]);
         $category = Category::create([
             'name' => 'Udang',
-            'slug' => 'udang-' . Str::random(6),
+            'slug' => 'udang-'.Str::random(6),
         ]);
         $product = Product::create([
             'store_id' => $store->id,
             'category_id' => $category->id,
             'name' => 'Udang Vaname',
-            'slug' => 'udang-vaname-' . Str::random(6),
+            'slug' => 'udang-vaname-'.Str::random(6),
             'price' => 70000,
             'stock' => 10,
             'is_active' => true,

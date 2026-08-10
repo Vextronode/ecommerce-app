@@ -36,7 +36,7 @@ class AuthenticatedSessionController extends Controller
         $isPasswordChanged = $request->user()->is_password_changed;
 
         if ($role === 'pedagang') {
-            if (!$isPasswordChanged) {
+            if (! $isPasswordChanged) {
                 return redirect()->intended(route('merchant.store.setup', absolute: false));
             }
 
@@ -58,8 +58,8 @@ class AuthenticatedSessionController extends Controller
             || $request->is('pedagang/*')
             || str_contains((string) $request->headers->get('referer'), '/pedagang');
         $isAdmin = $request->input('source') === 'admin'
-            || $request->is($adminPrefix . '/*')
-            || str_contains((string) $request->headers->get('referer'), '/' . $adminPrefix);
+            || $request->is($adminPrefix.'/*')
+            || str_contains((string) $request->headers->get('referer'), '/'.$adminPrefix);
 
         $redirectTo = route('login');
         if ($isMerchant) {

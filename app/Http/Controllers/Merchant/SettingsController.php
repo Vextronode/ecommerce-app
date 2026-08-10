@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Merchant;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use App\Models\Store;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class SettingsController extends Controller
 {
@@ -19,7 +19,7 @@ class SettingsController extends Controller
         $user = Auth::user();
         $store = Store::where('user_id', $user->id)->first();
 
-        if (!$store) {
+        if (! $store) {
             return redirect()->route('merchant.store.setup');
         }
 
@@ -41,7 +41,7 @@ class SettingsController extends Controller
                 'address' => $store->address,
                 'latitude' => (float) $store->latitude,
                 'longitude' => (float) $store->longitude,
-            ]
+            ],
         ]);
     }
 
@@ -55,7 +55,7 @@ class SettingsController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            
+
             'store_name' => ['required', 'string', 'max:255', Rule::unique('stores', 'name')->ignore($store->id)],
             'username' => ['nullable', 'string', 'max:100', Rule::unique('stores', 'slug')->ignore($store->id)],
             'support_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
@@ -81,7 +81,7 @@ class SettingsController extends Controller
             if ($store->logo_path && $store->logo_path !== $user->profile_photo_path) {
                 Storage::disk('public')->delete($store->logo_path);
             }
-            
+
             $path = $request->file('photo')->store('profile-photos', 'public');
             $user->profile_photo_path = $path;
             $store->logo_path = $path;
@@ -90,13 +90,13 @@ class SettingsController extends Controller
         $user->save();
 
         $store->name = $request->store_name;
-        if (!empty($request->username)) {
+        if (! empty($request->username)) {
             $store->slug = Str::slug($request->username);
         }
         $store->support_email = $request->support_email;
         $store->description = $request->store_description;
         $store->address = $request->store_address;
-        
+
         if ($request->filled('latitude') && $request->filled('longitude')) {
             $store->latitude = $request->latitude;
             $store->longitude = $request->longitude;
@@ -107,4 +107,3 @@ class SettingsController extends Controller
         return redirect()->back()->with('success', 'Pengaturan profil dan toko berhasil diperbarui.');
     }
 }
-

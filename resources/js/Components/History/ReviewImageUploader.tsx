@@ -66,7 +66,7 @@ export default function ReviewImageUploader({
                         {images[idx]?.type?.startsWith('video/') ? (
                             <video src={src} className="w-full h-full object-cover" />
                         ) : (
-                            <img src={src} className="w-full h-full object-cover" />
+                            <img src={src} alt="Preview ulasan" className="w-full h-full object-cover" />
                         )}
                         <button
                             type="button"

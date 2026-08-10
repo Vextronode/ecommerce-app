@@ -16,7 +16,7 @@ class ProductController extends Controller
     {
         $user = $request->user()->load('store');
 
-        if (!$user->store) {
+        if (! $user->store) {
             return redirect()->route('merchant.store.setup');
         }
 
@@ -100,7 +100,7 @@ class ProductController extends Controller
 
         $user = $request->user()->load('store');
 
-        if (!$user->store) {
+        if (! $user->store) {
             return redirect()->route('merchant.store.setup');
         }
 
@@ -109,7 +109,7 @@ class ProductController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'price' => $basePrice,
-            'slug' => Str::slug($request->name) . '-' . uniqid(),
+            'slug' => Str::slug($request->name).'-'.uniqid(),
             'unit' => $request->unit,
             'stock' => $totalStock,
             'is_active' => true,
@@ -121,7 +121,7 @@ class ProductController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $file) {
                 $path = $file->store('products', 'public');
-                $url = '/storage/' . $path;
+                $url = '/storage/'.$path;
 
                 if ($index === 0) {
                     $product->update(['image_path' => $url]);
@@ -132,9 +132,9 @@ class ProductController extends Controller
 
         if ($request->has('variants') && is_array($request->variants)) {
             foreach ($request->variants as $variantData) {
-                if (!empty($variantData['name'])) {
+                if (! empty($variantData['name'])) {
                     $variant = $product->variants()->create(['name' => $variantData['name']]);
-                    if (!empty($variantData['options'])) {
+                    if (! empty($variantData['options'])) {
                         foreach ($variantData['options'] as $optionName) {
                             $variant->options()->create(['name' => $optionName]);
                         }
@@ -213,7 +213,7 @@ class ProductController extends Controller
         $product->update([
             'category_id' => $request->category_id,
             'name' => $request->name,
-            'slug' => Str::slug($request->name . '-' . uniqid()),
+            'slug' => Str::slug($request->name.'-'.uniqid()),
             'description' => $request->description,
             'price' => $basePrice,
             'stock' => $totalStock,
@@ -234,7 +234,7 @@ class ProductController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
                 $path = $file->store('products', 'public');
-                $url = '/storage/' . $path;
+                $url = '/storage/'.$path;
                 $product->images()->create(['image_path' => $url]);
             }
         }
@@ -245,9 +245,9 @@ class ProductController extends Controller
         $product->variants()->delete();
         if ($request->has('variants') && is_array($request->variants)) {
             foreach ($request->variants as $variantData) {
-                if (!empty($variantData['name'])) {
+                if (! empty($variantData['name'])) {
                     $variant = $product->variants()->create(['name' => $variantData['name']]);
-                    if (!empty($variantData['options'])) {
+                    if (! empty($variantData['options'])) {
                         foreach ($variantData['options'] as $optionName) {
                             $variant->options()->create(['name' => $optionName]);
                         }
@@ -291,7 +291,7 @@ class ProductController extends Controller
 
     private function safeDeleteStoredFile(?string $path): void
     {
-        if (!$path) {
+        if (! $path) {
             return;
         }
 

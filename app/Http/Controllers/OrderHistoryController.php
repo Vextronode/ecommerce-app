@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -18,10 +20,10 @@ class OrderHistoryController extends Controller
 
         if ($status === 'rating') {
             // Ambil semua item pesanan dari pesanan yang sudah 'delivered'
-            $items = \App\Models\OrderItem::with(['product', 'order.store', 'review'])
+            $items = OrderItem::with(['product', 'order.store', 'review'])
                 ->whereHas('order', function ($query) {
                     $query->where('user_id', auth()->id())
-                          ->where('shipping_status', 'delivered');
+                        ->where('shipping_status', 'delivered');
                 })
                 ->latest()
                 ->get();
@@ -48,7 +50,7 @@ class OrderHistoryController extends Controller
             if ($status !== 'all') {
                 if ($status === 'unpaid') {
                     $query->where('payment_status', 'pending');
-                } else if ($status === 'cancelled') {
+                } elseif ($status === 'cancelled') {
                     $query->where('shipping_status', 'cancelled');
                 } else {
                     $query->where('shipping_status', $status);
@@ -61,7 +63,7 @@ class OrderHistoryController extends Controller
                     $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
                     if ($midtransOrderId) {
                         try {
-                            $midtransService = app(\App\Services\MidtransService::class);
+                            $midtransService = app(MidtransService::class);
                             $statusResp = $midtransService->getTransactionStatus($midtransOrderId);
 
                             if ($statusResp) {
@@ -100,7 +102,7 @@ class OrderHistoryController extends Controller
                             'product_slug' => $item->product ? $item->product->slug : null,
                             'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
                         ];
-                    })
+                    }),
                 ];
             });
         }
@@ -108,7 +110,7 @@ class OrderHistoryController extends Controller
         return Inertia::render('History/Index', [
             'orders' => $orders,
             'ratingItems' => $ratingItems,
-            'currentStatus' => $status
+            'currentStatus' => $status,
         ]);
     }
 
@@ -123,6 +125,7 @@ class OrderHistoryController extends Controller
                 if ($order->payment_method === 'cod' || $order->payment_status === 'paid') {
                     return 'Menunggu Konfirmasi';
                 }
+
                 return 'Belum Bayar';
             case 'processing':
                 return 'Dikemas';
@@ -169,11 +172,11 @@ class OrderHistoryController extends Controller
                     'product_slug' => $item->product ? $item->product->slug : null,
                     'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
                 ];
-            })
+            }),
         ];
 
         return Inertia::render('History/Show', [
-            'order' => $orderData
+            'order' => $orderData,
         ]);
     }
 
@@ -192,7 +195,7 @@ class OrderHistoryController extends Controller
 
             $order->update([
                 'shipping_status' => 'cancelled',
-                'payment_status' => 'failed'
+                'payment_status' => 'failed',
             ]);
 
             // Thread-safe stock restoration
@@ -216,7 +219,7 @@ class OrderHistoryController extends Controller
 
             $order->update([
                 'shipping_status' => 'delivered',
-                'payment_status' => 'paid'
+                'payment_status' => 'paid',
             ]);
 
             // Idempotent and thread-safe balance credit to store

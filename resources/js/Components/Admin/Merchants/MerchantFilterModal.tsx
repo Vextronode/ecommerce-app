@@ -18,13 +18,13 @@ export default function MerchantFilterModal({
     onClose,
     currentFilters,
 }: Props) {
-    if (!isOpen) return null;
-
     const [status, setStatus] = useState(currentFilters.status || "");
     const [sidStatus, setSidStatus] = useState(currentFilters.sid_status || "");
     const [subdistrict, setSubdistrict] = useState(
         currentFilters.subdistrict || "",
     );
+
+    if (!isOpen) return null;
 
     const handleApply = (e: React.FormEvent) => {
         e.preventDefault();

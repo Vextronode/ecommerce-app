@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Store;
 use App\Models\Category;
-use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderItem;
-use Illuminate\Support\Str;
+use App\Models\Product;
+use App\Models\Store;
+use App\Models\User;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -121,7 +121,7 @@ class DatabaseSeeder extends Seeder
             'store_id' => $storeAsep->id,
             'category_id' => $sembakoId,
             'name' => 'Beras Pandan Wangi 5kg',
-            'slug' => Str::slug('Beras Pandan Wangi 5kg-' . uniqid()),
+            'slug' => Str::slug('Beras Pandan Wangi 5kg-'.uniqid()),
             'description' => 'Beras pulen kualitas premium dari petani lokal.',
             'price' => 75000,
             'stock' => 20,
@@ -132,7 +132,7 @@ class DatabaseSeeder extends Seeder
             'store_id' => $storeAsep->id,
             'category_id' => $seafoodId,
             'name' => 'Udang Tiger Segar 1kg',
-            'slug' => Str::slug('Udang Tiger Segar 1kg-' . uniqid()),
+            'slug' => Str::slug('Udang Tiger Segar 1kg-'.uniqid()),
             'description' => 'Udang tangkapan nelayan hari ini.',
             'price' => 120000,
             'stock' => 10,
@@ -164,20 +164,19 @@ class DatabaseSeeder extends Seeder
                 'store_id' => $p['store']->id,
                 'category_id' => $p['cat'],
                 'name' => $p['name'],
-                'slug' => Str::slug($p['name'] . '-' . uniqid()),
-                'description' => 'Produk berkualitas dari ' . $p['store']->name,
+                'slug' => Str::slug($p['name'].'-'.uniqid()),
+                'description' => 'Produk berkualitas dari '.$p['store']->name,
                 'price' => $p['price'],
                 'stock' => rand(10, 50),
                 'is_active' => true,
             ]);
         }
 
-
         // ORDER 1: Udah Lunas & Dikirim (Isinya Beras & Udang)
         $order1 = Order::create([
             'store_id' => $storeAsep->id,
             'user_id' => $budi->id,
-            'invoice_number' => '#ORD-' . strtoupper(Str::random(8)),
+            'invoice_number' => '#ORD-'.strtoupper(Str::random(8)),
             'customer_name' => $budi->name,
             'customer_phone' => '081234567890',
             'shipping_address' => 'Jl. Cibenda Raya No. 1, Pangandaran',
@@ -198,7 +197,7 @@ class DatabaseSeeder extends Seeder
         $order2 = Order::create([
             'store_id' => $storeAsep->id,
             'user_id' => $budi->id,
-            'invoice_number' => '#ORD-' . strtoupper(Str::random(8)),
+            'invoice_number' => '#ORD-'.strtoupper(Str::random(8)),
             'customer_name' => 'Asep Surasep (Teman Budi)',
             'customer_phone' => '089876543210',
             'shipping_address' => 'Desa Parigi Blok C No. 12',
@@ -218,7 +217,7 @@ class DatabaseSeeder extends Seeder
         $order3 = Order::create([
             'store_id' => $storeAsep->id,
             'user_id' => $budi->id,
-            'invoice_number' => '#ORD-' . strtoupper(Str::random(8)),
+            'invoice_number' => '#ORD-'.strtoupper(Str::random(8)),
             'customer_name' => $budi->name,
             'customer_phone' => '081234567890',
             'shipping_address' => 'Jl. Cibenda Raya No. 1, Pangandaran',

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 class MidtransIrisService
 {
     private string $irisApiKey;
+
     private string $baseUrl;
 
     public function __construct()
@@ -39,8 +40,8 @@ class MidtransIrisService
                             'beneficiary_bank' => strtolower($payoutData['beneficiary_bank']),
                             'amount' => (string) $payoutData['amount'],
                             'notes' => $payoutData['notes'] ?? 'Penarikan Saldo Toko',
-                        ]
-                    ]
+                        ],
+                    ],
                 ]);
 
             if ($response->successful()) {
@@ -50,9 +51,9 @@ class MidtransIrisService
                 ];
             }
 
-            Log::warning('Midtrans Iris Payout API Response: ' . $response->body());
+            Log::warning('Midtrans Iris Payout API Response: '.$response->body());
         } catch (\Exception $e) {
-            Log::error('Midtrans Iris Payout Error: ' . $e->getMessage());
+            Log::error('Midtrans Iris Payout Error: '.$e->getMessage());
         }
 
         // Fallback / Simulation mode for Sandbox testing
