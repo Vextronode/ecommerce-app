@@ -53,12 +53,12 @@ export default function AddressSuggestionInput({
 
     return (
         <div className="relative" ref={containerRef}>
-            <label className="text-sm font-bold text-gray-700 mb-2 block">
+            <label htmlFor="field_56" className="text-sm font-bold text-gray-700 mb-2 block">
                 {label}
             </label>
             <div className="relative">
                 {type === "input" ? (
-                    <input
+                    <input id="field_56"
                         type="text"
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
@@ -85,7 +85,7 @@ export default function AddressSuggestionInput({
                 <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-slate-100 max-h-48 overflow-y-auto z-1000 divide-y divide-slate-50">
                     {(suggestions || []).map((item, idx) => (
                         <button
-                            key={idx}
+                            key={suggestion.place_id}
                             type="button"
                             onClick={() => onSelect(item)}
                             className="w-full text-left px-4 py-2.5 hover:bg-slate-50 text-xs text-gray-700 truncate block"

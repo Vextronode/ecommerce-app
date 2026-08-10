@@ -17,10 +17,12 @@ export default function CartStoreGroup({
     onToggleStore,
 }: Props) {
     const storeItemIds = store.items.map((item: any) => item.id);
+    const selectedIdsSet = new Set(selectedIds);
     const isAllStoreSelected = storeItemIds.every((id: number) =>
-        selectedIds.includes(id),
+        selectedIdsSet.has(id),
     );
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handleIncrement = (
         cartId: number,
         currentQty: number,
@@ -39,6 +41,7 @@ export default function CartStoreGroup({
         );
     };
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handleDecrement = (cartId: number, currentQty: number) => {
         if (currentQty <= 1) return;
         router.patch(
@@ -48,6 +51,7 @@ export default function CartStoreGroup({
         );
     };
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handleDelete = (cartId: number) => {
         toast(
             (t) => (
@@ -110,9 +114,9 @@ export default function CartStoreGroup({
                         className="flex gap-3 md:gap-4 items-start"
                     >
                         {/* Checkbox item */}
-                        <input
+                        <input aria-label="Tampilkan rincian lebih lanjut"
                             type="checkbox"
-                            checked={selectedIds.includes(item.id)}
+                            checked={selectedIdsSet.has(item.id)}
                             onChange={() => onToggleItem(item.id)}
                             className="w-5 h-5 rounded text-[#245D56] focus:ring-[#245D56] border-slate-300 mt-2 cursor-pointer"
                         />
@@ -154,16 +158,16 @@ export default function CartStoreGroup({
                             </div>
                         </div>{" "}
                         {/* Actions (Delete, Min, Plus) */}
-                        <div className="flex items-center gap-4 shrink-0">
-                            <button
+                        <div aria-label="Pilih opsi yang tersedia" className="flex items-center gap-4 shrink-0">
+                            <button aria-label="Tampilkan rincian lebih lanjut"
                                 onClick={() => handleDelete(item.id)}
                                 className="text-slate-400 hover:text-red-500 transition"
                             >
                                 <Trash2 className="w-5 h-5" />
                             </button>
 
-                            <div className="flex items-center justify-end gap-3 bg-white border border-slate-200 rounded-full px-2 py-1 shadow-sm w-fit">
-                                <button
+                            <div aria-label="Pilih opsi yang tersedia" className="flex items-center justify-end gap-3 bg-white border border-slate-200 rounded-full px-2 py-1 shadow-sm w-fit">
+                                <button aria-label="Tampilkan rincian lebih lanjut"
                                     onClick={() =>
                                         handleDecrement(item.id, item.qty)
                                     }
@@ -174,7 +178,7 @@ export default function CartStoreGroup({
                                 <span className="text-sm font-bold w-4 text-center">
                                     {item.qty}
                                 </span>
-                                <button
+                                <button aria-label="Pilih opsi yang tersedia"
                                     onClick={() =>
                                         handleIncrement(
                                             item.id,

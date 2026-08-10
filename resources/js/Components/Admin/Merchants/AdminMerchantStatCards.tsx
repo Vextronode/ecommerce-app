@@ -14,7 +14,7 @@ export default function AdminMerchantStatCards({ stats }: Props) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             {/* Akun Suspend */}
-            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
                 <div>
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                         AKUN SUSPEND
@@ -29,7 +29,7 @@ export default function AdminMerchantStatCards({ stats }: Props) {
             </div>
 
             {/* Total Pedagang */}
-            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
                 <div>
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                         TOTAL PEDAGANG
@@ -44,7 +44,7 @@ export default function AdminMerchantStatCards({ stats }: Props) {
             </div>
 
             {/* Toko Terverifikasi */}
-            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
                 <div>
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                         TERVERIFIKASI
@@ -59,7 +59,7 @@ export default function AdminMerchantStatCards({ stats }: Props) {
             </div>
 
             {/* Menunggu Review */}
-            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
                 <div>
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                         MENUNGGU REVIEW

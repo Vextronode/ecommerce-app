@@ -10,10 +10,10 @@ export default function AddressFields({
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-                <label className="text-sm font-bold text-gray-700 mb-2 block">
+                <label htmlFor="field_13" className="text-sm font-bold text-gray-700 mb-2 block">
                     Nama Lengkap
                 </label>
-                <input
+                <input aria-label="Input field" id="field_13"
                     type="text"
                     value={data.recipient_name}
                     onChange={(e) => setData("recipient_name", e.target.value)}
@@ -23,14 +23,14 @@ export default function AddressFields({
                 />
             </div>
             <div>
-                <label className="text-sm font-bold text-gray-700 mb-2 block">
+                <label htmlFor="field_26" className="text-sm font-bold text-gray-700 mb-2 block">
                     Mobile Number
                 </label>
                 <div className="flex">
                     <span className="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-sm font-bold">
                         +62
                     </span>
-                    <input
+                    <input aria-label="Input field" id="field_26"
                         type="number"
                         value={data.phone}
                         onChange={(e) => setData("phone", e.target.value)}

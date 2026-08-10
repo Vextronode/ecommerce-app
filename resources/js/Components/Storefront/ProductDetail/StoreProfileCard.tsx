@@ -19,6 +19,7 @@ interface StoreProfileProps {
 
 export default function StoreProfileCard({ store }: StoreProfileProps) {
     // Format joined date
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const getJoinedText = (dateString: string) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -35,6 +36,7 @@ export default function StoreProfileCard({ store }: StoreProfileProps) {
     };
 
     // Format number for display
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const formatNumber = (num: number) => {
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'JT';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'RB';

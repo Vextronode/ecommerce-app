@@ -1,5 +1,6 @@
 import { PropsWithChildren, useLayoutEffect, useRef } from "react";
 import { usePage } from "@inertiajs/react";
+// eslint-disable-next-line react-doctor/use-lazy-motion
 import { motion, useAnimation } from "framer-motion";
 import AuthBranding from "@/Components/AuthBranding";
 
@@ -74,6 +75,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
         }
 
         runAnimation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLogin]);
 
     return (

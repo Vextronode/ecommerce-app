@@ -6,6 +6,37 @@ interface NotificationSettingsProps {
     settings: Record<string, boolean>;
 }
 
+const ToggleSwitch = ({
+    label,
+    isChecked,
+    onClick,
+}: {
+    label: string;
+    isChecked: boolean;
+    onClick: () => void;
+}) => (
+    <div className="flex items-center justify-between py-4 border-b border-slate-50 last:border-0">
+        <span className="text-sm font-medium text-slate-600">{label}</span>
+        <button
+            aria-label={label}
+            type="button"
+            role="switch"
+            aria-checked={isChecked}
+            onClick={onClick}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isChecked ? "bg-[#245D56]" : "bg-slate-200"
+            }`}
+        >
+            <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    isChecked ? "translate-x-5" : "translate-x-0"
+                }`}
+            />
+        </button>
+    </div>
+);
+
 export default function NotificationSettings({
     settings,
 }: NotificationSettingsProps) {
@@ -36,29 +67,6 @@ export default function NotificationSettings({
             },
         );
     };
-
-    const ToggleSwitch = ({
-        label,
-        isChecked,
-        onClick,
-    }: {
-        label: string;
-        isChecked: boolean;
-        onClick: () => void;
-    }) => (
-        <div className="flex items-center justify-between py-4 border-b border-slate-50 last:border-0">
-            <span className="text-sm font-medium text-slate-600">{label}</span>
-            <button
-                type="button"
-                onClick={onClick}
-                className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${isChecked ? "bg-[#245D56]" : "bg-slate-200"}`}
-            >
-                <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out ${isChecked ? "translate-x-5" : "translate-x-1"}`}
-                />
-            </button>
-        </div>
-    );
 
     return (
         <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 w-full">

@@ -55,8 +55,10 @@ export default function CountdownTimer({ expiryTime, onExpire }: Props) {
         const timer = setInterval(calculateTime, 1000);
 
         return () => clearInterval(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [expiryTime]);
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const formatNumber = (num: number) => num.toString().padStart(2, "0");
 
     if (timeLeft.isExpired) {

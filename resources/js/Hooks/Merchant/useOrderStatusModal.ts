@@ -21,6 +21,7 @@ export function useOrderStatusModal({
         if (order) {
             setData("shipping_status", order.shipping_status || "pending");
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [order, isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {

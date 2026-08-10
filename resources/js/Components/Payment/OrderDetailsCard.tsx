@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import { Store, RefreshCw, Package, ShoppingBag, FileText } from "lucide-react";
+import { formatRupiah } from "@/utils/formatters";
 
 export interface OrderItemProduct {
     id: number;
@@ -41,13 +42,6 @@ interface Props {
     onCheckStatus: () => void;
 }
 
-const formatRupiah = (amount: number | string) => {
-    return new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        minimumFractionDigits: 0,
-    }).format(Number(amount));
-};
 
 export default function OrderDetailsCard({
     order,
@@ -122,7 +116,7 @@ export default function OrderDetailsCard({
                                 : null;
 
                             return (
-                                <div key={idx} className="flex items-center gap-3.5">
+                                <div key={item.id} className="flex items-center gap-3.5">
                                     {imgUrl ? (
                                         <img
                                             src={imgUrl}

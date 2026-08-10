@@ -15,6 +15,7 @@ export default function ProductRecommendations({
     const items = recommendations || products || [];
 
     // Fungsi buat quick add dari rekomendasi
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handleQuickAdd = (e: React.MouseEvent, productId: number | string) => {
         e.preventDefault();
         e.stopPropagation();
@@ -97,9 +98,9 @@ export default function ProductRecommendations({
 
                     return (
                         <Link
-                            key={prod.id || idx}
+                            key={prod.id}
                             href={route("product.detail", slug)}
-                            className="bg-white rounded-2xl p-3 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-gray-200 transition-all duration-300 flex flex-col group/card cursor-pointer"
+                            className="bg-white rounded-2xl p-3 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-gray-200 transition duration-300 flex flex-col group/card cursor-pointer"
                         >
                             <div className="relative mb-2.5 aspect-square rounded-xl overflow-hidden bg-[#F8FAFC]">
                                 <img
@@ -145,7 +146,7 @@ export default function ProductRecommendations({
                                     <button
                                         type="button"
                                         onClick={(e) => handleQuickAdd(e, prod.id)}
-                                        className="p-1 text-[#FF7A00] hover:text-[#E06900] hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                        className="p-1 text-[#FF7A00] hover:text-[#E06900] hover:scale-110 active:scale-95 transition cursor-pointer flex items-center justify-center shrink-0"
                                         title="Tambah ke Keranjang"
                                     >
                                         <ShoppingCart className="w-4 h-4 stroke-[1.8]" />
@@ -159,7 +160,7 @@ export default function ProductRecommendations({
 
             {/* Chevron icon, hidden di mobile */}
             {items.length >= 6 && (
-                <button className="absolute top-[60%] -right-5 -translate-y-1/2 w-10 h-10 bg-[#40E0D0] text-white rounded-full items-center justify-center shadow-lg hover:bg-[#35c9ba] transition z-10 hidden xl:flex">
+                <button aria-label="Action" className="absolute top-[60%] -right-5 -translate-y-1/2 w-10 h-10 bg-[#40E0D0] text-white rounded-full items-center justify-center shadow-lg hover:bg-[#35c9ba] transition z-10 hidden xl:flex">
                     <ChevronRight className="w-6 h-6" />
                 </button>
             )}

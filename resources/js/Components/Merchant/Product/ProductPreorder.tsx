@@ -19,8 +19,8 @@ export default function ProductPreorder({ data, setData }: Props) {
                         Aktifkan jika produk butuh waktu proses/tangkapan.
                     </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                    <input
+                <label htmlFor="field_22" className="relative inline-flex items-center cursor-pointer">
+                    <input aria-label="Tampilkan rincian lebih lanjut" id="field_22"
                         type="checkbox"
                         className="sr-only peer"
                         checked={data.is_preorder}
@@ -28,17 +28,17 @@ export default function ProductPreorder({ data, setData }: Props) {
                             setData("is_preorder", e.target.checked)
                         }
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#41B9C5]"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition peer-checked:bg-[#41B9C5]"></div>
                 </label>
             </div>
 
             {data.is_preorder && (
                 <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-200">
                     <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        <label htmlFor="field_38" className="block text-xs font-semibold text-gray-700 mb-1">
                             Waktu (Hari)
                         </label>
-                        <input
+                        <input id="field_38"
                             type="number"
                             min="0"
                             value={data.po_days}
@@ -47,10 +47,10 @@ export default function ProductPreorder({ data, setData }: Props) {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        <label htmlFor="field_50" className="block text-xs font-semibold text-gray-700 mb-1">
                             Waktu (Jam)
                         </label>
-                        <input
+                        <input id="field_50"
                             type="number"
                             min="0"
                             max="23"

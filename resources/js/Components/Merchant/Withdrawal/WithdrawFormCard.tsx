@@ -1,4 +1,5 @@
 import React from "react";
+import { formatRupiah } from "@/utils/formatters";
 import { Send, Sparkles } from "lucide-react";
 import { useMerchantWithdrawals } from "@/Hooks/Merchant/useMerchantWithdrawals";
 
@@ -46,14 +47,14 @@ export default function WithdrawFormCard({
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-2">
+                    <label htmlFor="field_49" className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-2">
                         Nominal Penarikan
                     </label>
-                    <div className="flex rounded-xl overflow-hidden border border-gray-200 focus-within:border-[#41B9C5] focus-within:ring-1 focus-within:ring-[#41B9C5] bg-gray-50/50 transition-all">
+                    <div className="flex rounded-xl overflow-hidden border border-gray-200 focus-within:border-[#41B9C5] focus-within:ring-1 focus-within:ring-[#41B9C5] bg-gray-50/50 transition">
                         <span className="px-4 py-3 bg-[#F0FAFB] text-[#004F54] font-black text-xs border-r border-gray-200 shrink-0 flex items-center select-none">
                             Rp
                         </span>
-                        <input
+                        <input aria-label="Input field" id="field_49"
                             type="number"
                             placeholder="Contoh: 100000"
                             value={data.amount}
@@ -75,7 +76,7 @@ export default function WithdrawFormCard({
                                 key={preset}
                                 type="button"
                                 onClick={() => handleSelectPreset(preset)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${data.amount === preset.toString()
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border ${data.amount === preset.toString()
                                         ? "bg-[#41B9C5] text-white border-[#41B9C5] shadow-sm shadow-[#41B9C5]/30"
                                         : "bg-[#F0FAFB] hover:bg-[#EAF7F7] text-[#004F54] border-[#41B9C5]/30"
                                     }`}
@@ -86,7 +87,7 @@ export default function WithdrawFormCard({
                         <button
                             type="button"
                             onClick={handleSelectAll}
-                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#EAF7F7] hover:bg-[#d5eded] text-[#004F54] border border-[#41B9C5]/40 transition-all inline-flex items-center gap-1"
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#EAF7F7] hover:bg-[#d5eded] text-[#004F54] border border-[#41B9C5]/40 transition inline-flex items-center gap-1"
                         >
                             <Sparkles className="w-3.5 h-3.5 text-[#41B9C5]" />
                             Tarik Semua
@@ -99,11 +100,7 @@ export default function WithdrawFormCard({
                     <div className="bg-[#F0FAFB] px-4 py-3 rounded-2xl border border-[#41B9C5]/30 flex items-center justify-between text-xs gap-3">
                         <span className="text-gray-600 font-medium truncate">Sisa Saldo Setelah Penarikan:</span>
                         <span className="font-extrabold text-[#004F54] shrink-0 font-mono">
-                            {new Intl.NumberFormat("id-ID", {
-                                style: "currency",
-                                currency: "IDR",
-                                maximumFractionDigits: 0,
-                            }).format(remainingBalance)}
+                            {formatRupiah(remainingBalance)}
                         </span>
                     </div>
                 )}
@@ -111,7 +108,7 @@ export default function WithdrawFormCard({
                 <button
                     type="submit"
                     disabled={processing || availableBalance < 10000}
-                    className="w-full py-3.5 bg-[#41B9C5] hover:bg-[#3498a3] disabled:opacity-50 text-white font-bold rounded-xl shadow-md shadow-[#41B9C5]/30 transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
+                    className="w-full py-3.5 bg-[#41B9C5] hover:bg-[#3498a3] disabled:opacity-50 text-white font-bold rounded-xl shadow-md shadow-[#41B9C5]/30 transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
                 >
                     <Send className="w-4 h-4" />
                     Proses Penarikan Dana

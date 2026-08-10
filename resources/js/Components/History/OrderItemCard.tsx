@@ -27,6 +27,7 @@ interface OrderItemCardProps {
 }
 
 export default function OrderItemCard({ order }: OrderItemCardProps) {
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const getStatusColor = (status: string) => {
         switch (status) {
             case "Selesai":
@@ -44,10 +45,11 @@ export default function OrderItemCard({ order }: OrderItemCardProps) {
     };
 
     return (
-        <Link
-            href={route("history.show", order.id)}
-            className="block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-        >
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <Link
+                href={route("history.show", order.id)}
+                className="block cursor-pointer"
+            >
             {/* Card Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -103,6 +105,7 @@ export default function OrderItemCard({ order }: OrderItemCardProps) {
                     </div>
                 ))}
             </div>
+            </Link>
 
             {/* Card Footer */}
             <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
@@ -133,6 +136,6 @@ export default function OrderItemCard({ order }: OrderItemCardProps) {
                     )}
                 </div>
             </div>
-        </Link>
+        </div>
     );
 }

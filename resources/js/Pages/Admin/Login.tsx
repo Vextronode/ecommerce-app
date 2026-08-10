@@ -29,15 +29,15 @@ export default function AdminLogin() {
                 <form onSubmit={submit} className="space-y-6 w-full">
                     {/* Input Full Name */}
                     <div>
-                        <label className="block text-white text-sm mb-2 font-medium">
+                        <label htmlFor="field_32" className="block text-white text-sm mb-2 font-medium">
                             Full Name<span className="text-red-400">*</span>
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_32"
                             type="text"
                             value={data.name}
                             onChange={(e) => setData("name", e.target.value)}
                             placeholder="Admin CibendaMart"
-                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition-all placeholder:text-gray-400 font-medium"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
                             required
                         />
                         {errors.name && (
@@ -49,15 +49,15 @@ export default function AdminLogin() {
 
                     {/* Input Email */}
                     <div>
-                        <label className="block text-white text-sm mb-2 font-medium">
+                        <label htmlFor="field_52" className="block text-white text-sm mb-2 font-medium">
                             Email<span className="text-red-400">*</span>
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_52"
                             type="email"
                             value={data.email}
                             onChange={(e) => setData("email", e.target.value)}
                             placeholder="admin@cibendamart.com"
-                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition-all placeholder:text-gray-400 font-medium"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
                             required
                         />
                         {errors.email && (
@@ -69,15 +69,15 @@ export default function AdminLogin() {
 
                     {/* Input Password */}
                     <div>
-                        <label className="block text-white text-sm mb-2 font-medium">
+                        <label htmlFor="field_72" className="block text-white text-sm mb-2 font-medium">
                             Password<span className="text-red-400">*</span>
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_72"
                             type="password"
                             value={data.password}
                             onChange={(e) => setData("password", e.target.value)}
                             placeholder="••••••••"
-                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition-all placeholder:text-gray-400 font-medium"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
                             required
                         />
                         {errors.password && (
@@ -92,7 +92,7 @@ export default function AdminLogin() {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full max-w-56 px-6 py-3 rounded-full bg-[#467382] hover:bg-[#3b6370] text-white font-bold transition-all hover:scale-105 disabled:opacity-70 shadow-lg shadow-[#00383C]/60 cursor-pointer"
+                            className="w-full max-w-56 px-6 py-3 rounded-full bg-[#467382] hover:bg-[#3b6370] text-white font-bold transition hover:scale-105 disabled:opacity-70 shadow-lg shadow-[#00383C]/60 cursor-pointer"
                         >
                             {processing ? "Memproses..." : "Masuk"}
                         </button>
@@ -130,7 +130,7 @@ export default function AdminLogin() {
                                 </div>
                             </div>
 
-                            <button
+                            <button aria-label="Action"
                                 type="button"
                                 onClick={() => setIsForgotModalOpen(false)}
                                 className="p-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
@@ -172,7 +172,7 @@ export default function AdminLogin() {
                             <button
                                 type="button"
                                 onClick={() => setIsForgotModalOpen(false)}
-                                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white font-bold text-xs transition-all shadow-lg shadow-[#004F54]/50 cursor-pointer"
+                                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white font-bold text-xs transition shadow-lg shadow-[#004F54]/50 cursor-pointer"
                             >
                                 Mengerti
                             </button>

@@ -87,15 +87,15 @@ export default function Index({ products, categories, filters }: Props) {
                 </div>
                 <Link
                     href={route("merchant.products.create")}
-                    className="flex items-center gap-2 bg-[#41B9C5] hover:bg-[#359a9e] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-[#41B9C5]/30 text-xs md:text-sm w-full sm:w-auto justify-center"
+                    className="flex items-center gap-2 bg-[#41B9C5] hover:bg-[#359a9e] text-white px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-semibold transition shadow-md shadow-[#41B9C5]/30 text-xs md:text-sm w-full sm:w-auto justify-center"
                 >
                     <Plus className="w-4 h-4 md:w-5 md:h-5" /> Add Product
                 </Link>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#41B9C5]/30 p-3 md:p-4 mb-4 md:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
+            <div aria-label="Pilih opsi yang tersedia" className="bg-white rounded-2xl border border-[#41B9C5]/30 p-3 md:p-4 mb-4 md:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
                 <div className="flex flex-wrap gap-2 md:gap-4 w-full sm:w-auto">
-                    <select
+                    <select aria-label="Tampilkan rincian lebih lanjut"
                         value={filters?.category || ""}
                         onChange={(e) =>
                             handleFilterChange("category", e.target.value)
@@ -113,7 +113,7 @@ export default function Index({ products, categories, filters }: Props) {
                         ))}
                     </select>
 
-                    <select
+                    <select aria-label="Tampilkan rincian lebih lanjut"
                         value={filters?.status || ""}
                         onChange={(e) =>
                             handleFilterChange("status", e.target.value)
@@ -131,8 +131,8 @@ export default function Index({ products, categories, filters }: Props) {
                     </select>
                 </div>
 
-                <div className="flex gap-2 self-end sm:self-auto w-full sm:w-auto justify-end">
-                    <button
+                <div aria-label="Pilih opsi yang tersedia" className="flex gap-2 self-end sm:self-auto w-full sm:w-auto justify-end">
+                    <button aria-label="Tampilkan rincian lebih lanjut"
                         onClick={() =>
                             toast.success("Fitur Export segera hadir!")
                         }
@@ -140,13 +140,13 @@ export default function Index({ products, categories, filters }: Props) {
                     >
                         <Download className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
-                    <button
+                    <button aria-label="Pilih opsi yang tersedia"
                         onClick={() => setViewMode("grid")}
                         className={`p-2 md:p-2.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#E0F7FA] text-[#41B9C5]" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"}`}
                     >
                         <Grid className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
-                    <button
+                    <button aria-label="Pilih opsi yang tersedia"
                         onClick={() => setViewMode("list")}
                         className={`p-2 md:p-2.5 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#E0F7FA] text-[#41B9C5]" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"}`}
                     >

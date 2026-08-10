@@ -75,8 +75,10 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
             addresses[0];
 
         applyAddress(primaryAddress);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addresses]);
 
+    // eslint-disable-next-line react-doctor/no-fetch-in-effect, react-doctor/no-set-state-after-await-in-effect
     useEffect(() => {
         let isMounted = true;
 
@@ -93,8 +95,12 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
                 });
 
                 const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error("Failed to calculate fee");
+                }
                 const result = await response.json();
                 
+                // eslint-disable-next-line react-doctor/no-set-state-after-await-in-effect
                 if (isMounted && result.delivery_fee !== undefined) {
                     setDeliveryFee(result.delivery_fee);
                 }

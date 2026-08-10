@@ -30,7 +30,7 @@ export default function Pagination({ pagination }: { pagination: any }) {
 
                     return link.url ? (
                         <Link
-                            key={idx}
+                            key={link.label}
                             href={link.url}
                             className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors ${
                                 link.active

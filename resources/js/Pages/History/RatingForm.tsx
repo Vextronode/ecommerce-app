@@ -68,7 +68,7 @@ export default function RatingForm({ orderItem }: Props) {
 
                         {/* Main Product Rating */}
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                            <label className="block text-sm font-bold text-gray-900 mb-3">Nilai Produk</label>
+                            <label htmlFor="field_71" className="block text-sm font-bold text-gray-900 mb-3">Nilai Produk</label>
                             <StarRating
                                 value={data.rating}
                                 onChange={(val) => setData('rating', val)}
@@ -92,8 +92,8 @@ export default function RatingForm({ orderItem }: Props) {
 
                         {/* Comment */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-800 mb-3">Tulis ulasannya</label>
-                            <textarea
+                            <label htmlFor="field_95" className="block text-sm font-semibold text-gray-800 mb-3">Tulis ulasannya</label>
+                            <textarea aria-label="Input field" id="field_95"
                                 value={data.comment}
                                 onChange={(e) => setData('comment', e.target.value)}
                                 rows={4}

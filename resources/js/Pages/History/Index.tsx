@@ -6,6 +6,16 @@ import RatingItemCard, { RatingItemType } from "@/Components/History/RatingItemC
 import OrderItemCard, { OrderType } from "@/Components/History/OrderItemCard";
 import { useOrderHistoryActions } from "@/Hooks/Storefront/useOrderHistoryActions";
 
+const tabs = [
+    { key: "all", label: "Semua" },
+    { key: "unpaid", label: "Belum Bayar" },
+    { key: "processing", label: "Dikemas" },
+    { key: "shipped", label: "Dikirim" },
+    { key: "delivered", label: "Selesai" },
+    { key: "cancelled", label: "Dibatalkan" },
+    { key: "rating", label: "Beri Penilaian" },
+];
+
 export default function Index({
     orders,
     ratingItems,
@@ -16,16 +26,6 @@ export default function Index({
     currentStatus: string;
 }) {
     const { navigateTab } = useOrderHistoryActions();
-
-    const tabs = [
-        { key: "all", label: "Semua" },
-        { key: "unpaid", label: "Belum Bayar" },
-        { key: "processing", label: "Dikemas" },
-        { key: "shipped", label: "Dikirim" },
-        { key: "delivered", label: "Selesai" },
-        { key: "cancelled", label: "Dibatalkan" },
-        { key: "rating", label: "Beri Penilaian" },
-    ];
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">

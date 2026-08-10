@@ -35,7 +35,7 @@ export default function AdminMerchantRegistrations({ registrations }: Props) {
                     <button
                         type="button"
                         onClick={() => setPeriod("weekly")}
-                        className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg transition cursor-pointer ${
                             period === "weekly"
                                 ? "bg-white text-gray-900 shadow-sm"
                                 : "text-gray-500 hover:text-gray-800"
@@ -46,7 +46,7 @@ export default function AdminMerchantRegistrations({ registrations }: Props) {
                     <button
                         type="button"
                         onClick={() => setPeriod("monthly")}
-                        className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg transition cursor-pointer ${
                             period === "monthly"
                                 ? "bg-white text-gray-900 shadow-sm"
                                 : "text-gray-500 hover:text-gray-800"

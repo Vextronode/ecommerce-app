@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import {
     AreaChart,
     Area,

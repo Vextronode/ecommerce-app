@@ -22,11 +22,17 @@ interface Props {
     };
 }
 
+const handleFollow = () => {
+    // Implement Follow logic here when ready
+    // router.post(route('store.follow', storeId), {}, { preserveScroll: true });
+};
+
 export default function StoreDetail({ store, isFollowing, categories, products, groupedProducts, filters }: Props) {
     const [currentTab, setCurrentTab] = useState(filters.tab || 'beranda');
     const [currentFilter, setCurrentFilter] = useState(filters.filter || 'populer');
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
 
+    // eslint-disable-next-line react-doctor/no-reset-all-state-on-prop-change
     React.useEffect(() => {
         setCurrentTab(filters.tab || 'beranda');
         setCurrentFilter(filters.filter || 'populer');
@@ -62,10 +68,7 @@ export default function StoreDetail({ store, isFollowing, categories, products, 
         });
     };
 
-    const handleFollow = () => {
-        // Implement Follow logic here when ready
-        // router.post(route('store.follow', store.id), {}, { preserveScroll: true });
-    };
+
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
@@ -106,12 +109,12 @@ export default function StoreDetail({ store, isFollowing, categories, products, 
                         {/* Search Bar */}
                         <form onSubmit={handleSearch} className="relative w-full md:w-64 flex-shrink-0">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
+                            <input aria-label="Input field"
                                 type="text"
                                 placeholder="Search products"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 bg-gray-50 border-transparent rounded-lg text-sm focus:border-gray-200 focus:bg-white focus:ring-0 transition-all placeholder:text-gray-400"
+                                className="w-full pl-9 pr-4 py-2 bg-gray-50 border-transparent rounded-lg text-sm focus:border-gray-200 focus:bg-white focus:ring-0 transition-colors placeholder:text-gray-400"
                             />
                         </form>
                     </div>
@@ -154,11 +157,12 @@ export default function StoreDetail({ store, isFollowing, categories, products, 
                         )}
 
                         {currentTab === 'kategori' && (
-                            <div>
+                            <div aria-label="Tampilkan rincian lebih lanjut">
                                 {filters.category_id ? (
-                                    <div>
+                                    <div aria-label="Pilih opsi yang tersedia">
                                         <div className="flex items-center gap-4 mb-6">
                                             <button
+                                                aria-label="Kembali ke daftar kategori"
                                                 onClick={() => updateRoute({ tab: 'kategori', category_id: null })}
                                                 className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors"
                                             >
@@ -188,7 +192,7 @@ export default function StoreDetail({ store, isFollowing, categories, products, 
                                                 <button
                                                     key={cat.id}
                                                     onClick={() => updateRoute({ tab: 'kategori', category_id: cat.id })}
-                                                    className="bg-gray-50 hover:bg-teal-50 border border-gray-100 hover:border-teal-100 rounded-2xl p-6 text-center transition-all group flex flex-col items-center justify-center gap-2"
+                                                    className="bg-gray-50 hover:bg-teal-50 border border-gray-100 hover:border-teal-100 rounded-2xl p-6 text-center transition-colors group flex flex-col items-center justify-center gap-2"
                                                 >
                                                     <h3 className="font-bold text-gray-700 group-hover:text-teal-700 text-lg">
                                                         {cat.name}

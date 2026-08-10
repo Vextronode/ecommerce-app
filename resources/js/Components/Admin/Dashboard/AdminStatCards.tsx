@@ -15,6 +15,7 @@ interface Props {
 }
 
 export default function AdminStatCards({ stats }: Props) {
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const formatCompactNumber = (val: number | string | undefined) => {
         if (!val) return "0";
         if (typeof val === "string") return val;

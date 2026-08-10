@@ -55,7 +55,7 @@ export default function HeroSection() {
             {/* Hero Container */}
             <div className="w-full px-0 md:px-4 lg:px-8 xl:px-12 relative">
                 <div className="relative z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.08)]">
-                    <div className="bg-[#004F54]/80 w-full pt-8 md:pt-[100px] pb-16 md:pb-[140px] px-6 md:px-20 flex flex-col md:flex-row items-center justify-between rounded-none md:rounded-t-[2.5rem] md:rounded-b-[2rem] hero-cutout transition-all backdrop-blur-sm">
+                    <div className="bg-[#004F54]/80 w-full pt-8 md:pt-[100px] pb-16 md:pb-[140px] px-6 md:px-20 flex flex-col md:flex-row items-center justify-between rounded-none md:rounded-t-[2.5rem] md:rounded-b-[2rem] hero-cutout transition backdrop-blur-sm">
                         <div className="w-full md:w-1/2 text-white text-center md:text-left mb-4 md:mb-0">
                             <h1 className="text-[2.5rem] md:text-6xl lg:text-[4.5rem] tracking-tight mb-2 md:mb-4 leading-none mt-4 md:mt-0">
                                 <span className="font-normal text-[#40E0D0]">
@@ -93,7 +93,7 @@ export default function HeroSection() {
 
                 {/* Info bar */}
                 <div className="w-full relative z-20 md:z-0 md:static -mt-8 md:mt-0 flex justify-center md:block">
-                    <div className="w-[92%] md:w-auto mx-auto md:mx-0 md:hero-info-bar-desktop flex items-center transition-all bg-white md:bg-transparent rounded-[1.5rem] md:rounded-none shadow-[0_15px_30px_rgba(0,0,0,0.08)] md:shadow-none overflow-hidden border border-gray-100 md:border-none">
+                    <div className="w-[92%] md:w-auto mx-auto md:mx-0 md:hero-info-bar-desktop flex items-center transition bg-white md:bg-transparent rounded-[1.5rem] md:rounded-none shadow-[0_15px_30px_rgba(0,0,0,0.08)] md:shadow-none overflow-hidden border border-gray-100 md:border-none">
                         <div className="grid grid-cols-2 md:flex md:flex-row items-center justify-start md:justify-center w-full h-full p-4 md:p-0 md:px-8 gap-y-3 gap-x-2 md:gap-12 lg:gap-16">
                             <div className="flex items-center gap-2 md:gap-3 shrink-0">
                                 <Truck
@@ -184,7 +184,7 @@ export default function HeroSection() {
                     {/* Search Input */}
                     <div className="flex-1 flex items-center px-4 py-2 md:py-2 bg-transparent rounded-full group">
                         <Search className="w-5 h-5 text-gray-400 mr-2 md:mr-3 group-focus-within:text-[#004F54] transition-colors" />
-                        <input
+                        <input aria-label="Input field"
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -194,8 +194,8 @@ export default function HeroSection() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-1 md:gap-3 shrink-0">
-                        <button type="button" className="text-gray-500 hover:text-[#004F54] p-2 bg-transparent rounded-full transition hidden sm:block">
+                    <div aria-label="Pilih opsi yang tersedia" className="flex items-center gap-1 md:gap-3 shrink-0">
+                        <button aria-label="Tampilkan rincian lebih lanjut" type="button" className="text-gray-500 hover:text-[#004F54] p-2 bg-transparent rounded-full transition hidden sm:block">
                             <SlidersHorizontal
                                 className="w-5 h-5"
                                 strokeWidth={2}

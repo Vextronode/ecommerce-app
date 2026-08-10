@@ -66,12 +66,12 @@ export default function CategorySection({ categories, title = "Popular Category"
                 </div>
 
                 {/* CAROUSEL WRAPPER */}
-                <div className="relative w-full px-6 md:px-12 lg:px-16 pb-8">
+                <div aria-label="Pilih opsi yang tersedia" className="relative w-full px-6 md:px-12 lg:px-16 pb-8">
                     {/* PREV BUTTON */}
-                    <button
+                    <button aria-label="Tampilkan rincian lebih lanjut"
                         onClick={prev}
                         disabled={currentPage === 0}
-                        className={`absolute top-1/2 -translate-y-1/2 -left-2 md:left-2 lg:left-0 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-50 z-20 transition-all duration-300 ${currentPage === 0
+                        className={`absolute top-1/2 -translate-y-1/2 -left-2 md:left-2 lg:left-0 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-50 z-20 transition duration-300 ${currentPage === 0
                             ? "opacity-0 pointer-events-none"
                             : "opacity-100 hover:scale-110"
                             }`}
@@ -96,7 +96,7 @@ export default function CategorySection({ categories, title = "Popular Category"
                                         <a
                                             key={category.id}
                                             href={`/category/${category.id}`}
-                                            className="relative bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-50 hover:shadow-[0_15px_35px_rgba(0,0,0,0.08)] transition-all duration-300 w-full aspect-square flex flex-col items-center justify-center cursor-pointer group"
+                                            className="relative bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-50 hover:shadow-[0_15px_35px_rgba(0,0,0,0.08)] transition duration-300 w-full aspect-square flex flex-col items-center justify-center cursor-pointer group"
                                         >
                                             <div className="absolute inset-0 m-6 bg-[#f0eff5] rounded-full flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-105">
                                                 <img
@@ -120,10 +120,10 @@ export default function CategorySection({ categories, title = "Popular Category"
                     </div>
 
                     {/* NEXT BUTTON */}
-                    <button
+                    <button aria-label="Pilih opsi yang tersedia"
                         onClick={next}
                         disabled={currentPage === totalPages - 1 || totalPages === 0}
-                        className={`absolute top-1/2 -translate-y-1/2 -right-2 md:right-2 lg:right-0 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-50 z-20 transition-all duration-300 ${currentPage === totalPages - 1 || totalPages === 0
+                        className={`absolute top-1/2 -translate-y-1/2 -right-2 md:right-2 lg:right-0 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-gray-50 z-20 transition duration-300 ${currentPage === totalPages - 1 || totalPages === 0
                             ? "opacity-0 pointer-events-none"
                             : "opacity-100 hover:scale-110"
                             }`}

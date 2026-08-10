@@ -41,17 +41,19 @@ export default function DeleteMerchantModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-                className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            <button
+                type="button"
+                className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity w-full cursor-default"
                 onClick={onClose}
+                aria-label="Tutup modal"
             />
 
-            <div className="relative bg-white rounded-3xl p-6 md:p-7 w-full max-w-md shadow-2xl border border-gray-100 z-10 animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white rounded-3xl p-6 md:p-7 w-full max-w-md shadow-2xl border border-gray-100 z-10 animate-in fade-in zoom-in-95 transition-opacity duration-200">
                 <div className="flex items-center justify-between pb-3">
                     <div className="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
                         <AlertTriangle className="w-5 h-5" />
                     </div>
-                    <button
+                    <button aria-label="Tutup modal"
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition-colors"
                     >
@@ -76,7 +78,7 @@ export default function DeleteMerchantModal({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                        className="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                         Batal
                     </button>
@@ -84,7 +86,7 @@ export default function DeleteMerchantModal({
                         type="button"
                         disabled={isDeleting}
                         onClick={handleDelete}
-                        className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-all cursor-pointer disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-colors cursor-pointer disabled:opacity-50"
                     >
                         <Trash2 className="w-3.5 h-3.5" />
                         {isDeleting ? "Menghapus..." : "Ya, Hapus Akun"}

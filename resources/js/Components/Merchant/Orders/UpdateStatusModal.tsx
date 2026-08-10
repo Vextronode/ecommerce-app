@@ -37,7 +37,7 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in transition-opacity duration-200">
                 <div className="flex justify-between items-center p-5 border-b border-gray-100">
                     <div>
                         <h3 className="font-bold text-[#14433D] text-lg">
@@ -50,7 +50,7 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
                             </span>
                         </p>
                     </div>
-                    <button
+                    <button aria-label="Action"
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2 rounded-full transition-colors"
                     >
@@ -63,7 +63,7 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
                         {statuses.map((s) => (
                             <label
                                 key={s.id}
-                                className={`flex items-center p-3 border rounded-xl cursor-pointer transition-all ${data.shipping_status === s.id
+                                className={`flex items-center p-3 border rounded-xl cursor-pointer transition-colors ${data.shipping_status === s.id
                                         ? "border-[#41B9C5] bg-[#EAF7F7]"
                                         : "border-gray-200 hover:border-[#41B9C5]/50 hover:bg-gray-50"
                                     }`}

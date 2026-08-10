@@ -75,7 +75,7 @@ export default function BestSellingTable({
                     <button
                         type="button"
                         onClick={onResetFilter}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/20 transition-all cursor-pointer"
+                        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/20 transition-colors cursor-pointer"
                     >
                         Reset Filter Pencarian
                     </button>
@@ -207,18 +207,18 @@ export default function BestSellingTable({
                             if (isPrev) {
                                 return link.url ? (
                                     <Link
-                                        key={index}
+                                        key={link.label}
                                         href={link.url}
                                         preserveScroll
                                         preserveState
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all text-xs font-semibold shadow-2xs cursor-pointer"
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors text-xs font-semibold shadow-2xs cursor-pointer"
                                         title="Halaman Sebelumnya"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                     </Link>
                                 ) : (
                                     <span
-                                        key={index}
+                                        key={link.label}
                                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 text-gray-300 text-xs cursor-not-allowed"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
@@ -230,18 +230,18 @@ export default function BestSellingTable({
                             if (isNext) {
                                 return link.url ? (
                                     <Link
-                                        key={index}
+                                        key={link.label}
                                         href={link.url}
                                         preserveScroll
                                         preserveState
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all text-xs font-semibold shadow-2xs cursor-pointer"
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors text-xs font-semibold shadow-2xs cursor-pointer"
                                         title="Halaman Selanjutnya"
                                     >
                                         <ChevronRight className="w-4 h-4" />
                                     </Link>
                                 ) : (
                                     <span
-                                        key={index}
+                                        key={link.label}
                                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 text-gray-300 text-xs cursor-not-allowed"
                                     >
                                         <ChevronRight className="w-4 h-4" />
@@ -264,11 +264,11 @@ export default function BestSellingTable({
                             // Numbered Page Button
                             return link.url ? (
                                 <Link
-                                    key={index}
+                                    key={link.label}
                                     href={link.url}
                                     preserveScroll
                                     preserveState
-                                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${link.active
+                                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-colors ${link.active
                                             ? "bg-[#41B9C5] text-white shadow-xs font-extrabold"
                                             : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-2xs"
                                         }`}

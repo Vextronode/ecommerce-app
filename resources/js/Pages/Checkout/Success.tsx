@@ -1,4 +1,5 @@
 import React from "react";
+import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
 import { Head, Link } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import {
@@ -30,13 +31,6 @@ export default function Success({ order }: Props) {
           })
         : "-";
 
-    const formatRupiah = (number: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-        }).format(number);
-    };
 
     return (
         <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans">
@@ -70,7 +64,7 @@ export default function Success({ order }: Props) {
 
                         <div className="relative flex justify-between max-w-2xl mx-auto mb-4">
                             <div className="absolute top-6 left-0 right-0 h-1.5 bg-gray-100 rounded-full z-0"></div>
-                            <div className="absolute top-6 left-0 w-1/4 h-1.5 bg-[#126871] rounded-full z-0 transition-all duration-500"></div>
+                            <div className="absolute top-6 left-0 w-1/4 h-1.5 bg-[#126871] rounded-full z-0 transition duration-500"></div>
 
                             <div className="relative z-10 flex flex-col items-center flex-1">
                                 <div className="w-12 h-12 bg-white border-2 border-[#126871] rounded-2xl flex items-center justify-center mb-3 shadow-xs">

@@ -1,4 +1,5 @@
 import React from "react";
+import { formatRupiah } from "@/utils/formatters";
 import {
     Banknote,
     ShoppingBag,
@@ -21,11 +22,7 @@ export default function StatCards({ statsData }: Props) {
         {
             title: "Total Penjualan",
             // format uang (Rp)
-            value: new Intl.NumberFormat("id-ID", {
-                style: "currency",
-                currency: "IDR",
-                maximumFractionDigits: 0,
-            }).format(statsData.sales),
+            value: formatRupiah(statsData.sales),
             trend: "+0%",
             icon: <Banknote className="w-6 h-6 text-[#41B9C5]" />,
         },
@@ -53,7 +50,7 @@ export default function StatCards({ statsData }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-4 md:mb-6">
             {stats.map((stat, index) => (
                 <div
-                    key={index}
+                    key={stat.title}
                     className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
                 >
                     <div className="flex justify-between items-start mb-6">

@@ -17,7 +17,7 @@ export default function VariantSelector({
     return (
         <div className="flex flex-col gap-5 py-4 border-y border-gray-100 my-4">
             {variants.map((variant: any, idx: number) => (
-                <div key={idx} className="flex flex-col gap-2.5">
+                <div key={variant.name} className="flex flex-col gap-2.5">
                     <span className="text-sm font-extrabold text-gray-800">
                         {variant.name}
                     </span>
@@ -31,7 +31,7 @@ export default function VariantSelector({
                                     onClick={() =>
                                         onSelectVariant(variant.name, opt.name)
                                     }
-                                    className={`px-4 py-1.5 rounded-xl text-sm font-bold border transition-all ${
+                                    className={`px-4 py-1.5 rounded-xl text-sm font-bold border transition-colors ${
                                         isSelected
                                             ? "bg-[#41B9C5]/10 border-[#41B9C5] text-[#41B9C5]"
                                             : "bg-white border-gray-200 text-gray-600 hover:border-[#41B9C5]/50 hover:bg-gray-50"

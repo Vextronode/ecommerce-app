@@ -30,7 +30,7 @@ export default function Pagination({ data }: { data: any }) {
                         if (isPrev) {
                             return (
                                 <Link
-                                    key={index}
+                                    key={link.label}
                                     href={link.url || "#"}
                                     preserveState
                                     className={`p-1 ${
@@ -47,7 +47,7 @@ export default function Pagination({ data }: { data: any }) {
                         if (isNext) {
                             return (
                                 <Link
-                                    key={index}
+                                    key={link.label}
                                     href={link.url || "#"}
                                     preserveState
                                     className={`p-1 ${
@@ -63,7 +63,7 @@ export default function Pagination({ data }: { data: any }) {
 
                         return (
                             <Link
-                                key={index}
+                                key={link.label}
                                 href={link.url || "#"}
                                 preserveState
                                 className={`w-6 h-6 md:w-7 md:h-7 rounded-md text-[10px] md:text-xs font-bold flex items-center justify-center transition-colors ${

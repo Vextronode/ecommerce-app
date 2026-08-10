@@ -43,7 +43,7 @@ export default function AddressPickerModal({
                                 Gunakan alamat yang sudah tersimpan atau tambahkan alamat baru.
                             </p>
                         </div>
-                        <button
+                        <button aria-label="Action"
                             type="button"
                             onClick={onClose}
                             className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"

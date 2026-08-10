@@ -1,4 +1,5 @@
 import React from "react";
+import { formatRupiah } from "@/utils/formatters";
 import { Image as ImageIcon } from "lucide-react";
 import ProductActions from "./ProductActions";
 
@@ -74,14 +75,7 @@ export default function ProductTable({ products, getStockIndicator }: Props) {
                                         </td>
                                         <td className="py-3 px-4 md:py-4 md:px-6">
                                             <span className="text-xs md:text-sm font-semibold text-[#41B9C5]">
-                                                {new Intl.NumberFormat(
-                                                    "id-ID",
-                                                    {
-                                                        style: "currency",
-                                                        currency: "IDR",
-                                                        maximumFractionDigits: 0,
-                                                    },
-                                                ).format(product.price)}
+                                                {formatRupiah(product.price)}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 md:py-4 md:px-6">

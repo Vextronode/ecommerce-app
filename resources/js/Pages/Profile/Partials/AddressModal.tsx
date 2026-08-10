@@ -111,10 +111,10 @@ export default function AddressModal({
                     />
 
                     <div>
-                        <label className="text-xs font-semibold text-gray-500 mb-1 block">
+                        <label htmlFor="field_114" className="text-xs font-semibold text-gray-500 mb-1 block">
                             Detail Lainnya (Cth: Blok / Unit., Patokan)
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_114"
                             type="text"
                             value={data.detail}
                             onChange={(e) => setData("detail", e.target.value)}
@@ -130,7 +130,7 @@ export default function AddressModal({
                     />
 
                     <div>
-                        <label className="text-sm font-bold text-gray-700 mb-3 block">
+                        <label htmlFor="field_133" className="text-sm font-bold text-gray-700 mb-3 block">
                             Tandai Sebagai:
                         </label>
                         <div className="flex gap-3">
@@ -148,7 +148,7 @@ export default function AddressModal({
                     </div>
 
                     <label className="flex items-center gap-2 cursor-pointer w-fit mt-2">
-                        <input
+                        <input id="field_133"
                             type="checkbox"
                             checked={data.is_primary}
                             onChange={(e) =>

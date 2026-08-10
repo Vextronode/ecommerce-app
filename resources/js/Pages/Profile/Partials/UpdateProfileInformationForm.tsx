@@ -51,6 +51,7 @@ export default function UpdateProfileInformation({
 
     useEffect(() => {
         setData("name", `${firstName} ${lastName}`.trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [firstName, lastName]);
 
     const submit = (e: React.FormEvent) => {
@@ -81,10 +82,10 @@ export default function UpdateProfileInformation({
             <form onSubmit={submit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        <label htmlFor="field_85" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                             First Name
                         </label>
-                        <input
+                        <input id="field_85"
                             type="text"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
@@ -93,10 +94,10 @@ export default function UpdateProfileInformation({
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        <label htmlFor="field_97" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                             Last Name
                         </label>
-                        <input
+                        <input id="field_97"
                             type="text"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
@@ -111,10 +112,10 @@ export default function UpdateProfileInformation({
 
                     {/* email */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        <label htmlFor="field_115" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                             Email
                         </label>
-                        <input
+                        <input id="field_115"
                             type="email"
                             value={data.email}
                             readOnly
@@ -127,14 +128,14 @@ export default function UpdateProfileInformation({
 
                     {/* no hp */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        <label htmlFor="field_131" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                             Mobile Number
                         </label>
                         <div className="flex">
                             <span className="inline-flex items-center px-5 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-600 text-sm font-bold shadow-inner">
                                 +62
                             </span>
-                            <input
+                            <input aria-label="Input field" id="field_131"
                                 type="text"
                                 value={data.phone}
                                 onChange={(e) =>
@@ -153,13 +154,14 @@ export default function UpdateProfileInformation({
 
                     {/* gender */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">
+                        <label htmlFor="field_157" className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">
                             Gender
                         </label>
                         <div className="flex gap-8 pt-2.5">
                             <label className="flex items-center gap-2.5 cursor-pointer group">
-                                <input
+                                <input id="field_157"
                                     type="radio"
+                                    name="gender"
                                     checked={data.gender === "male"}
                                     onChange={() => setData("gender", "male")}
                                     className="w-4 h-4 text-[#245D56] focus:ring-[#245D56] border-slate-300"
@@ -171,6 +173,7 @@ export default function UpdateProfileInformation({
                             <label className="flex items-center gap-2.5 cursor-pointer group">
                                 <input
                                     type="radio"
+                                    name="gender"
                                     checked={data.gender === "female"}
                                     onChange={() => setData("gender", "female")}
                                     className="w-4 h-4 text-[#245D56] focus:ring-[#245D56] border-slate-300"
@@ -189,10 +192,10 @@ export default function UpdateProfileInformation({
 
                     {/* dob */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        <label htmlFor="field_193" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                             Tanggal Lahir
                         </label>
-                        <input
+                        <input id="field_193"
                             type="date"
                             value={data.dob}
                             onChange={(e) => setData("dob", e.target.value)}

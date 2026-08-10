@@ -37,13 +37,13 @@ export default function DriverPinForm({ invoice_number }: DriverPinFormProps) {
 
             <form onSubmit={handleComplete} className="space-y-4">
                 <div>
-                    <div className="flex items-center justify-center gap-2">
+                    <div aria-label="Pilih opsi yang tersedia" className="flex items-center justify-center gap-2">
                         {[0, 1, 2, 3].map((index) => (
-                            <input
+                            <input aria-label="Tampilkan rincian lebih lanjut"
                                 key={index}
                                 type="text"
                                 maxLength={1}
-                                className="w-14 h-16 text-center text-2xl font-black rounded-2xl bg-white/10 border border-white/20 text-white focus:bg-white focus:text-[#004F54] focus:ring-0 focus:border-[#41B9C5] transition-all"
+                                className="w-14 h-16 text-center text-2xl font-black rounded-2xl bg-white/10 border border-white/20 text-white focus:bg-white focus:text-[#004F54] focus:ring-0 focus:border-[#41B9C5] transition"
                                 value={data.pin[index] || ''}
                                 onChange={(e) => {
                                     const val = e.target.value.replace(/[^0-9]/g, '');

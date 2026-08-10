@@ -47,9 +47,9 @@ export default function Navbar() {
         >
             <nav className="w-full max-w-300 bg-linear-to-r from-[#389f9f]/80 via-[#74bcbc]/60 to-[#f0f4f8]/90 backdrop-blur-xl shadow-md rounded-3xl md:rounded-full px-4 py-2 md:px-6 md:py-3 flex flex-col md:flex-row items-center justify-between border border-white/40">
                 {/* header row on mobile */}
-                <div className="flex items-center justify-between w-full md:w-auto">
+                <div aria-label="Pilih opsi yang tersedia" className="flex items-center justify-between w-full md:w-auto">
                     {/* hamburger menu */}
-                    <button
+                    <button aria-label="Tampilkan rincian lebih lanjut"
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         className="md:hidden p-2 text-white bg-black/10 rounded-lg hover:bg-black/20 transition"
                     >
@@ -97,7 +97,7 @@ export default function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className={`py-2 rounded-full font-bold shadow-sm text-sm text-center px-4 transition-all ${isActive
+                                className={`py-2 rounded-full font-bold shadow-sm text-sm text-center px-4 transition ${isActive
                                     ? "bg-white text-gray-900 shadow-sm"
                                     : "text-[#4A5568] hover:text-gray-900 hover:bg-white/40"
                                     }`}
@@ -174,7 +174,7 @@ export default function Navbar() {
                                 <Link
                                     key={link.name}
                                     href={link.href}
-                                    className={`py-3 rounded-xl font-bold text-sm px-4 transition-all ${isActive
+                                    className={`py-3 rounded-xl font-bold text-sm px-4 transition ${isActive
                                         ? "bg-white text-gray-900 shadow-sm"
                                         : "text-white hover:bg-white/20"
                                         }`}

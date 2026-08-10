@@ -51,15 +51,15 @@ export default function ProductPricingStock({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Harga */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label htmlFor="field_54" className="block text-sm font-semibold text-gray-700 mb-2">
                             Harga Dasar (Rp)
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_54"
                             type="number"
                             placeholder="Harga dasar produk"
                             value={data.price}
                             onChange={(e) => setData("price", e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition-all bg-white"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition bg-white"
                             required={!hasVariants}
                         />
                         {errors.price && (
@@ -71,15 +71,15 @@ export default function ProductPricingStock({
 
                     {/* Stok */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label htmlFor="field_74" className="block text-sm font-semibold text-gray-700 mb-2">
                             Total Stok
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_74"
                             type="number"
                             placeholder="Jumlah stok tersedia"
                             value={data.stock}
                             onChange={(e) => setData("stock", e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition-all bg-white"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition bg-white"
                             required={!hasVariants}
                         />
                         {errors.stock && (
@@ -92,7 +92,7 @@ export default function ProductPricingStock({
                     {/* Unit */}
                     <div>
                         <div className="flex justify-between items-center mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">
+                            <label htmlFor="field_95" className="block text-sm font-semibold text-gray-700">
                                 Satuan Jual
                             </label>
                             <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
@@ -101,8 +101,8 @@ export default function ProductPricingStock({
                         </div>
 
                         {/* Form Qty dan Deropdown */}
-                        <div className="flex w-full rounded-xl border border-gray-200 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#41B9C5]/50 transition-all shadow-sm">
-                            <input
+                        <div className="flex w-full rounded-xl border border-gray-200 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#41B9C5]/50 transition shadow-sm">
+                            <input aria-label="Input field" id="field_95"
                                 type="number"
                                 placeholder="Misal: 1, 500"
                                 value={amount}
@@ -111,8 +111,8 @@ export default function ProductPricingStock({
                             />
 
                             {/* Dropdown */}
-                            <div className="bg-slate-50 border-l border-gray-200 flex items-center shrink-0">
-                                <select
+                            <div aria-label="Pilih opsi yang tersedia" className="bg-slate-50 border-l border-gray-200 flex items-center shrink-0">
+                                <select aria-label="Tampilkan rincian lebih lanjut"
                                     value={type}
                                     onChange={handleTypeChange}
                                     className="h-full pl-4 pr-8 py-3 outline-none bg-transparent border-transparent focus:border-transparent focus:ring-0 text-sm font-bold text-gray-600 appearance-none cursor-pointer"

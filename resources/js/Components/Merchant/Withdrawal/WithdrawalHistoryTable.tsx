@@ -9,6 +9,7 @@ import {
     Check,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { formatRupiah } from "@/utils/formatters";
 
 interface WithdrawalItem {
     id: number;
@@ -33,13 +34,6 @@ export default function WithdrawalHistoryTable({
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    const formatRupiah = (amount: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-        }).format(amount);
-    };
 
     const handleCopyRef = (refNo: string) => {
         navigator.clipboard.writeText(refNo);
@@ -74,7 +68,7 @@ export default function WithdrawalHistoryTable({
                 <div className="flex items-center gap-1.5 bg-[#F0FAFB] p-1.5 rounded-full border border-[#41B9C5]/20 shrink-0 self-start sm:self-auto">
                     <button
                         onClick={() => setFilterStatus("all")}
-                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${filterStatus === "all"
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${filterStatus === "all"
                                 ? "bg-[#41B9C5] text-white shadow-sm shadow-[#41B9C5]/30"
                                 : "text-gray-500 hover:text-gray-800"
                             }`}
@@ -83,7 +77,7 @@ export default function WithdrawalHistoryTable({
                     </button>
                     <button
                         onClick={() => setFilterStatus("completed")}
-                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${filterStatus === "completed"
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${filterStatus === "completed"
                                 ? "bg-[#41B9C5] text-white shadow-sm shadow-[#41B9C5]/30"
                                 : "text-gray-500 hover:text-gray-800"
                             }`}
@@ -92,7 +86,7 @@ export default function WithdrawalHistoryTable({
                     </button>
                     <button
                         onClick={() => setFilterStatus("pending")}
-                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${filterStatus === "pending"
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${filterStatus === "pending"
                                 ? "bg-[#41B9C5] text-white shadow-sm shadow-[#41B9C5]/30"
                                 : "text-gray-500 hover:text-gray-800"
                             }`}
@@ -104,9 +98,9 @@ export default function WithdrawalHistoryTable({
 
             {/* Search Bar */}
             {withdrawals.length > 0 && (
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-full focus-within:bg-white focus-within:border-[#41B9C5] focus-within:ring-1 focus-within:ring-[#41B9C5] transition-all mb-4">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-full focus-within:bg-white focus-within:border-[#41B9C5] focus-within:ring-1 focus-within:ring-[#41B9C5] transition-colors mb-4">
                     <Search className="w-4 h-4 text-gray-400 shrink-0" />
-                    <input
+                    <input aria-label="Input field"
                         type="text"
                         placeholder="Cari berdasarkan No Referensi / Bank / Nama..."
                         value={searchQuery}
@@ -139,7 +133,7 @@ export default function WithdrawalHistoryTable({
                         {filteredWithdrawals && filteredWithdrawals.length > 0 ? (
                             filteredWithdrawals.map((item, index) => (
                                 <tr
-                                    key={index}
+                                    key={item.id}
                                     className="hover:bg-gray-50/50 transition-colors"
                                 >
                                     <td className="py-3.5 border-b border-gray-50">

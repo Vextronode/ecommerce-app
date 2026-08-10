@@ -19,41 +19,41 @@ interface Props {
     averageRating?: number | string;
 }
 
+const getInitials = (name: string) => {
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+};
+
+const formatName = (review: Review) => {
+    if (review.is_anonymous || !review.user?.name) {
+        return "Pengguna Anonim";
+    }
+    // Format to "Budi W."
+    const parts = review.user.name.split(' ');
+    if (parts.length > 1) {
+        return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+    }
+    return review.user.name;
+};
+
+const getRelativeTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Hari ini";
+    if (diffDays === 1) return "Kemarin";
+    if (diffDays < 7) return `${diffDays} hari yang lalu`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} minggu yang lalu`;
+    return `${Math.floor(diffDays / 30)} bulan yang lalu`;
+};
+
 export default function ProductReviewsCard({ reviews = [], reviewsCount = 0, averageRating = 0 }: Props) {
     const formattedRating = Number(averageRating).toFixed(1);
-
-    const getInitials = (name: string) => {
-        const parts = name.split(' ');
-        if (parts.length >= 2) {
-            return (parts[0][0] + parts[1][0]).toUpperCase();
-        }
-        return name.slice(0, 2).toUpperCase();
-    };
-
-    const formatName = (review: Review) => {
-        if (review.is_anonymous || !review.user?.name) {
-            return "Pengguna Anonim";
-        }
-        // Format to "Budi W."
-        const parts = review.user.name.split(' ');
-        if (parts.length > 1) {
-            return `${parts[0]} ${parts[parts.length - 1][0]}.`;
-        }
-        return review.user.name;
-    };
-
-    const getRelativeTime = (dateStr: string) => {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 0) return "Hari ini";
-        if (diffDays === 1) return "Kemarin";
-        if (diffDays < 7) return `${diffDays} hari yang lalu`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)} minggu yang lalu`;
-        return `${Math.floor(diffDays / 30)} bulan yang lalu`;
-    };
 
     return (
         <div className="rounded-[1.75rem] border border-slate-100 bg-white p-6 md:p-8 shadow-sm">
@@ -140,7 +140,7 @@ export default function ProductReviewsCard({ reviews = [], reviewsCount = 0, ave
                                 {review.images && review.images.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mt-3">
                                         {review.images.map((img, idx) => (
-                                            <div key={idx} className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-gray-200">
+                                            <div key={review.id} className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-gray-200">
                                                 {img.match(/\.(mp4|mov)$/i) ? (
                                                     <video src={img} className="w-full h-full object-cover" controls />
                                                 ) : (
