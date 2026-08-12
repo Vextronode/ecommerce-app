@@ -68,11 +68,11 @@ export default function DeliveryOrderSummary({ order }: DeliveryOrderSummaryProp
                     )}
                     <div className="flex justify-between items-center pt-2">
                         <span className="text-xs font-bold text-gray-900">Total Tagihan</span>
-                        <span className="text-sm font-extrabold text-[#004F54]">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
+                        <span className="text-sm font-extrabold text-[#281B7A]">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
                     </div>
                 </div>
                 
-                <div className="mt-4 bg-[#F0FAFB] p-3 rounded-xl border border-[#41B9C5]/20 flex justify-between items-center text-xs">
+                <div className="mt-4 bg-[#ED7218]/5 p-3 rounded-xl border border-[#ED7218]/20 flex justify-between items-center text-xs">
                     <span className="font-medium text-gray-600">Metode Pembayaran</span>
                     <span className={`font-bold uppercase tracking-wide ${order.payment_status === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
                         {order.payment_method === 'cod' ? 'Bayar di Tempat (COD)' : 'Transfer (Lunas)'}

@@ -26,12 +26,12 @@ export default function DriverPinForm({ invoice_number }: DriverPinFormProps) {
     };
 
     return (
-        <div className="bg-[#004F54] p-5 rounded-3xl shadow-sm border border-[#004F54] text-white">
+        <div className="bg-[#281B7A] p-5 rounded-3xl shadow-sm border border-[#281B7A] text-white">
             <div className="flex items-center gap-3 mb-4">
-                <ShieldCheck className="w-6 h-6 text-[#41B9C5]" />
+                <ShieldCheck className="w-6 h-6 text-[#ED7218]" />
                 <div>
                     <h3 className="text-sm font-extrabold">Serah Terima Pesanan</h3>
-                    <p className="text-[11px] text-[#41B9C5] font-medium">Minta 4-Digit PIN dari HP Pembeli</p>
+                    <p className="text-[11px] text-[#ED7218] font-medium">Minta 4-Digit PIN dari HP Pembeli</p>
                 </div>
             </div>
 
@@ -43,7 +43,7 @@ export default function DriverPinForm({ invoice_number }: DriverPinFormProps) {
                                 key={index}
                                 type="text"
                                 maxLength={1}
-                                className="w-14 h-16 text-center text-2xl font-black rounded-2xl bg-white/10 border border-white/20 text-white focus:bg-white focus:text-[#004F54] focus:ring-0 focus:border-[#41B9C5] transition"
+                                className="w-14 h-16 text-center text-2xl font-black rounded-2xl bg-white/10 border border-white/20 text-white focus:bg-white focus:text-[#281B7A] focus:ring-0 focus:border-[#ED7218] transition"
                                 value={data.pin[index] || ''}
                                 onChange={(e) => {
                                     const val = e.target.value.replace(/[^0-9]/g, '');
@@ -72,7 +72,7 @@ export default function DriverPinForm({ invoice_number }: DriverPinFormProps) {
                 <button
                     type="submit"
                     disabled={data.pin.length !== 4 || processing}
-                    className="w-full bg-[#41B9C5] text-white font-bold py-3.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-xs flex items-center justify-center gap-2"
+                    className="w-full bg-[#ED7218] text-white font-bold py-3.5 rounded-xl hover:bg-[#d66311] transition disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-xs flex items-center justify-center gap-2"
                 >
                     Selesaikan Pengiriman
                 </button>

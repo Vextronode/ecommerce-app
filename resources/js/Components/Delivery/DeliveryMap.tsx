@@ -65,7 +65,7 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
                 .bindPopup(`<strong>${order.customer_name}</strong><br/>Lokasi Pengiriman`)
                 .addTo(map);
 
-            L.polyline([storePos, buyerPos], { color: "#41B9C5", dashArray: "5, 10" }).addTo(map);
+            L.polyline([storePos, buyerPos], { color: "#ED7218", dashArray: "5, 10" }).addTo(map);
 
             const bounds = L.latLngBounds([storePos, buyerPos]);
             map.fitBounds(bounds, { padding: [30, 30] });
@@ -108,7 +108,7 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
                             href={googleMapsUrl} 
                             target="_blank" 
                             rel="noreferrer"
-                            className="pointer-events-auto bg-[#41B9C5] text-white px-5 py-2.5 rounded-full shadow-lg shadow-[#41B9C5]/30 font-bold text-sm flex items-center gap-2 hover:bg-[#3498a3] transition-colors"
+                            className="pointer-events-auto bg-[#ED7218] text-white px-5 py-2.5 rounded-full shadow-lg shadow-[#ED7218]/30 font-bold text-sm flex items-center gap-2 hover:bg-[#d66311] transition-colors"
                         >
                             <Navigation className="w-4 h-4" /> Buka Navigasi Google Maps
                         </a>

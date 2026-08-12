@@ -132,10 +132,10 @@ export default function Tracker({ order, role }: Props) {
     // SUCCESS FULL SCREEN STATE
     if (order.status === 'delivered') {
         return (
-            <div className="min-h-screen bg-[#004F54] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+            <div className="min-h-screen bg-[#281B7A] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
                 <Head title={`Selesai - ${order.invoice_number}`} />
                 
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#41B9C5] rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-pulse"></div>
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#ED7218] rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-pulse"></div>
                 <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-pulse delay-700"></div>
 
                 <div className="bg-white p-8 rounded-[3rem] shadow-2xl max-w-sm w-full relative z-10 transform scale-100 animate-[bounceIn_0.6s_ease-out]">
@@ -159,13 +159,13 @@ export default function Tracker({ order, role }: Props) {
                         </div>
                         <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
                             <span className="text-sm font-bold text-gray-900">Total</span>
-                            <span className="text-lg font-black text-[#004F54]">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
+                            <span className="text-lg font-black text-[#281B7A]">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
                         </div>
                     </div>
 
                     <button 
                         onClick={() => window.location.href = '/'}
-                        className="block w-full bg-[#004F54] text-white font-bold py-4 rounded-2xl hover:bg-[#003d42] transition-colors"
+                        className="block w-full bg-[#281B7A] text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-colors"
                     >
                         Tutup Halaman
                     </button>
@@ -188,15 +188,15 @@ export default function Tracker({ order, role }: Props) {
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Head title={`Delivery Tracker - ${order.invoice_number}`} />
 
-            <header className="bg-[#004F54] text-white p-4 shadow-md z-10 sticky top-0">
+            <header className="bg-[#281B7A] text-white p-4 shadow-md z-10 sticky top-0">
                 <div className="max-w-3xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                            <Package className="w-5 h-5 text-[#41B9C5]" />
+                            <Package className="w-5 h-5 text-[#ED7218]" />
                         </div>
                         <div>
                             <h1 className="text-sm font-extrabold tracking-wider">DELIVERY TRACKER</h1>
-                            <p className="text-xs text-[#41B9C5] font-medium">{order.invoice_number}</p>
+                            <p className="text-xs text-[#ED7218] font-medium">{order.invoice_number}</p>
                         </div>
                     </div>
                 </div>
@@ -212,17 +212,17 @@ export default function Tracker({ order, role }: Props) {
 
                 {/* Status & Distance Indicator */}
                 {order.status === 'shipped' && distanceToBuyer !== null && (
-                    <div className="bg-[#004F54] text-white p-4 flex items-center justify-between">
+                    <div className="bg-[#281B7A] text-white p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                                <div className="w-3 h-3 bg-[#41B9C5] rounded-full animate-ping absolute"></div>
-                                <div className="w-3 h-3 bg-[#41B9C5] rounded-full relative"></div>
+                                <div className="w-3 h-3 bg-[#ED7218] rounded-full animate-ping absolute"></div>
+                                <div className="w-3 h-3 bg-[#ED7218] rounded-full relative"></div>
                             </div>
                             <span className="text-sm font-medium text-white/90">Tracking Aktif</span>
                         </div>
                         <div className="text-right">
                             <div className="text-[10px] text-white/60 font-bold uppercase tracking-wider">Jarak ke Pembeli</div>
-                            <div className="font-extrabold text-[#41B9C5]">
+                            <div className="font-extrabold text-[#ED7218]">
                                 {distanceToBuyer < 1000 ? `${distanceToBuyer} m` : `${(distanceToBuyer/1000).toFixed(1)} km`}
                             </div>
                         </div>
