@@ -1,7 +1,6 @@
 import React from "react";
 import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
 import { Head, Link } from "@inertiajs/react";
-import Navbar from "@/Components/Global/Navbar";
 import {
     Check,
     Package,
@@ -35,12 +34,11 @@ export default function Success({ order }: Props) {
     return (
         <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans">
             <Head title="Pesanan Berhasil - Cibenda Mart" />
-            <Navbar />
 
             <main className="flex-1 w-full flex flex-col items-center">
                 {/* Header Banner */}
-                <div className="w-full bg-[#281B7A] pt-16 pb-36 px-4 text-center relative overflow-hidden flex flex-col items-center justify-center">
-                    <div className="relative z-10 flex flex-col items-center animate-fade-in-up mt-16 md:mt-20">
+                <div className="w-full bg-[#281B7A] pt-12 pb-32 px-4 text-center relative overflow-hidden flex flex-col items-center justify-center">
+                    <div className="relative z-10 flex flex-col items-center animate-fade-in-up mt-4 md:mt-8">
                         <div className="w-16 h-16 rounded-full bg-[#40E0D0] flex items-center justify-center mx-auto mb-5 shadow-lg">
                             <Check className="w-8 h-8 text-white" strokeWidth={3} />
                         </div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Head, Link, router } from "@inertiajs/react";
-import Navbar from "@/Components/Global/Navbar";
 import { ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -104,9 +103,8 @@ export default function PaymentShow({ order, paymentInfo }: Props) {
     return (
         <div className="min-h-screen bg-[#F7F8FA] flex flex-col font-sans">
             <Head title={`Pembayaran ${order.invoice_number} - Cibenda Mart`} />
-            <Navbar />
 
-            <main className="flex-1 w-full pt-28 pb-24">
+            <main className="flex-1 w-full py-8 md:py-12">
                 <div className="max-w-5xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
                     {/* Navigation & Invoice */}
                     <div className="flex items-center justify-between text-xs sm:text-sm py-1">
