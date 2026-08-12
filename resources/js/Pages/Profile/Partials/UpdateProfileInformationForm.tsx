@@ -164,7 +164,7 @@ export default function UpdateProfileInformation({
                                     name="gender"
                                     checked={data.gender === "male"}
                                     onChange={() => setData("gender", "male")}
-                                    className="w-4 h-4 text-[#245D56] focus:ring-[#245D56] border-slate-300"
+                                    className="w-4 h-4 text-[#ED7218] focus:ring-[#ED7218] accent-[#ED7218] border-slate-300"
                                 />
                                 <span className="text-sm font-medium text-gray-800 group-hover:text-black">
                                     Male
@@ -176,7 +176,7 @@ export default function UpdateProfileInformation({
                                     name="gender"
                                     checked={data.gender === "female"}
                                     onChange={() => setData("gender", "female")}
-                                    className="w-4 h-4 text-[#245D56] focus:ring-[#245D56] border-slate-300"
+                                    className="w-4 h-4 text-[#ED7218] focus:ring-[#ED7218] accent-[#ED7218] border-slate-300"
                                 />
                                 <span className="text-sm font-medium text-gray-800 group-hover:text-black">
                                     Female
@@ -220,7 +220,7 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm font-bold text-[#245D56]">
+                        <p className="text-sm font-bold text-[#ED7218]">
                             Tersimpan.
                         </p>
                     </Transition>
@@ -236,7 +236,7 @@ export default function UpdateProfileInformation({
                     <button
                         type="submit"
                         disabled={processing}
-                        className="px-8 py-3 rounded-xl bg-[#245D56] text-white font-bold text-sm hover:bg-[#1a443f] transition shadow-lg shadow-[#245D56]/15 disabled:opacity-50"
+                        className="px-8 py-3 rounded-xl bg-[#ED7218] text-white font-bold text-sm hover:bg-[#d66311] transition shadow-lg shadow-[#ED7218]/15 disabled:opacity-50"
                     >
                         {processing ? "Menyimpan..." : "Simpan Perubahan"}
                     </button>

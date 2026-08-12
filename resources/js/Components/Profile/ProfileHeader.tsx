@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Camera, BadgeCheck } from "lucide-react";
+import { Camera } from "lucide-react";
 import { router } from "@inertiajs/react";
 import toast from "react-hot-toast";
 
@@ -72,7 +72,7 @@ export default function ProfileHeader({ user }: { user: any }) {
                     {/* change pp button */}
                     <button type="button" aria-label="Ubah foto profil"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-0 right-0 p-1.5 bg-[#245D56] rounded-full text-white cursor-pointer hover:bg-[#1a443f] transition shadow-sm"
+                        className="absolute bottom-0 right-0 p-1.5 bg-[#ED7218] rounded-full text-white cursor-pointer hover:bg-[#d66311] transition shadow-sm"
                     >
                         <Camera className="w-3.5 h-3.5" />
                     </button>
@@ -84,20 +84,9 @@ export default function ProfileHeader({ user }: { user: any }) {
                         <h2 className="text-xl md:text-2xl font-bold text-gray-950 tracking-tight">
                             {user.name}
                         </h2>
-                        <BadgeCheck className="w-5 h-5 text-blue-500" />
-                        <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
-                            Verified
-                        </span>
                     </div>
-                    <p className="text-sm text-slate-500 mt-1">
-                        Pangandaran, Indonesia
-                    </p>
                 </div>
             </div>
-
-            <button className="px-5 py-2.5 rounded-xl border-2 border-[#245D56] text-[#245D56] font-bold text-sm hover:bg-slate-50 transition">
-                Ubah Akun
-            </button>
         </div>
     );
 }

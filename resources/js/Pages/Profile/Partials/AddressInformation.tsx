@@ -63,7 +63,7 @@ export default function AddressInformation({
                         setEditingAddress(null);
                         setIsModalOpen(true);
                     }}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#245D56] text-white font-medium text-sm hover:bg-[#1a443f] transition shadow-md shadow-[#245D56]/20"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#ED7218] text-white font-medium text-sm hover:bg-[#d66311] transition shadow-md shadow-[#ED7218]/20"
                 >
                     <Plus className="w-4 h-4" />
                     Tambahkan Alamat
@@ -106,7 +106,7 @@ export default function AddressInformation({
                             <div className="flex gap-4 items-center ml-4 shrink-0 mt-1">
                                 <button
                                     onClick={() => handleEdit(address)}
-                                    className="text-sm font-bold text-[#245D56] hover:text-[#1a443f] transition"
+                                    className="text-sm font-bold text-[#ED7218] hover:text-[#d66311] transition"
                                 >
                                     Ubah
                                 </button>

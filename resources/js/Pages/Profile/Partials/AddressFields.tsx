@@ -19,7 +19,7 @@ export default function AddressFields({
                     onChange={(e) => setData("recipient_name", e.target.value)}
                     required
                     placeholder="Nama"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#245D56] text-sm"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#ED7218] text-sm"
                 />
             </div>
             <div>
@@ -36,7 +36,7 @@ export default function AddressFields({
                         onChange={(e) => setData("phone", e.target.value)}
                         required
                         placeholder="81234567890"
-                        className="flex-1 px-4 py-3 rounded-r-xl border border-slate-200 focus:ring-[#245D56] text-sm"
+                        className="flex-1 px-4 py-3 rounded-r-xl border border-slate-200 focus:ring-[#ED7218] text-sm"
                     />
                 </div>
             </div>

@@ -119,7 +119,7 @@ export default function AddressModal({
                             value={data.detail}
                             onChange={(e) => setData("detail", e.target.value)}
                             placeholder="Contoh: Samping warung madura, pager hitam"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#245D56] text-sm bg-slate-50/50"
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#ED7218] text-sm bg-slate-50/50"
                         />
                     </div>
 
@@ -139,7 +139,7 @@ export default function AddressModal({
                                     key={lbl}
                                     type="button"
                                     onClick={() => setData("label", lbl)}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-bold border transition ${data.label === lbl ? "border-[#245D56] text-[#245D56] bg-[#245D56]/5" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-bold border transition ${data.label === lbl ? "border-[#ED7218] text-[#ED7218] bg-[#ED7218]/5" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
                                 >
                                     {lbl}
                                 </button>
@@ -154,7 +154,7 @@ export default function AddressModal({
                             onChange={(e) =>
                                 setData("is_primary", e.target.checked)
                             }
-                            className="w-4 h-4 text-[#245D56] border-slate-300 rounded focus:ring-[#245D56]"
+                            className="w-4 h-4 text-[#ED7218] border-slate-300 rounded focus:ring-[#ED7218]"
                         />
                         <span className="text-sm text-slate-600 font-medium">
                             Atur sebagai alamat pribadi
@@ -172,7 +172,7 @@ export default function AddressModal({
                         <button
                             type="submit"
                             disabled={processing}
-                            className="px-8 py-3 rounded-xl font-bold text-white bg-[#245D56] hover:bg-[#1a443f] shadow-lg shadow-[#245D56]/20 transition disabled:opacity-50"
+                            className="px-8 py-3 rounded-xl font-bold text-white bg-[#ED7218] hover:bg-[#d66311] shadow-lg shadow-[#ED7218]/20 transition disabled:opacity-50"
                         >
                             Simpan Alamat
                         </button>

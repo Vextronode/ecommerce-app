@@ -3,7 +3,6 @@ import { Link } from "@inertiajs/react";
 import {
     User,
     MapPin,
-    CreditCard,
     Bell,
     ShieldCheck,
     LogOut,
@@ -12,7 +11,6 @@ import {
 const menus = [
     { id: "biodata", name: "Biodata Diri", icon: User },
     { id: "alamat", name: "Alamat", icon: MapPin },
-    { id: "payment", name: "Pembayaran", icon: CreditCard },
     { id: "notifikasi", name: "Notifikasi", icon: Bell },
     { id: "keamanan", name: "Password & Keamanan", icon: ShieldCheck },
 ];
