@@ -93,7 +93,7 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
         }
     }, [driverPos]);
 
-    const googleMapsUrl = (storePos && buyerPos) 
+    const googleMapsUrl = (storePos && buyerPos)
         ? `https://www.google.com/maps/dir/?api=1&origin=${storePos[0]},${storePos[1]}&destination=${buyerPos[0]},${buyerPos[1]}`
         : '#';
 
@@ -102,11 +102,11 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
             {storePos && buyerPos ? (
                 <div className="relative h-[40vh] w-full bg-slate-200 z-0">
                     <div ref={mapRef} style={{ height: '100%', width: '100%' }}></div>
-                    
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center z-[400] pointer-events-none">
-                        <a 
-                            href={googleMapsUrl} 
-                            target="_blank" 
+
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center z-400 pointer-events-none">
+                        <a
+                            href={googleMapsUrl}
+                            target="_blank"
                             rel="noreferrer"
                             className="pointer-events-auto bg-[#ED7218] text-white px-5 py-2.5 rounded-full shadow-lg shadow-[#ED7218]/30 font-bold text-sm flex items-center gap-2 hover:bg-[#d66311] transition-colors"
                         >
