@@ -1,212 +1,107 @@
-import React, { useState } from "react";
-import {
-    Search,
-    SlidersHorizontal,
-    Truck,
-    RefreshCw,
-    Leaf,
-    ShieldCheck,
-} from "lucide-react";
-import { router } from "@inertiajs/react";
+import React from "react";
+import { Link } from "@inertiajs/react";
+import { Truck, RefreshCw, Leaf, ShieldCheck } from "lucide-react";
 import heroImage from "@/assets/images/hero_veg.webp";
 
 export default function HeroSection() {
-    // state buat nyimpen input user
-    const [searchQuery, setSearchQuery] = useState("");
-
-    // handleSearch buat eksekusi pas tombol "Search" atau tombol "Enter" ditekan
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        // ngarahin user ke halaman shop bawa parameter query-nya
-        if (searchQuery.trim()) {
-            router.get("/shop", { search: searchQuery });
-        } else {
-            router.get("/shop");
-        }
-    };
-
     return (
-        <div className="w-full flex flex-col items-center mb-24 mt-24 md:mt-[120px] relative">
-            <style>
-                {`
-                    .no-scrollbar::-webkit-scrollbar {
-                        display: none;
-                    }
-                    .no-scrollbar {
-                        -ms-overflow-style: none;
-                        scrollbar-width: none;
-                    }
+        <div className="w-full mx-auto px-4 md:px-8 mt-32 md:mt-32 mb-8 md:mb-28 relative">
+            {/* Main Banner */}
+            <div className="relative w-full bg-gradient-to-r from-[#DF7324] to-[#E88232] rounded-3xl md:rounded-[32px] px-6 md:px-16 pt-6 pb-6 md:pt-8 md:pb-24 flex flex-col md:flex-row items-center justify-between overflow-hidden shadow-sm">
+                
+                {/* Diagonal overlay (two-tone effect) */}
+                <div className="absolute top-0 right-0 bottom-0 left-[45%] bg-white/5 skew-x-[-25deg] pointer-events-none transform origin-bottom"></div>
 
-                    @media (min-width: 768px) {
-                        .hero-cutout {
-                            clip-path: polygon(0 0, 100% 0, 100% 100%, calc(100% - 40px) 100%, calc(100% - 100px) calc(100% - 80px), 100px calc(100% - 80px), 40px 100%, 0 100%);
-                        }
-                        .hero-info-bar-desktop {
-                            position: absolute;
-                            bottom: 15px;
-                            left: 100px;
-                            right: 100px;
-                            height: 80px;
-                        }
-                    }
-                `}
-            </style>
-
-            {/* Hero Container */}
-            <div className="w-full px-0 md:px-4 lg:px-8 xl:px-12 relative">
-                <div className="relative z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.08)]">
-                    <div className="bg-[#004F54]/80 w-full pt-8 md:pt-[100px] pb-16 md:pb-[140px] px-6 md:px-20 flex flex-col md:flex-row items-center justify-between rounded-none md:rounded-t-[2.5rem] md:rounded-b-[2rem] hero-cutout transition backdrop-blur-sm">
-                        <div className="w-full md:w-1/2 text-white text-center md:text-left mb-4 md:mb-0">
-                            <h1 className="text-[2.5rem] md:text-6xl lg:text-[4.5rem] tracking-tight mb-2 md:mb-4 leading-none mt-4 md:mt-0">
-                                <span className="font-normal text-[#40E0D0]">
-                                    CIBENDA
-                                </span>
-                                <span className="font-bold text-white">
-                                    MART
-                                </span>
-                            </h1>
-                            <p className="text-gray-200 text-sm md:text-base max-w-sm mx-auto md:mx-0 mb-6 md:mb-8 leading-relaxed">
-                                Belanja kebutuhan harian langsung dari tetangga,
-                                lebih mudah dan cepat.
-                            </p>
-
-                            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 justify-center md:justify-start w-full">
-                                <button type="button" className="w-full sm:w-auto bg-[#40E0D0] hover:bg-[#3ce0c2] text-[#14433D] font-bold px-8 py-3 rounded-full transition shadow-lg shadow-[#40E0D0]/20 text-sm md:text-base">
-                                    Shop Now
-                                </button>
-                                <button type="button" className="w-full sm:w-auto border-2 border-[#40E0D0] text-[#40E0D0] font-bold px-8 py-3 rounded-full hover:bg-[#40E0D0]/10 transition text-sm md:text-base hidden sm:block">
-                                    Explore Category
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="w-full md:w-1/2 flex justify-center lg:justify-end pr-0 lg:pr-10 relative mt-6 md:mt-0">
-                            <img
-                                src={heroImage}
-                                alt="Fresh Vegetables"
-                                className="w-[80%] max-w-[280px] md:max-w-lg object-contain drop-shadow-2xl"
-                                fetchPriority="high"
-                            />
-                        </div>
+                {/* Left Content */}
+                <div className="relative z-10 w-full md:w-3/5 text-center md:text-left mb-4 md:mb-0">
+                    <div className="inline-block px-4 py-1.5 bg-white/20 rounded-full text-white text-[10px] md:text-xs font-semibold mb-4 md:mb-6 backdrop-blur-sm">
+                        Pesan Antar Cepat
+                    </div>
+                    
+                    <h1 className="text-3xl md:text-5xl lg:text-[56px] font-extrabold text-white leading-tight md:leading-[1.15] mb-4 md:mb-6 tracking-tight">
+                        Belanja Kebutuhan<br className="hidden md:block" /> Harian dari UMKM<br className="hidden md:block" /> Cibenda
+                    </h1>
+                    
+                    <p className="text-white/90 text-sm md:text-xl mb-6 md:mb-8">
+                        Murah, Hemat, & Terjangkau
+                    </p>
+                    
+                    <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3 md:gap-4">
+                        <Link 
+                            href="/shop"
+                            className="bg-[#F8F9FA] hover:bg-white text-[#DF7324] font-bold px-6 md:px-8 py-3 md:py-3.5 rounded-xl transition-colors shadow-sm w-full sm:w-auto text-sm md:text-base text-center"
+                            aria-label="Belanja Sekarang"
+                        >
+                            Belanja Sekarang
+                        </Link>
+                        <Link 
+                            href="/shop"
+                            className="border-2 border-white/80 hover:bg-white/10 text-white font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-xl transition-colors w-full sm:w-auto text-sm md:text-base text-center"
+                            aria-label="Jelajahi Produk"
+                        >
+                            Jelajahi Produk
+                        </Link>
                     </div>
                 </div>
 
-                {/* Info bar */}
-                <div className="w-full relative z-20 md:z-0 md:static -mt-8 md:mt-0 flex justify-center md:block">
-                    <div className="w-[92%] md:w-auto mx-auto md:mx-0 md:hero-info-bar-desktop flex items-center transition bg-white md:bg-transparent rounded-[1.5rem] md:rounded-none shadow-[0_15px_30px_rgba(0,0,0,0.08)] md:shadow-none overflow-hidden border border-gray-100 md:border-none">
-                        <div className="grid grid-cols-2 md:flex md:flex-row items-center justify-start md:justify-center w-full h-full p-4 md:p-0 md:px-8 gap-y-3 gap-x-2 md:gap-12 lg:gap-16">
-                            <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                                <Truck
-                                    className="text-[#004F54] md:text-gray-700 w-5 h-5 md:w-7 md:h-7"
-                                    strokeWidth={2}
-                                />
-                                <div>
-                                    <h4 className="font-bold text-xs md:text-sm text-gray-800 leading-tight">
-                                        Free Shipping
-                                    </h4>
-                                    <p className="text-[10px] md:text-xs text-gray-500">
-                                        delivery
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="hidden md:block w-px h-8 md:h-8 bg-gray-200 md:bg-gray-300 shrink-0"></div>
-
-                            <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                                <RefreshCw
-                                    className="text-[#004F54] md:text-gray-700 w-5 h-5 md:w-7 md:h-7"
-                                    strokeWidth={2}
-                                />
-                                <div>
-                                    <h4 className="font-bold text-xs md:text-sm text-gray-800 leading-tight">
-                                        100% Fresh
-                                    </h4>
-                                    <p className="text-[10px] md:text-xs text-gray-500">
-                                        from ocean
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="hidden md:block w-px h-8 md:h-8 bg-gray-200 md:bg-gray-300 shrink-0"></div>
-
-                            <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                                <Leaf
-                                    className="text-[#004F54] md:text-gray-700 w-5 h-5 md:w-7 md:h-7"
-                                    strokeWidth={2}
-                                />
-                                <div>
-                                    <h4 className="font-bold text-xs md:text-sm text-gray-800 leading-tight">
-                                        100% Organic
-                                    </h4>
-                                    <p className="text-[10px] md:text-xs text-gray-500">
-                                        Veg & Fruits
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="hidden md:block w-px h-8 md:h-8 bg-gray-200 md:bg-gray-300 shrink-0"></div>
-
-                            <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                                <ShieldCheck
-                                    className="text-[#004F54] md:text-gray-700 w-5 h-5 md:w-7 md:h-7"
-                                    strokeWidth={2}
-                                />
-                                <div>
-                                    <h4 className="font-bold text-xs md:text-sm text-gray-800 leading-tight">
-                                        Secure Payment
-                                    </h4>
-                                    <p className="text-[10px] md:text-xs text-gray-500">
-                                        protected
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                {/* Right Image */}
+                <div className="relative z-10 w-full md:w-2/5 flex justify-center md:justify-end">
+                    <img
+                        src={heroImage}
+                        alt="Aneka Sayuran Segar"
+                        className="w-full max-w-[240px] md:max-w-[480px] object-contain drop-shadow-2xl translate-y-4 md:translate-y-0"
+                        fetchPriority="high"
+                    />
                 </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="w-full max-w-5xl px-4 z-20 mt-4 md:mt-16">
-                <form onSubmit={handleSearch} className="bg-white rounded-full p-2 flex flex-row items-center justify-between shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-gray-100">
-
-                    {/* Filter / Category Buttons (Desktop Only) */}
-                    <div className="hidden md:flex items-center gap-2 w-auto bg-transparent p-0 rounded-full">
-                        <button type="button" className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-full font-bold text-sm transition hover:bg-gray-200">
-                            Category
-                        </button>
-                        <button type="button" className="text-gray-500 hover:text-gray-900 font-bold text-sm px-4 py-2.5 rounded-full transition">
-                            Buy
-                        </button>
+            {/* Floating Info Bar (Desktop Only) */}
+            <div className="hidden md:block absolute left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 -bottom-14 md:-bottom-12 z-20 w-[calc(100%-2rem)] md:w-auto">
+                <div className="bg-[#F4F5F7] shadow-xl rounded-[20px] border border-gray-200 px-6 py-4 md:py-5 w-full md:min-w-[900px] max-w-6xl xl:max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+                    
+                    {/* Item 1 */}
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <Truck className="w-6 h-6 text-gray-700 shrink-0" strokeWidth={2} aria-hidden="true" />
+                        <div>
+                            <h4 className="font-bold text-sm text-gray-800 leading-tight">Free Shipping</h4>
+                            <p className="text-xs text-gray-500 mt-0.5">delivery</p>
+                        </div>
                     </div>
 
-                    <div className="hidden md:block w-[1px] h-8 bg-gray-200 mx-2"></div>
+                    <div className="hidden md:block w-px h-10 bg-gray-300"></div>
 
-                    {/* Search Input */}
-                    <div className="flex-1 flex items-center px-4 py-2 md:py-2 bg-transparent rounded-full group">
-                        <Search className="w-5 h-5 text-gray-400 mr-2 md:mr-3 group-focus-within:text-[#004F54] transition-colors" />
-                        <input aria-label="Input field"
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search products"
-                            className="w-full border-none bg-transparent focus:ring-0 text-gray-700 p-0 text-sm md:text-base outline-none placeholder:text-gray-400"
-                        />
+                    {/* Item 2 */}
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <RefreshCw className="w-6 h-6 text-gray-700 shrink-0" strokeWidth={2} aria-hidden="true" />
+                        <div>
+                            <h4 className="font-bold text-sm text-gray-800 leading-tight">100% Fresh</h4>
+                            <p className="text-xs text-gray-500 mt-0.5">from ocean</p>
+                        </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div aria-label="Pilih opsi yang tersedia" className="flex items-center gap-1 md:gap-3 shrink-0">
-                        <button aria-label="Tampilkan rincian lebih lanjut" type="button" className="text-gray-500 hover:text-[#004F54] p-2 bg-transparent rounded-full transition hidden sm:block">
-                            <SlidersHorizontal
-                                className="w-5 h-5"
-                                strokeWidth={2}
-                            />
-                        </button>
-                        <button type="submit" className="bg-[#004F54] hover:bg-[#003c40] text-white px-5 md:px-8 rounded-full font-bold text-sm transition shadow-md h-10 md:h-12 flex items-center justify-center">
-                            <span className="hidden md:inline">Search</span>
-                            <Search className="w-4 h-4 md:hidden" strokeWidth={2} />
-                        </button>
+                    <div className="hidden md:block w-px h-10 bg-gray-300"></div>
+
+                    {/* Item 3 */}
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <Leaf className="w-6 h-6 text-gray-700 shrink-0" strokeWidth={2} aria-hidden="true" />
+                        <div>
+                            <h4 className="font-bold text-sm text-gray-800 leading-tight">100% Organic</h4>
+                            <p className="text-xs text-gray-500 mt-0.5">Vegetable and Fruits</p>
+                        </div>
                     </div>
-                </form>
+
+                    <div className="hidden md:block w-px h-10 bg-gray-300"></div>
+
+                    {/* Item 4 */}
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <ShieldCheck className="w-6 h-6 text-gray-700 shrink-0" strokeWidth={2} aria-hidden="true" />
+                        <div>
+                            <h4 className="font-bold text-sm text-gray-800 leading-tight">Secure Payment</h4>
+                            <p className="text-xs text-gray-500 mt-0.5">100% protected</p>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     );

@@ -5,30 +5,23 @@ import { Link, router } from "@inertiajs/react";
 interface Props {
     subtotal: number;
     selectedCount: number;
-    selectedIds?: number[];
-    selectedItemIds?: number[];
+    selectedIds: number[];
 }
 
 export default function CartSummary({
     subtotal,
     selectedCount,
     selectedIds,
-    selectedItemIds,
 }: Props) {
-    const finalSelectedIds = selectedIds ?? selectedItemIds ?? [];
-    const deliveryFee = selectedCount > 0 ? 25000 : 0;
-    const packagingFee = selectedCount > 0 ? 15000 : 0;
-    const totalPayment = subtotal + deliveryFee + packagingFee;
+    const totalPayment = subtotal;
 
-    // hanlder buat throw ID barang yang diceklis ke backend
     const handleCheckout = () => {
         if (selectedCount === 0) return;
-        // Ini bakal bikin URL jadi: /checkout?items[]=1&items[]=2
-        router.get(route("checkout"), { items: finalSelectedIds });
+        router.get(route("checkout"), { items: selectedIds });
     };
 
     return (
-        <div className="space-y-4 sticky top-32">
+        <div className="space-y-4">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
                 <h2 className="text-lg font-bold text-gray-900 mb-6">
                     Order Summary
@@ -43,29 +36,13 @@ export default function CartSummary({
                             Rp {subtotal.toLocaleString("id-ID")}
                         </span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-slate-500 font-medium">
-                            Delivery Fee
-                        </span>
-                        <span className="text-gray-900 font-bold">
-                            Rp {deliveryFee.toLocaleString("id-ID")}
-                        </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-slate-500 font-medium">
-                            Cold-Chain Packaging
-                        </span>
-                        <span className="text-gray-900 font-bold">
-                            Rp {packagingFee.toLocaleString("id-ID")}
-                        </span>
-                    </div>
                 </div>
 
                 <div className="flex justify-between items-end mb-6">
                     <span className="text-sm font-medium text-slate-500">
                         Total Payment
                     </span>
-                    <span className="text-xl font-bold text-[#245D56]">
+                    <span className="text-xl font-bold text-[#F77F00]">
                         Rp {totalPayment.toLocaleString("id-ID")}
                     </span>
                 </div>
@@ -73,7 +50,11 @@ export default function CartSummary({
                 <button
                     onClick={handleCheckout}
                     disabled={selectedCount === 0}
-                    className={`w-full flex items-center justify-center font-bold py-3.5 rounded-2xl transition shadow-lg mb-4 ${selectedCount > 0 ? "bg-[#245D56] text-white hover:bg-[#1a443f] shadow-[#245D56]/20 cursor-pointer" : "bg-gray-200 text-gray-400 pointer-events-none"}`}
+                    className={`w-full flex items-center justify-center font-bold py-3.5 rounded-2xl transition shadow-lg mb-4 ${
+                        selectedCount > 0
+                            ? "bg-[#ED7218] text-white hover:opacity-90 shadow-[#ED7218]/20 cursor-pointer"
+                            : "bg-gray-200 text-gray-400 pointer-events-none"
+                    }`}
                 >
                     Checkout
                 </button>
@@ -86,7 +67,7 @@ export default function CartSummary({
 
             <Link
                 href={route("shop")}
-                className="w-full flex items-center justify-center gap-2 bg-[#245D56]/10 text-[#245D56] font-bold py-3.5 rounded-2xl hover:bg-[#245D56]/20 transition"
+                className="w-full flex items-center justify-center gap-2 bg-[#ED7218] text-white font-bold py-3.5 rounded-2xl hover:opacity-90 transition"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Kembali belanja

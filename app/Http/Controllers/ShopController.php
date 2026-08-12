@@ -12,7 +12,6 @@ class ShopController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::all();
         $query = Product::with(['store', 'category'])
             ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
@@ -23,6 +22,7 @@ class ShopController extends Controller
             ->where('is_active', true)
             ->where('stock', '>', 0);
 
+        $relatedStores = [];
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -31,25 +31,51 @@ class ShopController extends Controller
                         $qCat->where('name', 'like', "%{$search}%");
                     });
             });
-        }
 
-        $products = $query->latest()->get();
-
-        $groupedProducts = [];
-        foreach ($categories as $category) {
-            $catProducts = $products->where('category_id', $category->id)->values();
-            if ($catProducts->count() > 0) {
-                $groupedProducts[] = [
-                    'category_name' => $category->name,
-                    'products' => $catProducts,
-                ];
+            // Find related stores (either store name matches OR it sells a matching product)
+            $relatedStores = Store::withCount(['products', 'followers'])
+                ->where('name', 'like', "%{$search}%")
+                ->orWhereHas('products', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })
+                ->get();
+                
+            foreach ($relatedStores as $store) {
+                $storeStats = Product::where('store_id', $store->id)
+                    ->withAvg('reviews as rating', 'rating')
+                    ->withSum(['orderItems as sold' => function ($query) {
+                        $query->whereHas('order', function ($q) {
+                            $q->where('shipping_status', 'delivered');
+                        });
+                    }], 'quantity')
+                    ->get();
+                    
+                $store->average_rating = $storeStats->avg('rating') ? number_format($storeStats->avg('rating'), 1) : "0.0";
+                $store->total_sold = $storeStats->sum('sold') ?? 0;
+                // created_at dikirim langsung, joined_date dihitung di frontend
+                
+                $randomNoise = mt_rand(1, 1000) / 1000;
+                $store->score = ((float)$store->average_rating * 20) + $store->total_sold + $randomNoise;
             }
+            
+            $relatedStores = $relatedStores->sortByDesc('score')->take(3)->values();
         }
+
+        $products = $query->get();
+
+        // Seed harian agar urutan berubah setiap hari, tapi tetap mempertimbangkan rating & penjualan
+        mt_srand((int) date('Ymd'));
+        $products = $products->map(function ($product) {
+            $noise = mt_rand(1, 1000) / 1000;
+            $product->score = (($product->rating ?? 0) * 20) + ($product->sold ?? 0) + $noise;
+            return $product;
+        })->sortByDesc('score')->values();
+        mt_srand();
 
         return Inertia::render('Storefront/Shop', [
-            'categories' => $categories,
-            'groupedProducts' => $groupedProducts,
+            'allProducts' => $products,
             'searchQuery' => $request->search ?? '',
+            'relatedStores' => $relatedStores,
         ]);
     }
 

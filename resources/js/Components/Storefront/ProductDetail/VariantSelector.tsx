@@ -33,8 +33,8 @@ export default function VariantSelector({
                                     }
                                     className={`px-4 py-1.5 rounded-xl text-sm font-bold border transition-colors ${
                                         isSelected
-                                            ? "bg-[#41B9C5]/10 border-[#41B9C5] text-[#41B9C5]"
-                                            : "bg-white border-gray-200 text-gray-600 hover:border-[#41B9C5]/50 hover:bg-gray-50"
+                                            ? "bg-[#ED7218]/10 border-[#ED7218] text-[#ED7218]"
+                                            : "bg-white border-gray-200 text-gray-600 hover:border-[#ED7218]/50 hover:bg-gray-50"
                                     }`}
                                 >
                                     {opt.name}

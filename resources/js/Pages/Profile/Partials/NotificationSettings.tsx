@@ -23,8 +23,8 @@ const ToggleSwitch = ({
             role="switch"
             aria-checked={isChecked}
             onClick={onClick}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                isChecked ? "bg-[#245D56]" : "bg-slate-200"
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isChecked ? "bg-[#ED7218]" : "bg-slate-200"
             }`}
         >
             <span

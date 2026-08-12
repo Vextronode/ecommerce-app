@@ -1,6 +1,6 @@
-import React from "react";
-import { ChevronRight } from "lucide-react";
+import React, { useMemo } from "react";
 import { Link } from "@inertiajs/react";
+import { BadgeCheck } from "lucide-react";
 
 export interface Store {
     id: number | string;
@@ -15,75 +15,75 @@ interface MerchantSectionProps {
 }
 
 export default function MerchantSection({ stores = [] }: MerchantSectionProps) {
-    const displayStores = stores.length >= 4 ? stores.slice(0, 4) : [...stores, ...stores].slice(0, 4);
+    // Shuffle stores daily
+    const displayStores = useMemo(() => {
+        if (!stores || stores.length === 0) return [];
+        
+        const today = new Date();
+        const daySeed = today.getDate() + today.getMonth() * 31;
+        
+        let currentSeed = daySeed;
+        const seededRandom = () => {
+            const x = Math.sin(currentSeed++) * 10000;
+            return x - Math.floor(x);
+        };
+
+        const validStores = stores.length >= 4 ? stores : [...stores, ...stores, ...stores, ...stores];
+        
+        const shuffled = [...validStores].sort(() => seededRandom() - 0.5);
+        return shuffled.slice(0, 4);
+    }, [stores]);
+
+    if (!displayStores.length) return null;
 
     return (
-        <section className="w-full py-16 mb-8 md:mb-16">
-            <div className="max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12">
+        <section className="w-full py-16 bg-white">
+            <div className="w-full xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 md:px-8">
                 {/* HEADER */}
-                <div className="flex items-end justify-between mb-8 md:mb-12">
-                    <div>
-                        <p className="text-gray-800 font-medium text-xs md:text-sm mb-1.5">
-                            Merchant Category
-                        </p>
-                        <h2 className="text-2xl md:text-4xl font-bold text-black tracking-tight leading-none">
-                            Shop by Store
-                        </h2>
-                    </div>
-                    <Link
-                        href="/stores"
-                        className="flex items-center gap-1 font-semibold text-sm md:text-base text-[#40E0D0] hover:text-[#2dafa1] transition-colors group"
-                    >
-                        Lihat Semua
-                        <ChevronRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                <div className="mb-10">
+                    <h2 className="text-3xl md:text-[34px] font-extrabold text-[#13005E] tracking-tight">
+                        Belanja berdasarkan Toko
+                    </h2>
                 </div>
 
                 {/* GRID */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {displayStores.map((store, index) => {
-                        // Alternate background colors to match the design
-                        const bgClass =
-                            index % 2 === 0
-                                ? "bg-[#B2EBF2]" // Light cyan
-                                : "bg-[#90A4AE]"; // Gray blue
-
-                        const textClass = index % 2 === 0 ? "text-[#00838F]" : "text-[#263238]";
+                        // Alternate border colors
+                        const borderColor = index % 2 === 0 ? "border-[#13005E]/40" : "border-[#ED7218]/40";
 
                         return (
                             <Link
                                 href={`/store/${store.slug || store.id}`}
                                 key={`merchant-${store.id}-${index}`}
-                                className={`${bgClass} rounded-[2rem] p-5 md:p-6 relative overflow-hidden flex flex-col h-72 hover:shadow-lg transition-shadow duration-300 group`}
+                                className={`bg-[#EAECEF] rounded-xl p-4 md:p-5 flex items-center gap-4 hover:shadow-md transition-all duration-300 border ${borderColor}`}
+                                aria-label={`Kunjungi Toko ${store.name}`}
                             >
-                                {/* TEXT CONTENT */}
-                                <div className="relative z-20 w-[65%] flex flex-col h-full pointer-events-none">
-                                    <h3
-                                        className={`font-black text-xl md:text-2xl leading-tight mb-2 ${textClass}`}
-                                    >
-                                        {store.name}
-                                    </h3>
-                                    <p className="text-gray-800 text-[11px] md:text-xs leading-relaxed mb-auto">
-                                        {store.description || "Seafood fresh, sehat, dan enak"}
-                                    </p>
-
-                                    <button className="bg-white text-gray-900 font-bold text-xs px-5 py-2.5 rounded-full w-max shadow-sm hover:bg-gray-50 transition-colors mt-4 pointer-events-auto">
-                                        Shop Now
-                                    </button>
+                                {/* IMAGE */}
+                                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm" aria-hidden="true">
+                                    <img
+                                        src={
+                                            store.image ||
+                                            `https://placehold.co/400x400/e2e8f0/64748b?text=Merchant`
+                                        }
+                                        alt=""
+                                        className="object-cover w-full h-full"
+                                        loading="lazy"
+                                    />
                                 </div>
 
-                                {/* IMAGE */}
-                                <div className="absolute right-0 bottom-0 w-[40%] h-full flex items-center justify-end pr-4 md:pr-5 z-0 pointer-events-none">
-                                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white/30 shadow-md flex-shrink-0">
-                                        <img
-                                            src={
-                                                store.image ||
-                                                `https://placehold.co/400x400/e2e8f0/64748b?text=Merchant`
-                                            }
-                                            alt={store.name}
-                                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500 ease-in-out"
-                                        />
-                                    </div>
+                                {/* INFO */}
+                                <div className="flex flex-col flex-1 min-w-0">
+                                    <h3 className="font-bold text-gray-900 text-base md:text-lg flex items-center gap-1.5 truncate">
+                                        <span className="truncate">{store.name}</span>
+                                        <BadgeCheck className="w-4 h-4 text-green-500 shrink-0" aria-label="Terverifikasi" />
+                                    </h3>
+                                    <p className="text-gray-500 text-xs md:text-sm truncate mb-1">
+                                        {store.description || "Toko Cibenda"}
+                                    </p>
+                                    <span className="text-[#ED7218] font-bold text-xs md:text-sm mt-0.5">
+                                        Kunjungi Toko
+                                    </span>
                                 </div>
                             </Link>
                         );

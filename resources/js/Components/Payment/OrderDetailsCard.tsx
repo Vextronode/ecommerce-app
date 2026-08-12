@@ -133,7 +133,7 @@ export default function OrderDetailsCard({
                                             {item.product_name || item.product?.name || "Produk Pilihan"}
                                         </h5>
                                         <p className="text-xs text-slate-500 mt-0.5">
-                                            {item.quantity}x • {formatRupiah(item.price)}
+                                            {item.quantity}x • {formatRupiah(Number(item.price))}
                                         </p>
                                     </div>
                                 </div>
@@ -149,7 +149,7 @@ export default function OrderDetailsCard({
                                     Paket Belanja Pangandaran
                                 </h5>
                                 <p className="text-xs text-slate-500">
-                                    1x • {formatRupiah(order.total_amount)}
+                                    1x • {formatRupiah(Number(order.total_amount))}
                                 </p>
                             </div>
                         </div>
@@ -161,13 +161,13 @@ export default function OrderDetailsCard({
                     <div className="flex justify-between">
                         <span>Subtotal Produk</span>
                         <span className="font-semibold text-slate-800">
-                            {formatRupiah(order.subtotal || order.total_amount)}
+                            {formatRupiah(Number(order.subtotal || order.total_amount))}
                         </span>
                     </div>
                     <div className="flex justify-between">
                         <span>Ongkos Kirim</span>
                         <span className="font-semibold text-slate-800">
-                            {formatRupiah(order.shipping_cost || 0)}
+                            {formatRupiah(Number(order.shipping_cost || 0))}
                         </span>
                     </div>
                 </div>
@@ -179,7 +179,7 @@ export default function OrderDetailsCard({
                     Total Tagihan
                 </span>
                 <span className="text-2xl sm:text-3xl md:text-4xl font-black text-[#281B7A]">
-                    {formatRupiah(order.total_amount)}
+                    {formatRupiah(Number(order.total_amount))}
                 </span>
             </div>
 

@@ -18,6 +18,7 @@ export default function Show({ order }: { order: any }) {
 
     const canCancel = order.shipping_status === 'pending';
     const canComplete = order.shipping_status === 'shipped';
+    const showRatingButton = order.status === 'Selesai' && order.items && order.items.length > 0;
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
@@ -27,7 +28,7 @@ export default function Show({ order }: { order: any }) {
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-32">
                 <Link
                     href={route("history.index")}
-                    className="inline-flex items-center text-sm text-gray-500 hover:text-[#245D56] mb-6 transition-colors font-medium"
+                    className="inline-flex items-center text-sm text-gray-500 hover:text-[#ED7218] mb-6 transition-colors font-medium"
                 >
                     <ChevronLeft className="w-4 h-4 mr-1" />
                     Kembali ke Riwayat
@@ -95,7 +96,7 @@ export default function Show({ order }: { order: any }) {
                                     <div className="mt-3">
                                         <Link
                                             href={`/payment/${order.id}`}
-                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#245D56] hover:bg-[#1a4540] px-3.5 py-2 rounded-xl shadow-xs transition"
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#ED7218] hover:bg-[#d66311] px-3.5 py-2 rounded-xl shadow-xs transition"
                                         >
                                             Bayar Sekarang
                                         </Link>
@@ -122,7 +123,7 @@ export default function Show({ order }: { order: any }) {
                     {/* Store & Products */}
                     <div className="p-6">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="bg-[#245D56] text-white p-1.5 rounded-md">
+                            <div className="bg-[#ED7218] text-white p-1.5 rounded-md">
                                 <Store className="w-4 h-4" />
                             </div>
                             <span className="font-bold text-gray-900">
@@ -154,7 +155,7 @@ export default function Show({ order }: { order: any }) {
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-[#245D56]">
+                                        <p className="font-bold text-[#281B7A]">
                                             Rp
                                             {Number(item.price).toLocaleString(
                                                 "id-ID"
@@ -191,7 +192,7 @@ export default function Show({ order }: { order: any }) {
                                 <span className="font-bold text-gray-900">
                                     Total Pesanan
                                 </span>
-                                <span className="text-xl font-bold text-[#245D56]">
+                                <span className="text-xl font-bold text-[#281B7A]">
                                     Rp
                                     {Number(order.total_amount).toLocaleString(
                                         "id-ID"
@@ -216,7 +217,7 @@ export default function Show({ order }: { order: any }) {
                                     href={order.store_phone ? `https://wa.me/${order.store_phone.replace(/\D/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo admin ${order.store_name}, saya pembeli dengan nomor pesanan #${order.invoice_number}. Saya ingin bertanya mengenai pesanan saya...`)}` : '#'}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center justify-center px-6 py-2.5 border border-[#245D56] text-[#245D56] text-sm font-bold rounded-lg hover:bg-[#EAF7F7] transition-colors"
+                                    className="inline-flex items-center justify-center px-6 py-2.5 bg-[#281B7A]/5 border border-[#281B7A]/20 text-[#281B7A] text-sm font-bold rounded-xl hover:bg-[#281B7A]/10 transition-colors"
                                 >
                                     <MessageSquare className="w-4 h-4 mr-2" />
                                     Hubungi Penjual
@@ -243,17 +244,26 @@ export default function Show({ order }: { order: any }) {
                         {canComplete && (
                             <button
                                 onClick={() => setIsCompleteModalOpen(true)}
-                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#245D56] text-white text-sm font-bold rounded-lg hover:bg-[#1a4540] transition-colors"
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#ED7218] text-white text-sm font-bold rounded-xl hover:bg-[#d66311] transition-colors shadow-xs"
                             >
                                 <CheckCircle className="w-4 h-4 mr-2" />
                                 Pesanan Diterima
                             </button>
                         )}
                         
-                        {order.status === "Selesai" && (
+                        {showRatingButton && order.items?.[0]?.id && (
                             <Link
-                                href={route("product.detail", order.items[0]?.product_slug || order.items[0]?.product_id)}
-                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#245D56] text-white text-sm font-bold rounded-lg hover:bg-[#1a4540] transition-colors"
+                                href={route("history.rating.create", { order_item: order.items[0].id })}
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#ED7218] text-white text-sm font-bold rounded-xl hover:bg-[#d66311] transition-colors shadow-xs"
+                            >
+                                Beri Penilaian
+                            </Link>
+                        )}
+
+                        {order.status === "Selesai" && order.items?.[0] && (
+                            <Link
+                                href={route("product.detail", order.items[0].product_slug || order.items[0].product_id)}
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#ED7218] text-white text-sm font-bold rounded-xl hover:bg-[#d66311] transition-colors shadow-xs"
                             >
                                 Beli Lagi
                             </Link>

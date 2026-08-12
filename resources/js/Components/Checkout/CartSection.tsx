@@ -67,7 +67,7 @@ export default function CartSection({ items }: { items: CartItem[] }) {
                                 )}
                             </div>
                             <div className="text-right shrink-0">
-                                <p className="font-bold text-[#245D56] text-sm md:text-base mb-1">
+                                <p className="font-bold text-[#F77F00] text-sm md:text-base mb-1">
                                     Rp{" "}
                                     {Number(item.price).toLocaleString("id-ID")}
                                 </p>

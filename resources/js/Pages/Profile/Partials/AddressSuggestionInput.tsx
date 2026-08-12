@@ -64,7 +64,7 @@ export default function AddressSuggestionInput({
                         onChange={(e) => onChange(e.target.value)}
                         required
                         placeholder={placeholder}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#245D56] text-sm bg-slate-50/50"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#ED7218] text-sm bg-slate-50/50"
                     />
                 ) : (
                     <textarea
@@ -73,11 +73,11 @@ export default function AddressSuggestionInput({
                         required
                         rows={2}
                         placeholder={placeholder}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#245D56] text-sm bg-slate-50/50 resize-none"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#ED7218] text-sm bg-slate-50/50 resize-none"
                     ></textarea>
                 )}
                 {searchLoading && activeDropdown === dropdownType && (
-                    <Loader2 className="w-4 h-4 animate-spin text-[#245D56] absolute right-4 top-3.5" />
+                    <Loader2 className="w-4 h-4 animate-spin text-[#ED7218] absolute right-4 top-3.5" />
                 )}
             </div>
 
@@ -85,7 +85,7 @@ export default function AddressSuggestionInput({
                 <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-slate-100 max-h-48 overflow-y-auto z-1000 divide-y divide-slate-50">
                     {(suggestions || []).map((item, idx) => (
                         <button
-                            key={suggestion.place_id}
+                            key={idx}
                             type="button"
                             onClick={() => onSelect(item)}
                             className="w-full text-left px-4 py-2.5 hover:bg-slate-50 text-xs text-gray-700 truncate block"

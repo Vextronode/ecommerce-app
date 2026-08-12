@@ -39,9 +39,9 @@ export default function Success({ order }: Props) {
 
             <main className="flex-1 w-full flex flex-col items-center">
                 {/* Header Banner */}
-                <div className="w-full bg-[#1e5856] pt-16 pb-36 px-4 text-center relative overflow-hidden flex flex-col items-center justify-center">
+                <div className="w-full bg-[#281B7A] pt-16 pb-36 px-4 text-center relative overflow-hidden flex flex-col items-center justify-center">
                     <div className="relative z-10 flex flex-col items-center animate-fade-in-up mt-16 md:mt-20">
-                        <div className="w-16 h-16 rounded-full bg-[#41b9c5] flex items-center justify-center mx-auto mb-5 shadow-lg">
+                        <div className="w-16 h-16 rounded-full bg-[#40E0D0] flex items-center justify-center mx-auto mb-5 shadow-lg">
                             <Check className="w-8 h-8 text-white" strokeWidth={3} />
                         </div>
 
@@ -59,16 +59,16 @@ export default function Success({ order }: Props) {
                     {/* Order Tracking Progress Card */}
                     <div className="w-full bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-slate-100 animate-fade-in-up">
                         <h3 className="text-lg font-bold text-gray-900 mb-8 text-center">
-                            Status Pengiriman Pesanan
+                            Tracking Pesananmu
                         </h3>
 
                         <div className="relative flex justify-between max-w-2xl mx-auto mb-4">
                             <div className="absolute top-6 left-0 right-0 h-1.5 bg-gray-100 rounded-full z-0"></div>
-                            <div className="absolute top-6 left-0 w-1/4 h-1.5 bg-[#126871] rounded-full z-0 transition duration-500"></div>
+                            <div className="absolute top-6 left-0 w-1/4 h-1.5 bg-[#006591] rounded-full z-0 transition duration-500"></div>
 
                             <div className="relative z-10 flex flex-col items-center flex-1">
-                                <div className="w-12 h-12 bg-white border-2 border-[#126871] rounded-2xl flex items-center justify-center mb-3 shadow-xs">
-                                    <Package className="w-6 h-6 text-[#126871]" />
+                                <div className="w-12 h-12 bg-white border-2 border-[#006591] rounded-2xl flex items-center justify-center mb-3 shadow-xs">
+                                    <Package className="w-6 h-6 text-[#006591]" />
                                 </div>
                                 <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm">Dikemas Penjual</h4>
                                 <p className="text-[11px] text-gray-500 text-center px-2">Penjual sedang menyiapkan paket pesananmu</p>
@@ -93,11 +93,11 @@ export default function Success({ order }: Props) {
                     </div>
 
                     {/* Detail Transaksi Card */}
-                    <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
-                        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <div className="bg-[#40E0D0]/10 rounded-3xl p-6 md:p-8 space-y-6">
+                        <div className="flex items-center justify-between pb-4 border-b border-[#006591]/10">
                             <div className="flex items-center gap-2.5">
-                                <ShoppingBag className="w-5 h-5 text-[#245D56]" />
-                                <h4 className="font-bold text-gray-900 text-base">Rincian Transaksi</h4>
+                                <ShoppingBag className="w-5 h-5 text-gray-900" />
+                                <h4 className="font-bold text-gray-900 text-base">Detail Pesanan</h4>
                             </div>
                             <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">
                                 {order?.payment_method === "cod" ? "COD (BAYAR DI TEMPAT)" : "LUNAS"}
@@ -171,17 +171,17 @@ export default function Success({ order }: Props) {
                     <div className="flex flex-col sm:flex-row gap-3.5 justify-center w-full pt-4">
                         <Link
                             href={route("shop")}
-                            className="flex items-center justify-center px-8 py-3.5 bg-[#245D56] text-white font-bold rounded-2xl hover:bg-[#1a4540] transition-colors shadow-sm text-sm"
+                            className="flex items-center justify-center px-8 py-3.5 bg-[#281B7A] text-white font-bold rounded-2xl hover:opacity-90 transition-colors shadow-sm text-sm"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
-                            Lanjut Belanja
+                            Lanjut Pesanan
                         </Link>
                         <Link
                             href={order?.id ? route("history.show", order.id) : route("history.index")}
-                            className="flex items-center justify-center px-8 py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-colors shadow-sm text-sm"
+                            className="flex items-center justify-center px-8 py-3.5 bg-transparent border border-slate-300 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-colors shadow-sm text-sm"
                         >
                             <Calendar className="w-4 h-4 mr-2" />
-                            Pantau di Riwayat Pesanan
+                            Pantau Pesanan
                         </Link>
                     </div>
                 </div>

@@ -73,7 +73,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                         />
                     </div>
 
-                    <div className="lg:col-span-4">
+                    <div className="lg:col-span-4 self-start sticky top-32">
                         <OrderSummary
                             subtotal={subtotal}
                             deliveryFee={deliveryFee}

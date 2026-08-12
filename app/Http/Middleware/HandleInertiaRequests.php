@@ -52,6 +52,25 @@ class HandleInertiaRequests extends Middleware
             'cart_count' => $request->user()
                 ? Cart::where('user_id', $request->user()->id)->count()
                 : 0,
+            'cart_preview' => fn () => $request->user() ? [
+                'items' => Cart::with(['product.skus'])
+                    ->where('user_id', $request->user()->id)
+                    ->latest()
+                    ->take(4)
+                    ->get()
+                    ->map(function ($cart) {
+                        $matchingSku = $cart->product ? $cart->product->skus->where('variant_name', $cart->preparation_option)->first() : null;
+                        return [
+                            'id' => $cart->id,
+                            'name' => $cart->product->name ?? 'Produk',
+                            'price' => (float) ($matchingSku ? $matchingSku->price : ($cart->product->price ?? 0)),
+                            'quantity' => $cart->quantity,
+                            'variant_name' => $cart->preparation_option,
+                            'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=200',
+                        ];
+                    }),
+                'total_count' => Cart::where('user_id', $request->user()->id)->count(),
+            ] : null,
         ];
     }
 }

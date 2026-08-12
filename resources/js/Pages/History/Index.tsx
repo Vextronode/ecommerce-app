@@ -45,10 +45,10 @@ export default function Index({
                                     <button
                                         key={tab.key}
                                         onClick={() => navigateTab(tab.key)}
-                                        className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                                        className={`text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                                             currentStatus === tab.key
-                                                ? "bg-[#245D56] text-white"
-                                                : "text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200"
+                                                ? "bg-[#ED7218] text-white shadow-xs font-semibold"
+                                                : "text-gray-700 bg-gray-50/80 hover:bg-gray-100 border border-gray-200/60"
                                         }`}
                                     >
                                         {tab.label}
@@ -100,7 +100,7 @@ export default function Index({
                                         </p>
                                         <Link
                                             href={route("shop")}
-                                            className="inline-block mt-6 px-6 py-2 bg-[#245D56] text-white rounded-lg hover:bg-[#1a4540] transition-colors"
+                                            className="inline-block mt-6 px-6 py-2.5 bg-[#ED7218] text-white rounded-xl font-medium hover:bg-[#d66311] transition-colors shadow-xs"
                                         >
                                             Mulai Belanja
                                         </Link>
