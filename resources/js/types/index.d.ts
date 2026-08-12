@@ -12,6 +12,15 @@ export interface User {
     is_password_changed?: boolean;
 }
 
+export type CartPreviewItem = {
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+    variant_name?: string | null;
+    img: string;
+};
+
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
@@ -19,4 +28,8 @@ export type PageProps<
         user: User;
     };
     cart_count?: number;
+    cart_preview?: {
+        items: CartPreviewItem[];
+        total_count: number;
+    } | null;
 };

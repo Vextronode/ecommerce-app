@@ -18,21 +18,24 @@ interface StoreProfileProps {
 }
 
 export default function StoreProfileCard({ store }: StoreProfileProps) {
-    // Format joined date
-    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
+    // Format joined date — menggunakan hitungan hari agar konsisten dengan backend
     const getJoinedText = (dateString: string) => {
         const date = new Date(dateString);
         const now = new Date();
-        const diffYears = now.getFullYear() - date.getFullYear();
-        const diffMonths = now.getMonth() - date.getMonth() + (diffYears * 12);
+        const diffMs = now.getTime() - date.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        if (diffYears > 0) {
-            return `${diffYears} Tahun lalu`;
+        if (diffDays < 7) return 'Baru bergabung';
+        if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            return `${weeks} minggu yang lalu`;
         }
-        if (diffMonths > 0) {
-            return `${diffMonths} Bulan lalu`;
+        if (diffDays < 365) {
+            const months = Math.floor(diffDays / 30);
+            return `${months} bulan yang lalu`;
         }
-        return 'Baru bergabung';
+        const years = Math.floor(diffDays / 365);
+        return `${years} tahun yang lalu`;
     };
 
     // Format number for display
@@ -81,19 +84,19 @@ export default function StoreProfileCard({ store }: StoreProfileProps) {
             <div className="flex-1 grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
                 <div className="flex items-center justify-between md:justify-start gap-2 md:gap-8">
                     <span className="text-gray-500">Penilaian Toko</span>
-                    <span className="font-medium text-[#004F54]">{ratingDisplay}</span>
+                    <span className="font-medium text-[#ED7218]">{ratingDisplay}</span>
                 </div>
                 <div className="flex items-center justify-between md:justify-start gap-2 md:gap-8">
                     <span className="text-gray-500">Total Produk</span>
-                    <span className="font-medium text-[#004F54]">{store.products_count || 0}</span>
+                    <span className="font-medium text-[#ED7218]">{store.products_count || 0}</span>
                 </div>
                 <div className="flex items-center justify-between md:justify-start gap-2 md:gap-8">
                     <span className="text-gray-500">Pengikut</span>
-                    <span className="font-medium text-[#004F54]">{formatNumber(store.followers_count || 0)}</span>
+                    <span className="font-medium text-[#ED7218]">{formatNumber(store.followers_count || 0)}</span>
                 </div>
                 <div className="flex items-center justify-between md:justify-start gap-2 md:gap-8">
                     <span className="text-gray-500">Bergabung</span>
-                    <span className="font-medium text-[#004F54]">{getJoinedText(store.created_at)}</span>
+                    <span className="font-medium text-[#ED7218]">{getJoinedText(store.created_at)}</span>
                 </div>
             </div>
 

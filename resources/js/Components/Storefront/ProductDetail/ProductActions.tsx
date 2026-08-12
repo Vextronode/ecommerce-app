@@ -52,16 +52,16 @@ export default function ProductActions({
             <button
                 onClick={handleBuyNow}
                 disabled={disabled}
-                className="bg-[#245D56] text-white py-4 rounded-xl font-bold text-sm hover:bg-[#1a443f] transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#ED7218] text-white py-4 rounded-xl font-bold text-sm hover:opacity-90 transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 Buy Now
             </button>
             <button
                 onClick={handleAddToCart}
                 disabled={disabled}
-                className="bg-white text-[#245D56] py-4 rounded-xl font-bold text-sm border-2 border-[#245D56] hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-white text-[#006591] py-4 rounded-xl font-bold text-sm border-2 border-[#306D29] hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                <ShoppingCart className="w-4 h-4" /> Add to Cart
+                <ShoppingCart className="w-4 h-4 text-[#006591]" /> Add to Cart
             </button>
         </div>
     );

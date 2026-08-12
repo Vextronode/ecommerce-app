@@ -89,25 +89,29 @@ export default function StoreDetail({ store, isFollowing, categories, products, 
                 />
 
                 {/* Tabs & Search Container */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 min-h-[500px]">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-100 pb-4 gap-4 mb-8">
-                        <div className="flex items-center gap-6">
-                            {['beranda', 'produk', 'kategori'].map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => handleTabChange(tab)}
-                                    className={`text-base font-bold pb-4 -mb-[17px] border-b-2 whitespace-nowrap transition-colors ${currentTab === tab
-                                        ? "border-[#245D56] text-[#245D56]"
-                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 min-h-125">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200/80 pb-4 md:pb-0 gap-4 mb-8">
+                        <div className="flex items-center overflow-x-auto no-scrollbar">
+                            {['beranda', 'produk', 'kategori'].map(tab => {
+                                const isActive = currentTab === tab;
+                                return (
+                                    <button
+                                        key={tab}
+                                        onClick={() => handleTabChange(tab)}
+                                        className={`text-base md:text-lg font-bold px-8 md:px-10 py-3.5 transition-all whitespace-nowrap border-b-[3px] ${
+                                            isActive
+                                                ? "bg-[#E5E7EB]/70 text-gray-900 border-[#006591]"
+                                                : "bg-transparent text-gray-900 border-transparent hover:bg-gray-100/50"
                                         }`}
-                                >
-                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                                </button>
-                            ))}
+                                    >
+                                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         {/* Search Bar */}
-                        <form onSubmit={handleSearch} className="relative w-full md:w-64 flex-shrink-0">
+                        <form onSubmit={handleSearch} className="relative w-full md:w-64 shrink-0">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input aria-label="Input field"
                                 type="text"
