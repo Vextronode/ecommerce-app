@@ -97,7 +97,7 @@ export default function RatingForm({ orderItem }: Props) {
                                 value={data.comment}
                                 onChange={(e) => setData('comment', e.target.value)}
                                 rows={4}
-                                className="w-full rounded-2xl border-gray-200 shadow-sm focus:border-[#245D56] focus:ring-[#245D56] bg-gray-50/50 p-4 transition-colors"
+                                className="w-full rounded-2xl border-gray-200 shadow-sm focus:border-[#ED7218] focus:ring-[#ED7218] bg-gray-50/50 p-4 transition-colors"
                                 placeholder="Bagikan pengalamanmu menggunakan produk ini..."
                             ></textarea>
                             <InputError message={errors.comment} className="mt-2" />
@@ -140,7 +140,7 @@ export default function RatingForm({ orderItem }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-8 py-3 bg-[#245D56] text-white font-bold rounded-xl hover:bg-[#1a4540] transition-colors disabled:opacity-50"
+                                className="px-8 py-3 bg-[#ED7218] text-white font-bold rounded-xl hover:bg-[#d66311] transition-colors disabled:opacity-50 shadow-xs"
                             >
                                 {processing ? 'MENGIRIM...' : 'KIRIM'}
                             </button>

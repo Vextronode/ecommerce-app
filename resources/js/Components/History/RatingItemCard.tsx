@@ -29,14 +29,12 @@ export default function RatingItemCard({ item }: RatingItemCardProps) {
             {/* Store Header */}
             <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="bg-[#245D56] text-white p-1.5 rounded-md">
-                        <Store className="w-4 h-4" />
+                    <div className="bg-[#ED7218] text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-semibold shadow-xs">
+                        <Store className="w-3.5 h-3.5" />
+                        <span>{item.store_name}</span>
                     </div>
-                    <span className="font-bold text-gray-900 text-sm">
-                        {item.store_name}
-                    </span>
                 </div>
-                <div className="px-3 py-1 rounded-full border border-[#41b9c5] text-[#41b9c5] text-xs font-medium">
+                <div className="px-3 py-1 rounded-full border border-[#281B7A] text-[#281B7A] text-xs font-medium">
                     Rating Produk
                 </div>
             </div>
@@ -52,10 +50,10 @@ export default function RatingItemCard({ item }: RatingItemCardProps) {
                     </div>
                 </div>
                 <div>
-                    <span className={`inline-block px-6 py-2.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                    <span className={`inline-block px-6 py-2.5 text-sm font-medium rounded-xl transition-colors whitespace-nowrap ${
                         item.rating 
-                            ? "bg-white border border-[#245D56] text-[#245D56] hover:bg-gray-50" 
-                            : "bg-[#245D56] text-white border border-transparent hover:bg-[#1a4540]"
+                            ? "bg-white border border-[#ED7218] text-[#ED7218] hover:bg-orange-50" 
+                            : "bg-[#ED7218] text-white border border-transparent hover:bg-[#d66311]"
                     }`}>
                         {item.rating ? "Perbarui" : "Nilai sekarang"}
                     </span>
