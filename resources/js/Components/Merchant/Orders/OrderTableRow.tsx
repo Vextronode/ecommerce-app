@@ -121,8 +121,16 @@ export default function OrderTableRow({
                 </td>
                 <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#EAF7F7] text-[#245D56] font-bold flex items-center justify-center text-xs shrink-0">
-                            {initial}
+                        <div className="w-8 h-8 rounded-full bg-[#EAF7F7] text-[#245D56] font-bold flex items-center justify-center text-xs shrink-0 overflow-hidden border border-slate-100">
+                            {order.user?.profile_photo_path ? (
+                                <img
+                                    src={`/storage/${order.user.profile_photo_path}`}
+                                    alt={order.customer_name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                initial
+                            )}
                         </div>
                         <div>
                             <p className="font-bold text-[#14433D] text-sm leading-tight">
