@@ -2,9 +2,8 @@ import React from "react";
 import { Head } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import HeroSection from "@/Components/Storefront/HeroSection";
-import CategorySection from "@/Components/Storefront/CategorySection";
-import ProductCarousel from "@/Components/Storefront/ProductCarousel";
-import StoreFeatures from "@/Components/Storefront/StoreFeatures";
+import DailyTopProducts from "@/Components/Storefront/DailyTopProducts";
+import ExploreProducts from "@/Components/Storefront/ExploreProducts";
 import MerchantSection from "@/Components/Storefront/MerchantSection";
 import AboutSection from "@/Components/Storefront/AboutSection";
 
@@ -47,15 +46,12 @@ export default function Dashboard({ categories, featuredProducts, stores = EMPTY
 
             <HeroSection />
 
-            <CategorySection categories={formattedCategories} />
-            <ProductCarousel
-                title="Top Produk"
-                products={formattedProducts}
-            />
+            <DailyTopProducts products={formattedProducts} />
+            
+            <ExploreProducts products={formattedProducts} />
 
             <MerchantSection stores={stores} />
             <AboutSection />
-            <StoreFeatures />
         </StorefrontLayout>
     );
 }
