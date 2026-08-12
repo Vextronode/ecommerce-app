@@ -103,7 +103,7 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                 {/* Virtual Account Section */}
                 <div>
                     <div className="flex items-center gap-2 mb-3">
-                        <Landmark className="w-4 h-4 text-[#245D56]" />
+                        <Landmark className="w-4 h-4 text-[#ED7218]" />
                         <h3 className="text-sm font-bold text-gray-800">Virtual Account (Transfer Bank)</h3>
                         <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full border border-emerald-200">
                             Otomatis Terverifikasi
@@ -117,14 +117,14 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                                     key={item.id}
                                     onClick={() => onSelect(item.method, item.channel)}
                                     className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${isSelected
-                                            ? "border-[#245D56] bg-[#245D56]/5 shadow-sm"
+                                            ? "border-[#ED7218] bg-[#ED7218]/5 shadow-sm"
                                             : "border-slate-100 hover:border-slate-300 bg-white"
                                         }`}
                                 >
                                     <div className="flex items-center gap-3.5">
                                         <div
                                             className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${isSelected
-                                                    ? "bg-[#245D56] text-white border-[#245D56]"
+                                                    ? "text-[#ED7218] border-slate-200 bg-slate-50"
                                                     : "bg-slate-50 text-slate-700 border-slate-200"
                                                 }`}
                                         >
@@ -136,10 +136,10 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                                         </div>
                                     </div>
                                     <div
-                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${isSelected ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
+                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${isSelected ? "border-[#ED7218]" : "border-slate-300"
                                             }`}
                                     >
-                                        {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                                        {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#ED7218]" />}
                                     </div>
                                 </div>
                             );
@@ -150,7 +150,7 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                 {/*  QRIS & E-Wallet Section */}
                 <div>
                     <div className="flex items-center gap-2 mb-3">
-                        <QrCode className="w-4 h-4 text-[#245D56]" />
+                        <QrCode className="w-4 h-4 text-[#ED7218]" />
                         <h3 className="text-sm font-bold text-gray-800">QRIS & E-Wallet</h3>
                         <span className="text-[10px] bg-sky-50 text-sky-700 font-semibold px-2 py-0.5 rounded-full border border-sky-200">
                             Instant Scan
@@ -164,14 +164,14 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                                     key={item.id}
                                     onClick={() => onSelect(item.method, item.channel)}
                                     className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${isSelected
-                                            ? "border-[#245D56] bg-[#245D56]/5 shadow-sm"
+                                            ? "border-[#ED7218] bg-[#ED7218]/5 shadow-sm"
                                             : "border-slate-100 hover:border-slate-300 bg-white"
                                         }`}
                                 >
                                     <div className="flex items-center gap-3.5">
                                         <div
                                             className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${isSelected
-                                                    ? "bg-[#245D56] text-white border-[#245D56]"
+                                                    ? "text-[#ED7218] border-slate-200 bg-slate-50"
                                                     : "bg-slate-50 text-slate-700 border-slate-200"
                                                 }`}
                                         >
@@ -187,10 +187,10 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                                         </div>
                                     </div>
                                     <div
-                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${isSelected ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
+                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${isSelected ? "border-[#ED7218]" : "border-slate-300"
                                             }`}
                                     >
-                                        {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                                        {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#ED7218]" />}
                                     </div>
                                 </div>
                             );
@@ -201,20 +201,20 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                 {/*  Cash on Delivery (COD) */}
                 <div>
                     <div className="flex items-center gap-2 mb-3">
-                        <Banknote className="w-4 h-4 text-[#245D56]" />
+                        <Banknote className="w-4 h-4 text-[#ED7218]" />
                         <h3 className="text-sm font-bold text-gray-800">Bayar di Tempat</h3>
                     </div>
                     <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
                         onClick={() => onSelect(COD_OPTION.method, COD_OPTION.channel)}
                         className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${selectedChannel === COD_OPTION.channel
-                                ? "border-[#245D56] bg-[#245D56]/5 shadow-sm"
+                                ? "border-[#ED7218] bg-[#ED7218]/5 shadow-sm"
                                 : "border-slate-100 hover:border-slate-300 bg-white"
                             }`}
                     >
                         <div className="flex items-center gap-3.5">
                             <div
                                 className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${selectedChannel === COD_OPTION.channel
-                                        ? "bg-[#245D56] text-white border-[#245D56]"
+                                        ? "text-[#ED7218] border-slate-200 bg-slate-50"
                                         : "bg-slate-50 text-slate-700 border-slate-200"
                                     }`}
                             >
@@ -226,11 +226,11 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                             </div>
                         </div>
                         <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${selectedChannel === COD_OPTION.channel ? "border-[#245D56] bg-[#245D56]" : "border-slate-300"
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${selectedChannel === COD_OPTION.channel ? "border-[#ED7218]" : "border-slate-300"
                                 }`}
                         >
                             {selectedChannel === COD_OPTION.channel && (
-                                <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#ED7218]" />
                             )}
                         </div>
                     </div>

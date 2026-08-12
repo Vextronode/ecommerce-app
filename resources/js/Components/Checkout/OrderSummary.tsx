@@ -21,7 +21,7 @@ export default function OrderSummary({
     const grandTotal = subtotal + deliveryFee + adminFee;
 
     return (
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 sticky top-32">
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
             <h2 className="text-xl font-bold text-gray-900 mb-6">
                 Order Summary
             </h2>
@@ -53,7 +53,7 @@ export default function OrderSummary({
 
             <div className="flex justify-between items-end mb-8">
                 <span className="font-bold text-gray-900">Total</span>
-                <span className="text-2xl font-bold text-[#245D56]">
+                <span className="text-2xl font-bold text-[#F77F00]">
                     Rp {grandTotal.toLocaleString("id-ID")}
                 </span>
             </div>
@@ -61,7 +61,7 @@ export default function OrderSummary({
             <button
                 onClick={onPlaceOrder}
                 disabled={processing}
-                className={`w-full font-bold py-4 rounded-2xl transition shadow-lg mb-4 ${processing ? "bg-slate-400 text-white cursor-not-allowed" : "bg-[#245D56] text-white hover:bg-[#1a443f] shadow-[#245D56]/20"}`}
+                className={`w-full font-bold py-4 rounded-2xl transition shadow-lg mb-4 ${processing ? "bg-slate-400 text-white cursor-not-allowed" : "bg-[#ED7218] text-white hover:opacity-90 shadow-[#ED7218]/20"}`}
             >
                 {processing ? "Processing..." : "Pay Now"}
             </button>
