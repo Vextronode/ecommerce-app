@@ -103,6 +103,11 @@ export function useAddressModalForm({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (data.latitude === null || data.longitude === null) {
+            toast.error("Silakan tentukan titik lokasi pada peta di bawah agar fitur pengiriman berfungsi dengan baik.");
+            return;
+        }
         const separatorDetail = data.detail ? `, ${data.detail}` : "";
         const payload = {
             ...data,

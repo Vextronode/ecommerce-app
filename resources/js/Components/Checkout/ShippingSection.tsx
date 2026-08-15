@@ -35,8 +35,8 @@ export default function ShippingSection({
                     Gunakan alamat lain
                 </button>
             </div>
-            {selectedAddress && (
-                <div className="mb-5 rounded-2xl border border-[#ED7218]/20 bg-[#ED7218]/5 p-4">
+            {selectedAddress ? (
+                <div className="rounded-2xl border border-[#ED7218]/20 bg-[#ED7218]/5 p-4">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#ED7218]">
                             {selectedAddress.label}
@@ -57,58 +57,26 @@ export default function ShippingSection({
                         {selectedAddress.full_address}
                     </p>
                 </div>
+            ) : (
+                <div className="rounded-2xl border border-dashed border-red-300 bg-red-50 p-6 text-center">
+                    <p className="text-sm font-bold text-red-600 mb-2">Belum ada alamat pengiriman terpilih</p>
+                    <p className="text-xs text-red-500 mb-4">Anda wajib menambahkan atau memilih alamat pengiriman dari Buku Alamat agar sistem dapat menghitung ongkos kirim dan fitur Live Tracking berfungsi.</p>
+                    <button
+                        type="button"
+                        onClick={onOpenAddressPicker}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#ED7218] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#ED7218]/30 transition hover:bg-[#d66311]"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Pilih / Tambah Alamat
+                    </button>
+                </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label htmlFor="field_63" className="text-xs font-bold text-slate-500 mb-2 block">
-                        Nama Lengkap
-                    </label>
-                    <input id="field_63"
-                        type="text"
-                        value={data.name}
-                        onChange={(e) => setData("name", e.target.value)}
-                        className={`w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#006591] focus:border-[#006591] text-sm font-medium outline-none transition ${errors.name ? "border-red-500" : ""}`}
-                    />
-                    {errors.name && (
-                        <span className="text-red-500 text-xs mt-1">
-                            {errors.name}
-                        </span>
-                    )}
-                </div>
-                <div>
-                    <label htmlFor="field_79" className="text-xs font-bold text-slate-500 mb-2 block">
-                        Nomor Telepon
-                    </label>
-                    <input id="field_79"
-                        type="text"
-                        value={data.phone}
-                        onChange={(e) => setData("phone", e.target.value)}
-                        className={`w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#006591] focus:border-[#006591] text-sm font-medium outline-none transition ${errors.phone ? "border-red-500" : ""}`}
-                    />
-                    {errors.phone && (
-                        <span className="text-red-500 text-xs mt-1">
-                            {errors.phone}
-                        </span>
-                    )}
-                </div>
-                <div className="md:col-span-2">
-                    <label htmlFor="field_95" className="text-xs font-bold text-slate-500 mb-2 block">
-                        Alamat Lengkap
-                    </label>
-                    <textarea aria-label="Input field" id="field_95"
-                        rows={3}
-                        value={data.address}
-                        onChange={(e) => setData("address", e.target.value)}
-                        placeholder="Nama jalan, gedung, nomor rumah..."
-                        className={`w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#006591] focus:border-[#006591] text-sm font-medium resize-none outline-none transition ${errors.address ? "border-red-500" : ""}`}
-                    ></textarea>
-                    {errors.address && (
-                        <span className="text-red-500 text-xs mt-1">
-                            {errors.address}
-                        </span>
-                    )}
-                </div>
-            </div>
+            
+            {errors.address_id && (
+                <p className="mt-3 text-sm text-red-500 font-medium text-center">
+                    Silakan pilih alamat pengiriman terlebih dahulu.
+                </p>
+            )}
         </section>
     );
 }

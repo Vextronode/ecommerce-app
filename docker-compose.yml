@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+
+  # ──────────────────────────────────────────────
+  # 1. DATABASE MYSQL 8.0
+  # ──────────────────────────────────────────────
+  db_cibenda:
+    image: mysql:8.0
+    container_name: cibenda_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: cibenda_mart
+      MYSQL_USER: cibenda_user
+      MYSQL_PASSWORD: cibenda_secret_2024
+      MYSQL_ROOT_PASSWORD: root_secret_2024
+    volumes:
+      # Data MySQL disimpen disini biar ga hilang kalau container direstart
+      - db_data:/var/lib/mysql
+    ports:
+      - "3307:3306" # Port 3307 di host (biar ga clash sama MySQL lokal lu)
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--password=root_secret_2024"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────
+  # 2. WEB SERVER - Laravel (Artisan Serve)
+  # ──────────────────────────────────────────────
+  app_cibenda:
+    build: .
+    container_name: cibenda_app
+    restart: unless-stopped
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    environment:
+      - DB_HOST=db_cibenda      # Nunjuk ke nama service MySQL di atas
+      - DB_PORT=3306
+      - DB_DATABASE=cibenda_mart
+      - DB_USERNAME=cibenda_user
+      - DB_PASSWORD=cibenda_secret_2024
+    volumes:
+      # Mount folder storage biar file upload (foto profil, dll) persisten
+      - storage_data:/var/www/storage/app/public
+    depends_on:
+      db_cibenda:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────────
+  # 3. QUEUE WORKER - Buat notifikasi FCM & job background
+  # ──────────────────────────────────────────────
+  queue_cibenda:
+    build: .
+    container_name: cibenda_queue
+    restart: unless-stopped
+    # Queue worker: proses 1 job per batch, retry 3x, sleep 3 detik
+    command: php artisan queue:work --tries=3 --sleep=3 --timeout=90
+    env_file:
+      - .env.docker
+    environment:
+      - DB_HOST=db_cibenda
+      - DB_PORT=3306
+      - DB_DATABASE=cibenda_mart
+      - DB_USERNAME=cibenda_user
+      - DB_PASSWORD=cibenda_secret_2024
+    volumes:
+      - storage_data:/var/www/storage/app/public
+    depends_on:
+      db_cibenda:
+        condition: service_healthy
+      app_cibenda:
+        condition: service_started
+
+volumes:
+  db_data:       # Tempat nyimpen data MySQL secara fisik
+  storage_data:  # Tempat nyimpen file upload Laravel

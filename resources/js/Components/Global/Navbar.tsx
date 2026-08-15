@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, usePage, router } from "@inertiajs/react";
-import { ShoppingCart, User, Menu, X, Search, Bell, LayoutGrid } from "lucide-react";
+import { ShoppingCart, User, Menu, X, Search, LayoutGrid } from "lucide-react";
 import logoParigi from "@/assets/images/parigi_logo.png";
 import { PageProps } from "@/types";
+import NotificationBell from "./NotificationBell";
 
 const categoryLinks = [
     { name: "Beranda", href: "/dashboard" },
@@ -21,6 +22,7 @@ export default function Navbar() {
 
     const [isVisible, setIsVisible] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     
     // Initialize search from URL
     const [searchQuery, setSearchQuery] = useState(() => {
@@ -142,12 +144,8 @@ export default function Navbar() {
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-1 md:gap-3">
-                    <button 
-                        aria-label="Notifications"
-                        className="p-1.5 md:p-2 text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                        <Bell size={22} strokeWidth={2} />
-                    </button>
+                    {/* Notifications Icon (Click to open modal) */}
+                    <NotificationBell user={user} />
 
                     {/* Cart Icon with Hover Preview */}
                     <div className="relative group">
@@ -346,6 +344,8 @@ export default function Navbar() {
                     </div>
                 </div>
             )}
+
+
         </header>
     );
 }
