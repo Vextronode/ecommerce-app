@@ -4,7 +4,6 @@ import { CheckoutAddress } from "./AddressPickerModal";
 
 interface Props {
     data: any;
-    setData: (field: "name" | "phone" | "address", value: string) => void;
     errors: any;
     selectedAddress?: CheckoutAddress;
     onOpenAddressPicker: () => void;
@@ -12,7 +11,6 @@ interface Props {
 
 export default function ShippingSection({
     data,
-    setData,
     errors,
     selectedAddress,
     onOpenAddressPicker,
