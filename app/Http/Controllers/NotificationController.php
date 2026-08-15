@@ -60,6 +60,15 @@ class NotificationController extends Controller
     }
 
     /**
+     * Delete all notifications
+     */
+    public function clearAll(Request $request)
+    {
+        $request->user()->notifications()->delete();
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Delete a notification
      */
     public function destroy(Request $request, $id)
@@ -68,6 +77,22 @@ class NotificationController extends Controller
         if ($notification) {
             $notification->delete();
         }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Save the FCM token for the authenticated user
+     */
+    public function saveFcmToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string'
+        ]);
+
+        $user = $request->user();
+        $user->fcm_token = $request->fcm_token;
+        $user->save();
 
         return response()->json(['success' => true]);
     }
