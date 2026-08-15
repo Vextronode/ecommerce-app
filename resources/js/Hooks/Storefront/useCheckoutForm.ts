@@ -44,18 +44,6 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         });
     };
 
-    const handleShippingChange = (
-        field: "name" | "phone" | "address",
-        value: string,
-    ) => {
-        setSelectedAddressId(null);
-        setData({
-            ...data,
-            address_id: null,
-            [field]: value,
-        });
-    };
-
     const handlePaymentSelect = (
         method: "va" | "qris" | "gopay" | "cod",
         channel: string,
@@ -75,7 +63,7 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
             addresses[0];
 
         applyAddress(primaryAddress);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addresses]);
 
     // eslint-disable-next-line react-doctor/no-fetch-in-effect, react-doctor/no-set-state-after-await-in-effect
@@ -85,11 +73,11 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         const fetchFee = async () => {
             try {
                 let url = `/checkout/calculate-fee?delivery_method=${data.delivery_method}`;
-                
+
                 if (data.address_id) {
                     url += `&address_id=${data.address_id}`;
                 }
-                
+
                 data.cart_ids.forEach(id => {
                     url += `&cart_ids[]=${id}`;
                 });
@@ -99,7 +87,7 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
                     throw new Error("Failed to calculate fee");
                 }
                 const result = await response.json();
-                
+
                 // eslint-disable-next-line react-doctor/no-set-state-after-await-in-effect
                 if (isMounted && result.delivery_fee !== undefined) {
                     setDeliveryFee(result.delivery_fee);
@@ -154,7 +142,6 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         isAddressPickerOpen,
         setIsAddressPickerOpen,
         applyAddress,
-        handleShippingChange,
         handlePaymentSelect,
         handlePlaceOrder,
     };

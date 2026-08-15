@@ -32,7 +32,6 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
         isAddressPickerOpen,
         setIsAddressPickerOpen,
         applyAddress,
-        handleShippingChange,
         handlePaymentSelect,
         handlePlaceOrder,
     } = useCheckoutForm({ initialCartItems, addresses });
@@ -52,7 +51,6 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
 
                         <ShippingSection
                             data={data}
-                            setData={handleShippingChange}
                             errors={errors}
                             selectedAddress={selectedAddress}
                             onOpenAddressPicker={() =>
