@@ -42,7 +42,7 @@ COPY .env.docker .env
 RUN composer install --optimize-autoloader --no-dev
 
 # Install Node dependencies & build asset React/Vite
-RUN npm install && npm run build
+RUN npm install --legacy-peer-deps && npm run build
 
 # Generate app key (wajib kalau fresh deploy)
 RUN php artisan key:generate --force
