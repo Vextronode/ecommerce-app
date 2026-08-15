@@ -66,6 +66,8 @@ export default function AddressModal({
                                 provinsi: search.parseAddressResult(
                                     item.address,
                                 ).provinsi,
+                                latitude: lat,
+                                longitude: lng,
                             }));
                             search.setProvQuery("");
                             search.setActiveDropdown(null);
@@ -103,6 +105,8 @@ export default function AddressModal({
                                 jalan:
                                     item.display_name.split(",")[0] ||
                                     parsed.jalan,
+                                latitude: lat,
+                                longitude: lng,
                             }));
                             search.setJalanQuery("");
                             search.setActiveDropdown(null);
