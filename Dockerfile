@@ -39,6 +39,8 @@ COPY . .
 COPY .env.docker .env
 
 # Install PHP dependencies (tanpa dev dependencies, lebih ringan di production)
+# Naikin timeout Composer biar ga timeout waktu jaringan lemot (default 300s)
+ENV COMPOSER_PROCESS_TIMEOUT=3600
 RUN composer install --optimize-autoloader --no-dev
 
 # Install Node dependencies & build asset React/Vite
