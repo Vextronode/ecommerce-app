@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import { Bell, X, Truck, Tag, ShieldAlert, CheckCircle } from "lucide-react";
 import axios from "axios";
+import { requestForToken, onMessageListener } from "../../firebase";
 
 export default function NotificationBell({ user }: { user: any }) {
     const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -10,6 +11,8 @@ export default function NotificationBell({ user }: { user: any }) {
     });
     const [unreadCount, setUnreadCount] = useState(0);
     const [activeNotifTab, setActiveNotifTab] = useState("all");
+    const [isRinging, setIsRinging] = useState(false);
+    const [isClearing, setIsClearing] = useState(false);
 
     const groupedNotifications = useMemo(() => {
         const list = notifications[activeNotifTab as keyof typeof notifications] || [];
@@ -38,6 +41,61 @@ export default function NotificationBell({ user }: { user: any }) {
         if (user) {
             axios.get('/api/notifications').then(res => setNotifications(res.data)).catch(console.error);
             axios.get('/api/notifications/unread-count').then(res => setUnreadCount(res.data.count)).catch(console.error);
+            
+            // Setup Firebase FCM Token
+            requestForToken().then((token) => {
+                if (token) {
+                    axios.post('/api/notifications/fcm-token', { fcm_token: token })
+                        .catch(err => console.error("❌ Failed to save FCM token to database", err));
+                } else {
+                    console.warn("⚠️ Token is null. Browser might have blocked permission or no token available.");
+                }
+            }).catch(err => console.error("❌ requestForToken crashed:", err));
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            const unsubscribe = onMessageListener((payload: any) => {
+                // Show in-app Toast Notification or Animation
+                if (payload.data) {
+                    // If the user is on another tab, show OS notification manually
+                    if (document.hidden && Notification.permission === "granted") {
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.ready.then(registration => {
+                                registration.showNotification(payload.data.title || "Notifikasi Baru", {
+                                    body: payload.data.message,
+                                    icon: window.location.origin + '/favicon.png' 
+                                });
+                            });
+                        }
+                    } else {
+                        // If they are actively looking at the tab, just ring the bell!
+                        setIsRinging(true);
+                        setTimeout(() => setIsRinging(false), 3000); // Ring for 3 seconds
+                    }
+                }
+
+                // Refresh notifications when a new one arrives
+                axios.get('/api/notifications').then(res => setNotifications(res.data)).catch(console.error);
+                setUnreadCount(prev => prev + 1);
+            });
+            
+            // Background-to-Foreground Sync
+            // If the user was on another tab, the Service Worker caught the push notification.
+            // When they return to this tab, we must manually fetch the latest notifications.
+            const handleVisibilityChange = () => {
+                if (document.visibilityState === 'visible') {
+                    axios.get('/api/notifications').then(res => setNotifications(res.data)).catch(console.error);
+                    axios.get('/api/notifications/unread-count').then(res => setUnreadCount(res.data.count)).catch(console.error);
+                }
+            };
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+
+            return () => {
+                unsubscribe(); // Clean up listener on unmount
+                document.removeEventListener('visibilitychange', handleVisibilityChange);
+            };
         }
     }, [user]);
 
@@ -55,17 +113,57 @@ export default function NotificationBell({ user }: { user: any }) {
         } catch (e) { console.error(e); }
     };
 
+    const clearAll = async () => {
+        try {
+            setIsClearing(true);
+            await axios.post('/api/notifications/clear-all');
+            
+            // Wait for swipe out animation before removing from state
+            setTimeout(() => {
+                setUnreadCount(0);
+                setNotifications({ all: [], orders: [], promotions: [], security: [], payments: [] });
+                setIsClearing(false);
+            }, 350);
+        } catch (e) { 
+            console.error(e); 
+            setIsClearing(false);
+        }
+    };
+
     return (
         <div className="relative">
+            <style>{`
+                @keyframes bell-wiggle {
+                    0%, 100% { transform: rotate(0deg); }
+                    25% { transform: rotate(-15deg); }
+                    75% { transform: rotate(15deg); }
+                }
+                .bell-ringing {
+                    animation: bell-wiggle 0.2s ease-in-out infinite;
+                    color: #ea580c; /* Tailwind orange-600 */
+                }
+                @keyframes swipe-out {
+                    0% { transform: translateX(0); opacity: 1; }
+                    100% { transform: translateX(-50px); opacity: 0; }
+                }
+                .swipe-out-animation {
+                    animation: swipe-out 0.35s ease-in forwards;
+                }
+            `}</style>
             <button 
-                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                onClick={() => {
+                    setIsNotifOpen(!isNotifOpen);
+                    if (!isNotifOpen && unreadCount > 0) {
+                        markAllAsRead();
+                    }
+                }}
                 aria-label="Notifications"
                 className="p-1.5 md:p-2 text-gray-600 hover:text-gray-900 transition-colors relative flex items-center"
             >
-                <Bell size={22} strokeWidth={2} />
+                <Bell size={22} strokeWidth={2} className={isRinging ? "bell-ringing" : ""} />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold min-w-4 h-4 px-1 flex items-center justify-center rounded-full leading-none border border-[#F8F9FA]">
-                        {unreadCount > 99 ? "99+" : unreadCount}
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                        {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}
             </button>
@@ -76,12 +174,22 @@ export default function NotificationBell({ user }: { user: any }) {
                     {/* Header */}
                     <div className="flex justify-between items-center px-6 py-5 pb-3">
                         <h2 className="text-xl font-bold text-[#ED7218]">Notifications</h2>
-                        <button 
-                            onClick={() => setIsNotifOpen(false)}
-                            className="p-1.5 bg-gray-200/50 hover:bg-gray-300/60 rounded-full text-gray-500 hover:text-gray-900 transition-colors"
-                        >
-                            <X size={18} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {groupedNotifications.length > 0 && (
+                                <button 
+                                    onClick={clearAll}
+                                    className="text-xs text-red-500 hover:text-red-700 font-semibold px-2 py-1 rounded-md hover:bg-red-50 transition-colors"
+                                >
+                                    Bersihkan
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => setIsNotifOpen(false)}
+                                className="p-1.5 bg-gray-200/50 hover:bg-gray-300/60 rounded-full text-gray-500 hover:text-gray-900 transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Tabs */}
@@ -100,7 +208,7 @@ export default function NotificationBell({ user }: { user: any }) {
                     </div>
 
                     {/* Notifications List Area */}
-                    <div className="flex-1 overflow-y-auto px-5 pb-6 no-scrollbar space-y-5">
+                    <div className={`flex-1 overflow-y-auto px-5 pb-6 no-scrollbar space-y-5 ${isClearing ? 'swipe-out-animation' : ''}`}>
                         {groupedNotifications.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 text-gray-500">
                                 <Bell size={40} className="text-gray-300 mb-3" />
@@ -115,7 +223,7 @@ export default function NotificationBell({ user }: { user: any }) {
                                     </div>
                                     <div className="space-y-3">
                                         {group.items.map((item: any) => (
-                                            <div key={item.id} className={`bg-white rounded-2xl shadow-sm border-l-[3px] p-4 flex gap-3 ${item.read_at ? 'border-transparent bg-gray-100' : 'border-[#ED7218]'}`}>
+                                            <div key={item.id} className="bg-white rounded-2xl shadow-sm border-l-[3px] border-[#ED7218] p-4 flex gap-3">
                                                 <div className="shrink-0">
                                                     <div className={`p-2 rounded-full ${item.data?.type === 'order' ? 'bg-indigo-100 text-indigo-700' : item.data?.type === 'promo' ? 'bg-red-100 text-red-500' : item.data?.type === 'security' ? 'bg-gray-200 text-gray-600' : 'bg-gray-200 text-gray-600'}`}>
                                                         {item.data?.type === 'order' && <Truck size={16} strokeWidth={2.5} />}
@@ -126,10 +234,10 @@ export default function NotificationBell({ user }: { user: any }) {
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <h3 className={`font-semibold text-sm leading-tight ${item.read_at ? 'text-gray-600' : 'text-gray-800'}`}>{item.data?.title || 'Notification'}</h3>
+                                                        <h3 className="font-semibold text-sm leading-tight text-gray-800">{item.data?.title || 'Notification'}</h3>
                                                         <span className="text-[10px] text-gray-500 whitespace-nowrap ml-2">Baru saja</span>
                                                     </div>
-                                                    <p className={`text-[12px] leading-snug mb-3 ${item.read_at ? 'text-gray-500' : 'text-gray-600'}`}>{item.data?.message || 'You have a new notification.'}</p>
+                                                    <p className="text-[12px] leading-snug mb-3 text-gray-600">{item.data?.message || 'You have a new notification.'}</p>
                                                     
                                                     {/* Optional Action Buttons/Links based on notification data */}
                                                     {item.data?.action_url && (
