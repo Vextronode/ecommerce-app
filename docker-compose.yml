@@ -32,7 +32,11 @@ services:
     build: .
     container_name: cibenda_app
     restart: unless-stopped
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    # storage:link dijalankan setiap startup biar symlink tetap valid meski volume di-mount ulang
+    command: >-
+      sh -c "php artisan storage:link --force &&
+             php artisan migrate --force &&
+             php artisan serve --host=0.0.0.0 --port=8000"
     ports:
       - "8000:8000"
     env_file:
