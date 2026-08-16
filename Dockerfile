@@ -39,8 +39,9 @@ COPY composer.json composer.lock ./
 COPY package.json package-lock.json ./
 
 # STEP 2: Install dependencies (kena cache permanen selama manifest tidak berubah)
+# --no-scripts: skip post-install artisan commands dulu karena file artisan belum ada
 ENV COMPOSER_PROCESS_TIMEOUT=3600
-RUN composer install --optimize-autoloader --no-dev
+RUN composer install --optimize-autoloader --no-dev --no-scripts
 
 RUN npm install --legacy-peer-deps
 
@@ -50,6 +51,9 @@ COPY . .
 
 # STEP 4: Copy .env.docker sebagai .env untuk konfigurasi Laravel di container
 COPY .env.docker .env
+
+# Jalanin post-install composer scripts sekarang setelah artisan sudah ada
+RUN composer run-script post-autoload-dump
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Build asset React/Vite (cuma dijalankan setelah kode baru di-copy)
