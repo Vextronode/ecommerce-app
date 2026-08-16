@@ -3,10 +3,22 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ED7218">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="CiMart">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <title inertia>{{ config('app.name', 'Cibenda Mart') }}</title>
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
         <link rel="shortcut icon" href="/favicon.png">
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
+        <!-- PWA Manifest -->
+        <link rel="manifest" href="/manifest.json">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -23,5 +35,15 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
+
+        <!-- PWA Service Worker Registration -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                        .catch((err) => console.warn('SW registration failed:', err));
+                });
+            }
+        </script>
     </body>
 </html>

@@ -1,0 +1,35 @@
+{
+    "name": "Cibenda Mart",
+    "short_name": "CiMart",
+    "description": "Belanja Kebutuhan Harian dari UMKM Cibenda. Murah, Hemat & Terjangkau.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ED7218",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "id",
+    "categories": ["shopping", "food"],
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/favicon.png",
+            "sizes": "540x540",
+            "type": "image/png",
+            "form_factor": "narrow"
+        }
+    ]
+}
