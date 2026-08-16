@@ -31,20 +31,29 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory di dalam container
 WORKDIR /var/www
 
-# Copy semua file project ke dalam container
-COPY . .
+# ─── LAYER CACHE TRICK ────────────────────────────────────────────────────────
+# STEP 1: Copy HANYA file manifest dependencies dulu.
+# Selama composer.json & package.json tidak berubah, layer install di bawah
+# akan di-CACHE oleh Docker → build berikutnya langsung skip, hemat waktu!
+COPY composer.json composer.lock ./
+COPY package.json package-lock.json ./
 
-# Copy .env.docker ke .env biar laravel baca konfigurasi yang bener
-# File .env.docker lu bikin manual (lihat contoh di bawah)
-COPY .env.docker .env
-
-# Install PHP dependencies (tanpa dev dependencies, lebih ringan di production)
-# Naikin timeout Composer biar ga timeout waktu jaringan lemot (default 300s)
+# STEP 2: Install dependencies (kena cache permanen selama manifest tidak berubah)
 ENV COMPOSER_PROCESS_TIMEOUT=3600
 RUN composer install --optimize-autoloader --no-dev
 
-# Install Node dependencies & build asset React/Vite
-RUN npm install --legacy-peer-deps && npm run build
+RUN npm install --legacy-peer-deps
+
+# STEP 3: Baru copy semua sisa kode (React, PHP, config, dll)
+# Layer ini yang selalu berubah tiap kita update kode
+COPY . .
+
+# STEP 4: Copy .env.docker sebagai .env untuk konfigurasi Laravel di container
+COPY .env.docker .env
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Build asset React/Vite (cuma dijalankan setelah kode baru di-copy)
+RUN npm run build
 
 # Generate app key (wajib kalau fresh deploy)
 RUN php artisan key:generate --force
