@@ -13,15 +13,20 @@ class SocialiteController extends Controller
 {
     public function redirect(): RedirectResponse
     {
+        // Eksplisit set redirect URL biar tidak auto-generate dari request
+        // (penting saat behind reverse proxy seperti Cloudflare Tunnel)
         return Socialite::driver('google')
             ->scopes(['openid', 'profile', 'email'])
+            ->redirectUrl(config('services.google.redirect'))
             ->redirect();
     }
 
     public function callback(): RedirectResponse
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')
+                ->redirectUrl(config('services.google.redirect'))
+                ->user();
 
             $user = User::query()->where('email', $googleUser->email)->first();
 
