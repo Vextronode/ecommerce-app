@@ -3,32 +3,37 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ED7218">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="CiMart">
+
+        @php
+            $isMerchant = request()->is('pedagang') || request()->is('pedagang/*');
+            $adminPrefix = config('admin.prefix', 'cibenda-portal');
+            $isAdmin    = request()->is($adminPrefix) || request()->is($adminPrefix . '/*');
+        @endphp
 
         <title inertia>{{ config('app.name', 'Cibenda Mart') }}</title>
 
-        <!-- Favicon -->
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
-        <link rel="shortcut icon" href="/favicon.png">
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-
-        <!-- PWA Manifest — berbeda per role -->
-        @php
-            $isMerchant = request()->is('pedagang*') || request()->is('pedagang/*');
-            $isAdmin    = request()->is(config('app.admin_panel_path', 'cibenda-portal') . '*');
-        @endphp
-
+        <!-- Favicon & PWA Icons per Role -->
         @if($isMerchant)
-            <link rel="manifest" href="/manifest-merchant.json">
             <meta name="theme-color" content="#4F46E5">
+            <meta name="apple-mobile-web-app-title" content="Toko CiMart">
+            <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-merchant-192.png">
+            <link rel="shortcut icon" href="/icons/icon-merchant-192.png">
+            <link rel="apple-touch-icon" href="/icons/apple-touch-icon-merchant.png">
+            <link rel="manifest" href="/manifest-merchant.json">
         @elseif(!$isAdmin)
-            <link rel="manifest" href="/manifest.json">
             <meta name="theme-color" content="#ED7218">
+            <meta name="apple-mobile-web-app-title" content="CiMart">
+            <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+            <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+            <link rel="shortcut icon" href="/favicon.png">
+            <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+            <link rel="manifest" href="/manifest.json">
+        @else
+            <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+            <link rel="shortcut icon" href="/favicon.png">
         @endif
 
 

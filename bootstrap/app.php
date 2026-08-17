@@ -39,9 +39,25 @@ return Application::configure(basePath: dirname(__DIR__))
             'storefront.user' => RedirectNonUserFromStorefront::class,
         ]);
 
+        $middleware->redirectGuestsTo(function (Request $request) {
+            $adminPrefix = config('admin.prefix', 'cibenda-portal');
+            if ($request->is('pedagang') || $request->is('pedagang/*')) {
+                return route('merchant.login.view');
+            }
+            if ($request->is($adminPrefix) || $request->is($adminPrefix.'/*')) {
+                return route('admin.login.view');
+            }
+
+            return route('login');
+        });
+
         $middleware->redirectUsersTo(function (Request $request) {
             if (auth()->check() && auth()->user()->role === 'pedagang') {
                 return '/pedagang/dashboard';
+            }
+            if (auth()->check() && auth()->user()->role === 'admin') {
+                $adminPrefix = config('admin.prefix', 'cibenda-portal');
+                return "/{$adminPrefix}/dashboard";
             }
 
             return '/dashboard';
