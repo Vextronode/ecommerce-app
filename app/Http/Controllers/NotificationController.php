@@ -14,14 +14,11 @@ class NotificationController extends Controller
     {
         $notifications = $request->user()->notifications;
 
-        // Grouping notifications by our predefined UI tabs
-        // You can adjust these depending on the exact 'type' we store in the DB
         $grouped = [
-            'all' => $notifications,
-            'orders' => $notifications->filter(fn($n) => $n->data['type'] ?? '' === 'order')->values(),
-            'promotions' => $notifications->filter(fn($n) => $n->data['type'] ?? '' === 'promo')->values(),
-            'security' => $notifications->filter(fn($n) => $n->data['type'] ?? '' === 'security')->values(),
-            'payments' => $notifications->filter(fn($n) => $n->data['type'] ?? '' === 'payment')->values(),
+            'all' => $notifications->values(),
+            'orders' => $notifications->filter(fn($n) => in_array($n->data['type'] ?? '', ['order', 'pesanan', 'payment']))->values(),
+            'promotions' => $notifications->filter(fn($n) => in_array($n->data['type'] ?? '', ['promo', 'promotions', 'diskon']))->values(),
+            'security' => $notifications->filter(fn($n) => ($n->data['type'] ?? '') === 'security')->values(),
         ];
 
         return response()->json($grouped);

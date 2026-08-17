@@ -111,11 +111,21 @@ class OrderController extends Controller
                 if ($order->payment_status === 'paid' || ($updateData['payment_status'] ?? '') === 'paid') {
                     $order->creditStoreBalance();
                 }
+
+                \App\Services\OrderNotificationService::orderDelivered($order);
             } elseif ($newStatus === 'cancelled') {
                 $updateData['payment_status'] = $order->payment_status === 'paid' ? 'refunded' : 'failed';
                 $order->update($updateData);
                 // Idempotent stock restoration
                 $order->restoreStock();
+
+                \App\Services\OrderNotificationService::orderCancelled($order, 'Dibatalkan oleh penjual');
+            } elseif ($newStatus === 'shipped') {
+                $order->update($updateData);
+                \App\Services\OrderNotificationService::orderShipped($order);
+            } elseif ($newStatus === 'processing') {
+                $order->update($updateData);
+                \App\Services\OrderNotificationService::orderProcessing($order);
             } else {
                 $order->update($updateData);
             }

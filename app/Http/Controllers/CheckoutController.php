@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\MidtransService;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -262,6 +263,11 @@ class CheckoutController extends Controller
             } catch (\Exception $e) {
                 Log::error('Midtrans Core API Charge Error: '.$e->getMessage());
             }
+        }
+
+        // Trigger automatic order creation notification for buyer & seller
+        foreach ($orders as $order) {
+            OrderNotificationService::orderCreated($order);
         }
 
         $firstOrderId = count($orders) > 0 ? $orders[0]->id : null;

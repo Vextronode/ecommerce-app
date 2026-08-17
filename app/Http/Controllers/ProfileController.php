@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -23,8 +25,10 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $userId = $request->user()->getAuthIdentifier();
+
         $sessions = DB::table('sessions')
-            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->where('user_id', $userId)
             ->orderBy('last_activity', 'desc')
             ->get()->map(function ($session) use ($request) {
                 $agent = new Agent;
@@ -43,6 +47,15 @@ class ProfileController extends Controller
                 ];
             });
 
+        $orderCounts = [
+            'unpaid' => Order::where('user_id', $userId)->where('payment_status', 'pending')->where('shipping_status', '!=', 'cancelled')->count(),
+            'processing' => Order::where('user_id', $userId)->where('shipping_status', 'processing')->count(),
+            'shipped' => Order::where('user_id', $userId)->where('shipping_status', 'shipped')->count(),
+            'rating' => OrderItem::whereHas('order', function ($query) use ($userId) {
+                $query->where('user_id', $userId)->where('shipping_status', 'delivered');
+            })->doesntHave('review')->count(),
+        ];
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
@@ -50,6 +63,7 @@ class ProfileController extends Controller
             'notificationSettings' => $request->user()->notification_settings ?? [],
             'sessions' => $sessions,
             'isOAuth' => ! is_null($request->user()->google_id),
+            'orderCounts' => $orderCounts,
         ]);
     }
 

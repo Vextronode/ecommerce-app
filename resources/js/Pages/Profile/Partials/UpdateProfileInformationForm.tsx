@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useForm, usePage } from "@inertiajs/react";
 import { Transition } from "@headlessui/react";
 import { PageProps } from "@/types";
+import toast from "react-hot-toast";
 
-// helper function untuk ekstrak nama
 const extractNames = (fullName: string) => {
     const parts = fullName.split(" ");
     return {
@@ -13,23 +13,18 @@ const extractNames = (fullName: string) => {
 };
 
 export default function UpdateProfileInformation({
-    mustVerifyEmail,
     status,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
 }) {
-    // ambil user dari page props
     const user = usePage<PageProps>().props.auth.user;
 
-    // validasi tanggal lahir minimal umur 13 tahun
     const maxBirthDate = new Date();
     maxBirthDate.setFullYear(maxBirthDate.getFullYear() - 13);
     const maxDob = maxBirthDate.toISOString().split("T")[0];
 
-    // ambil nama dari user
     const initialNames = extractNames(user.name);
-
     const [firstName, setFirstName] = useState(initialNames.first);
     const [lastName, setLastName] = useState(initialNames.last);
 
@@ -51,15 +46,21 @@ export default function UpdateProfileInformation({
 
     useEffect(() => {
         setData("name", `${firstName} ${lastName}`.trim());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [firstName, lastName]);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        patch(route("profile.update"));
+        patch(route("profile.update"), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success("Biodata profil berhasil diperbarui!");
+            },
+            onError: () => {
+                toast.error("Gagal menyimpan. Periksa inputan Anda.");
+            },
+        });
     };
 
-    // handle cancel logic
     const handleCancel = () => {
         setFirstName(initialNames.first);
         setLastName(initialNames.last);
@@ -70,165 +71,172 @@ export default function UpdateProfileInformation({
             gender: user.gender || "",
             dob: user.dob || "",
         });
-        clearErrors(); // clear errors on cancel
+        clearErrors();
     };
 
     return (
         <section>
-            <h3 className="text-lg font-bold text-gray-950 mb-8 pb-4 border-b border-slate-100">
-                Informasi Pribadi
-            </h3>
+            <div className="pb-4 mb-6 border-b border-slate-100">
+                <h3 className="text-base md:text-lg font-bold text-gray-900">
+                    Biodata Diri
+                </h3>
+                <p className="text-xs md:text-sm text-slate-500 mt-0.5">
+                    Kelola informasi profil Anda untuk kenyamanan bertransaksi di Cibenda Mart.
+                </p>
+            </div>
 
             <form onSubmit={submit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <div className="space-y-2">
-                        <label htmlFor="field_85" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                            First Name
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* First Name */}
+                    <div className="space-y-1.5">
+                        <label htmlFor="first_name" className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            Nama Depan
                         </label>
-                        <input id="field_85"
+                        <input
+                            id="first_name"
                             type="text"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
-                            className="w-full px-5 py-3.5 rounded-xl border-slate-200 focus:border-[#40E0D0] focus:ring-[#40E0D0] bg-slate-50/50 text-sm font-medium"
+                            placeholder="Nama depan"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="field_97" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                            Last Name
+                    {/* Last Name */}
+                    <div className="space-y-1.5">
+                        <label htmlFor="last_name" className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            Nama Belakang
                         </label>
-                        <input id="field_97"
+                        <input
+                            id="last_name"
                             type="text"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
-                            className="w-full px-5 py-3.5 rounded-xl border-slate-200 focus:border-[#40E0D0] focus:ring-[#40E0D0] bg-slate-50/50 text-sm font-medium"
+                            placeholder="Nama belakang"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                         />
                         {errors.name && (
-                            <p className="text-sm text-red-600">
-                                {errors.name}
-                            </p>
+                            <p className="text-xs text-red-600 mt-1">{errors.name}</p>
                         )}
                     </div>
 
-                    {/* email */}
-                    <div className="space-y-2">
-                        <label htmlFor="field_115" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                            Email
+                    {/* Email (Readonly) */}
+                    <div className="space-y-1.5">
+                        <label htmlFor="email_field" className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            Alamat Email
                         </label>
-                        <input id="field_115"
+                        <input
+                            id="email_field"
                             type="email"
                             value={data.email}
                             readOnly
-                            className="w-full px-5 py-3.5 rounded-xl border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed text-sm"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100/80 text-slate-500 cursor-not-allowed text-sm font-medium"
                         />
                         <p className="text-[11px] text-slate-400">
-                            Email cannot be changed directly.
+                            Email terhubung dengan keamanan akun Anda.
                         </p>
                     </div>
 
-                    {/* no hp */}
-                    <div className="space-y-2">
-                        <label htmlFor="field_131" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                            Mobile Number
+                    {/* Phone Number */}
+                    <div className="space-y-1.5">
+                        <label htmlFor="phone_field" className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            Nomor WhatsApp / HP
                         </label>
                         <div className="flex">
-                            <span className="inline-flex items-center px-5 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-600 text-sm font-bold shadow-inner">
+                            <span className="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-600 text-xs font-bold select-none">
                                 +62
                             </span>
-                            <input aria-label="Input field" id="field_131"
-                                type="text"
+                            <input
+                                id="phone_field"
+                                type="tel"
                                 value={data.phone}
-                                onChange={(e) =>
-                                    setData("phone", e.target.value)
-                                }
+                                onChange={(e) => setData("phone", e.target.value)}
                                 placeholder="81234567890"
-                                className="flex-1 w-full px-5 py-3.5 rounded-r-xl border-slate-200 focus:border-[#40E0D0] focus:ring-[#40E0D0] bg-slate-50/50 text-sm font-medium"
+                                className="flex-1 w-full px-4 py-2.5 rounded-r-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                             />
                         </div>
                         {errors.phone && (
-                            <p className="text-sm text-red-600 mt-1">
-                                {errors.phone}
-                            </p>
+                            <p className="text-xs text-red-600 mt-1">{errors.phone}</p>
                         )}
                     </div>
 
-                    {/* gender */}
-                    <div className="space-y-2">
-                        <label htmlFor="field_157" className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">
-                            Gender
-                        </label>
-                        <div className="flex gap-8 pt-2.5">
-                            <label className="flex items-center gap-2.5 cursor-pointer group">
-                                <input id="field_157"
+                    {/* Gender */}
+                    <div className="space-y-1.5">
+                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
+                            Jenis Kelamin
+                        </span>
+                        <div className="flex items-center gap-6 pt-2">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
                                     type="radio"
                                     name="gender"
+                                    value="male"
                                     checked={data.gender === "male"}
                                     onChange={() => setData("gender", "male")}
                                     className="w-4 h-4 text-[#ED7218] focus:ring-[#ED7218] accent-[#ED7218] border-slate-300"
                                 />
-                                <span className="text-sm font-medium text-gray-800 group-hover:text-black">
-                                    Male
+                                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                                    Laki-laki
                                 </span>
                             </label>
-                            <label className="flex items-center gap-2.5 cursor-pointer group">
+                            <label className="flex items-center gap-2 cursor-pointer group">
                                 <input
                                     type="radio"
                                     name="gender"
+                                    value="female"
                                     checked={data.gender === "female"}
                                     onChange={() => setData("gender", "female")}
                                     className="w-4 h-4 text-[#ED7218] focus:ring-[#ED7218] accent-[#ED7218] border-slate-300"
                                 />
-                                <span className="text-sm font-medium text-gray-800 group-hover:text-black">
-                                    Female
+                                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                                    Perempuan
                                 </span>
                             </label>
                         </div>
                         {errors.gender && (
-                            <p className="text-sm text-red-600 mt-1">
-                                {errors.gender}
-                            </p>
+                            <p className="text-xs text-red-600 mt-1">{errors.gender}</p>
                         )}
                     </div>
 
-                    {/* dob */}
-                    <div className="space-y-2">
-                        <label htmlFor="field_193" className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                    {/* Date of Birth */}
+                    <div className="space-y-1.5">
+                        <label htmlFor="dob_field" className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                             Tanggal Lahir
                         </label>
-                        <input id="field_193"
+                        <input
+                            id="dob_field"
                             type="date"
                             value={data.dob}
                             onChange={(e) => setData("dob", e.target.value)}
                             max={maxDob}
                             min="1900-01-01"
-                            className="w-full px-5 py-3.5 rounded-xl border-slate-200 focus:border-[#40E0D0] focus:ring-[#40E0D0] bg-slate-50/50 text-sm font-medium text-slate-700"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                         />
                         {errors.dob && (
-                            <p className="text-sm text-red-600 mt-1">
-                                {errors.dob}
-                            </p>
+                            <p className="text-xs text-red-600 mt-1">{errors.dob}</p>
                         )}
                     </div>
                 </div>
 
-                {/* action buttons */}
-                <div className="flex items-center justify-end gap-4 mt-12 pt-8 border-t border-slate-100">
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
                     <Transition
                         show={recentlySuccessful}
-                        enter="transition ease-in-out"
+                        enter="transition ease-in-out duration-200"
                         enterFrom="opacity-0"
-                        leave="transition ease-in-out"
+                        leave="transition ease-in-out duration-200"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm font-bold text-[#ED7218]">
+                        <span className="text-xs font-bold text-[#ED7218] mr-2">
                             Tersimpan.
-                        </p>
+                        </span>
                     </Transition>
 
                     <button
                         type="button"
                         onClick={handleCancel}
-                        className="px-8 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition"
+                        disabled={processing}
+                        className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs md:text-sm hover:bg-slate-50 transition active:scale-95 disabled:opacity-50"
                     >
                         Batal
                     </button>
@@ -236,7 +244,7 @@ export default function UpdateProfileInformation({
                     <button
                         type="submit"
                         disabled={processing}
-                        className="px-8 py-3 rounded-xl bg-[#ED7218] text-white font-bold text-sm hover:bg-[#d66311] transition shadow-lg shadow-[#ED7218]/15 disabled:opacity-50"
+                        className="px-6 py-2.5 rounded-xl bg-[#ED7218] text-white font-bold text-xs md:text-sm hover:bg-[#d66311] transition shadow-sm shadow-orange-500/20 active:scale-95 disabled:opacity-50"
                     >
                         {processing ? "Menyimpan..." : "Simpan Perubahan"}
                     </button>
