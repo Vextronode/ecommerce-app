@@ -51,11 +51,15 @@ class PaymentController extends Controller
                                 }
 
                                 if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
-                                    $lockedSib->update(['payment_status' => 'paid']);
+                                    if ($lockedSib->payment_status !== 'paid') {
+                                        $lockedSib->update(['payment_status' => 'paid']);
+                                        \App\Services\OrderNotificationService::paymentReceived($lockedSib);
+                                    }
                                 } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
                                     if ($lockedSib->payment_status !== 'paid') {
                                         $lockedSib->update(['payment_status' => 'failed']);
                                         $lockedSib->restoreStock();
+                                        \App\Services\OrderNotificationService::orderCancelled($lockedSib, 'Pembayaran kadaluarsa atau dibatalkan');
                                     }
                                 }
                             }
@@ -138,11 +142,15 @@ class PaymentController extends Controller
                                 }
 
                                 if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
-                                    $lockedSib->update(['payment_status' => 'paid']);
+                                    if ($lockedSib->payment_status !== 'paid') {
+                                        $lockedSib->update(['payment_status' => 'paid']);
+                                        \App\Services\OrderNotificationService::paymentReceived($lockedSib);
+                                    }
                                 } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
                                     if ($lockedSib->payment_status !== 'paid') {
                                         $lockedSib->update(['payment_status' => 'failed']);
                                         $lockedSib->restoreStock();
+                                        \App\Services\OrderNotificationService::orderCancelled($lockedSib, 'Pembayaran kadaluarsa atau dibatalkan');
                                     }
                                 }
                             }

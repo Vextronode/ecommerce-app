@@ -201,6 +201,8 @@ class OrderHistoryController extends Controller
             // Thread-safe stock restoration
             $order->restoreStock();
 
+            \App\Services\OrderNotificationService::orderCancelled($order, 'Dibatalkan oleh pembeli');
+
             return back()->with('success', 'Pesanan berhasil dibatalkan.');
         });
     }
@@ -224,6 +226,8 @@ class OrderHistoryController extends Controller
 
             // Idempotent and thread-safe balance credit to store
             $order->creditStoreBalance();
+
+            \App\Services\OrderNotificationService::orderDelivered($order);
 
             return back()->with('success', 'Pesanan berhasil diselesaikan.');
         });

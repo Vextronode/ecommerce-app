@@ -97,6 +97,8 @@ class DeliveryTrackerController extends Controller
                 $order->creditStoreBalance();
             }
 
+            \App\Services\OrderNotificationService::orderDelivered($order);
+
             return back()->with('success', 'Pengiriman berhasil diselesaikan!');
         });
     }
@@ -138,6 +140,7 @@ class DeliveryTrackerController extends Controller
                 $updateData['shipping_pin'] = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
             }
             $order->update($updateData);
+            \App\Services\OrderNotificationService::orderShipped($order);
         }
 
         return redirect()->route('tracker.show', ['invoice_number' => $invoice_number]);
