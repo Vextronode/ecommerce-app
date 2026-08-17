@@ -17,8 +17,20 @@
         <link rel="shortcut icon" href="/favicon.png">
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 
-        <!-- PWA Manifest -->
-        <link rel="manifest" href="/manifest.json">
+        <!-- PWA Manifest — berbeda per role -->
+        @php
+            $isMerchant = request()->is('pedagang*') || request()->is('pedagang/*');
+            $isAdmin    = request()->is(config('app.admin_panel_path', 'cibenda-portal') . '*');
+        @endphp
+
+        @if($isMerchant)
+            <link rel="manifest" href="/manifest-merchant.json">
+            <meta name="theme-color" content="#4F46E5">
+        @elseif(!$isAdmin)
+            <link rel="manifest" href="/manifest.json">
+            <meta name="theme-color" content="#ED7218">
+        @endif
+
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -37,6 +49,7 @@
         @inertia
 
         <!-- PWA Service Worker Registration -->
+        @if(!$isAdmin)
         <script>
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
@@ -45,5 +58,7 @@
                 });
             }
         </script>
+        @endif
+
     </body>
 </html>
