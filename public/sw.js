@@ -5,15 +5,18 @@
 //       notifications separately — this SW handles caching only.
 // =====================================================================
 
-const CACHE_NAME = 'cibenda-mart-v1';
+const CACHE_NAME = 'cibenda-mart-v2';
 
 // Asset yang di-cache saat install (App Shell)
 const PRECACHE_URLS = [
     '/',
     '/manifest.json',
+    '/manifest-merchant.json',
     '/favicon.png',
     '/icons/icon-192.png',
     '/icons/icon-512.png',
+    '/icons/icon-merchant-192.png',
+    '/icons/icon-merchant-512.png',
 ];
 
 // Install: pre-cache app shell
