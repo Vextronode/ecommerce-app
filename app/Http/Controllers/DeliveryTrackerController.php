@@ -140,7 +140,11 @@ class DeliveryTrackerController extends Controller
             $order->update($updateData);
 
             \App\Services\OrderNotificationService::orderShipped($order);
-            broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+            }
         }
 
         // Authorize this device session as the driver
@@ -275,7 +279,11 @@ class DeliveryTrackerController extends Controller
 
                     // Notify each buyer individually
                     \App\Services\OrderNotificationService::orderShipped($order);
-                    broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+                    try {
+                        broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                    }
                 }
 
                 // Authorize this courier session for each invoice in the batch
@@ -421,7 +429,11 @@ class DeliveryTrackerController extends Controller
             }
 
             \App\Services\OrderNotificationService::orderDelivered($order);
-            broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+            }
 
             return back()->with('success', "Pesanan #{$order->invoice_number} berhasil diselesaikan!");
         });
@@ -455,12 +467,16 @@ class DeliveryTrackerController extends Controller
             ], 3600);
         }
 
-        broadcast(new \App\Events\DriverLocationBroadcasted(
-            $batch_token,
-            null,
-            (float) $request->latitude,
-            (float) $request->longitude
-        ))->toOthers();
+        try {
+            broadcast(new \App\Events\DriverLocationBroadcasted(
+                $batch_token,
+                null,
+                (float) $request->latitude,
+                (float) $request->longitude
+            ))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
+        }
 
         return response()->json(['success' => true]);
     }
@@ -519,7 +535,11 @@ class DeliveryTrackerController extends Controller
             }
 
             \App\Services\OrderNotificationService::orderDelivered($order);
-            broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+            }
 
             return back()->with('success', 'Pengiriman berhasil diselesaikan!');
         });
@@ -540,12 +560,16 @@ class DeliveryTrackerController extends Controller
             'longitude' => $request->longitude,
         ], 3600);
 
-        broadcast(new \App\Events\DriverLocationBroadcasted(
-            null,
-            $invoice_number,
-            (float) $request->latitude,
-            (float) $request->longitude
-        ))->toOthers();
+        try {
+            broadcast(new \App\Events\DriverLocationBroadcasted(
+                null,
+                $invoice_number,
+                (float) $request->latitude,
+                (float) $request->longitude
+            ))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
+        }
 
         return response()->json(['success' => true]);
     }

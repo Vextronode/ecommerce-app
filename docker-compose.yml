@@ -47,6 +47,9 @@ services:
       - DB_DATABASE=cibenda_mart
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=cibenda_secret_2024
+      - REVERB_HOST=reverb_cibenda
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
     volumes:
       # Mount folder storage biar file upload (foto profil, dll) persisten
       - storage_data:/var/www/storage/app/public
@@ -71,6 +74,9 @@ services:
       - DB_DATABASE=cibenda_mart
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=cibenda_secret_2024
+      - REVERB_HOST=reverb_cibenda
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
     volumes:
       - storage_data:/var/www/storage/app/public
     depends_on:
@@ -97,6 +103,9 @@ services:
       - DB_DATABASE=cibenda_mart
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=cibenda_secret_2024
+      - REVERB_HOST=reverb_cibenda
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
     depends_on:
       db_cibenda:
         condition: service_healthy

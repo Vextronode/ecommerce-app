@@ -153,7 +153,11 @@ class ProductController extends Controller
             }
         }
 
-        broadcast(new \App\Events\ProductStockUpdated($product, 'created'))->toOthers();
+        try {
+            broadcast(new \App\Events\ProductStockUpdated($product, 'created'))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+        }
 
         return redirect()->route('merchant.products.index');
     }
@@ -269,7 +273,11 @@ class ProductController extends Controller
             }
         }
 
-        broadcast(new \App\Events\ProductStockUpdated($product, 'updated'))->toOthers();
+        try {
+            broadcast(new \App\Events\ProductStockUpdated($product, 'updated'))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+        }
 
         return redirect()->route('merchant.products.index');
     }
@@ -288,7 +296,11 @@ class ProductController extends Controller
             $this->safeDeleteStoredFile($img->image_path);
         }
 
-        broadcast(new \App\Events\ProductStockUpdated($product, 'deleted'))->toOthers();
+        try {
+            broadcast(new \App\Events\ProductStockUpdated($product, 'deleted'))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+        }
 
         $product->delete();
 

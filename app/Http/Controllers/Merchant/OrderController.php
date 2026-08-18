@@ -197,7 +197,11 @@ class OrderController extends Controller
                 $order->update($updateData);
             }
 
-            broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+            }
 
             return redirect()->route('merchant.orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
         });
