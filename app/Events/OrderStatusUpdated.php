@@ -15,8 +15,8 @@ class OrderStatusUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Order $order;
-    public string $status;
-    public string $shippingStatus;
+    public ?string $status = null;
+    public ?string $shippingStatus = null;
 
     /**
      * Create a new event instance.
@@ -24,7 +24,7 @@ class OrderStatusUpdated implements ShouldBroadcastNow
     public function __construct(Order $order)
     {
         $this->order = $order->loadMissing(['store', 'user', 'items']);
-        $this->status = $order->status;
+        $this->status = $order->status ?? $order->shipping_status ?? 'pending';
         $this->shippingStatus = $order->shipping_status ?? 'pending';
     }
 

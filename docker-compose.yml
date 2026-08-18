@@ -47,6 +47,7 @@ services:
       - DB_DATABASE=cibenda_mart
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=cibenda_secret_2024
+      - REVERB_SERVER_HOST=reverb_cibenda
       - REVERB_HOST=reverb_cibenda
       - REVERB_PORT=8080
       - REVERB_SCHEME=http
@@ -74,6 +75,7 @@ services:
       - DB_DATABASE=cibenda_mart
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=cibenda_secret_2024
+      - REVERB_SERVER_HOST=reverb_cibenda
       - REVERB_HOST=reverb_cibenda
       - REVERB_PORT=8080
       - REVERB_SCHEME=http
@@ -92,7 +94,7 @@ services:
     build: .
     container_name: cibenda_reverb
     restart: unless-stopped
-    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080 --debug
     ports:
       - "8080:8080"
     env_file:
@@ -103,6 +105,7 @@ services:
       - DB_DATABASE=cibenda_mart
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=cibenda_secret_2024
+      - REVERB_SERVER_HOST=reverb_cibenda
       - REVERB_HOST=reverb_cibenda
       - REVERB_PORT=8080
       - REVERB_SCHEME=http
