@@ -74,6 +74,30 @@ export default function BatchTracker({
                 return () => navigator.geolocation.clearWatch(watchId);
             }
         } else {
+            // Real-time WebSocket Listener via Laravel Reverb
+            if (typeof window !== "undefined" && window.Echo) {
+                const channel = window.Echo.channel(`batch.${batchToken}`);
+
+                channel.listen(".DriverLocationBroadcasted", (e: any) => {
+                    if (e.latitude && e.longitude) {
+                        setDriverPos([parseFloat(e.latitude), parseFloat(e.longitude)]);
+                    }
+                });
+
+                channel.listen(".OrderStatusUpdated", (e: any) => {
+                    if (e.invoice_number && e.shipping_status) {
+                        setStops((prev) =>
+                            prev.map((stop) =>
+                                stop.invoice_number === e.invoice_number
+                                    ? { ...stop, status: e.shipping_status }
+                                    : stop
+                            )
+                        );
+                    }
+                });
+            }
+
+            // Fallback HTTP poller for resilience
             const fetchBatchLocation = async () => {
                 try {
                     const res = await fetch(`/tracker/batch/${batchToken}/location`);
@@ -86,8 +110,14 @@ export default function BatchTracker({
             };
 
             fetchBatchLocation();
-            const interval = setInterval(fetchBatchLocation, 8000);
-            return () => clearInterval(interval);
+            const interval = setInterval(fetchBatchLocation, 12000);
+
+            return () => {
+                clearInterval(interval);
+                if (typeof window !== "undefined" && window.Echo) {
+                    window.Echo.leaveChannel(`batch.${batchToken}`);
+                }
+            };
         }
     }, [batchToken, isDriver, isAllDelivered]);
 

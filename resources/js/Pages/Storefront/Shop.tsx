@@ -1,5 +1,5 @@
-import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useEffect } from "react";
+import { Head, Link, router } from "@inertiajs/react";
 import { Search, Store as StoreIcon } from "lucide-react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import ProductCard from "@/Components/Storefront/ProductCard";
@@ -55,6 +55,19 @@ export default function Shop({
     searchQuery,
     relatedStores = [],
 }: Props) {
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel("storefront-products");
+        channel.listen(".ProductStockUpdated", () => {
+            router.reload({ only: ["allProducts"] });
+        });
+
+        return () => {
+            window.Echo.leaveChannel("storefront-products");
+        };
+    }, []);
+
     return (
         <StorefrontLayout>
             <Head

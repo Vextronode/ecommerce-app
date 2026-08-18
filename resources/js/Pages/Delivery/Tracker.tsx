@@ -101,7 +101,30 @@ export default function Tracker({ order, role }: Props) {
                 return () => navigator.geolocation.clearWatch(watchId);
             }
         } else {
-            // SPECTATOR MODE (Buyer & Merchant): Poll location from server every 8 seconds
+            // SPECTATOR MODE (Buyer & Merchant): Real-time WebSocket + fallback polling
+            if (typeof window !== 'undefined' && window.Echo) {
+                const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
+
+                channel.listen('.DriverLocationBroadcasted', (e: any) => {
+                    if (e.latitude && e.longitude) {
+                        const lat = parseFloat(e.latitude);
+                        const lng = parseFloat(e.longitude);
+                        setDriverPos([lat, lng]);
+
+                        if (buyerPos) {
+                            const dist = getDistance(lat, lng, buyerPos[0], buyerPos[1]);
+                            setDistanceToBuyer(Math.round(dist));
+                        }
+                    }
+                });
+
+                channel.listen('.OrderStatusUpdated', (e: any) => {
+                    if (e.shipping_status === 'delivered') {
+                        window.location.reload();
+                    }
+                });
+            }
+
             const fetchLocation = async () => {
                 try {
                     const res = await fetch(`/tracker/${order.invoice_number}/location`);
@@ -121,11 +144,17 @@ export default function Tracker({ order, role }: Props) {
             };
 
             fetchLocation(); // Initial fetch
-            const interval = setInterval(fetchLocation, 8000); 
-            return () => clearInterval(interval);
+            const interval = setInterval(fetchLocation, 12000); 
+
+            return () => {
+                clearInterval(interval);
+                if (typeof window !== 'undefined' && window.Echo) {
+                    window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
+                }
+            };
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [order.status, buyerPos, isDriver]);
+    }, [order.status, buyerPos, isDriver, order.invoice_number]);
 
     // SUCCESS FULL SCREEN STATE
     if (order.status === 'delivered') {

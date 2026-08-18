@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('orders', function (Blueprint $table) {
             if (!Schema::hasColumn('orders', 'delivery_batch_token')) {
-                $table->string('delivery_batch_token', 64)->nullable()->after('handover_token')->index();
+                $table->string('delivery_batch_token', 64)->nullable()->index();
             }
         });
     }

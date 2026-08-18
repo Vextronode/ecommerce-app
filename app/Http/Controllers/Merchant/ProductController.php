@@ -153,6 +153,8 @@ class ProductController extends Controller
             }
         }
 
+        broadcast(new \App\Events\ProductStockUpdated($product, 'created'))->toOthers();
+
         return redirect()->route('merchant.products.index');
     }
 
@@ -267,6 +269,8 @@ class ProductController extends Controller
             }
         }
 
+        broadcast(new \App\Events\ProductStockUpdated($product, 'updated'))->toOthers();
+
         return redirect()->route('merchant.products.index');
     }
 
@@ -283,6 +287,8 @@ class ProductController extends Controller
         foreach ($product->images as $img) {
             $this->safeDeleteStoredFile($img->image_path);
         }
+
+        broadcast(new \App\Events\ProductStockUpdated($product, 'deleted'))->toOthers();
 
         $product->delete();
 
