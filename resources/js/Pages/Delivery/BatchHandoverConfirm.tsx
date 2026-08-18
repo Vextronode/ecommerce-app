@@ -2,16 +2,12 @@ import React, { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import {
     Truck,
-    MapPin,
     Store,
-    Package,
-    Phone,
-    ArrowRight,
-    CheckCircle2,
-    ShieldCheck,
     Layers,
     X,
     Navigation,
+    ArrowRight,
+    AlertCircle,
 } from "lucide-react";
 import { formatRupiah } from "@/utils/formatters";
 
@@ -24,6 +20,8 @@ interface StopItem {
     customer_phone: string;
     shipping_address: string;
     distance_km: number | null;
+    subtotal?: number;
+    shipping_cost?: number;
     total_amount: number;
     payment_method: string;
     payment_status: string;
@@ -80,106 +78,104 @@ export default function BatchHandoverConfirm({
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between py-6 px-4 sm:px-6 relative overflow-hidden font-sans">
+        <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col justify-between py-6 px-4 sm:px-6 font-sans">
             <Head title={`Konfirmasi Pengiriman Gabungan - ${totalOrders} Pesanan`} />
 
-            {/* Ambient Lighting Orbs */}
-            <div className="absolute -top-32 -left-32 w-80 h-80 bg-[#41B9C5] rounded-full filter blur-[100px] opacity-20 pointer-events-none" />
-            <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-[#ED7218] rounded-full filter blur-[100px] opacity-20 pointer-events-none" />
-
-            <div className="max-w-lg w-full mx-auto space-y-4 my-auto relative z-10">
-                {/* Header Badge */}
-                <div className="text-center space-y-2">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#41B9C5] to-[#14433D] text-white shadow-lg shadow-[#41B9C5]/20 mb-1 animate-bounce">
-                        <Layers className="w-8 h-8" />
+            <div className="max-w-lg w-full mx-auto space-y-4 my-auto">
+                {/* Header */}
+                <div className="text-center space-y-1.5">
+                    <div className="w-12 h-12 bg-[#EAF7F7] text-[#14433D] rounded-2xl flex items-center justify-center mx-auto mb-2 border border-[#41B9C5]/30 shadow-xs">
+                        <Layers className="w-6 h-6 text-[#14433D]" />
                     </div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-[#41B9C5]">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        <span>Master QR: {totalOrders} Pesanan Sekaligus</span>
-                    </div>
-                    <h1 className="text-2xl font-black text-white tracking-tight">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-teal-50 text-[#14433D] text-[11px] font-semibold border border-teal-200/60">
+                        {totalOrders} Pesanan Sekaligus
+                    </span>
+                    <h1 className="text-xl font-extrabold text-gray-900">
                         Pengiriman Gabungan
                     </h1>
-                    <p className="text-xs text-slate-400">
-                        Kode Batch: <span className="text-[#41B9C5] font-mono font-bold">#{batchToken}</span>
+                    <p className="text-xs text-gray-500 font-mono">
+                        #{batchToken}
                     </p>
                 </div>
 
                 {/* Origin Store Card */}
-                <div className="bg-slate-800/80 backdrop-blur-xl rounded-2xl p-4 border border-white/10 shadow-xl flex items-center justify-between">
+                <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-xs flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
-                            <Store className="w-5 h-5" />
+                        <div className="w-8 h-8 rounded-lg bg-teal-100 text-[#14433D] flex items-center justify-center shrink-0">
+                            <Store className="w-4 h-4" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
                                 Titik Ambil (Toko)
-                            </p>
-                            <p className="text-sm font-bold text-white truncate">{store.name}</p>
+                            </span>
+                            <p className="text-sm font-bold text-gray-900 truncate">{store.name}</p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <span className="text-xs text-slate-400">Total Paket</span>
-                        <p className="text-sm font-black text-[#41B9C5]">{totalItems} Item</p>
+                        <span className="text-[11px] text-gray-400 block">Total Muatan</span>
+                        <p className="text-sm font-bold text-[#14433D]">{totalItems} Item</p>
                     </div>
                 </div>
 
-                {/* Ordered Stops List (Nearest to Farthest) */}
-                <div className="bg-slate-800/80 backdrop-blur-xl rounded-3xl p-5 border border-white/10 shadow-2xl space-y-3">
-                    <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                        <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                {/* Ordered Stops List */}
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-xs space-y-3">
+                    <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                        <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
                             <Navigation className="w-3.5 h-3.5 text-[#41B9C5]" />
-                            <span>Urutan Rute Pengantaran (Terdekat):</span>
+                            <span>Urutan Rute Pengantaran:</span>
                         </span>
-                        <span className="text-[11px] font-semibold text-slate-400">
+                        <span className="text-[11px] font-semibold text-gray-500">
                             {totalOrders} Titik Stop
                         </span>
                     </div>
 
-                    <div className="space-y-2.5 max-h-[38vh] overflow-y-auto pr-1">
+                    <div className="space-y-2.5 max-h-[42vh] overflow-y-auto pr-1">
                         {stops.map((stop) => (
                             <div
                                 key={stop.id}
-                                className="bg-slate-900/60 rounded-2xl p-3.5 border border-white/5 space-y-2 relative"
+                                className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-1.5"
                             >
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#ED7218] to-orange-600 text-white text-xs font-black flex items-center justify-center shrink-0 shadow-sm">
+                                        <div className="w-6 h-6 rounded-md bg-[#14433D] text-white text-xs font-bold flex items-center justify-center shrink-0">
                                             {stop.stop_number}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-white truncate">
+                                            <p className="text-sm font-bold text-gray-900 truncate">
                                                 {stop.customer_name}
                                             </p>
-                                            <p className="text-[11px] font-mono text-slate-400">
+                                            <p className="text-[11px] font-mono text-gray-400">
                                                 #{stop.invoice_number}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="text-right shrink-0">
                                         {stop.distance_km !== null && (
-                                            <span className="inline-block text-[10px] font-bold bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-[#41B9C5]">
+                                            <span className="inline-block text-[10px] font-medium bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full text-gray-600">
                                                 ± {stop.distance_km} km
                                             </span>
                                         )}
-                                        <p className="text-xs font-bold text-white mt-0.5">
+                                        <p className="text-xs font-bold text-gray-900 mt-0.5">
                                             {formatRupiah(stop.total_amount)}
                                         </p>
                                     </div>
                                 </div>
 
-                                <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                                <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
                                     {stop.shipping_address}
                                 </p>
 
-                                <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
-                                    <span>{stop.items_count} item barang</span>
+                                <div className="flex items-center justify-between pt-1 text-[11px] text-gray-500 border-t border-gray-200/60">
+                                    <span>
+                                        {stop.items_count} item • Ongkir {formatRupiah(stop.shipping_cost || 0)}
+                                    </span>
                                     {stop.payment_method === "cod" && stop.payment_status === "pending" ? (
-                                        <span className="text-amber-400 font-bold">
-                                            ⚠️ Tagih COD: {formatRupiah(stop.total_amount)}
+                                        <span className="text-amber-700 font-bold flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3 text-amber-600" />
+                                            <span>Tagih COD: {formatRupiah(stop.total_amount)}</span>
                                         </span>
                                     ) : (
-                                        <span className="text-teal-400 font-bold">✅ Sudah Lunas</span>
+                                        <span className="text-teal-700 font-semibold">Lunas (Online)</span>
                                     )}
                                 </div>
                             </div>
@@ -188,31 +184,31 @@ export default function BatchHandoverConfirm({
 
                     {/* Total Summary Footer */}
                     {totalCodAmount > 0 && (
-                        <div className="pt-3 border-t border-white/10 flex justify-between items-center bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
-                            <span className="text-xs font-bold text-amber-300">
-                                💵 Total Uang COD yang Harus Diterima:
+                        <div className="pt-2 border-t border-gray-100 flex justify-between items-center bg-amber-50 p-3 rounded-xl border border-amber-200">
+                            <span className="text-xs font-bold text-amber-800">
+                                Total Tagihan COD:
                             </span>
-                            <span className="text-sm font-black text-amber-400">
+                            <span className="text-sm font-extrabold text-amber-800">
                                 {formatRupiah(totalCodAmount)}
                             </span>
                         </div>
                     )}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-2.5 pt-2">
+                {/* Actions */}
+                <div className="space-y-2 pt-1">
                     <button
                         type="button"
                         disabled={isSubmitting}
                         onClick={handleAcceptAll}
-                        className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#41B9C5] to-[#14433D] hover:from-[#38a6b1] hover:to-[#0f342f] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-xl shadow-[#41B9C5]/20 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-full py-3.5 px-5 rounded-xl bg-[#14433D] hover:bg-[#0f342f] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                     >
                         {isSubmitting ? (
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
                             <>
-                                <Truck className="w-5 h-5" />
-                                <span>🛵 Ambil Semua & Mulai Antar ({totalOrders} Pesanan)</span>
+                                <Truck className="w-4 h-4" />
+                                <span>Ambil Semua & Mulai Antar ({totalOrders} Pesanan)</span>
                                 <ArrowRight className="w-4 h-4 ml-1" />
                             </>
                         )}
@@ -221,7 +217,7 @@ export default function BatchHandoverConfirm({
                     <button
                         type="button"
                         onClick={handleCancel}
-                        className="w-full py-3 text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-2.5 text-xs font-medium text-gray-500 hover:text-gray-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                         <X className="w-3.5 h-3.5" />
                         <span>Batal / Kembali</span>

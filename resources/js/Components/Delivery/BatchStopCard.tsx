@@ -14,6 +14,8 @@ export interface BatchStopData {
     shipping_longitude: number | null;
     shipping_pin?: string;
     distance_km: number | null;
+    subtotal?: number;
+    shipping_cost?: number;
     total_amount: number;
     payment_method: string;
     payment_status: string;
@@ -120,7 +122,7 @@ export default function BatchStopCard({
 
             <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
                 <span className="text-slate-500 font-medium">
-                    {totalItems} item barang
+                    {totalItems} item • Ongkir {formatRupiah(stop.shipping_cost || 0)}
                 </span>
                 {stop.payment_method === "cod" && stop.payment_status === "pending" ? (
                     <span className="text-amber-600 font-bold">

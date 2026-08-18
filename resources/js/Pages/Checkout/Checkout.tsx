@@ -27,8 +27,8 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
         processing,
         errors,
         deliveryFee,
+        storesBreakdown,
         adminFee,
-        grandTotal,
         isAddressPickerOpen,
         setIsAddressPickerOpen,
         applyAddress,
@@ -62,6 +62,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                             selected={data.delivery_method}
                             onSelect={(val) => setData("delivery_method", val)}
                             deliveryFee={deliveryFee}
+                            storesBreakdown={storesBreakdown}
                         />
 
                         <PaymentSection
@@ -77,6 +78,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                             deliveryFee={deliveryFee}
                             adminFee={adminFee}
                             totalItems={totalItems}
+                            storesBreakdown={storesBreakdown}
                             onPlaceOrder={handlePlaceOrder}
                             processing={processing}
                         />

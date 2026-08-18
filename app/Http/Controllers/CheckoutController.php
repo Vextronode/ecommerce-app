@@ -44,7 +44,7 @@ class CheckoutController extends Controller
         }
 
         if ($method === 'local_delivery') {
-            if (! $store->latitude || ! $store->longitude || ! $addressLat || ! $addressLon) {
+            if (! $store || ! $store->latitude || ! $store->longitude || ! $addressLat || ! $addressLon) {
                 return 15000;
             }
 
@@ -86,14 +86,18 @@ class CheckoutController extends Controller
 
         $cartItems = $carts->map(function ($cart) {
             $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
+            $store = $cart->product->store;
 
             return [
                 'id' => $cart->id,
                 'product_id' => $cart->product->id,
                 'name' => $cart->product->name,
-                'location' => $cart->product->store ? $cart->product->store->name.' - '.$cart->product->store->address : 'Cibenda Mart',
-                'store_lat' => $cart->product->store ? $cart->product->store->latitude : null,
-                'store_lon' => $cart->product->store ? $cart->product->store->longitude : null,
+                'store_id' => $cart->product->store_id,
+                'store_name' => $store ? $store->name : 'Cibenda Mart',
+                'store_address' => $store ? $store->address : '',
+                'location' => $store ? $store->name.' - '.$store->address : 'Cibenda Mart',
+                'store_lat' => $store ? $store->latitude : null,
+                'store_lon' => $store ? $store->longitude : null,
                 'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
                 'qty' => $cart->quantity,
                 'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
@@ -271,6 +275,7 @@ class CheckoutController extends Controller
         }
 
         $firstOrderId = count($orders) > 0 ? $orders[0]->id : null;
+        $allOrderIds = collect($orders)->pluck('id')->implode(',');
 
         if ($validated['payment_method'] !== 'cod' && $firstOrderId) {
             return redirect()->route('payment.show', [
@@ -279,25 +284,49 @@ class CheckoutController extends Controller
         }
 
         return redirect()->route('checkout.success', [
+            'order_ids' => $allOrderIds,
             'order_id' => $firstOrderId,
         ]);
     }
 
     public function success(Request $request, MidtransService $midtransService)
     {
+        $orderIdsParam = $request->query('order_ids');
         $orderId = $request->query('order_id');
-        $order = null;
+        $ordersList = collect([]);
 
-        if ($orderId) {
-            $order = Order::with(['items.product', 'store'])->find($orderId);
+        if ($orderIdsParam) {
+            $ids = array_filter(explode(',', $orderIdsParam));
+            $ordersList = Order::with(['items.product', 'store'])
+                ->where('user_id', auth()->id())
+                ->whereIn('id', $ids)
+                ->get();
+        } elseif ($orderId) {
+            $primaryOrder = Order::with(['items.product', 'store'])
+                ->where('user_id', auth()->id())
+                ->find($orderId);
 
-            if ($order && $order->payment_status === 'pending' && $order->payment_method !== 'cod') {
-                return redirect()->route('payment.show', ['order' => $order->id]);
+            if ($primaryOrder) {
+                if ($primaryOrder->parent_transaction_id) {
+                    $ordersList = Order::with(['items.product', 'store'])
+                        ->where('user_id', auth()->id())
+                        ->where('parent_transaction_id', $primaryOrder->parent_transaction_id)
+                        ->get();
+                } else {
+                    $ordersList = collect([$primaryOrder]);
+                }
             }
         }
 
+        $firstOrder = $ordersList->first();
+
+        if ($firstOrder && $firstOrder->payment_status === 'pending' && $firstOrder->payment_method !== 'cod') {
+            return redirect()->route('payment.show', ['order' => $firstOrder->id]);
+        }
+
         return Inertia::render('Checkout/Success', [
-            'order' => $order,
+            'orders' => $ordersList,
+            'order' => $firstOrder,
         ]);
     }
 
@@ -318,7 +347,10 @@ class CheckoutController extends Controller
         $method = $request->query('delivery_method', 'local_delivery');
 
         if (empty($cartIds)) {
-            return response()->json(['delivery_fee' => 0]);
+            return response()->json([
+                'delivery_fee' => 0,
+                'stores_breakdown' => [],
+            ]);
         }
 
         $carts = Cart::with(['product.store'])
@@ -331,13 +363,36 @@ class CheckoutController extends Controller
         });
 
         $totalDeliveryFee = 0;
+        $storesBreakdown = [];
 
         foreach ($cartsByStore as $storeId => $storeCarts) {
             $store = $storeCarts->first()->product->store;
             $fee = $this->calculateShippingCost($store, $addressLat, $addressLon, $method);
             $totalDeliveryFee += $fee;
+
+            $distanceKm = null;
+            if ($store && $store->latitude && $store->longitude && $addressLat && $addressLon) {
+                $distanceKm = round($this->haversineDistance(
+                    (float) $store->latitude,
+                    (float) $store->longitude,
+                    (float) $addressLat,
+                    (float) $addressLon
+                ), 1);
+            }
+
+            $storesBreakdown[] = [
+                'store_id' => $storeId,
+                'store_name' => $store ? $store->name : 'Toko Mitra',
+                'store_address' => $store ? $store->address : '',
+                'distance_km' => $distanceKm,
+                'delivery_fee' => $fee,
+                'items_count' => $storeCarts->sum('quantity'),
+            ];
         }
 
-        return response()->json(['delivery_fee' => $totalDeliveryFee]);
+        return response()->json([
+            'delivery_fee' => $totalDeliveryFee,
+            'stores_breakdown' => $storesBreakdown,
+        ]);
     }
 }

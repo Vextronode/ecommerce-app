@@ -4,12 +4,10 @@ import {
     Truck,
     MapPin,
     Store,
-    User,
     Package,
     Phone,
     ArrowRight,
     CheckCircle2,
-    ShieldCheck,
     AlertCircle,
     X,
 } from "lucide-react";
@@ -73,141 +71,157 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
     const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between py-6 px-4 sm:px-6 relative overflow-hidden font-sans">
+        <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col justify-between py-6 px-4 sm:px-6 font-sans">
             <Head title={`Konfirmasi Pengantaran #${order.invoice_number}`} />
 
-            {/* Ambient Background Gradient Orbs */}
-            <div className="absolute -top-32 -left-32 w-80 h-80 bg-[#41B9C5] rounded-full filter blur-[100px] opacity-20 pointer-events-none" />
-            <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-[#ED7218] rounded-full filter blur-[100px] opacity-20 pointer-events-none" />
-
-            <div className="max-w-lg w-full mx-auto space-y-4 my-auto relative z-10">
-                {/* Header Badge */}
-                <div className="text-center space-y-2">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#41B9C5] to-[#14433D] text-white shadow-lg shadow-[#41B9C5]/20 mb-1 animate-bounce">
-                        <Truck className="w-8 h-8" />
+            <div className="max-w-md w-full mx-auto space-y-4 my-auto">
+                {/* Header */}
+                <div className="text-center space-y-1.5">
+                    <div className="w-12 h-12 bg-[#EAF7F7] text-[#14433D] rounded-2xl flex items-center justify-center mx-auto mb-2 border border-[#41B9C5]/30 shadow-xs">
+                        <Truck className="w-6 h-6 text-[#14433D]" />
                     </div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-[#41B9C5]">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        <span>Serah Terima Kurir Toko</span>
-                    </div>
-                    <h1 className="text-2xl font-black text-white tracking-tight">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-teal-50 text-[#14433D] text-[11px] font-semibold border border-teal-200/60">
+                        Kurir Toko
+                    </span>
+                    <h1 className="text-xl font-extrabold text-gray-900">
                         Konfirmasi Pengantaran
                     </h1>
-                    <p className="text-xs text-slate-400">
-                        Invoice: <span className="text-[#41B9C5] font-bold">#{order.invoice_number}</span>
+                    <p className="text-xs text-gray-500 font-mono">
+                        #{order.invoice_number}
                     </p>
                 </div>
 
-                {/* Main Card Container */}
-                <div className="bg-slate-800/80 backdrop-blur-xl rounded-3xl p-5 border border-white/10 shadow-2xl space-y-4">
-                    {/* Notice if already shipped */}
+                {/* Main Card */}
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-xs space-y-4">
+                    {/* Status Alert if not new */}
                     {isAlreadyShipped && (
-                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex items-start gap-2.5 text-amber-300 text-xs">
-                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-amber-800 text-xs">
+                            <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
                             <p>
-                                Pesanan ini sudah berstatus <strong>Dikirim</strong>. Anda dapat langsung melanjutkan ke halaman pelacak rute GPS.
+                                Pesanan ini sudah berstatus <strong>Dikirim</strong>. Anda dapat langsung melanjutkan ke halaman pelacak GPS.
                             </p>
                         </div>
                     )}
 
                     {isDelivered && (
-                        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3 flex items-start gap-2.5 text-emerald-300 text-xs">
-                            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5 text-emerald-800 text-xs">
+                            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
                             <p>
-                                Pesanan ini sudah <strong>Selesai Diantar</strong> ke pembeli.
+                                Pesanan ini sudah <strong>Selesai Diantar</strong>.
                             </p>
                         </div>
                     )}
 
-                    {/* Store Origin & Customer Destination */}
+                    {/* Route Details */}
                     <div className="space-y-3">
-                        {/* Origin: Toko */}
-                        <div className="bg-slate-900/60 rounded-2xl p-3.5 border border-white/5 flex items-start gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+                        {/* Origin Store */}
+                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="w-8 h-8 rounded-lg bg-teal-100 text-[#14433D] flex items-center justify-center shrink-0">
                                 <Store className="w-4 h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
                                     Titik Ambil (Toko)
-                                </p>
-                                <p className="text-sm font-bold text-white truncate">
+                                </span>
+                                <p className="text-sm font-bold text-gray-900 truncate mt-0.5">
                                     {order.store_name}
                                 </p>
                             </div>
                         </div>
 
-                        {/* Route Line Indicator */}
-                        <div className="flex items-center justify-between px-6 py-0.5">
-                            <div className="h-6 w-0.5 bg-gradient-to-b from-teal-400 to-[#ED7218] rounded-full mx-auto" />
-                            {estimatedDistanceKm !== null && estimatedDistanceKm !== undefined && (
-                                <span className="text-[11px] font-bold bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full text-slate-300">
+                        {/* Distance Indicator */}
+                        {estimatedDistanceKm !== null && estimatedDistanceKm !== undefined && (
+                            <div className="flex items-center justify-center gap-2 py-0.5">
+                                <div className="h-px bg-gray-200 flex-1" />
+                                <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
                                     ± {estimatedDistanceKm} km
                                 </span>
-                            )}
-                        </div>
+                                <div className="h-px bg-gray-200 flex-1" />
+                            </div>
+                        )}
 
-                        {/* Destination: Pembeli */}
-                        <div className="bg-slate-900/60 rounded-2xl p-3.5 border border-white/5 flex items-start gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 text-[#ED7218] flex items-center justify-center shrink-0">
+                        {/* Destination Buyer */}
+                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="w-8 h-8 rounded-lg bg-orange-100 text-[#ED7218] flex items-center justify-center shrink-0">
                                 <MapPin className="w-4 h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-[10px] font-bold text-[#ED7218] uppercase tracking-wider">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                         Titik Antar (Pembeli)
-                                    </p>
+                                    </span>
                                     {order.customer_phone && (
                                         <a
                                             href={`tel:${order.customer_phone}`}
-                                            className="text-[11px] text-teal-400 font-bold flex items-center gap-1 hover:underline"
+                                            className="text-[11px] text-[#41B9C5] font-semibold flex items-center gap-1 hover:underline"
                                         >
                                             <Phone className="w-3 h-3" />
                                             <span>Hubungi</span>
                                         </a>
                                     )}
                                 </div>
-                                <p className="text-sm font-bold text-white truncate mt-0.5">
+                                <p className="text-sm font-bold text-gray-900 truncate mt-0.5">
                                     {order.customer_name}
                                 </p>
-                                <p className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">
+                                <p className="text-xs text-gray-600 mt-1 leading-relaxed">
                                     {order.shipping_address}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Order Items Summary */}
-                    <div className="bg-slate-900/40 rounded-2xl p-3.5 border border-white/5 space-y-2">
-                        <div className="flex justify-between items-center text-xs">
-                            <span className="text-slate-400 flex items-center gap-1.5">
-                                <Package className="w-3.5 h-3.5 text-[#41B9C5]" />
+                    {/* Order Items & Cost Breakdown */}
+                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 space-y-2">
+                        <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                            <span className="flex items-center gap-1.5">
+                                <Package className="w-3.5 h-3.5 text-gray-400" />
                                 <span>Paket ({totalItems} item):</span>
                             </span>
-                            <span className="text-white font-bold">
-                                {formatRupiah(order.total_amount)}
+                            <span className="text-gray-700 font-medium">
+                                {formatRupiah(order.subtotal)}
                             </span>
                         </div>
 
-                        <div className="divide-y divide-white/5 text-xs">
+                        <div className="divide-y divide-gray-200/70 text-xs pt-1">
                             {order.items.map((item, idx) => (
-                                <div key={idx} className="py-1.5 flex justify-between items-center text-slate-300">
+                                <div key={idx} className="py-1.5 flex justify-between items-center text-gray-700">
                                     <span className="truncate pr-2">
                                         {item.quantity}x {item.product_name}
                                         {item.variant_name ? ` (${item.variant_name})` : ""}
                                     </span>
-                                    <span className="text-slate-400 font-medium shrink-0">
+                                    <span className="text-gray-500 shrink-0 font-medium">
                                         {formatRupiah(item.price * item.quantity)}
                                     </span>
                                 </div>
                             ))}
                         </div>
 
+                        {/* Shipping Cost Breakdown */}
+                        <div className="pt-2 border-t border-gray-200 flex justify-between items-center text-xs">
+                            <span className="text-gray-500 flex items-center gap-1">
+                                <Truck className="w-3.5 h-3.5 text-gray-400" />
+                                <span>Ongkos Kirim:</span>
+                            </span>
+                            <span className="text-gray-800 font-semibold">
+                                {formatRupiah(order.shipping_cost)}
+                            </span>
+                        </div>
+
+                        {/* Total Payment */}
+                        <div className="pt-2 border-t border-gray-200 flex justify-between items-center">
+                            <span className="text-xs font-bold text-gray-900">Total Pembayaran:</span>
+                            <span className="text-sm font-extrabold text-[#14433D]">
+                                {formatRupiah(order.total_amount)}
+                            </span>
+                        </div>
+
                         {order.payment_method === "cod" && (
-                            <div className="pt-2 border-t border-white/10 flex justify-between items-center">
-                                <span className="text-xs font-bold text-amber-400">
-                                    ⚠️ Tagih Tunai (COD):
+                            <div className="pt-2 border-t border-gray-200 flex justify-between items-center">
+                                <span className="text-xs font-bold text-amber-700 flex items-center gap-1">
+                                    <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                                    <span>Tagihan Tunai (COD):</span>
                                 </span>
-                                <span className="text-sm font-black text-amber-400">
+                                <span className="text-sm font-extrabold text-amber-700">
                                     {formatRupiah(order.total_amount)}
                                 </span>
                             </div>
@@ -215,22 +229,22 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
                     </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-2.5 pt-2">
+                {/* Actions */}
+                <div className="space-y-2 pt-1">
                     {!isDelivered ? (
                         <button
                             type="button"
                             disabled={isSubmitting}
                             onClick={handleAcceptHandover}
-                            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#41B9C5] to-[#14433D] hover:from-[#38a6b1] hover:to-[#0f342f] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-xl shadow-[#41B9C5]/20 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            className="w-full py-3.5 px-5 rounded-xl bg-[#14433D] hover:bg-[#0f342f] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                         >
                             {isSubmitting ? (
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    <Truck className="w-5 h-5" />
+                                    <Truck className="w-4 h-4" />
                                     <span>
-                                        {isAlreadyShipped ? "Buka Rute & Lacak Pengiriman" : "✅ Ya, Ambil & Mulai Antar"}
+                                        {isAlreadyShipped ? "Buka Rute & Lacak Pengiriman" : "Ambil & Mulai Antar"}
                                     </span>
                                     <ArrowRight className="w-4 h-4 ml-1" />
                                 </>
@@ -239,7 +253,7 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
                     ) : (
                         <a
                             href={`/tracker/${order.invoice_number}`}
-                            className="w-full py-4 px-6 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm flex items-center justify-center gap-2 border border-white/10 transition"
+                            className="w-full py-3.5 px-5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition"
                         >
                             <span>Lihat Bukti Pengiriman</span>
                         </a>
@@ -248,7 +262,7 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
                     <button
                         type="button"
                         onClick={handleCancel}
-                        className="w-full py-3 text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 text-xs font-medium text-gray-500 hover:text-gray-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                         <X className="w-3.5 h-3.5" />
                         <span>Batal / Kembali</span>
