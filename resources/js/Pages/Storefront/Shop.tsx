@@ -59,9 +59,12 @@ export default function Shop({
         if (typeof window === "undefined" || !window.Echo) return;
 
         const channel = window.Echo.channel("storefront-products");
-        channel.listen(".ProductStockUpdated", () => {
+        const handleProductUpdated = () => {
             router.reload({ only: ["allProducts"] });
-        });
+        };
+
+        channel.listen(".ProductStockUpdated", handleProductUpdated);
+        channel.listen("ProductStockUpdated", handleProductUpdated);
 
         return () => {
             window.Echo.leaveChannel("storefront-products");

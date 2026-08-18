@@ -78,13 +78,13 @@ export default function BatchTracker({
             if (typeof window !== "undefined" && window.Echo) {
                 const channel = window.Echo.channel(`batch.${batchToken}`);
 
-                channel.listen(".DriverLocationBroadcasted", (e: any) => {
+                const handleBatchLocation = (e: any) => {
                     if (e.latitude && e.longitude) {
                         setDriverPos([parseFloat(e.latitude), parseFloat(e.longitude)]);
                     }
-                });
+                };
 
-                channel.listen(".OrderStatusUpdated", (e: any) => {
+                const handleBatchStatus = (e: any) => {
                     if (e.invoice_number && e.shipping_status) {
                         setStops((prev) =>
                             prev.map((stop) =>
@@ -94,7 +94,12 @@ export default function BatchTracker({
                             )
                         );
                     }
-                });
+                };
+
+                channel.listen(".DriverLocationBroadcasted", handleBatchLocation);
+                channel.listen("DriverLocationBroadcasted", handleBatchLocation);
+                channel.listen(".OrderStatusUpdated", handleBatchStatus);
+                channel.listen("OrderStatusUpdated", handleBatchStatus);
             }
 
             // Fallback HTTP poller for resilience

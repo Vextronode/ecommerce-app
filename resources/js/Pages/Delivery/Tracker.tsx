@@ -105,7 +105,7 @@ export default function Tracker({ order, role }: Props) {
             if (typeof window !== 'undefined' && window.Echo) {
                 const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
 
-                channel.listen('.DriverLocationBroadcasted', (e: any) => {
+                const handleLocation = (e: any) => {
                     if (e.latitude && e.longitude) {
                         const lat = parseFloat(e.latitude);
                         const lng = parseFloat(e.longitude);
@@ -116,13 +116,18 @@ export default function Tracker({ order, role }: Props) {
                             setDistanceToBuyer(Math.round(dist));
                         }
                     }
-                });
+                };
 
-                channel.listen('.OrderStatusUpdated', (e: any) => {
+                const handleStatus = (e: any) => {
                     if (e.shipping_status === 'delivered') {
                         window.location.reload();
                     }
-                });
+                };
+
+                channel.listen('.DriverLocationBroadcasted', handleLocation);
+                channel.listen('DriverLocationBroadcasted', handleLocation);
+                channel.listen('.OrderStatusUpdated', handleStatus);
+                channel.listen('OrderStatusUpdated', handleStatus);
             }
 
             const fetchLocation = async () => {

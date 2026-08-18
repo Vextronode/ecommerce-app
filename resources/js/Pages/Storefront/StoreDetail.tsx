@@ -39,6 +39,28 @@ export default function StoreDetail({ store, isFollowing, categories, products, 
         setSearchQuery(filters.search || '');
     }, [filters]);
 
+    // Live Real-Time Product & Stock Sync for Store Detail
+    React.useEffect(() => {
+        if (!store?.id || typeof window === "undefined" || !window.Echo) return;
+
+        const storeChannel = window.Echo.channel(`store-products.${store.id}`);
+        const globalChannel = window.Echo.channel("storefront-products");
+
+        const handleUpdate = () => {
+            router.reload({ only: ["products", "groupedProducts"] });
+        };
+
+        storeChannel.listen(".ProductStockUpdated", handleUpdate);
+        storeChannel.listen("ProductStockUpdated", handleUpdate);
+        globalChannel.listen(".ProductStockUpdated", handleUpdate);
+        globalChannel.listen("ProductStockUpdated", handleUpdate);
+
+        return () => {
+            window.Echo.leaveChannel(`store-products.${store.id}`);
+            window.Echo.leaveChannel("storefront-products");
+        };
+    }, [store?.id]);
+
     const handleFilterChange = (filter: string) => {
         setCurrentFilter(filter);
         // Selalu pindah ke tab 'produk' jika sedang menggunakan filter agar hasil terlihat

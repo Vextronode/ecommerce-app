@@ -1,5 +1,5 @@
-import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useEffect } from "react";
+import { Head, Link, router, usePage } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import { Store, Star } from "lucide-react";
 import RatingItemCard, { RatingItemType } from "@/Components/History/RatingItemCard";
@@ -25,7 +25,26 @@ export default function Index({
     ratingItems?: RatingItemType[];
     currentStatus: string;
 }) {
+    const { auth } = usePage().props as any;
+    const userId = auth?.user?.id;
     const { navigateTab } = useOrderHistoryActions();
+
+    // Real-Time WebSocket Order Status Synchronization for Buyer's History Tab
+    useEffect(() => {
+        if (!userId || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel(`user-orders.${userId}`);
+        const handleUpdate = () => {
+            router.reload({ only: ["orders", "ratingItems"] });
+        };
+
+        channel.listen(".OrderStatusUpdated", handleUpdate);
+        channel.listen("OrderStatusUpdated", handleUpdate);
+
+        return () => {
+            window.Echo.leaveChannel(`user-orders.${userId}`);
+        };
+    }, [userId]);
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">

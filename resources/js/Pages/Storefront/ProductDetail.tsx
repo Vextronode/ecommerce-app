@@ -58,11 +58,14 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         if (!product?.id || typeof window === "undefined" || !window.Echo) return;
 
         const channel = window.Echo.channel("storefront-products");
-        channel.listen(".ProductStockUpdated", (e: any) => {
+        const handleStockUpdate = (e: any) => {
             if (Number(e.product_id) === Number(product.id)) {
                 router.reload({ only: ["product"] });
             }
-        });
+        };
+
+        channel.listen(".ProductStockUpdated", handleStockUpdate);
+        channel.listen("ProductStockUpdated", handleStockUpdate);
 
         return () => {
             window.Echo.leaveChannel("storefront-products");

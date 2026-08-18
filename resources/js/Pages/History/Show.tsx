@@ -21,9 +21,12 @@ export default function Show({ order }: { order: any }) {
         if (!order?.id || typeof window === "undefined" || !window.Echo) return;
 
         const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
-        channel.listen(".OrderStatusUpdated", () => {
+        const handleUpdate = () => {
             router.reload({ only: ["order"] });
-        });
+        };
+
+        channel.listen(".OrderStatusUpdated", handleUpdate);
+        channel.listen("OrderStatusUpdated", handleUpdate);
 
         return () => {
             window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
