@@ -25,12 +25,10 @@ const getMessagingInstance = async () => {
 
 export const requestForToken = async (): Promise<string | null> => {
     try {
-        // Guard for browser environment with notification support
         if (typeof window === "undefined" || !("Notification" in window)) {
             return null;
         }
 
-        // Request permission if not yet decided
         if (Notification.permission === "default") {
             const permission = await Notification.requestPermission();
             if (permission !== "granted") {
@@ -43,17 +41,8 @@ export const requestForToken = async (): Promise<string | null> => {
         const messagingInstance = await getMessagingInstance();
         if (!messagingInstance) return null;
 
-        // Register service worker explicitly to guarantee scope matching
-        let swRegistration: ServiceWorkerRegistration | undefined;
-        if ("serviceWorker" in navigator) {
-            swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-                scope: "/firebase-cloud-messaging-push-scope",
-            });
-        }
-
         const currentToken = await getToken(messagingInstance, {
-            vapidKey: "BBTHc5XWQ43VPS1V1GW7gb9gGa02JNQBRZwDiC4-9huOdYIhqYm1NzCyW8f9gL4cVZatL-HWRvPrC666Ul0ZGCw",
-            serviceWorkerRegistration: swRegistration,
+            vapidKey: "BBTHc5XWQ43VPS1V1GW7gb9gGa02JNQBRZwDiC4-9huOdYIhqYm1NzCyW8f9gL4cVZatL-HWRvPrC666Ul0ZGCw"
         });
 
         return currentToken ?? null;
