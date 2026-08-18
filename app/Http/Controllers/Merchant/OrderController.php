@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Merchant;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -64,6 +67,70 @@ class OrderController extends Controller
                 'search' => $search ?? '',
                 'status' => $status,
             ],
+        ]);
+    }
+
+    /**
+     * Generate Master QR Code for Multi-Order Batch Delivery.
+     */
+    public function generateBatchHandover(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array|min:2|max:20',
+            'order_ids.*' => 'required|integer',
+        ]);
+
+        $store = $request->user()->store;
+        if (! $store) {
+            return response()->json(['error' => 'Toko tidak ditemukan.'], 403);
+        }
+
+        $orderIds = $request->order_ids;
+
+        // Security / IDOR Guard: Ensure ALL requested orders belong to this merchant's store
+        $orders = Order::whereIn('id', $orderIds)
+            ->where('store_id', $store->id)
+            ->where('delivery_method', 'local_delivery')
+            ->whereIn('shipping_status', ['processing', 'pending'])
+            ->get();
+
+        if ($orders->count() < 2) {
+            return response()->json([
+                'error' => 'Minimal harus memilih 2 pesanan Kurir Toko yang berstatus Diproses.',
+            ], 422);
+        }
+
+        $batchToken = 'BAT-' . strtoupper(Str::random(12));
+        $validOrderIds = $orders->pluck('id')->toArray();
+        $validInvoices = $orders->pluck('invoice_number')->toArray();
+
+        // Save batch info in Cache (24 hours expiry)
+        Cache::put("delivery_batch_{$batchToken}", [
+            'batch_token' => $batchToken,
+            'store_id' => $store->id,
+            'order_ids' => $validOrderIds,
+            'invoices' => $validInvoices,
+            'created_at' => now()->toIso8601String(),
+        ], now()->addHours(24));
+
+        // Update database if column exists
+        if (Schema::hasColumn('orders', 'delivery_batch_token')) {
+            Order::whereIn('id', $validOrderIds)->update([
+                'delivery_batch_token' => $batchToken,
+            ]);
+        }
+
+        // Generate tamper-proof signed URL
+        $signedBatchUrl = URL::signedRoute('tracker.batchHandover', [
+            'batch_token' => $batchToken,
+        ], now()->addHours(24));
+
+        return response()->json([
+            'success' => true,
+            'batch_token' => $batchToken,
+            'batch_url' => $signedBatchUrl,
+            'orders_count' => count($validOrderIds),
+            'invoices' => $validInvoices,
         ]);
     }
 
