@@ -132,6 +132,14 @@ Route::get('/tracker/{invoice_number}/location', [DeliveryTrackerController::cla
 Route::post('/tracker/{invoice_number}/location', [DeliveryTrackerController::class, 'updateLocation'])->name('tracker.location');
 Route::post('/tracker/{invoice_number}/complete', [DeliveryTrackerController::class, 'complete'])->name('tracker.complete');
 
+// Multi-Order Batch Delivery Tracker Routes
+Route::get('/tracker/batch/{batch_token}/handover', [DeliveryTrackerController::class, 'batchHandover'])->name('tracker.batchHandover')->middleware('signed');
+Route::post('/tracker/batch/{batch_token}/accept', [DeliveryTrackerController::class, 'acceptBatchHandover'])->name('tracker.acceptBatchHandover');
+Route::get('/tracker/batch/{batch_token}', [DeliveryTrackerController::class, 'showBatch'])->name('tracker.showBatch');
+Route::get('/tracker/batch/{batch_token}/location', [DeliveryTrackerController::class, 'getBatchLocation'])->name('tracker.getBatchLocation');
+Route::post('/tracker/batch/{batch_token}/location', [DeliveryTrackerController::class, 'updateBatchLocation'])->name('tracker.updateBatchLocation');
+Route::post('/tracker/batch/{batch_token}/{invoice_number}/complete', [DeliveryTrackerController::class, 'completeBatchStop'])->name('tracker.completeBatchStop');
+
 // route dashboard pedagang (auth)
 Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::class])
     ->prefix('pedagang')
@@ -251,6 +259,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
         Route::post('/products/{product:slug}', [ProductController::class, 'update'])->name('merchant.products.update');
         Route::delete('/products/{product:slug}', [ProductController::class, 'destroy'])->name('merchant.products.destroy');
         Route::get('/orders', [OrderController::class, 'index'])->name('merchant.orders.index');
+        Route::post('/orders/batch-handover', [OrderController::class, 'generateBatchHandover'])->name('merchant.orders.batch-handover');
         Route::put('/merchant/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('merchant.orders.update-status');
         Route::get('/customers', [CustomerController::class, 'index'])->name('merchant.customers.index');
         Route::get('/settings', [SettingsController::class, 'index'])->name('merchant.settings.index');

@@ -11,6 +11,8 @@ import {
     Navigation,
     X,
     MessageSquare,
+    CheckSquare,
+    Square,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import OrderExpandedDetail from "./OrderExpandedDetail";
@@ -31,12 +33,20 @@ const formatDate = (dateString: string) => {
 export default function OrderMobileCard({
     order,
     onOpenAction,
+    isSelected,
+    onToggleSelect,
 }: {
     order: any;
     onOpenAction: (order: any) => void;
+    isSelected?: boolean;
+    onToggleSelect?: (orderId: number) => void;
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [showQRModal, setShowQRModal] = useState(false);
+
+    const isBatchable =
+        order.delivery_method === "local_delivery" &&
+        order.shipping_status === "processing";
 
     const handleSelfDelivery = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -65,16 +75,37 @@ export default function OrderMobileCard({
         // eslint-disable-next-line react-doctor/no-static-element-interactions, react-doctor/click-events-have-key-events
         <div
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-4 bg-white hover:bg-gray-50 transition-colors group border-b border-gray-100 cursor-pointer"
+            className={`p-4 transition-colors group border-b border-gray-100 cursor-pointer ${
+                isSelected ? "bg-teal-50/50" : "bg-white hover:bg-gray-50"
+            }`}
         >
             <div className="flex justify-between items-start mb-3">
-                <div>
-                    <h4 className="font-bold text-[#41B9C5] text-sm">
-                        #{order.invoice_number}
-                    </h4>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                        {formatDate(order.created_at)}
-                    </p>
+                <div className="flex items-center gap-2">
+                    {isBatchable && onToggleSelect && (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleSelect(order.id);
+                            }}
+                            className="p-1 text-[#41B9C5] hover:text-[#14433D] transition rounded"
+                            title="Pilih Pesanan"
+                        >
+                            {isSelected ? (
+                                <CheckSquare className="w-5 h-5 text-[#41B9C5]" />
+                            ) : (
+                                <Square className="w-5 h-5 text-gray-300 hover:text-gray-400" />
+                            )}
+                        </button>
+                    )}
+                    <div>
+                        <h4 className="font-bold text-[#41B9C5] text-sm">
+                            #{order.invoice_number}
+                        </h4>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                            {formatDate(order.created_at)}
+                        </p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-1.5">
                     {order.customer_phone && (
@@ -259,7 +290,7 @@ export default function OrderMobileCard({
                                 e.stopPropagation();
                                 setShowQRModal(false);
                             }}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full p-2 transition-colors"
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full p-2 transition-colors cursor-pointer"
                         >
                             <X className="w-5 h-5" />
                         </button>
