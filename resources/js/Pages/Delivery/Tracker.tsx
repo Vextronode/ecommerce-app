@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { Package, CheckCircle2 } from 'lucide-react';
+import { Package, CheckCircle2, Shield, Radio, Eye } from 'lucide-react';
 import DeliveryMap from '@/Components/Delivery/DeliveryMap';
 import DeliveryOrderSummary from '@/Components/Delivery/DeliveryOrderSummary';
 import DriverPinForm from '@/Components/Delivery/DriverPinForm';
@@ -41,6 +41,8 @@ export default function Tracker({ order, role }: Props) {
     const [driverPos, setDriverPos] = useState<[number, number] | null>(null);
     const [distanceToBuyer, setDistanceToBuyer] = useState<number | null>(null);
 
+    const isDriver = role === 'driver';
+
     const storePos = React.useMemo<[number, number] | null>(() => {
         return order.store_latitude && order.store_longitude 
             ? [order.store_latitude, order.store_longitude] 
@@ -70,8 +72,8 @@ export default function Tracker({ order, role }: Props) {
     useEffect(() => {
         if (order.status !== 'shipped') return;
 
-        if (role === 'driver') {
-            // DRIVER MODE: Track driver location and send to server
+        if (isDriver) {
+            // DRIVER MODE: Track driver location and broadcast to server
             if (navigator.geolocation) {
                 const watchId = navigator.geolocation.watchPosition(
                     (position) => {
@@ -89,45 +91,41 @@ export default function Tracker({ order, role }: Props) {
                                     'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content
                                 },
                                 body: JSON.stringify({ latitude, longitude })
-                            });
+                            }).catch(() => {});
                         }
                     },
-                    (error) => console.error("Error getting location", error),
-                    { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+                    (error) => console.error("Error getting driver GPS", error),
+                    { enableHighAccuracy: true, maximumAge: 5000, timeout: 5000 }
                 );
 
                 return () => navigator.geolocation.clearWatch(watchId);
             }
-        } else if (role === 'user') {
-            // BUYER MODE: Poll location from server every 30 seconds
+        } else {
+            // SPECTATOR MODE (Buyer & Merchant): Poll location from server every 8 seconds
             const fetchLocation = async () => {
                 try {
                     const res = await fetch(`/tracker/${order.invoice_number}/location`);
-                    if (!res.ok) throw new Error("Failed");
+                    if (!res.ok) return;
                     const data = await res.json();
                     if (data && data.latitude && data.longitude) {
                         const lat = parseFloat(data.latitude);
                         const lng = parseFloat(data.longitude);
-                        // eslint-disable-next-line react-doctor/no-set-state-after-await-in-effect
                         setDriverPos([lat, lng]);
 
                         if (buyerPos) {
                             const dist = getDistance(lat, lng, buyerPos[0], buyerPos[1]);
-                            // eslint-disable-next-line react-doctor/no-set-state-after-await-in-effect
                             setDistanceToBuyer(Math.round(dist));
                         }
                     }
-                } catch (e) {
-                    console.error("Failed fetching driver location", e);
-                }
+                } catch {}
             };
 
             fetchLocation(); // Initial fetch
-            const interval = setInterval(fetchLocation, 30000); 
+            const interval = setInterval(fetchLocation, 8000); 
             return () => clearInterval(interval);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [order.status, buyerPos, role]);
+    }, [order.status, buyerPos, isDriver]);
 
     // SUCCESS FULL SCREEN STATE
     if (order.status === 'delivered') {
@@ -165,7 +163,7 @@ export default function Tracker({ order, role }: Props) {
 
                     <button 
                         onClick={() => window.location.href = '/'}
-                        className="block w-full bg-[#281B7A] text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-colors"
+                        className="block w-full bg-[#281B7A] text-white font-bold py-4 rounded-2xl hover:opacity-90 transition-colors cursor-pointer"
                     >
                         Tutup Halaman
                     </button>
@@ -185,7 +183,7 @@ export default function Tracker({ order, role }: Props) {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
             <Head title={`Delivery Tracker - ${order.invoice_number}`} />
 
             <header className="bg-[#281B7A] text-white p-4 shadow-md z-10 sticky top-0">
@@ -196,8 +194,23 @@ export default function Tracker({ order, role }: Props) {
                         </div>
                         <div>
                             <h1 className="text-sm font-extrabold tracking-wider">DELIVERY TRACKER</h1>
-                            <p className="text-xs text-[#ED7218] font-medium">{order.invoice_number}</p>
+                            <p className="text-xs text-[#ED7218] font-medium">#{order.invoice_number}</p>
                         </div>
+                    </div>
+
+                    {/* Role Indicator Badge */}
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-semibold">
+                        {isDriver ? (
+                            <>
+                                <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                                <span className="text-emerald-300">Driver Mode</span>
+                            </>
+                        ) : (
+                            <>
+                                <Eye className="w-3.5 h-3.5 text-[#41B9C5]" />
+                                <span className="text-slate-200">Live Viewer</span>
+                            </>
+                        )}
                     </div>
                 </div>
             </header>
@@ -218,7 +231,9 @@ export default function Tracker({ order, role }: Props) {
                                 <div className="w-3 h-3 bg-[#ED7218] rounded-full animate-ping absolute"></div>
                                 <div className="w-3 h-3 bg-[#ED7218] rounded-full relative"></div>
                             </div>
-                            <span className="text-sm font-medium text-white/90">Tracking Aktif</span>
+                            <span className="text-sm font-medium text-white/90">
+                                {isDriver ? "GPS Aktif Memancarkan" : "Kurir Sedang Bergerak"}
+                            </span>
                         </div>
                         <div className="text-right">
                             <div className="text-[10px] text-white/60 font-bold uppercase tracking-wider">Jarak ke Pembeli</div>
@@ -231,7 +246,7 @@ export default function Tracker({ order, role }: Props) {
 
                 <DeliveryOrderSummary order={order} />
 
-                {order.status === 'shipped' && role !== 'user' && (
+                {order.status === 'shipped' && isDriver && (
                     <div className="p-4 pt-0">
                         <DriverPinForm invoice_number={order.invoice_number} />
                     </div>
