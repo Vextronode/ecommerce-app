@@ -68,6 +68,9 @@ class MidtransCallbackController extends Controller
                             $lockedOrder->store->increment('pending_balance', $lockedOrder->total_amount);
                         }
                         \App\Services\OrderNotificationService::paymentReceived($lockedOrder);
+                        try {
+                            broadcast(new \App\Events\OrderStatusUpdated($lockedOrder));
+                        } catch (\Throwable $e) {}
                     }
                 } elseif ($transactionStatus === 'settlement') {
                     if ($lockedOrder->payment_status !== 'paid') {
@@ -76,6 +79,9 @@ class MidtransCallbackController extends Controller
                             $lockedOrder->store->increment('pending_balance', $lockedOrder->total_amount);
                         }
                         \App\Services\OrderNotificationService::paymentReceived($lockedOrder);
+                        try {
+                            broadcast(new \App\Events\OrderStatusUpdated($lockedOrder));
+                        } catch (\Throwable $e) {}
                     }
                 } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
                     if ($lockedOrder->payment_status !== 'paid') {
@@ -83,6 +89,9 @@ class MidtransCallbackController extends Controller
                         // Idempotent and thread-safe stock restoration
                         $lockedOrder->restoreStock();
                         \App\Services\OrderNotificationService::orderCancelled($lockedOrder, 'Pembayaran tidak berhasil atau kadaluarsa');
+                        try {
+                            broadcast(new \App\Events\OrderStatusUpdated($lockedOrder));
+                        } catch (\Throwable $e) {}
                     }
                 } elseif ($transactionStatus === 'pending') {
                     if ($lockedOrder->payment_status !== 'paid') {

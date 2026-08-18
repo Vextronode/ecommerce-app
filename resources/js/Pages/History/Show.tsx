@@ -18,18 +18,23 @@ export default function Show({ order }: { order: any }) {
 
     // Real-Time WebSocket Order Status Synchronization for Buyer
     useEffect(() => {
-        if (!order?.id || typeof window === "undefined" || !window.Echo) return;
+        if (!order?.invoice_number || typeof window === "undefined" || !window.Echo) return;
 
         const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
+        const globalChan = window.Echo.channel("global-orders");
+
         const handleUpdate = () => {
             router.reload({ only: ["order"] });
         };
 
         channel.listen(".OrderStatusUpdated", handleUpdate);
         channel.listen("OrderStatusUpdated", handleUpdate);
+        globalChan.listen(".OrderStatusUpdated", handleUpdate);
+        globalChan.listen("OrderStatusUpdated", handleUpdate);
 
         return () => {
             window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
+            window.Echo.leaveChannel("global-orders");
         };
     }, [order?.id, order?.invoice_number]);
 

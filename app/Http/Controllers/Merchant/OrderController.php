@@ -198,7 +198,7 @@ class OrderController extends Controller
             }
 
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+                broadcast(new \App\Events\OrderStatusUpdated($order));
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
             }

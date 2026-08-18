@@ -19,19 +19,28 @@ export default function OrderManagement({ orders, stats }: any) {
 
     // Real-Time WebSocket Listener for Store Orders
     useEffect(() => {
-        if (!storeId || typeof window === "undefined" || !window.Echo) return;
-
-        const channel = window.Echo.channel(`store-orders.${storeId}`);
+        if (typeof window === "undefined" || !window.Echo) return;
 
         const handleUpdate = () => {
             router.reload({ only: ["orders", "stats"] });
         };
 
-        channel.listen(".OrderStatusUpdated", handleUpdate);
-        channel.listen("OrderStatusUpdated", handleUpdate);
+        const globalChan = window.Echo.channel("global-orders");
+        globalChan.listen(".OrderStatusUpdated", handleUpdate);
+        globalChan.listen("OrderStatusUpdated", handleUpdate);
+
+        let storeChan: any = null;
+        if (storeId) {
+            storeChan = window.Echo.channel(`store-orders.${storeId}`);
+            storeChan.listen(".OrderStatusUpdated", handleUpdate);
+            storeChan.listen("OrderStatusUpdated", handleUpdate);
+        }
 
         return () => {
-            window.Echo.leaveChannel(`store-orders.${storeId}`);
+            window.Echo.leaveChannel("global-orders");
+            if (storeId) {
+                window.Echo.leaveChannel(`store-orders.${storeId}`);
+            }
         };
     }, [storeId]);
 

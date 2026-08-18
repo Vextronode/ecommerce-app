@@ -272,6 +272,11 @@ class CheckoutController extends Controller
         // Trigger automatic order creation notification for buyer & seller
         foreach ($orders as $order) {
             OrderNotificationService::orderCreated($order);
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($order));
+            } catch (\Throwable $e) {
+                Log::warning('Order created broadcast error: ' . $e->getMessage());
+            }
         }
 
         $firstOrderId = count($orders) > 0 ? $orders[0]->id : null;

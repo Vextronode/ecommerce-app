@@ -31,18 +31,28 @@ export default function Index({
 
     // Real-Time WebSocket Order Status Synchronization for Buyer's History Tab
     useEffect(() => {
-        if (!userId || typeof window === "undefined" || !window.Echo) return;
+        if (typeof window === "undefined" || !window.Echo) return;
 
-        const channel = window.Echo.channel(`user-orders.${userId}`);
         const handleUpdate = () => {
             router.reload({ only: ["orders", "ratingItems"] });
         };
 
-        channel.listen(".OrderStatusUpdated", handleUpdate);
-        channel.listen("OrderStatusUpdated", handleUpdate);
+        const globalChan = window.Echo.channel("global-orders");
+        globalChan.listen(".OrderStatusUpdated", handleUpdate);
+        globalChan.listen("OrderStatusUpdated", handleUpdate);
+
+        let userChan: any = null;
+        if (userId) {
+            userChan = window.Echo.channel(`user-orders.${userId}`);
+            userChan.listen(".OrderStatusUpdated", handleUpdate);
+            userChan.listen("OrderStatusUpdated", handleUpdate);
+        }
 
         return () => {
-            window.Echo.leaveChannel(`user-orders.${userId}`);
+            window.Echo.leaveChannel("global-orders");
+            if (userId) {
+                window.Echo.leaveChannel(`user-orders.${userId}`);
+            }
         };
     }, [userId]);
 
