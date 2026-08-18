@@ -41,7 +41,7 @@ export default function MerchantLayout({ children }: Props) {
     return (
         <div className="flex h-screen bg-[#F8F9FA] p-4 md:p-6 gap-4 md:gap-6 font-sans overflow-hidden">
             {isMobileSidebarOpen && (
-                <button type="button" aria-label="Tutup menu sidebar" 
+                <button type="button" aria-label="Tutup menu sidebar"
                     className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
                     onClick={() => setIsMobileSidebarOpen(false)}
                 />

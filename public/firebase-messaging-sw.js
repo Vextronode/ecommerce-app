@@ -22,6 +22,8 @@ messaging.onBackgroundMessage(function(payload) {
     body: payload.notification?.body || payload.data?.message || 'Anda mendapatkan notifikasi baru dari CibendaMart.',
     icon: self.location.origin + '/favicon.png',
     badge: self.location.origin + '/favicon.png',
+    sound: self.location.origin + '/sounds/notification.mp3',
+    vibrate: [200, 100, 200, 100, 200],
     data: payload.data || {}
   };
 
