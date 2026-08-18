@@ -1,5 +1,5 @@
-import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useEffect } from "react";
+import { Head, Link, router } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import ConfirmModal from "@/Components/ConfirmModal";
 import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle, Navigation } from "lucide-react";
@@ -15,6 +15,20 @@ export default function Show({ order }: { order: any }) {
         handleCompleteOrder,
         getStatusColor,
     } = useOrderHistoryActions();
+
+    // Real-Time WebSocket Order Status Synchronization for Buyer
+    useEffect(() => {
+        if (!order?.id || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
+        channel.listen(".OrderStatusUpdated", () => {
+            router.reload({ only: ["order"] });
+        });
+
+        return () => {
+            window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
+        };
+    }, [order?.id, order?.invoice_number]);
 
     const canCancel = order.shipping_status === 'pending';
     const canComplete = order.shipping_status === 'shipped';

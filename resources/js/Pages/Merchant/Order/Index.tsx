@@ -1,11 +1,14 @@
-import React, { useState } from "react";
-import { Head } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { Head, router, usePage } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
 import OrderSummaryCard from "@/Components/Merchant/Orders/OrderSummaryCard";
 import OrderTable from "@/Components/Merchant/Orders/OrderTable";
 import UpdateStatusModal from "@/Components/Merchant/Orders/UpdateStatusModal";
 
 export default function OrderManagement({ orders, stats }: any) {
+    const { auth } = usePage().props as any;
+    const storeId = auth?.user?.store?.id;
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
@@ -13,6 +16,22 @@ export default function OrderManagement({ orders, stats }: any) {
         setSelectedOrder(order);
         setIsModalOpen(true);
     };
+
+    // Real-Time WebSocket Listener for Store Orders
+    useEffect(() => {
+        if (!storeId || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.private(`store.${storeId}`);
+
+        channel.listen(".OrderStatusUpdated", () => {
+            // Instantly refresh orders and stats without full page reload
+            router.reload({ only: ["orders", "stats"] });
+        });
+
+        return () => {
+            window.Echo.leaveChannel(`private-store.${storeId}`);
+        };
+    }, [storeId]);
 
     return (
         <MerchantLayout>
@@ -24,7 +43,7 @@ export default function OrderManagement({ orders, stats }: any) {
                         Order Management
                     </h1>
                     <p className="text-sm text-gray-500">
-                        Manage and track your recent sales.
+                        Manage and track your recent sales in real time.
                     </p>
                 </div>
 

@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import mainImage from "@/assets/images/kakap.png";
 
@@ -53,6 +53,21 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
     const [activeTab, setActiveTab] = useState<"details" | "reviews">(
         "details",
     );
+
+    useEffect(() => {
+        if (!product?.id || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel("storefront-products");
+        channel.listen(".ProductStockUpdated", (e: any) => {
+            if (Number(e.product_id) === Number(product.id)) {
+                router.reload({ only: ["product"] });
+            }
+        });
+
+        return () => {
+            window.Echo.leaveChannel("storefront-products");
+        };
+    }, [product?.id]);
 
     const [selectedVariants, setSelectedVariants] = useState<
         Record<string, string>

@@ -55,7 +55,7 @@ services:
         condition: service_healthy
 
   # ──────────────────────────────────────────────
-  # 3. QUEUE WORKER - Buat notifikasi FCM & job background
+  # 3. QUEUE WORKER - Buat notifikasi FCM & Email Resend
   # ──────────────────────────────────────────────
   queue_cibenda:
     build: .
@@ -73,6 +73,30 @@ services:
       - DB_PASSWORD=cibenda_secret_2024
     volumes:
       - storage_data:/var/www/storage/app/public
+    depends_on:
+      db_cibenda:
+        condition: service_healthy
+      app_cibenda:
+        condition: service_started
+
+  # ──────────────────────────────────────────────
+  # 4. REVERB WEBSOCKET SERVER - Realtime Sync
+  # ──────────────────────────────────────────────
+  reverb_cibenda:
+    build: .
+    container_name: cibenda_reverb
+    restart: unless-stopped
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.docker
+    environment:
+      - DB_HOST=db_cibenda
+      - DB_PORT=3306
+      - DB_DATABASE=cibenda_mart
+      - DB_USERNAME=cibenda_user
+      - DB_PASSWORD=cibenda_secret_2024
     depends_on:
       db_cibenda:
         condition: service_healthy
