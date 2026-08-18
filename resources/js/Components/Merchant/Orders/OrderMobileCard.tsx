@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { router } from "@inertiajs/react";
 import {
     Truck,
@@ -43,6 +43,31 @@ export default function OrderMobileCard({
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [showQRModal, setShowQRModal] = useState(false);
+
+    // Auto close QR modal if order status changes away from processing
+    useEffect(() => {
+        if (order.shipping_status !== "processing" && order.shipping_status !== "pending") {
+            setShowQRModal(false);
+        }
+    }, [order.shipping_status]);
+
+    // Live WebSocket listener to auto-close QR modal as soon as courier scans
+    useEffect(() => {
+        if (!showQRModal || !order?.invoice_number || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
+        const handleScanned = () => {
+            setShowQRModal(false);
+            router.reload({ only: ["orders", "stats"] });
+        };
+
+        channel.listen(".OrderStatusUpdated", handleScanned);
+        channel.listen("OrderStatusUpdated", handleScanned);
+
+        return () => {
+            window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
+        };
+    }, [showQRModal, order?.invoice_number]);
 
     const isBatchable =
         order.delivery_method === "local_delivery" &&

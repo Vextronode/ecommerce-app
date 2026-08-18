@@ -21,15 +21,17 @@ export default function OrderManagement({ orders, stats }: any) {
     useEffect(() => {
         if (!storeId || typeof window === "undefined" || !window.Echo) return;
 
-        const channel = window.Echo.private(`store.${storeId}`);
+        const channel = window.Echo.channel(`store-orders.${storeId}`);
 
-        channel.listen(".OrderStatusUpdated", () => {
-            // Instantly refresh orders and stats without full page reload
+        const handleUpdate = () => {
             router.reload({ only: ["orders", "stats"] });
-        });
+        };
+
+        channel.listen(".OrderStatusUpdated", handleUpdate);
+        channel.listen("OrderStatusUpdated", handleUpdate);
 
         return () => {
-            window.Echo.leaveChannel(`private-store.${storeId}`);
+            window.Echo.leaveChannel(`store-orders.${storeId}`);
         };
     }, [storeId]);
 

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { router } from "@inertiajs/react";
 import TableToolbar from "./TableToolbar";
 import OrderTableRow from "./OrderTableRow";
 import OrderMobileCard from "./OrderMobileCard";
@@ -32,6 +33,25 @@ export default function OrderTable({
     } | null>(null);
     const [showBatchModal, setShowBatchModal] = useState(false);
     const [batchError, setBatchError] = useState<string | null>(null);
+
+    // Auto close batch modal when courier scans and accepts batch handover
+    useEffect(() => {
+        if (!showBatchModal || !batchData?.batch_token || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel(`batch.${batchData.batch_token}`);
+        const handleBatchScanned = () => {
+            setShowBatchModal(false);
+            setSelectedOrderIds([]);
+            router.reload({ only: ["orders", "stats"] });
+        };
+
+        channel.listen(".OrderStatusUpdated", handleBatchScanned);
+        channel.listen("OrderStatusUpdated", handleBatchScanned);
+
+        return () => {
+            window.Echo.leaveChannel(`batch.${batchData.batch_token}`);
+        };
+    }, [showBatchModal, batchData?.batch_token]);
 
     // Eligible batch orders: ONLY orders already processed ('processing') with Kurir Toko
     const eligibleOrders =

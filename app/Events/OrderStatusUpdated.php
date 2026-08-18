@@ -37,13 +37,16 @@ class OrderStatusUpdated implements ShouldBroadcastNow
     {
         $channels = [
             new Channel('order-tracking.' . $this->order->invoice_number),
+            new Channel('global-orders'),
         ];
 
         if ($this->order->store_id) {
+            $channels[] = new Channel('store-orders.' . $this->order->store_id);
             $channels[] = new PrivateChannel('store.' . $this->order->store_id);
         }
 
         if ($this->order->user_id) {
+            $channels[] = new Channel('user-orders.' . $this->order->user_id);
             $channels[] = new PrivateChannel('order.' . $this->order->id);
             $channels[] = new PrivateChannel('App.Models.User.' . $this->order->user_id);
         }
