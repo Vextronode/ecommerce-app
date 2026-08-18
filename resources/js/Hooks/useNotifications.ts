@@ -106,11 +106,19 @@ function showNativeNotification(title: string, message?: string, actionUrl?: str
     if (typeof window === "undefined" || !("Notification" in window)) return;
     if (Notification.permission !== "granted") return;
 
+    const isMerchant =
+        actionUrl?.includes("/pedagang") ||
+        window.location.pathname.startsWith("/pedagang");
+    const iconRelativePath = isMerchant
+        ? "/icons/icon-merchant-192.png"
+        : "/icons/icon-192.png";
+    const iconUrl = window.location.origin + iconRelativePath;
+
     try {
         const notif = new Notification(title, {
             body: message || "",
-            icon: window.location.origin + "/favicon.png",
-            badge: window.location.origin + "/favicon.png",
+            icon: iconUrl,
+            badge: iconUrl,
         });
 
         notif.onclick = () => {
@@ -126,8 +134,8 @@ function showNativeNotification(title: string, message?: string, actionUrl?: str
             navigator.serviceWorker.ready.then((registration) => {
                 registration.showNotification(title, {
                     body: message || "",
-                    icon: window.location.origin + "/favicon.png",
-                    badge: window.location.origin + "/favicon.png",
+                    icon: iconUrl,
+                    badge: iconUrl,
                     data: { action_url: actionUrl },
                 });
             });

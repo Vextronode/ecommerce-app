@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from "react";
 import Sidebar from "@/Components/Merchant/Dashboard/Sidebar";
-import { Search, Bell, Mail, User, Menu } from "lucide-react";
+import NotificationBell from "@/Components/Global/NotificationBell";
+import { Search, Mail, User, Menu } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { router, Link, usePage } from "@inertiajs/react";
 
@@ -41,15 +42,18 @@ export default function MerchantLayout({ children }: Props) {
     return (
         <div className="flex h-screen bg-[#F8F9FA] p-4 md:p-6 gap-4 md:gap-6 font-sans overflow-hidden">
             {isMobileSidebarOpen && (
-                <button type="button" aria-label="Tutup menu sidebar"
+                <button
+                    type="button"
+                    aria-label="Tutup menu sidebar"
                     className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
                     onClick={() => setIsMobileSidebarOpen(false)}
                 />
             )}
 
             <div
-                className={`fixed inset-y-0 left-0 z-50 py-4 pl-4 md:py-6 md:pl-6 lg:p-0 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                    }`}
+                className={`fixed inset-y-0 left-0 z-50 py-4 pl-4 md:py-6 md:pl-6 lg:p-0 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+                    isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                }`}
             >
                 <Sidebar />
             </div>
@@ -59,7 +63,8 @@ export default function MerchantLayout({ children }: Props) {
                 {/* Topbar */}
                 <header className="h-16 md:h-18 px-4 md:px-8 flex items-center justify-between bg-white border border-[#41B9C5]/30 rounded-full shrink-0 mb-4 md:mb-6 shadow-sm transition">
                     <div aria-label="Pilih opsi yang tersedia" className="flex items-center flex-1 max-w-2xl gap-3 md:gap-0">
-                        <button aria-label="Tampilkan rincian lebih lanjut"
+                        <button
+                            aria-label="Tampilkan rincian lebih lanjut"
                             onClick={() => setIsMobileSidebarOpen(true)}
                             className="lg:hidden text-gray-400 hover:text-[#41B9C5] focus:outline-none transition-colors"
                         >
@@ -68,7 +73,8 @@ export default function MerchantLayout({ children }: Props) {
 
                         <div className="relative flex-1">
                             <Search className="w-4 h-4 md:w-5 md:h-5 absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input aria-label="Input field"
+                            <input
+                                aria-label="Input field"
                                 type="text"
                                 placeholder="Search products... "
                                 value={searchQuery}
@@ -81,19 +87,11 @@ export default function MerchantLayout({ children }: Props) {
 
                     {/* Header Right Section */}
                     <div aria-label="Pilih opsi yang tersedia" className="flex items-center gap-3 md:gap-6 ml-2 md:ml-4">
-                        <button aria-label="Tampilkan rincian lebih lanjut"
-                            onClick={() =>
-                                toast("Fitur Notifikasi segera hadir!", {
-                                    icon: <Bell />,
-                                })
-                            }
-                            className="text-gray-400 hover:text-[#41B9C5] transition-colors relative hidden sm:block"
-                        >
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                        </button>
+                        {/* Active Realtime Notification Bell for Merchant */}
+                        <NotificationBell user={auth?.user} />
 
-                        <button aria-label="Pilih opsi yang tersedia"
+                        <button
+                            aria-label="Tampilkan rincian lebih lanjut"
                             onClick={() =>
                                 toast("Fitur Pesan segera hadir!", {
                                     icon: <Mail />,
