@@ -64,6 +64,23 @@ interface Props {
 export default function Index({ products, categories, filters }: Props) {
     const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
+    // Real-Time Product List Sync for Merchant
+    React.useEffect(() => {
+        if (typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel("storefront-products");
+        const handleUpdate = () => {
+            router.reload({ only: ["products"] });
+        };
+
+        channel.listen(".ProductStockUpdated", handleUpdate);
+        channel.listen("ProductStockUpdated", handleUpdate);
+
+        return () => {
+            window.Echo.leaveChannel("storefront-products");
+        };
+    }, []);
+
     const handleFilterChange = (key: string, value: string) => {
         router.get(
             route("merchant.products.index"),
