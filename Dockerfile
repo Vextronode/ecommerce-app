@@ -43,7 +43,10 @@ COPY package.json package-lock.json ./
 ENV COMPOSER_PROCESS_TIMEOUT=3600
 RUN composer install --optimize-autoloader --no-dev --no-scripts
 
-RUN npm install --legacy-peer-deps
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm install --legacy-peer-deps
 
 # STEP 3: Baru copy semua sisa kode (React, PHP, config, dll)
 # Layer ini yang selalu berubah tiap kita update kode
