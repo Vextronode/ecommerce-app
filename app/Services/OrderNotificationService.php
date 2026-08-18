@@ -34,7 +34,7 @@ class OrderNotificationService
                 }
             }
 
-            // 2. Notify Store Owner (Pesanan Baru Masuk)
+            // 2. Notify Store Owner via In-App Bell & Web Push (Pesanan Baru Masuk)
             $storeOwner = $order->store?->user;
             if ($storeOwner) {
                 $title = 'Pesanan Baru Masuk!';
@@ -42,6 +42,16 @@ class OrderNotificationService
                 $actionUrl = '/pedagang/orders';
 
                 $storeOwner->notify(new PushNotification($title, $message, 'order', $actionUrl));
+            }
+
+            // 3. Send Email Notification to Store Owner (Laravel Mailable)
+            $storeEmail = $order->store?->support_email ?: $storeOwner?->email;
+            if ($storeEmail) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($storeEmail)->send(new \App\Mail\NewOrderMerchantMail($order));
+                } catch (\Throwable $mailEx) {
+                    Log::warning('OrderNotificationService: Failed to send merchant email: ' . $mailEx->getMessage());
+                }
             }
         } catch (\Throwable $e) {
             Log::error('OrderNotificationService::orderCreated error: ' . $e->getMessage());

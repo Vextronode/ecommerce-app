@@ -18,10 +18,15 @@ messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   
   const notificationTitle = payload.notification?.title || payload.data?.title || 'Notifikasi Baru';
+  
+  const isMerchant = payload.data?.is_merchant === 'true' || (payload.data?.action_url && payload.data.action_url.includes('/pedagang'));
+  const defaultIcon = isMerchant ? '/icons/icon-merchant-192.png' : '/icons/icon-192.png';
+  const customIcon = payload.data?.icon ? payload.data.icon : defaultIcon;
+
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.message || 'Anda mendapatkan notifikasi baru dari CibendaMart.',
-    icon: self.location.origin + '/favicon.png',
-    badge: self.location.origin + '/favicon.png',
+    icon: self.location.origin + customIcon,
+    badge: self.location.origin + customIcon,
     sound: self.location.origin + '/sounds/notification.mp3',
     vibrate: [200, 100, 200, 100, 200],
     data: payload.data || {}

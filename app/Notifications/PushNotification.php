@@ -60,12 +60,17 @@ class PushNotification extends Notification implements ShouldQueue
      */
     public function toFcm(object $notifiable): array
     {
+        $isMerchant = ($notifiable->role ?? '') === 'merchant' || str_contains($this->actionUrl ?? '', '/pedagang');
+        $icon = $isMerchant ? '/icons/icon-merchant-192.png' : '/icons/icon-192.png';
+
         return [
             'data' => [
                 'title' => $this->title,
                 'message' => $this->message,
                 'type' => $this->type,
                 'action_url' => $this->actionUrl ?? '',
+                'is_merchant' => $isMerchant ? 'true' : 'false',
+                'icon' => $icon,
             ]
         ];
     }
