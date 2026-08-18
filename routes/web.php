@@ -127,6 +127,7 @@ Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->n
 // Delivery Tracker Routes (Publicly accessible with invoice number)
 Route::get('/tracker/{invoice_number}', [DeliveryTrackerController::class, 'show'])->name('tracker.show');
 Route::get('/tracker/{invoice_number}/handover', [DeliveryTrackerController::class, 'handover'])->name('tracker.handover')->middleware('signed');
+Route::post('/tracker/{invoice_number}/accept-handover', [DeliveryTrackerController::class, 'acceptHandover'])->name('tracker.acceptHandover');
 Route::get('/tracker/{invoice_number}/location', [DeliveryTrackerController::class, 'getLocation'])->name('tracker.getLocation');
 Route::post('/tracker/{invoice_number}/location', [DeliveryTrackerController::class, 'updateLocation'])->name('tracker.location');
 Route::post('/tracker/{invoice_number}/complete', [DeliveryTrackerController::class, 'complete'])->name('tracker.complete');
