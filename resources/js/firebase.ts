@@ -8,19 +8,11 @@ const firebaseConfig = {
     storageBucket: "cibendamart.firebasestorage.app",
     messagingSenderId: "584045016651",
     appId: "1:584045016651:web:d9f61f4b892d2c547e7fce",
-    measurementId: "G-RQZLTNSK9K"
+    measurementId: "G-RQZLTNSK9K",
 };
 
 const app = initializeApp(firebaseConfig);
 
-/**
- * Firebase Messaging hanya bisa jalan di:
- * - HTTPS (production)
- * - localhost (development)
- *
- * Di HTTP biasa (misal akses via IP Tailscale), browser menolak Service Worker
- * sehingga Firebase Messaging tidak tersedia. Guard ini mencegah app crash.
- */
 const getMessagingInstance = async () => {
     try {
         const supported = await isSupported();
@@ -33,23 +25,46 @@ const getMessagingInstance = async () => {
 
 export const requestForToken = async (): Promise<string | null> => {
     try {
+        // Guard for browser environment with notification support
+        if (typeof window === "undefined" || !("Notification" in window)) {
+            return null;
+        }
+
+        // Request permission if not yet decided
+        if (Notification.permission === "default") {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") {
+                return null;
+            }
+        } else if (Notification.permission !== "granted") {
+            return null;
+        }
+
         const messagingInstance = await getMessagingInstance();
         if (!messagingInstance) return null;
 
+        // Register service worker explicitly to guarantee scope matching
+        let swRegistration: ServiceWorkerRegistration | undefined;
+        if ("serviceWorker" in navigator) {
+            swRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+                scope: "/firebase-cloud-messaging-push-scope",
+            });
+        }
+
         const currentToken = await getToken(messagingInstance, {
-            vapidKey: "BBTHc5XWQ43VPS1V1GW7gb9gGa02JNQBRZwDiC4-9huOdYIhqYm1NzCyW8f9gL4cVZatL-HWRvPrC666Ul0ZGCw"
+            vapidKey: "BBTHc5XWQ43VPS1V1GW7gb9gGa02JNQBRZwDiC4-9huOdYIhqYm1NzCyW8f9gL4cVZatL-HWRvPrC666Ul0ZGCw",
+            serviceWorkerRegistration: swRegistration,
         });
 
         return currentToken ?? null;
-    } catch {
-        // Silently fail on HTTP or unsupported browsers — no console noise
+    } catch (err) {
+        console.warn("FCM requestForToken info:", err);
         return null;
     }
 };
 
 export const onMessageListener = (callback: (payload: any) => void) => {
-    // Return a no-op unsubscribe if messaging is unavailable
-    let unsubscribe = () => { };
+    let unsubscribe = () => {};
 
     getMessagingInstance().then((messagingInstance) => {
         if (!messagingInstance) return;
