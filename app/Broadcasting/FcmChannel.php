@@ -26,51 +26,110 @@ class FcmChannel
         if (method_exists($notification, 'toFcm')) {
             $message = $notification->toFcm($notifiable);
         } else {
-            return; // Requires specific formatting
+            return;
         }
 
-        $this->sendToFcm($token, $message);
+        $this->sendToFcm($notifiable, $token, $message);
     }
 
-    protected function sendToFcm($token, $payload)
+    protected function sendToFcm($notifiable, string $token, array $payload)
     {
         try {
-            $credentialsPath = storage_path('app/firebase-auth.json');
-            
-            if (!file_exists($credentialsPath)) {
-                Log::error('Firebase credentials not found at: ' . $credentialsPath);
+            $authConfig = $this->getAuthConfig();
+
+            if (!$authConfig) {
+                Log::error('FCM Error: Firebase credentials not found (checked storage/app/firebase-auth.json and FIREBASE_CREDENTIALS_JSON env).');
                 return;
             }
 
             // Using Google Client to get OAuth2 token
             $client = new \Google\Client();
-            $client->setAuthConfig($credentialsPath);
+            $client->setAuthConfig($authConfig);
             $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
             $client->fetchAccessTokenWithAssertion();
             $accessToken = $client->getAccessToken();
 
             if (!$accessToken || !isset($accessToken['access_token'])) {
-                Log::error('Failed to get Firebase access token');
+                Log::error('FCM Error: Failed to obtain Firebase OAuth2 access token.');
                 return;
             }
 
-            $projectId = json_decode(file_get_contents($credentialsPath))->project_id;
-            
+            $projectId = is_array($authConfig)
+                ? ($authConfig['project_id'] ?? 'cibendamart')
+                : json_decode(file_get_contents($authConfig), true)['project_id'] ?? 'cibendamart';
+
+            // Ensure all data values are strings for FCM v1 API specifications
+            if (isset($payload['data']) && is_array($payload['data'])) {
+                $payload['data'] = array_map(function ($val) {
+                    return is_scalar($val) ? (string) $val : json_encode($val);
+                }, $payload['data']);
+            }
+
             // FCM v1 HTTP API Format
             $fcmMessage = [
                 'message' => array_merge([
-                    'token' => $token
-                ], $payload)
+                    'token' => $token,
+                ], $payload),
             ];
 
             $response = Http::withToken($accessToken['access_token'])
                 ->post("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send", $fcmMessage);
 
             if (!$response->successful()) {
+                $body = $response->json();
                 Log::error('FCM Send Error: ' . $response->body());
+
+                // If token is invalid or unregistered, clean it up from user
+                $errorCode = $body['error']['details'][0]['errorCode'] ?? $body['error']['status'] ?? null;
+                if ($errorCode === 'UNREGISTERED' || $response->status() === 404) {
+                    if (isset($notifiable->fcm_token)) {
+                        $notifiable->update(['fcm_token' => null]);
+                        Log::info("FCM: Removed expired token for user #{$notifiable->id}");
+                    }
+                }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('FCM Exception: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Resolve Firebase Auth config from ENV (raw/base64 JSON) or local file.
+     *
+     * @return array|string|null
+     */
+    protected function getAuthConfig()
+    {
+        // 1. Check environment variable (Raw JSON)
+        $envJson = env('FIREBASE_CREDENTIALS_JSON');
+        if ($envJson) {
+            $decoded = json_decode($envJson, true);
+            if (is_array($decoded) && isset($decoded['private_key'])) {
+                return $decoded;
+            }
+        }
+
+        // 2. Check environment variable (Base64 Encoded JSON)
+        $envBase64 = env('FIREBASE_CREDENTIALS_BASE64');
+        if ($envBase64) {
+            $decoded = json_decode(base64_decode($envBase64), true);
+            if (is_array($decoded) && isset($decoded['private_key'])) {
+                return $decoded;
+            }
+        }
+
+        // 3. Check storage/app/firebase-auth.json
+        $filePath = storage_path('app/firebase-auth.json');
+        if (file_exists($filePath)) {
+            return $filePath;
+        }
+
+        // 4. Check base path fallback
+        $baseFilePath = base_path('firebase-auth.json');
+        if (file_exists($baseFilePath)) {
+            return $baseFilePath;
+        }
+
+        return null;
     }
 }

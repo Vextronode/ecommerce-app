@@ -20,9 +20,30 @@ messaging.onBackgroundMessage(function(payload) {
   const notificationTitle = payload.notification?.title || payload.data?.title || 'Notifikasi Baru';
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.message || 'Anda mendapatkan notifikasi baru dari CibendaMart.',
-    icon: self.location.origin + '/favicon.png', // Fallback icon if available
-    data: payload.data
+    icon: self.location.origin + '/favicon.png',
+    badge: self.location.origin + '/favicon.png',
+    data: payload.data || {}
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  const actionUrl = event.notification.data?.action_url || '/';
+  const targetUrl = new URL(actionUrl, self.location.origin).href;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      for (let i = 0; i < clientList.length; i++) {
+        const client = clientList[i];
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
