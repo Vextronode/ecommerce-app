@@ -50,6 +50,7 @@ export default function Tracker({ order, role }: Props) {
 
     const [distanceToBuyer, setDistanceToBuyer] = useState<number | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [refreshCounter, setRefreshCounter] = useState(0);
 
     const storePos = React.useMemo<[number, number] | null>(() => {
         return order.store_latitude && order.store_longitude 
@@ -78,6 +79,7 @@ export default function Tracker({ order, role }: Props) {
     // Manual Refresh Handler (Shopee/Gojek style)
     const handleManualRefresh = async () => {
         setIsRefreshing(true);
+        setRefreshCounter((prev) => prev + 1);
         try {
             const res = await fetch(`/tracker/${order.invoice_number}/location`);
             if (res.ok) {
@@ -313,6 +315,8 @@ export default function Tracker({ order, role }: Props) {
                     buyerPos={buyerPos} 
                     driverPos={driverPos} 
                     order={order} 
+                    isDriver={isDriver}
+                    refreshCounter={refreshCounter}
                 />
 
                 {/* Status & Distance Indicator */}

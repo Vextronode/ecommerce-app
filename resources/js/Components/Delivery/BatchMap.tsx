@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { LocateFixed } from "lucide-react";
 
 export interface StopLocation {
     id: number;
@@ -21,6 +22,8 @@ interface Props {
     deliveredCount: number;
     totalStops: number;
     progressPercent: number;
+    isDriver?: boolean;
+    refreshCounter?: number;
 }
 
 const createStoreIcon = () => {
@@ -99,11 +102,14 @@ export default function BatchMap({
     deliveredCount,
     totalStops,
     progressPercent,
+    isDriver = false,
+    refreshCounter = 0,
 }: Props) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<any>(null);
     const markersRef = useRef<{ [key: string]: any }>({});
     const routePolylineRef = useRef<any>(null);
+    const [isFreeMode, setIsFreeMode] = useState<boolean>(false);
 
     useEffect(() => {
         if (!mapContainerRef.current) return;
@@ -122,6 +128,12 @@ export default function BatchMap({
             }).addTo(map);
 
             L.control.zoom({ position: "bottomright" }).addTo(map);
+
+            // Free Mode on user dragging
+            map.on("dragstart", () => {
+                setIsFreeMode(true);
+            });
+
             mapRef.current = map;
         }
 
@@ -191,7 +203,6 @@ export default function BatchMap({
                     }
                 })
                 .catch(() => {
-                    // Fallback to straight dashed lines
                     if (!routePolylineRef.current) {
                         routePolylineRef.current = L.polyline(waypoints, {
                             color: "#006591",
@@ -202,7 +213,7 @@ export default function BatchMap({
                 });
         }
 
-        // Driver Live Marker
+        // Driver Live Marker & Auto-Follow
         if (driverPos) {
             bounds.extend(driverPos);
 
@@ -213,12 +224,36 @@ export default function BatchMap({
                     .addTo(map)
                     .bindPopup(`<b>Kurir Toko (Live Posisi GPS)</b>`);
             }
+
+            // Auto-follow if not dragged into free mode
+            if (!isFreeMode) {
+                map.panTo(driverPos, { animate: true, duration: 0.8 });
+            }
         }
 
-        if (bounds.isValid()) {
+        if (bounds.isValid() && !isFreeMode && !driverPos) {
             map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
         }
-    }, [stops, driverPos, store]);
+    }, [stops, driverPos, store, isFreeMode]);
+
+    // External Refresh Trigger -> Reset Free Mode and Fly to Driver
+    useEffect(() => {
+        if (refreshCounter > 0 && mapRef.current) {
+            setIsFreeMode(false);
+            if (driverPos) {
+                mapRef.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
+            }
+        }
+    }, [refreshCounter]);
+
+    const handleRecenter = () => {
+        setIsFreeMode(false);
+        if (driverPos && mapRef.current) {
+            mapRef.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
+        } else if (store.latitude && store.longitude && mapRef.current) {
+            mapRef.current.flyTo([store.latitude, store.longitude], 15, { animate: true, duration: 0.8 });
+        }
+    };
 
     return (
         <div className="relative w-full h-[360px] bg-slate-200 shadow-inner">
@@ -239,6 +274,21 @@ export default function BatchMap({
                     </div>
                 </div>
             </div>
+
+            {/* Floating Re-center Button */}
+            <button
+                type="button"
+                onClick={handleRecenter}
+                className={`absolute bottom-3 left-3 z-[1000] px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
+                    isFreeMode
+                        ? "bg-[#006591] text-white border border-[#006591] shadow-[#006591]/30"
+                        : "bg-white/90 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-white"
+                }`}
+                title={isFreeMode ? "Pusatkan kembali kamera ke kurir" : "Kamera otomatis mengikuti posisi kurir"}
+            >
+                <LocateFixed className={`w-4 h-4 ${isFreeMode ? "text-white" : "text-[#006591]"}`} />
+                <span>{isFreeMode ? (isDriver ? "Pusatkan ke Saya" : "Pusatkan ke Kurir") : "Mengikuti Live"}</span>
+            </button>
         </div>
     );
 }

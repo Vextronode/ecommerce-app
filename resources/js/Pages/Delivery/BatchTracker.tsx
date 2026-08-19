@@ -39,6 +39,7 @@ export default function BatchTracker({
     const [pinErrors, setPinErrors] = useState<{ [invoice: string]: string }>({});
     const [submittingInvoice, setSubmittingInvoice] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [refreshCounter, setRefreshCounter] = useState(0);
 
     const isDriver = role === "driver";
     const totalStops = stops.length;
@@ -54,6 +55,7 @@ export default function BatchTracker({
     // Manual Refresh Handler (Shopee/Gojek style)
     const handleManualRefresh = async () => {
         setIsRefreshing(true);
+        setRefreshCounter((prev) => prev + 1);
         try {
             const res = await fetch(`/tracker/batch/${batchToken}/location`);
             if (res.ok) {
@@ -282,6 +284,8 @@ export default function BatchTracker({
                     deliveredCount={deliveredCount}
                     totalStops={totalStops}
                     progressPercent={progressPercent}
+                    isDriver={isDriver}
+                    refreshCounter={refreshCounter}
                 />
 
                 {/* Google Maps Master Navigation Bar for Driver */}

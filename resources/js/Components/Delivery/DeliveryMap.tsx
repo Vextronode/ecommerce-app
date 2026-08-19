@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Navigation, Compass } from 'lucide-react';
+import { Navigation, Compass, LocateFixed, Radio } from 'lucide-react';
 
 // Custom Modern SVG Icons for Live Map
 const createModernStoreIcon = () => {
@@ -72,14 +72,24 @@ interface DeliveryMapProps {
     buyerPos: [number, number] | null;
     driverPos: [number, number] | null;
     order: any;
+    isDriver?: boolean;
+    refreshCounter?: number;
 }
 
-export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: DeliveryMapProps) {
+export default function DeliveryMap({
+    storePos,
+    buyerPos,
+    driverPos,
+    order,
+    isDriver = false,
+    refreshCounter = 0,
+}: DeliveryMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<L.Map | null>(null);
     const driverMarkerRef = useRef<L.Marker | null>(null);
     const routePolylineRef = useRef<L.Polyline | null>(null);
     const [roadDistanceKm, setRoadDistanceKm] = useState<string | null>(null);
+    const [isFreeMode, setIsFreeMode] = useState<boolean>(false);
 
     useEffect(() => {
         if (!storePos || !buyerPos || !mapRef.current || order.status === 'delivered') return;
@@ -96,7 +106,12 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
                 .bindPopup(`<strong>${order.customer_name}</strong><br/>Lokasi Penerima`)
                 .addTo(map);
 
-            // Fetch Real Road Route from OSRM (Free, no API key needed)
+            // Listen to user map dragging/zooming -> switches into Free Mode
+            map.on('dragstart', () => {
+                setIsFreeMode(true);
+            });
+
+            // Fetch Real Road Route from OSRM (Fastest/Best Route)
             const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${storePos[1]},${storePos[0]};${buyerPos[1]},${buyerPos[0]}?overview=full&geometries=geojson`;
             
             fetch(osrmUrl)
@@ -159,7 +174,7 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
         };
     }, [storePos, buyerPos, order.status, order.store_name, order.customer_name]);
 
-    // Live Driver Marker Positioning & Auto-Pan
+    // Live Driver Marker Positioning & Auto-Follow
     useEffect(() => {
         if (driverPos && mapInstance.current) {
             if (!driverMarkerRef.current) {
@@ -169,8 +184,34 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
             } else {
                 driverMarkerRef.current.setLatLng(driverPos);
             }
+
+            // If auto-follow is active (not dragged into free mode), smoothly pan camera to driver!
+            if (!isFreeMode) {
+                mapInstance.current.panTo(driverPos, { animate: true, duration: 0.8 });
+            }
         }
-    }, [driverPos]);
+    }, [driverPos, isFreeMode]);
+
+    // Re-center when external refresh button is clicked
+    useEffect(() => {
+        if (refreshCounter > 0 && mapInstance.current) {
+            setIsFreeMode(false);
+            if (driverPos) {
+                mapInstance.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
+            } else if (storePos) {
+                mapInstance.current.flyTo(storePos, 15, { animate: true, duration: 0.8 });
+            }
+        }
+    }, [refreshCounter]);
+
+    const handleRecenter = () => {
+        setIsFreeMode(false);
+        if (driverPos && mapInstance.current) {
+            mapInstance.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
+        } else if (storePos && mapInstance.current) {
+            mapInstance.current.flyTo(storePos, 15, { animate: true, duration: 0.8 });
+        }
+    };
 
     const googleMapsUrl = (storePos && buyerPos)
         ? `https://www.google.com/maps/dir/?api=1&origin=${storePos[0]},${storePos[1]}&destination=${buyerPos[0]},${buyerPos[1]}`
@@ -187,6 +228,21 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
                     <span>Jalur Darat: ~{roadDistanceKm} KM</span>
                 </div>
             )}
+
+            {/* Floating Re-center / Auto-Follow Button */}
+            <button
+                type="button"
+                onClick={handleRecenter}
+                className={`absolute bottom-4 left-4 z-[400] px-3.5 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
+                    isFreeMode
+                        ? 'bg-[#006591] text-white border border-[#006591] shadow-[#006591]/30'
+                        : 'bg-white/90 backdrop-blur-md text-gray-700 border border-gray-200 hover:bg-white'
+                }`}
+                title={isFreeMode ? "Pusatkan kembali kamera ke kurir" : "Kamera otomatis mengikuti posisi kurir"}
+            >
+                <LocateFixed className={`w-4 h-4 ${isFreeMode ? 'text-white' : 'text-[#006591]'}`} />
+                <span>{isFreeMode ? (isDriver ? 'Pusatkan ke Saya' : 'Pusatkan ke Kurir') : 'Mengikuti Live'}</span>
+            </button>
 
             {/* Google Maps Button */}
             <a 
