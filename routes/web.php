@@ -79,6 +79,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
     Route::patch('/cart/{cart}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/store/{store}/follow', [ShopController::class, 'toggleFollow'])->name('store.follow');
     Route::post('/profile/address', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
     Route::put('/profile/address/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
     Route::delete('/profile/address/{id}', [ProfileController::class, 'destroyAddress'])->name('profile.address.destroy');

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import Navbar from '@/Components/Global/Navbar';
 import Footer from '@/Components/Global/Footer';
@@ -7,6 +7,8 @@ import StoreHeader from '@/Components/Storefront/StoreDetail/StoreHeader';
 import StoreFilters from '@/Components/Storefront/StoreDetail/StoreFilters';
 import ShopProductRow from '@/Components/Storefront/ShopProductRow';
 import ProductCard from '@/Components/Storefront/ProductCard';
+import toast from 'react-hot-toast';
+import { PageProps } from '@/types';
 
 interface Props {
     store: any;
@@ -22,12 +24,47 @@ interface Props {
     };
 }
 
-const handleFollow = () => {
-    // Implement Follow logic here when ready
-    // router.post(route('store.follow', storeId), {}, { preserveScroll: true });
-};
+export default function StoreDetail({ store, isFollowing: initialIsFollowing, categories, products, groupedProducts, filters }: Props) {
+    const { auth } = usePage<PageProps>().props;
+    const user = auth?.user;
+    const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+    const [isLoadingFollow, setIsLoadingFollow] = useState(false);
 
-export default function StoreDetail({ store, isFollowing, categories, products, groupedProducts, filters }: Props) {
+    React.useEffect(() => {
+        setIsFollowing(initialIsFollowing);
+    }, [initialIsFollowing]);
+
+    const handleFollow = () => {
+        if (!user) {
+            toast.error("Silakan login terlebih dahulu untuk mengikuti toko!");
+            router.visit(route("login"));
+            return;
+        }
+
+        setIsLoadingFollow(true);
+        router.post(
+            route('store.follow', store.id),
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    const nextState = !isFollowing;
+                    setIsFollowing(nextState);
+                    setIsLoadingFollow(false);
+                    if (nextState) {
+                        toast.success(`Berhasil mengikuti toko ${store.name}!`);
+                    } else {
+                        toast(`Berhenti mengikuti toko ${store.name}.`);
+                    }
+                },
+                onError: () => {
+                    setIsLoadingFollow(false);
+                    toast.error("Gagal memperbarui status follow toko.");
+                },
+            }
+        );
+    };
     const [currentTab, setCurrentTab] = useState(filters.tab || 'beranda');
     const [currentFilter, setCurrentFilter] = useState(filters.filter || 'populer');
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
@@ -103,6 +140,7 @@ export default function StoreDetail({ store, isFollowing, categories, products, 
                     store={store}
                     isFollowing={isFollowing}
                     onFollow={handleFollow}
+                    isLoadingFollow={isLoadingFollow}
                 />
 
                 <StoreFilters

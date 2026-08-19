@@ -1,15 +1,50 @@
-import React from 'react';
-import { Share2, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { Share2, Star, Check, UserCheck, UserPlus } from 'lucide-react';
 import StoreAvatar from '@/Components/Global/StoreAvatar';
+import toast from 'react-hot-toast';
 
 interface Props {
     store: any;
     isFollowing: boolean;
     onFollow: () => void;
+    isLoadingFollow?: boolean;
 }
 
-export default function StoreHeader({ store, isFollowing, onFollow }: Props) {
+export default function StoreHeader({ store, isFollowing, onFollow, isLoadingFollow }: Props) {
+    const [isCopied, setIsCopied] = useState(false);
     const defaultCover = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop";
+
+    const handleShare = async () => {
+        const shareData = {
+            title: `${store.name} - CibendaMart`,
+            text: `Yuk belanja berbagai produk terbaik di toko ${store.name} di CibendaMart!`,
+            url: window.location.href,
+        };
+
+        if (typeof navigator !== 'undefined' && navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch {
+                copyLinkToClipboard();
+            }
+        } else {
+            copyLinkToClipboard();
+        }
+    };
+
+    const copyLinkToClipboard = () => {
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => {
+                    setIsCopied(true);
+                    toast.success("Link toko berhasil disalin ke clipboard!");
+                    setTimeout(() => setIsCopied(false), 2500);
+                })
+                .catch(() => {
+                    toast.error("Gagal menyalin link toko.");
+                });
+        }
+    };
 
     return (
         <div className="bg-white rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-sm border border-gray-100 relative overflow-hidden">
@@ -37,15 +72,32 @@ export default function StoreHeader({ store, isFollowing, onFollow }: Props) {
                     <div className="flex items-center gap-3 pt-2 justify-center md:justify-start">
                         <button
                             onClick={onFollow}
-                            className={`px-8 w-42 py-2.5 rounded-2xl font-bold text-sm transition shadow-sm ${isFollowing
-                                ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                : "bg-[#F77F00] text-white hover:bg-[#D95C00]"
-                                }`}
+                            disabled={isLoadingFollow}
+                            className={`px-6 py-2.5 rounded-2xl font-bold text-sm transition shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+                                isFollowing
+                                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
+                                    : "bg-[#F77F00] text-white hover:bg-[#D95C00]"
+                            }`}
                         >
-                            {isFollowing ? "Mengikuti" : "Ikuti"}
+                            {isFollowing ? (
+                                <>
+                                    <UserCheck className="w-4 h-4 text-emerald-600" />
+                                    <span>Mengikuti</span>
+                                </>
+                            ) : (
+                                <>
+                                    <UserPlus className="w-4 h-4" />
+                                    <span>Ikuti Toko</span>
+                                </>
+                            )}
                         </button>
-                        <button aria-label="Action" className="p-2.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
-                            <Share2 className="w-5 h-5" />
+                        <button 
+                            onClick={handleShare}
+                            title="Bagikan link toko ini"
+                            aria-label="Bagikan toko"
+                            className="p-2.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors cursor-pointer flex items-center justify-center"
+                        >
+                            {isCopied ? <Check className="w-5 h-5 text-emerald-600" /> : <Share2 className="w-5 h-5" />}
                         </button>
                     </div>
                 </div>
@@ -55,8 +107,8 @@ export default function StoreHeader({ store, isFollowing, onFollow }: Props) {
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-1.5 mb-1">
                             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                            <span className="font-bold text-lg text-gray-900">{store.average_rating}</span>
-                            <span className="text-gray-900 font-bold text-lg">({store.total_sold > 1000 ? (store.total_sold / 1000).toFixed(1) + 'rb' : store.total_sold} terjual)</span>
+                            <span className="font-bold text-lg text-gray-900">{store.average_rating || "0.0"}</span>
+                            <span className="text-gray-900 font-bold text-lg">({store.total_sold > 1000 ? (store.total_sold / 1000).toFixed(1) + 'rb' : store.total_sold || 0} terjual)</span>
                         </div>
                         <p className="text-sm text-gray-500 font-medium">Rating & Penjualan</p>
                     </div>
