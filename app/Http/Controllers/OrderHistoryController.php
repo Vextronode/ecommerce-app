@@ -37,7 +37,7 @@ class OrderHistoryController extends Controller
                     'variant_name' => $item->variant_name,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
-                    'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                    'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400') : 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                     'store_name' => $item->order->store->name ?? 'Toko',
                     'rating' => $item->review ? $item->review->rating : null,
                 ];
@@ -100,7 +100,7 @@ class OrderHistoryController extends Controller
                             'quantity' => $item->quantity,
                             'price' => $item->price,
                             'product_slug' => $item->product ? $item->product->slug : null,
-                            'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                            'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400') : 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                         ];
                     }),
                 ];
@@ -170,7 +170,7 @@ class OrderHistoryController extends Controller
                     'quantity' => $item->quantity,
                     'price' => $item->price,
                     'product_slug' => $item->product ? $item->product->slug : null,
-                    'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                    'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400') : 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                 ];
             }),
         ];

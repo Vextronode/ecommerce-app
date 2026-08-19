@@ -100,7 +100,7 @@ class CheckoutController extends Controller
                 'store_lon' => $store ? $store->longitude : null,
                 'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
                 'qty' => $cart->quantity,
-                'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                 'preparation_option' => $cart->preparation_option,
                 'unit' => $cart->product->unit ?? 'pcs',
             ];

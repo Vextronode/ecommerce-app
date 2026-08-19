@@ -40,7 +40,7 @@ class CartController extends Controller
                         'stock' => $matchingSku ? $matchingSku->stock : $cart->product->stock,
                         'qty' => $cart->quantity,
 
-                        'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=200',
+                        'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                         'prepOption' => $cart->preparation_option,
 
                         'sku' => $matchingSku ? [
@@ -80,7 +80,7 @@ class CartController extends Controller
                     'price' => $product->price,
                     'rating' => $product->rating ? (float) $product->rating : 0.0,
                     'sold' => $product->sold ?? 0,
-                    'img' => $product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                    'img' => $product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                 ];
             });
 
