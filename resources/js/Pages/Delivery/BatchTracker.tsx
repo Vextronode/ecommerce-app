@@ -294,7 +294,7 @@ export default function BatchTracker({
                                 key={stop.id}
                                 stop={stop}
                                 isDriver={isDriver}
-                                onSubmitPin={(pin) => handlePinSubmit(stop.invoice_number, pin)}
+                                onVerifyPin={handlePinSubmit}
                                 isSubmitting={submittingInvoice === stop.invoice_number}
                                 errorMessage={pinErrors[stop.invoice_number]}
                             />
