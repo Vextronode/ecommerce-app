@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { Package, CheckCircle2, Radio, Eye, MapPin } from 'lucide-react';
+import { Package, CheckCircle2, Radio, Eye, RefreshCw } from 'lucide-react';
 import DeliveryMap from '@/Components/Delivery/DeliveryMap';
 import DeliveryOrderSummary from '@/Components/Delivery/DeliveryOrderSummary';
 import DriverPinForm from '@/Components/Delivery/DriverPinForm';
@@ -49,7 +49,7 @@ export default function Tracker({ order, role }: Props) {
     });
 
     const [distanceToBuyer, setDistanceToBuyer] = useState<number | null>(null);
-    const [gpsActive, setGpsActive] = useState<boolean>(isDriver);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const storePos = React.useMemo<[number, number] | null>(() => {
         return order.store_latitude && order.store_longitude 
@@ -75,6 +75,27 @@ export default function Tracker({ order, role }: Props) {
         return R * c;
     };
 
+    // Manual Refresh Handler (Shopee/Gojek style)
+    const handleManualRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            const res = await fetch(`/tracker/${order.invoice_number}/location`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.latitude && data.longitude) {
+                    const lat = parseFloat(data.latitude);
+                    const lng = parseFloat(data.longitude);
+                    setDriverPos([lat, lng]);
+                    if (buyerPos) {
+                        const dist = getDistance(lat, lng, buyerPos[0], buyerPos[1]);
+                        setDistanceToBuyer(Math.round(dist));
+                    }
+                }
+            }
+        } catch {}
+        setTimeout(() => setIsRefreshing(false), 600);
+    };
+
     useEffect(() => {
         if (order.status !== 'shipped') return;
 
@@ -82,7 +103,6 @@ export default function Tracker({ order, role }: Props) {
             // DRIVER MODE: Broadcast live GPS coordinates continuously
             const sendGpsUpdate = (latitude: number, longitude: number) => {
                 setDriverPos([latitude, longitude]);
-                setGpsActive(true);
 
                 if (buyerPos) {
                     const dist = getDistance(latitude, longitude, buyerPos[0], buyerPos[1]);
@@ -112,7 +132,6 @@ export default function Tracker({ order, role }: Props) {
                     (pos) => sendGpsUpdate(pos.coords.latitude, pos.coords.longitude),
                     (err) => {
                         console.warn('GPS watch error:', err);
-                        // Fallback retry if high accuracy times out indoors
                         if (err.code === err.TIMEOUT) {
                             navigator.geolocation.getCurrentPosition(
                                 (pos) => sendGpsUpdate(pos.coords.latitude, pos.coords.longitude),
@@ -246,30 +265,44 @@ export default function Tracker({ order, role }: Props) {
             <Head title={`Delivery Tracker - ${order.invoice_number}`} />
 
             <header className="bg-[#281B7A] text-white p-4 shadow-md z-10 sticky top-0">
-                <div className="max-w-3xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0">
                             <Package className="w-5 h-5 text-[#ED7218]" />
                         </div>
-                        <div>
-                            <h1 className="text-sm font-extrabold tracking-wider">DELIVERY TRACKER</h1>
-                            <p className="text-xs text-[#ED7218] font-medium">#{order.invoice_number}</p>
+                        <div className="min-w-0">
+                            <h1 className="text-sm font-extrabold tracking-wider truncate">DELIVERY TRACKER</h1>
+                            <p className="text-xs text-[#ED7218] font-medium truncate">#{order.invoice_number}</p>
                         </div>
                     </div>
 
-                    {/* Role Indicator Badge */}
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-semibold">
-                        {isDriver ? (
-                            <>
-                                <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                                <span className="text-emerald-300 font-bold">Driver Mode</span>
-                            </>
-                        ) : (
-                            <>
-                                <Eye className="w-3.5 h-3.5 text-[#41B9C5]" />
-                                <span className="text-slate-200 font-medium">Live Viewer</span>
-                            </>
+                    {/* Right Controls: Role Badge & Manual Refresh Button */}
+                    <div className="flex items-center gap-2 shrink-0">
+                        {!isDriver && (
+                            <button
+                                onClick={handleManualRefresh}
+                                disabled={isRefreshing}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-xs font-bold text-white transition-all shadow-xs border border-white/20 cursor-pointer disabled:opacity-50"
+                                title="Perbarui posisi kurir sekarang"
+                            >
+                                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-[#40E0D0]' : ''}`} />
+                                <span className="hidden sm:inline">{isRefreshing ? 'Memperbarui...' : 'Refresh'}</span>
+                            </button>
                         )}
+
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-semibold">
+                            {isDriver ? (
+                                <>
+                                    <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                                    <span className="text-emerald-300 font-bold">Driver Mode</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Eye className="w-3.5 h-3.5 text-[#41B9C5]" />
+                                    <span className="text-slate-200 font-medium">Live Viewer</span>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
