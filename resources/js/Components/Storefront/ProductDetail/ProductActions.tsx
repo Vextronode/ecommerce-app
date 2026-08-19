@@ -1,6 +1,7 @@
 import { ShoppingCart } from "lucide-react";
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import toast from "react-hot-toast";
+import { PageProps } from "@/types";
 
 interface Props {
     productId: number | string;
@@ -12,12 +13,21 @@ interface Props {
 export default function ProductActions({
     productId,
     quantity,
-    prepOption, // <-- Tangkap prepOption
+    prepOption,
     disabled,
 }: Props) {
+    const { auth } = usePage<PageProps>().props;
+    const user = auth?.user;
+
     const handleAddToCart = () => {
         if (disabled)
             return toast.error("Silakan lengkapi pilihan varian dulu!");
+
+        if (!user) {
+            toast.error("Silakan login terlebih dahulu untuk menambah produk ke keranjang!");
+            router.visit(route("login"));
+            return;
+        }
 
         router.post(
             "/cart",
@@ -39,6 +49,12 @@ export default function ProductActions({
         if (disabled)
             return toast.error("Silakan lengkapi pilihan varian dulu!");
 
+        if (!user) {
+            toast.error("Silakan login terlebih dahulu untuk membeli produk!");
+            router.visit(route("login"));
+            return;
+        }
+
         router.post("/cart", {
             product_id: productId,
             quantity: quantity,
@@ -52,16 +68,16 @@ export default function ProductActions({
             <button
                 onClick={handleBuyNow}
                 disabled={disabled}
-                className="bg-[#ED7218] text-white py-4 rounded-xl font-bold text-sm hover:opacity-90 transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#ED7218] text-white py-4 rounded-xl font-bold text-sm hover:opacity-90 transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-                Buy Now
+                Beli Sekarang
             </button>
             <button
                 onClick={handleAddToCart}
                 disabled={disabled}
-                className="bg-white text-[#006591] py-4 rounded-xl font-bold text-sm border-2 border-[#306D29] hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-white text-[#006591] py-4 rounded-xl font-bold text-sm border-2 border-[#006591] hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-                <ShoppingCart className="w-4 h-4 text-[#006591]" /> Add to Cart
+                <ShoppingCart className="w-4 h-4 text-[#006591]" /> + Keranjang
             </button>
         </div>
     );

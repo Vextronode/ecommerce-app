@@ -274,4 +274,26 @@ class ShopController extends Controller
             ],
         ]);
     }
+
+    public function toggleFollow(Store $store)
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $user->followingStores()->toggle($store->id);
+        $isFollowing = $store->followers()->where('user_id', $user->id)->exists();
+        $followersCount = $store->followers()->count();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'isFollowing' => $isFollowing,
+                'followers_count' => $followersCount,
+                'message' => $isFollowing ? 'Berhasil mengikuti toko '.$store->name : 'Berhenti mengikuti toko '.$store->name,
+            ]);
+        }
+
+        return back()->with('success', $isFollowing ? 'Berhasil mengikuti toko '.$store->name : 'Berhenti mengikuti toko '.$store->name);
+    }
 }

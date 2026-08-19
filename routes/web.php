@@ -43,13 +43,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/api/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 
-Route::get('/shop', [ShopController::class, 'index'])
-    ->middleware(['auth', 'verified', 'role:user'])
-    ->name('shop');
-
-Route::middleware(['auth', 'role:user'])->group(function () {
+// Public Storefront Browsing (Guest & User)
+Route::middleware(['storefront.user'])->group(function () {
+    Route::get('/shop', [ShopController::class, 'index'])->name('shop');
     Route::get('/product/{slug}', [ShopController::class, 'show'])->name('product.detail');
     Route::get('/store/{slug}', [ShopController::class, 'storeDetail'])->name('store.detail');
+});
+
+// Protected Storefront Actions (Requires Login & Role User)
+Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -77,6 +79,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
     Route::patch('/cart/{cart}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/store/{store}/follow', [ShopController::class, 'toggleFollow'])->name('store.follow');
     Route::post('/profile/address', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
     Route::put('/profile/address/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
     Route::delete('/profile/address/{id}', [ProfileController::class, 'destroyAddress'])->name('profile.address.destroy');

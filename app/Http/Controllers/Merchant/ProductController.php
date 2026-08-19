@@ -159,6 +159,21 @@ class ProductController extends Controller
             \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
         }
 
+        // Notify all store followers about the new product
+        try {
+            $followers = $user->store->followers()->get();
+            foreach ($followers as $follower) {
+                $follower->notify(new \App\Notifications\PushNotification(
+                    title: '✨ Produk Baru dari ' . $user->store->name,
+                    message: $user->store->name . ' baru saja menambahkan produk baru: "' . $product->name . '". Yuk cek sekarang!',
+                    type: 'promo',
+                    actionUrl: route('product.detail', $product->slug)
+                ));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Follower notification error: ' . $e->getMessage());
+        }
+
         return redirect()->route('merchant.products.index');
     }
 

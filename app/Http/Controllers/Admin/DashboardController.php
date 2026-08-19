@@ -50,25 +50,17 @@ class DashboardController extends Controller
             ? round((($totalSold - $lastMonthSold) / $lastMonthSold) * 100, 1)
             : 0;
 
-        // Produk Terlaris / Toko Terpopuler
+        // Produk Terlaris (Berdasarkan jumlah terjual aktual dari order yang sukses)
         $topProduct = Product::with(['store', 'category'])
             ->withSum(['orderItems as total_sold' => function ($q) {
                 $q->whereHas('order', fn ($o) => $o->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success']));
             }], 'quantity')
+            ->having('total_sold', '>', 0)
             ->orderByDesc('total_sold')
             ->first();
 
-        $topStore = null;
-        if (! $topProduct || ! $topProduct->total_sold) {
-            $topStore = Store::with('user')->withCount('products')->orderByDesc('products_count')->first();
-        }
-
-        $topProductName = $topProduct && $topProduct->total_sold > 0
-            ? ($topProduct->store?->name ?: $topProduct->name)
-            : ($topStore?->name ?: 'Belum ada data');
-
-        $topCategoryName = $topProduct?->category?->name
-            ?: (Category::first()?->name ?: 'Umum');
+        $topProductName = $topProduct ? $topProduct->name : 'Belum ada penjualan';
+        $topCategoryName = $topProduct ? ($topProduct->category?->name ?: 'Umum') : '-';
 
         // Pendaftaran Pedagang (Toko Mitra Terbaru)
         $recentStores = Store::with('user:id,name,email')
