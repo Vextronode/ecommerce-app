@@ -75,8 +75,8 @@ const createDriverIcon = () => {
         className: "custom-modern-driver-pin",
         html: `
             <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
-                <div style="position:absolute;inset:0;background:#10B981;border-radius:50%;opacity:0.25;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
-                <div style="background:#059669;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid #ffffff;box-shadow:0 6px 18px rgba(5,150,105,0.45);z-index:2;">
+                <div style="position:absolute;inset:0;background:#006591;border-radius:50%;opacity:0.25;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
+                <div style="background:#006591;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid #ffffff;box-shadow:0 6px 18px rgba(0,101,145,0.45);z-index:2;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="18.5" cy="17.5" r="3.5"/>
                         <circle cx="5.5" cy="17.5" r="3.5"/>
@@ -103,6 +103,7 @@ export default function BatchMap({
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<any>(null);
     const markersRef = useRef<{ [key: string]: any }>({});
+    const routePolylineRef = useRef<any>(null);
 
     useEffect(() => {
         if (!mapContainerRef.current) return;
@@ -126,11 +127,13 @@ export default function BatchMap({
 
         const map = mapRef.current;
         const bounds = L.latLngBounds([]);
+        const waypoints: [number, number][] = [];
 
         // Store Marker
         if (store.latitude && store.longitude) {
-            const storeLatLng = [store.latitude, store.longitude];
+            const storeLatLng: [number, number] = [store.latitude, store.longitude];
             bounds.extend(storeLatLng);
+            waypoints.push(storeLatLng);
 
             if (!markersRef.current["store"]) {
                 markersRef.current["store"] = L.marker(storeLatLng, { icon: createStoreIcon() })
@@ -142,8 +145,9 @@ export default function BatchMap({
         // Stop Markers
         stops.forEach((stop) => {
             if (stop.shipping_latitude && stop.shipping_longitude) {
-                const stopLatLng = [stop.shipping_latitude, stop.shipping_longitude];
+                const stopLatLng: [number, number] = [stop.shipping_latitude, stop.shipping_longitude];
                 bounds.extend(stopLatLng);
+                waypoints.push(stopLatLng);
 
                 const isDeliveredStop = stop.status === "delivered";
                 const markerKey = `stop_${stop.id}`;
@@ -160,6 +164,43 @@ export default function BatchMap({
                 }
             }
         });
+
+        // Fetch OSRM Road Route along all waypoints
+        if (waypoints.length >= 2) {
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${waypoints.map(([lat, lng]) => `${lng},${lat}`).join(';')}?overview=full&geometries=geojson`;
+
+            fetch(osrmUrl)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data && data.routes && data.routes[0] && data.routes[0].geometry) {
+                        const coords = data.routes[0].geometry.coordinates.map(
+                            ([lng, lat]: [number, number]) => [lat, lng] as [number, number]
+                        );
+
+                        if (routePolylineRef.current) {
+                            routePolylineRef.current.remove();
+                        }
+
+                        routePolylineRef.current = L.polyline(coords, {
+                            color: "#006591",
+                            weight: 5,
+                            opacity: 0.85,
+                            lineJoin: "round",
+                            lineCap: "round",
+                        }).addTo(map);
+                    }
+                })
+                .catch(() => {
+                    // Fallback to straight dashed lines
+                    if (!routePolylineRef.current) {
+                        routePolylineRef.current = L.polyline(waypoints, {
+                            color: "#006591",
+                            weight: 4,
+                            dashArray: "6, 8",
+                        }).addTo(map);
+                    }
+                });
+        }
 
         // Driver Live Marker
         if (driverPos) {
