@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Navigation } from 'lucide-react';
+import { Navigation, Compass, LocateFixed, Radio } from 'lucide-react';
 
 // Custom Modern SVG Icons for Live Map
 const createModernStoreIcon = () => {
@@ -50,8 +50,8 @@ export const createModernDriverIcon = () => {
         className: 'custom-modern-driver-pin',
         html: `
             <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
-                <div style="position:absolute;inset:0;background:#10B981;border-radius:50%;opacity:0.25;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
-                <div style="background:#059669;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid #ffffff;box-shadow:0 6px 18px rgba(5,150,105,0.45);z-index:2;">
+                <div style="position:absolute;inset:0;background:#006591;border-radius:50%;opacity:0.25;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
+                <div style="background:#006591;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid #ffffff;box-shadow:0 6px 18px rgba(0,101,145,0.45);z-index:2;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="18.5" cy="17.5" r="3.5"/>
                         <circle cx="5.5" cy="17.5" r="3.5"/>
@@ -72,12 +72,24 @@ interface DeliveryMapProps {
     buyerPos: [number, number] | null;
     driverPos: [number, number] | null;
     order: any;
+    isDriver?: boolean;
+    refreshCounter?: number;
 }
 
-export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: DeliveryMapProps) {
+export default function DeliveryMap({
+    storePos,
+    buyerPos,
+    driverPos,
+    order,
+    isDriver = false,
+    refreshCounter = 0,
+}: DeliveryMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<L.Map | null>(null);
     const driverMarkerRef = useRef<L.Marker | null>(null);
+    const routePolylineRef = useRef<L.Polyline | null>(null);
+    const [roadDistanceKm, setRoadDistanceKm] = useState<string | null>(null);
+    const [isFreeMode, setIsFreeMode] = useState<boolean>(false);
 
     useEffect(() => {
         if (!storePos || !buyerPos || !mapRef.current || order.status === 'delivered') return;
@@ -87,17 +99,67 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
             L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png").addTo(map);
 
             L.marker(storePos, { icon: createModernStoreIcon() })
-                .bindPopup(`<strong>${order.store_name}</strong><br/>Lokasi Toko`)
+                .bindPopup(`<strong>${order.store_name}</strong><br/>Titik Ambil Toko`)
                 .addTo(map);
 
             L.marker(buyerPos, { icon: createModernBuyerIcon() })
-                .bindPopup(`<strong>${order.customer_name}</strong><br/>Lokasi Pengiriman`)
+                .bindPopup(`<strong>${order.customer_name}</strong><br/>Lokasi Penerima`)
                 .addTo(map);
 
-            L.polyline([storePos, buyerPos], { color: "#ED7218", weight: 3, dashArray: "6, 10" }).addTo(map);
+            // Listen to user map dragging/zooming -> switches into Free Mode
+            map.on('dragstart', () => {
+                setIsFreeMode(true);
+            });
 
-            const bounds = L.latLngBounds([storePos, buyerPos]);
-            map.fitBounds(bounds, { padding: [40, 40] });
+            // Fetch Real Road Route from OSRM (Fastest/Best Route)
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${storePos[1]},${storePos[0]};${buyerPos[1]},${buyerPos[0]}?overview=full&geometries=geojson`;
+            
+            fetch(osrmUrl)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data && data.routes && data.routes[0] && data.routes[0].geometry) {
+                        const coords = data.routes[0].geometry.coordinates.map(
+                            ([lng, lat]: [number, number]) => [lat, lng] as [number, number]
+                        );
+                        
+                        if (routePolylineRef.current) {
+                            routePolylineRef.current.remove();
+                        }
+
+                        // Real Road Polyline (Shopee/Gojek style)
+                        routePolylineRef.current = L.polyline(coords, {
+                            color: "#006591",
+                            weight: 5,
+                            opacity: 0.85,
+                            lineJoin: "round",
+                            lineCap: "round",
+                        }).addTo(map);
+
+                        const distKm = (data.routes[0].distance / 1000).toFixed(1);
+                        setRoadDistanceKm(distKm);
+
+                        const bounds = L.latLngBounds(coords);
+                        if (driverPos) bounds.extend(driverPos);
+                        map.fitBounds(bounds, { padding: [40, 40] });
+                    } else {
+                        // Fallback to direct line if OSRM is unreachable
+                        routePolylineRef.current = L.polyline([storePos, buyerPos], {
+                            color: "#006591",
+                            weight: 4,
+                            dashArray: "6, 8",
+                        }).addTo(map);
+                        map.fitBounds(L.latLngBounds([storePos, buyerPos]), { padding: [40, 40] });
+                    }
+                })
+                .catch(() => {
+                    // Fallback to direct line
+                    routePolylineRef.current = L.polyline([storePos, buyerPos], {
+                        color: "#006591",
+                        weight: 4,
+                        dashArray: "6, 8",
+                    }).addTo(map);
+                    map.fitBounds(L.latLngBounds([storePos, buyerPos]), { padding: [40, 40] });
+                });
 
             mapInstance.current = map;
         }
@@ -106,10 +168,13 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
             if (mapInstance.current) {
                 mapInstance.current.remove();
                 mapInstance.current = null;
+                driverMarkerRef.current = null;
+                routePolylineRef.current = null;
             }
         };
     }, [storePos, buyerPos, order.status, order.store_name, order.customer_name]);
 
+    // Live Driver Marker Positioning & Auto-Follow
     useEffect(() => {
         if (driverPos && mapInstance.current) {
             if (!driverMarkerRef.current) {
@@ -119,8 +184,34 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
             } else {
                 driverMarkerRef.current.setLatLng(driverPos);
             }
+
+            // If auto-follow is active (not dragged into free mode), smoothly pan camera to driver!
+            if (!isFreeMode) {
+                mapInstance.current.panTo(driverPos, { animate: true, duration: 0.8 });
+            }
         }
-    }, [driverPos]);
+    }, [driverPos, isFreeMode]);
+
+    // Re-center when external refresh button is clicked
+    useEffect(() => {
+        if (refreshCounter > 0 && mapInstance.current) {
+            setIsFreeMode(false);
+            if (driverPos) {
+                mapInstance.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
+            } else if (storePos) {
+                mapInstance.current.flyTo(storePos, 15, { animate: true, duration: 0.8 });
+            }
+        }
+    }, [refreshCounter]);
+
+    const handleRecenter = () => {
+        setIsFreeMode(false);
+        if (driverPos && mapInstance.current) {
+            mapInstance.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
+        } else if (storePos && mapInstance.current) {
+            mapInstance.current.flyTo(storePos, 15, { animate: true, duration: 0.8 });
+        }
+    };
 
     const googleMapsUrl = (storePos && buyerPos)
         ? `https://www.google.com/maps/dir/?api=1&origin=${storePos[0]},${storePos[1]}&destination=${buyerPos[0]},${buyerPos[1]}`
@@ -130,14 +221,38 @@ export default function DeliveryMap({ storePos, buyerPos, driverPos, order }: De
         <div className="relative w-full h-80 rounded-3xl overflow-hidden shadow-lg border border-gray-100 mb-6 bg-gray-100">
             <div ref={mapRef} className="w-full h-full z-0" />
             
+            {/* Real Road Distance Floating Badge */}
+            {roadDistanceKm && (
+                <div className="absolute top-4 left-4 z-[400] bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-md border border-gray-100 flex items-center gap-2 text-xs font-bold text-gray-800 animate-fade-in">
+                    <Compass className="w-4 h-4 text-[#006591]" />
+                    <span>Jalur Darat: ~{roadDistanceKm} KM</span>
+                </div>
+            )}
+
+            {/* Floating Re-center / Auto-Follow Button */}
+            <button
+                type="button"
+                onClick={handleRecenter}
+                className={`absolute bottom-4 left-4 z-[400] px-3.5 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
+                    isFreeMode
+                        ? 'bg-[#006591] text-white border border-[#006591] shadow-[#006591]/30'
+                        : 'bg-white/90 backdrop-blur-md text-gray-700 border border-gray-200 hover:bg-white'
+                }`}
+                title={isFreeMode ? "Pusatkan kembali kamera ke kurir" : "Kamera otomatis mengikuti posisi kurir"}
+            >
+                <LocateFixed className={`w-4 h-4 ${isFreeMode ? 'text-white' : 'text-[#006591]'}`} />
+                <span>{isFreeMode ? (isDriver ? 'Pusatkan ke Saya' : 'Pusatkan ke Kurir') : 'Mengikuti Live'}</span>
+            </button>
+
+            {/* Google Maps Button */}
             <a 
                 href={googleMapsUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="absolute bottom-4 right-4 z-[400] bg-white text-gray-800 px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-gray-50 flex items-center gap-2 border border-gray-100 transition-all hover:scale-105 active:scale-95"
             >
-                <Navigation className="w-4 h-4 text-[#ED7218]" />
-                Petunjuk Arah
+                <Navigation className="w-4 h-4 text-[#006591]" />
+                Navigasi Google Maps
             </a>
         </div>
     );

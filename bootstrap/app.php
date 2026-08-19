@@ -33,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/midtrans/callback',
             'midtrans/callback',
+            'tracker/*/location',
+            'tracker/batch/*/location',
         ]);
 
         $middleware->alias([

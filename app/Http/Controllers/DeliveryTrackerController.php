@@ -30,14 +30,16 @@ class DeliveryTrackerController extends Controller
         $role = 'user';
         $isMerchant = auth()->check() && auth()->user()->store && auth()->user()->store->id === $order->store_id;
 
-        // Driver role is only given to:
-        // 1. Courier who accepted handover via QR scan in current session
-        // 2. Merchant who explicitly chose "Saya Antar Sendiri" (?role=driver)
-        if (session("driver_authorized_{$invoice_number}") === true) {
+        if (request()->query('role') === 'driver') {
+            session(["driver_authorized_{$invoice_number}" => true]);
+            $role = 'driver';
+        } elseif (session("driver_authorized_{$invoice_number}") === true) {
             $role = 'driver';
         } elseif ($isMerchant && request()->query('role') === 'driver') {
             $role = 'driver';
         }
+
+        $cachedLoc = Cache::get("driver_loc_{$invoice_number}");
 
         return Inertia::render('Delivery/Tracker', [
             'role' => $role,
@@ -50,6 +52,8 @@ class DeliveryTrackerController extends Controller
                 'shipping_address' => $order->shipping_address,
                 'shipping_latitude' => $order->shipping_latitude,
                 'shipping_longitude' => $order->shipping_longitude,
+                'driver_latitude' => $cachedLoc['latitude'] ?? null,
+                'driver_longitude' => $cachedLoc['longitude'] ?? null,
                 'store_name' => $order->store->name,
                 'store_phone' => $order->store->support_email,
                 'store_latitude' => $order->store->latitude,
@@ -322,7 +326,16 @@ class DeliveryTrackerController extends Controller
         $storeLon = $store?->longitude;
 
         // Determine role
-        $role = session("driver_authorized_batch_{$batch_token}") === true ? 'driver' : 'user';
+        if (request()->query('role') === 'driver') {
+            session(["driver_authorized_batch_{$batch_token}" => true]);
+            $role = 'driver';
+        } elseif (session("driver_authorized_batch_{$batch_token}") === true) {
+            $role = 'driver';
+        } else {
+            $role = 'user';
+        }
+
+        $cachedBatchLoc = Cache::get("driver_loc_batch_{$batch_token}");
 
         // Sort stops nearest to farthest
         $stops = $orders->map(function ($order) use ($storeLat, $storeLon) {
@@ -364,14 +377,36 @@ class DeliveryTrackerController extends Controller
         }
 
         // Build Google Maps Multi-Waypoint Navigation URL
-        $googleMapsUrl = $this->buildGoogleMapsMultiStopUrl($storeLat, $storeLon, $stops);
+        $validStops = array_values(array_filter($stops, function ($s) {
+            return $s['shipping_latitude'] && $s['shipping_longitude'];
+        }));
+
+        $googleMapsUrl = '#';
+        if (count($validStops) > 0) {
+            $origin = $storeLat && $storeLon ? "{$storeLat},{$storeLon}" : "{$validStops[0]['shipping_latitude']},{$validStops[0]['shipping_longitude']}";
+            $destinationStop = end($validStops);
+            $destination = "{$destinationStop['shipping_latitude']},{$destinationStop['shipping_longitude']}";
+
+            $waypointStops = array_slice($validStops, 0, count($validStops) - 1);
+            $waypoints = implode('|', array_map(function ($s) {
+                return "{$s['shipping_latitude']},{$s['shipping_longitude']}";
+            }, $waypointStops));
+
+            $googleMapsUrl = 'https://www.google.com/maps/dir/?api=1&origin='.urlencode($origin).'&destination='.urlencode($destination);
+            if (! empty($waypoints)) {
+                $googleMapsUrl .= '&waypoints='.urlencode($waypoints);
+            }
+        }
 
         return Inertia::render('Delivery/BatchTracker', [
-            'batchToken' => $batch_token,
             'role' => $role,
+            'batchToken' => $batch_token,
+            'initialDriverPos' => ($cachedBatchLoc && isset($cachedBatchLoc['latitude'], $cachedBatchLoc['longitude']))
+                ? [(float) $cachedBatchLoc['latitude'], (float) $cachedBatchLoc['longitude']]
+                : null,
             'store' => [
-                'name' => $store?->name ?? 'Toko',
-                'phone' => $store?->support_email ?? '',
+                'name' => $store?->name,
+                'address' => $store?->address,
                 'latitude' => $storeLat,
                 'longitude' => $storeLon,
             ],
@@ -404,12 +439,12 @@ class DeliveryTrackerController extends Controller
             }
 
             if ($order->shipping_status !== 'shipped') {
-                return back()->with('error', 'Status pesanan tidak valid.');
+                return back()->with('error', 'Pesanan belum dalam status pengiriman.');
             }
 
             if ($order->shipping_pin !== $request->pin) {
                 RateLimiter::hit($throttleKey, 60);
-                return back()->with('error', 'PIN tidak valid. Silakan tanya 4-digit PIN kepada penerima barang.');
+                return back()->with('error', 'PIN tidak valid. Silakan tanya pembeli untuk 4-digit PIN pengiriman.');
             }
 
             RateLimiter::clear($throttleKey);
@@ -435,12 +470,12 @@ class DeliveryTrackerController extends Controller
                 \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
             }
 
-            return back()->with('success', "Pesanan #{$order->invoice_number} berhasil diselesaikan!");
+            return back()->with('success', "Pesanan #{$invoice_number} berhasil diselesaikan!");
         });
     }
 
     /**
-     * Broadcast batch GPS coordinate.
+     * Driver broadcasts multi-stop batch GPS coordinate.
      */
     public function updateBatchLocation(Request $request, $batch_token)
     {
@@ -455,7 +490,7 @@ class DeliveryTrackerController extends Controller
             'updated_at' => now()->toIso8601String(),
         ];
 
-        Cache::put("driver_loc_batch_{$batch_token}", $locData, 3600);
+        Cache::put("driver_loc_batch_{$batch_token}", $locData, 86400);
 
         // Also sync location to each individual invoice in the batch for single-order tracking
         $batchData = Cache::get("delivery_batch_{$batch_token}");
@@ -464,7 +499,7 @@ class DeliveryTrackerController extends Controller
             Cache::put("driver_loc_{$inv}", [
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-            ], 3600);
+            ], 86400);
         }
 
         try {
@@ -558,7 +593,7 @@ class DeliveryTrackerController extends Controller
         Cache::put("driver_loc_{$invoice_number}", [
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
-        ], 3600);
+        ], 86400);
 
         try {
             broadcast(new \App\Events\DriverLocationBroadcasted(

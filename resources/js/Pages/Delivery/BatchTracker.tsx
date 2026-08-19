@@ -7,6 +7,7 @@ import {
     Navigation,
     ExternalLink,
     Layers,
+    RefreshCw,
 } from "lucide-react";
 import BatchMap, { StopLocation } from "@/Components/Delivery/BatchMap";
 import BatchStopCard, { BatchStopData } from "@/Components/Delivery/BatchStopCard";
@@ -14,6 +15,7 @@ import BatchStopCard, { BatchStopData } from "@/Components/Delivery/BatchStopCar
 interface Props {
     batchToken: string;
     role: string;
+    initialDriverPos?: [number, number] | null;
     store: {
         name: string;
         phone: string;
@@ -27,48 +29,75 @@ interface Props {
 export default function BatchTracker({
     batchToken,
     role,
+    initialDriverPos,
     store,
     stops: initialStops,
     googleMapsUrl,
 }: Props) {
     const [stops, setStops] = useState<BatchStopData[]>(initialStops);
-    const [driverPos, setDriverPos] = useState<[number, number] | null>(null);
+    const [driverPos, setDriverPos] = useState<[number, number] | null>(() => initialDriverPos || null);
     const [pinErrors, setPinErrors] = useState<{ [invoice: string]: string }>({});
     const [submittingInvoice, setSubmittingInvoice] = useState<string | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [refreshCounter, setRefreshCounter] = useState(0);
 
     const isDriver = role === "driver";
     const totalStops = stops.length;
     const deliveredCount = stops.filter((s) => s.status === "delivered").length;
     const isAllDelivered = deliveredCount === totalStops && totalStops > 0;
-    const progressPercent = Math.round((deliveredCount / totalStops) * 100);
+    const progressPercent = totalStops > 0 ? Math.round((deliveredCount / totalStops) * 100) : 0;
 
     // Sync props with state on re-render
     useEffect(() => {
         setStops(initialStops);
     }, [initialStops]);
 
+    // Manual Refresh Handler (Shopee/Gojek style)
+    const handleManualRefresh = async () => {
+        setIsRefreshing(true);
+        setRefreshCounter((prev) => prev + 1);
+        try {
+            const res = await fetch(`/tracker/batch/${batchToken}/location`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.latitude && data.longitude) {
+                    setDriverPos([parseFloat(data.latitude), parseFloat(data.longitude)]);
+                }
+            }
+        } catch {}
+        setTimeout(() => setIsRefreshing(false), 600);
+    };
+
     // Driver GPS Broadcasting vs Spectator Polling
     useEffect(() => {
         if (isAllDelivered) return;
 
         if (isDriver) {
-            if (navigator.geolocation) {
-                const watchId = navigator.geolocation.watchPosition(
-                    (position) => {
-                        const { latitude, longitude } = position.coords;
-                        setDriverPos([latitude, longitude]);
+            const sendBatchGps = (latitude: number, longitude: number) => {
+                setDriverPos([latitude, longitude]);
 
-                        fetch(`/tracker/batch/${batchToken}/location`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": (document.querySelector('meta[name="csrf-token"]') as any)?.content,
-                            },
-                            body: JSON.stringify({ latitude, longitude }),
-                        }).catch(() => {});
+                fetch(`/tracker/batch/${batchToken}/location`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
                     },
-                    (err) => console.error("Driver GPS error:", err),
-                    { enableHighAccuracy: true, maximumAge: 5000, timeout: 5000 }
+                    body: JSON.stringify({ latitude, longitude }),
+                }).catch(() => {});
+            };
+
+            if (navigator.geolocation) {
+                // Initial immediate position fix
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => sendBatchGps(pos.coords.latitude, pos.coords.longitude),
+                    (err) => console.warn("Initial batch GPS warning:", err),
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
+                );
+
+                // Continuous watcher
+                const watchId = navigator.geolocation.watchPosition(
+                    (pos) => sendBatchGps(pos.coords.latitude, pos.coords.longitude),
+                    (err) => console.warn("Driver batch GPS error:", err),
+                    { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
                 );
 
                 return () => navigator.geolocation.clearWatch(watchId);
@@ -100,94 +129,91 @@ export default function BatchTracker({
                 channel.listen("DriverLocationBroadcasted", handleBatchLocation);
                 channel.listen(".OrderStatusUpdated", handleBatchStatus);
                 channel.listen("OrderStatusUpdated", handleBatchStatus);
+
+                return () => {
+                    window.Echo.leaveChannel(`batch.${batchToken}`);
+                };
             }
 
-            // Fallback HTTP poller for resilience
             const fetchBatchLocation = async () => {
                 try {
                     const res = await fetch(`/tracker/batch/${batchToken}/location`);
                     if (!res.ok) return;
                     const data = await res.json();
-                    if (data?.latitude && data?.longitude) {
+                    if (data && data.latitude && data.longitude) {
                         setDriverPos([parseFloat(data.latitude), parseFloat(data.longitude)]);
                     }
                 } catch {}
             };
 
             fetchBatchLocation();
-            const interval = setInterval(fetchBatchLocation, 12000);
-
-            return () => {
-                clearInterval(interval);
-                if (typeof window !== "undefined" && window.Echo) {
-                    window.Echo.leaveChannel(`batch.${batchToken}`);
-                }
-            };
+            const interval = setInterval(fetchBatchLocation, 10000);
+            return () => clearInterval(interval);
         }
-    }, [batchToken, isDriver, isAllDelivered]);
+    }, [isAllDelivered, isDriver, batchToken]);
 
-    // Handle individual PIN verification for a stop
-    const handleVerifyPin = (invoiceNumber: string, pin: string) => {
-        setSubmittingInvoice(invoiceNumber);
-        setPinErrors({ ...pinErrors, [invoiceNumber]: "" });
+    const handlePinSubmit = (invoice_number: string, pin: string) => {
+        if (!pin || pin.length !== 4) {
+            setPinErrors((prev) => ({
+                ...prev,
+                [invoice_number]: "PIN harus tepat 4 angka.",
+            }));
+            return;
+        }
+
+        setSubmittingInvoice(invoice_number);
+        setPinErrors((prev) => ({ ...prev, [invoice_number]: "" }));
 
         router.post(
-            route("tracker.completeBatchStop", [batchToken, invoiceNumber]),
+            route("tracker.completeBatchStop", {
+                batch_token: batchToken,
+                invoice_number: invoice_number,
+            }),
             { pin },
             {
                 preserveScroll: true,
                 onSuccess: () => {
                     setSubmittingInvoice(null);
                 },
-                onError: (err: any) => {
-                    setPinErrors({
-                        ...pinErrors,
-                        [invoiceNumber]: err?.error || "PIN tidak valid.",
-                    });
+                onError: (errors: any) => {
                     setSubmittingInvoice(null);
+                    setPinErrors((prev) => ({
+                        ...prev,
+                        [invoice_number]:
+                            errors.pin || errors.error || "Gagal verifikasi PIN. Coba lagi.",
+                    }));
                 },
             }
         );
     };
 
-    // Full Screen All Delivered Celebration
+    // ALL DELIVERED CELEBRATION SCREEN
     if (isAllDelivered) {
         return (
-            <div className="min-h-screen bg-[#14433D] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden font-sans">
-                <Head title={`Semua Pesanan Selesai - #${batchToken}`} />
+            <div className="min-h-screen bg-[#14433D] flex flex-col items-center justify-center p-6 text-center text-white relative overflow-hidden font-sans">
+                <Head title="Pengiriman Selesai - Cibenda Mart" />
+                <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-400/20 rounded-full blur-3xl" />
 
-                <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-[#41B9C5] rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-pulse" />
-                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-400 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-pulse delay-700" />
-
-                <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative z-10 text-center space-y-5 animate-[bounceIn_0.6s_ease-out]">
-                    <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <div className="bg-white text-slate-900 p-8 sm:p-10 rounded-3xl shadow-2xl max-w-md w-full relative z-10 animate-fade-in-up">
+                    <div className="w-20 h-20 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
                         <CheckCircle2 className="w-10 h-10" />
                     </div>
 
-                    <div>
-                        <h1 className="text-2xl font-black text-[#14433D]">Semua Pesanan Terkirim!</h1>
-                        <p className="text-xs text-gray-500 mt-1">
-                            Batch Pengiriman <span className="font-mono font-bold">#{batchToken}</span> ({totalStops} pesanan) telah selesai diantar dengan sukses.
-                        </p>
-                    </div>
-
-                    <div className="bg-gray-50 p-4 rounded-2xl text-left divide-y divide-gray-100 text-xs">
-                        <div className="pb-2 flex justify-between items-center text-gray-500 font-medium">
-                            <span>Total Pesanan Selesai</span>
-                            <span className="font-bold text-[#14433D]">{totalStops} Titik Stop</span>
-                        </div>
-                        <div className="pt-2 flex justify-between items-center text-gray-500 font-medium">
-                            <span>Status Escrow</span>
-                            <span className="font-bold text-emerald-600">✅ Saldo Diteruskan</span>
-                        </div>
-                    </div>
+                    <h1 className="text-2xl font-extrabold text-slate-900 mb-2">
+                        Semua Pengantaran Selesai!
+                    </h1>
+                    <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                        Kerja bagus! Sebanyak <strong>{totalStops} pesanan</strong> dalam
+                        pengiriman gabungan ini telah sukses sampai ke masing-masing alamat
+                        pelanggan.
+                    </p>
 
                     <button
-                        type="button"
                         onClick={() => (window.location.href = "/")}
-                        className="w-full py-3.5 bg-[#14433D] hover:bg-[#0f342f] text-white font-bold rounded-xl transition shadow-lg cursor-pointer"
+                        className="w-full bg-[#14433D] hover:bg-[#0f342f] text-white font-bold py-3.5 rounded-2xl transition shadow-lg shadow-[#14433D]/30 text-sm cursor-pointer"
                     >
-                        Tutup Halaman
+                        Kembali ke Beranda
                     </button>
                 </div>
             </div>
@@ -195,81 +221,120 @@ export default function BatchTracker({
     }
 
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
-            <Head title={`Multi-Stop Tracker - #${batchToken}`} />
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+            <Head title={`Rute Pengiriman (${totalStops} Alamat) - CiMart`} />
 
-            {/* Header */}
-            <header className="bg-[#14433D] text-white p-4 shadow-md sticky top-0 z-20">
-                <div className="max-w-3xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                            <Layers className="w-5 h-5 text-[#41B9C5]" />
+            {/* Header Sticky */}
+            <header className="bg-[#14433D] text-white py-3.5 px-4 sticky top-0 z-30 shadow-md">
+                <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-teal-300 shrink-0">
+                            <Layers className="w-5 h-5" />
                         </div>
-                        <div>
-                            <h1 className="text-sm font-extrabold tracking-wider">MULTI-STOP TRACKER</h1>
-                            <p className="text-xs text-[#41B9C5] font-mono">#{batchToken}</p>
+                        <div className="min-w-0">
+                            <h1 className="text-sm font-black tracking-wide flex items-center gap-2 truncate">
+                                RUTE GABUNGAN
+                                <span className="bg-teal-500/30 text-teal-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-400/30 shrink-0">
+                                    {totalStops} Alamat
+                                </span>
+                            </h1>
+                            <p className="text-[11px] text-teal-200/80 truncate max-w-[180px] sm:max-w-xs">
+                                {store.name}
+                            </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-semibold">
-                        {isDriver ? (
-                            <>
-                                <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                                <span className="text-emerald-300">Driver Mode</span>
-                            </>
-                        ) : (
-                            <>
-                                <Eye className="w-3.5 h-3.5 text-[#41B9C5]" />
-                                <span className="text-slate-200">Viewer Mode</span>
-                            </>
+                    {/* Right Controls: Role Badge & Manual Refresh Button */}
+                    <div className="flex items-center gap-2 shrink-0">
+                        {!isDriver && (
+                            <button
+                                onClick={handleManualRefresh}
+                                disabled={isRefreshing}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-xs font-bold text-white transition-all shadow-xs border border-white/20 cursor-pointer disabled:opacity-50"
+                                title="Perbarui posisi kurir sekarang"
+                            >
+                                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-teal-300' : ''}`} />
+                                <span className="hidden sm:inline">{isRefreshing ? 'Memperbarui...' : 'Refresh'}</span>
+                            </button>
                         )}
+
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-semibold">
+                            {isDriver ? (
+                                <>
+                                    <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                                    <span className="text-emerald-300 font-bold">Driver Mode</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Eye className="w-3.5 h-3.5 text-teal-300" />
+                                    <span className="text-slate-200 font-medium">Live Viewer</span>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1 max-w-3xl w-full mx-auto pb-24 space-y-4">
-                {/* Clean Modular Multi-Stop Map */}
+            <main className="flex-1 max-w-2xl w-full mx-auto pb-24 flex flex-col">
+                {/* Live Interactive Map with Real Road OSRM Route */}
                 <BatchMap
                     store={store}
-                    stops={stops as StopLocation[]}
+                    stops={stops}
                     driverPos={driverPos}
                     deliveredCount={deliveredCount}
                     totalStops={totalStops}
                     progressPercent={progressPercent}
+                    isDriver={isDriver}
+                    refreshCounter={refreshCounter}
                 />
 
-                {/* Google Maps Multi-Waypoint Navigation Button */}
-                {googleMapsUrl && (
-                    <div className="px-4">
+                {/* Google Maps Master Navigation Bar for Driver */}
+                {isDriver && googleMapsUrl && googleMapsUrl !== "#" && (
+                    <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 flex items-center justify-between gap-3 shadow-xs">
+                        <div className="text-xs text-slate-700 min-w-0">
+                            <span className="font-bold text-slate-900 block truncate">
+                                Navigasi Suara Belokan demi Belokan
+                            </span>
+                            <span className="text-[11px] text-slate-500">
+                                Buka rute Google Maps resmi terurut otomatis
+                            </span>
+                        </div>
                         <a
                             href={googleMapsUrl}
                             target="_blank"
-                            rel="noreferrer"
-                            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-[0.98] transition cursor-pointer"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 bg-[#006591] hover:bg-[#005174] text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-[#006591]/25 transition shrink-0 cursor-pointer"
                         >
-                            <Navigation className="w-4 h-4" />
-                            <span>📍 Buka Navigasi Rute di Google Maps</span>
-                            <ExternalLink className="w-3.5 h-3.5 ml-1 opacity-80" />
+                            <Navigation className="w-3.5 h-3.5" />
+                            <span>Buka Google Maps</span>
+                            <ExternalLink className="w-3 h-3 opacity-70" />
                         </a>
                     </div>
                 )}
 
-                {/* List of Ordered Stops */}
-                <div className="px-4 space-y-3">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">
-                        Daftar Titik Pengantaran ({totalStops} Stop)
-                    </h3>
+                {/* Stops Checklist Section */}
+                <div className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Urutan Pengantaran (Terdekat ke Terjauh)
+                        </h2>
+                        <span className="text-xs font-bold text-[#14433D]">
+                            {deliveredCount} dari {totalStops} Selesai
+                        </span>
+                    </div>
 
-                    {stops.map((stop) => (
-                        <BatchStopCard
-                            key={stop.id}
-                            stop={stop}
-                            isDriver={isDriver}
-                            onVerifyPin={handleVerifyPin}
-                            isSubmitting={submittingInvoice === stop.invoice_number}
-                            errorMessage={pinErrors[stop.invoice_number]}
-                        />
-                    ))}
+                    <div className="space-y-3">
+                        {stops.map((stop) => (
+                            <BatchStopCard
+                                key={stop.id}
+                                stop={stop}
+                                isDriver={isDriver}
+                                onVerifyPin={handlePinSubmit}
+                                isSubmitting={submittingInvoice === stop.invoice_number}
+                                errorMessage={pinErrors[stop.invoice_number]}
+                            />
+                        ))}
+                    </div>
                 </div>
             </main>
         </div>
