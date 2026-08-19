@@ -193,7 +193,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                     return [
                         'name' => $p->name,
                         'category' => $p->category->name ?? 'Uncategorized',
-                        'image' => $p->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47',
+                        'image' => $p->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                         'sold' => $p->order_items_sum_quantity ?? 0,
                         'price' => 'Rp '.number_format($p->price, 0, ',', '.'),
                         'status' => $p->stock > 0 ? 'In Stock' : 'Out of Stock',

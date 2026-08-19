@@ -36,7 +36,7 @@ const formatProduct = (product: any) => ({
     sold: product.sold || 0,
     image:
         product.image_path ||
-        "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400",
+        "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400",
 });
 
 // Sama persis dengan StoreProfileCard agar konsisten di seluruh app

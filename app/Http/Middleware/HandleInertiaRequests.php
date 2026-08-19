@@ -66,7 +66,7 @@ class HandleInertiaRequests extends Middleware
                             'price' => (float) ($matchingSku ? $matchingSku->price : ($cart->product->price ?? 0)),
                             'quantity' => $cart->quantity,
                             'variant_name' => $cart->preparation_option,
-                            'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=200',
+                            'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                         ];
                     }),
                 'total_count' => Cart::where('user_id', $request->user()->id)->count(),

@@ -33,7 +33,7 @@ class ProductReviewController extends Controller
                 'variant_name' => $orderItem->variant_name,
                 'quantity' => $orderItem->quantity,
                 'price' => $orderItem->price,
-                'image' => $orderItem->product ? ($orderItem->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200') : 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                'image' => $orderItem->product ? ($orderItem->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400') : 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                 'store_name' => $orderItem->order->store->name ?? 'Toko',
                 'existing_review' => $orderItem->review ? [
                     'rating' => $orderItem->review->rating,

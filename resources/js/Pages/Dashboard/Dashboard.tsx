@@ -46,15 +46,15 @@ export default function Dashboard({ categories, featuredProducts, stores = EMPTY
         sold: product.sold || 0,
         image:
             product.image_path ||
-            "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400",
+            "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400",
     }));
 
-    const formattedCategories = categories.map((cat, index) => ({
+    const formattedCategories = categories.map((cat) => ({
         id: cat.id,
         name: cat.name,
         image:
             cat.image_path ||
-            `https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400&sig=${index}`,
+            "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400",
     }));
 
     return (

@@ -63,7 +63,7 @@ export default function RecentOrders({ orders }: Props) {
                                     <td className="py-3 px-5 md:px-0 border-b border-gray-50">
                                         <div className="flex items-center gap-2">
                                             <img
-                                                src={order.product_image || "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47"}
+                                                src={order.product_image || "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400"}
                                                 alt="product"
                                                 className="w-8 h-8 rounded border border-gray-100 object-cover"
                                             />

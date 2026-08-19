@@ -3,10 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\Store;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -33,204 +29,21 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            Category::create([
-                'name' => $category,
-                'slug' => Str::slug($category),
-            ]);
+            Category::firstOrCreate(
+                ['name' => $category],
+                ['slug' => Str::slug($category)]
+            );
         }
 
-        $asep = User::create([
-            'name' => 'Kang Asep',
-            'email' => 'asep@pedagang.com',
-            'password' => Hash::make('password123'),
-            'role' => 'pedagang',
-            'is_password_changed' => true,
-        ]);
-
-        $storeAsep = Store::create([
-            'user_id' => $asep->id,
-            'name' => 'Warung Sembako Kang Asep',
-            'slug' => 'warung-sembako-kang-asep',
-            'description' => 'Sedia beras, gula, minyak goreng, dan bumbu dapur lengkap dengan harga grosir.',
-        ]);
-
-        $euis = User::create([
-            'name' => 'Bu Euis',
-            'email' => 'euis@pedagang.com',
-            'password' => Hash::make('password123'),
-            'role' => 'pedagang',
-            'is_password_changed' => true,
-        ]);
-
-        $storeEuis = Store::create([
-            'user_id' => $euis->id,
-            'name' => 'Toko Baju Euis',
-            'slug' => 'toko-baju-euis',
-            'description' => 'Koleksi pakaian terbaru, kaos, kemeja, dan celana jeans berkualitas export.',
-        ]);
-
-        $udin = User::create([
-            'name' => 'Mang Udin',
-            'email' => 'udin@pedagang.com',
-            'password' => Hash::make('password123'),
-            'role' => 'pedagang',
-            'is_password_changed' => true,
-        ]);
-        $storeUdin = Store::create([
-            'user_id' => $udin->id,
-            'name' => 'TokoSegar Buah',
-            'slug' => 'tokosegar-buah',
-            'description' => 'Menyediakan buah-buahan segar lokal dan impor kualitas terbaik setiap hari.',
-        ]);
-
-        $siti = User::create([
-            'name' => 'Bi Siti',
-            'email' => 'siti@pedagang.com',
-            'password' => Hash::make('password123'),
-            'role' => 'pedagang',
-            'is_password_changed' => true,
-        ]);
-        $storeSiti = Store::create([
-            'user_id' => $siti->id,
-            'name' => 'Sayur Mayur Siti',
-            'slug' => 'sayur-mayur-siti',
-            'description' => 'Sayur mayur organik hidroponik dan bumbu dapur segar petik langsung dari kebun.',
-        ]);
-
-        User::create([
-            'name' => 'Admin CibendaMart',
-            'email' => 'admin@cibendamart.com',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'is_password_changed' => true,
-        ]);
-
-        $budi = User::create([
-            'name' => 'Budi Pelanggan',
-            'email' => 'budi@pembeli.com',
-            'password' => Hash::make('password123'),
-            'role' => 'user', // Asumsi role pembeli lu namanya 'user'
-            'is_password_changed' => true,
-        ]);
-
-        // --- BIKIN PRODUK KANG ASEP ---
-        $sembakoId = Category::where('name', 'Sembako')->first()->id;
-        $seafoodId = Category::where('name', 'Seafood')->first()->id;
-
-        $beras = Product::create([
-            'store_id' => $storeAsep->id,
-            'category_id' => $sembakoId,
-            'name' => 'Beras Pandan Wangi 5kg',
-            'slug' => Str::slug('Beras Pandan Wangi 5kg-'.uniqid()),
-            'description' => 'Beras pulen kualitas premium dari petani lokal.',
-            'price' => 75000,
-            'stock' => 20,
-            'is_active' => true,
-        ]);
-
-        $udang = Product::create([
-            'store_id' => $storeAsep->id,
-            'category_id' => $seafoodId,
-            'name' => 'Udang Tiger Segar 1kg',
-            'slug' => Str::slug('Udang Tiger Segar 1kg-'.uniqid()),
-            'description' => 'Udang tangkapan nelayan hari ini.',
-            'price' => 120000,
-            'stock' => 10,
-            'is_active' => true,
-        ]);
-
-        $catPakaian = Category::where('name', 'Pakaian')->first()->id;
-        $catSayuran = Category::where('name', 'Sayuran')->first()->id;
-        $catLainnya = Category::where('name', 'Lainnya')->first()->id;
-
-        $productsData = [
-            ['store' => $storeAsep, 'cat' => $sembakoId, 'name' => 'Minyak Goreng 2L', 'price' => 35000],
-            ['store' => $storeAsep, 'cat' => $sembakoId, 'name' => 'Gula Pasir 1kg', 'price' => 15000],
-            ['store' => $storeAsep, 'cat' => $sembakoId, 'name' => 'Telur Ayam 1kg', 'price' => 28000],
-            ['store' => $storeEuis, 'cat' => $catPakaian, 'name' => 'Kaos Polos Katun', 'price' => 50000],
-            ['store' => $storeEuis, 'cat' => $catPakaian, 'name' => 'Celana Jeans Pria', 'price' => 120000],
-            ['store' => $storeEuis, 'cat' => $catPakaian, 'name' => 'Kemeja Batik', 'price' => 150000],
-            ['store' => $storeEuis, 'cat' => $catPakaian, 'name' => 'Jaket Hoodie', 'price' => 180000],
-            ['store' => $storeUdin, 'cat' => $catLainnya, 'name' => 'Jeruk Medan 1kg', 'price' => 35000],
-            ['store' => $storeUdin, 'cat' => $catLainnya, 'name' => 'Apel Fuji 1kg', 'price' => 45000],
-            ['store' => $storeUdin, 'cat' => $catLainnya, 'name' => 'Pisang Ambon 1 Sisir', 'price' => 20000],
-            ['store' => $storeSiti, 'cat' => $catSayuran, 'name' => 'Bayam Segar 1 Ikat', 'price' => 5000],
-            ['store' => $storeSiti, 'cat' => $catSayuran, 'name' => 'Kangkung 1 Ikat', 'price' => 4000],
-            ['store' => $storeSiti, 'cat' => $catSayuran, 'name' => 'Tomat Merah 1kg', 'price' => 12000],
-        ];
-
-        foreach ($productsData as $p) {
-            Product::create([
-                'store_id' => $p['store']->id,
-                'category_id' => $p['cat'],
-                'name' => $p['name'],
-                'slug' => Str::slug($p['name'].'-'.uniqid()),
-                'description' => 'Produk berkualitas dari '.$p['store']->name,
-                'price' => $p['price'],
-                'stock' => rand(10, 50),
-                'is_active' => true,
-            ]);
-        }
-
-        // ORDER 1: Udah Lunas & Dikirim (Isinya Beras & Udang)
-        $order1 = Order::create([
-            'store_id' => $storeAsep->id,
-            'user_id' => $budi->id,
-            'invoice_number' => '#ORD-'.strtoupper(Str::random(8)),
-            'customer_name' => $budi->name,
-            'customer_phone' => '081234567890',
-            'shipping_address' => 'Jl. Cibenda Raya No. 1, Pangandaran',
-            'delivery_method' => 'Standard',
-            'subtotal' => 195000, // 75k + 120k
-            'shipping_cost' => 15000,
-            'total_amount' => 210000,
-            'payment_method' => 'BANK_TRANSFER',
-            'payment_status' => 'paid',
-            'shipping_status' => 'shipped',
-            'created_at' => now()->subDays(2), // Dipesan 2 hari lalu
-        ]);
-
-        OrderItem::create(['order_id' => $order1->id, 'product_id' => $beras->id, 'product_name' => $beras->name, 'price' => $beras->price, 'quantity' => 1, 'unit' => 'pcs']);
-        OrderItem::create(['order_id' => $order1->id, 'product_id' => $udang->id, 'product_name' => $udang->name, 'price' => $udang->price, 'quantity' => 1, 'unit' => 'kg']);
-
-        // ORDER 2: Nunggu Pembayaran (Isinya Udang aja)
-        $order2 = Order::create([
-            'store_id' => $storeAsep->id,
-            'user_id' => $budi->id,
-            'invoice_number' => '#ORD-'.strtoupper(Str::random(8)),
-            'customer_name' => 'Asep Surasep (Teman Budi)',
-            'customer_phone' => '089876543210',
-            'shipping_address' => 'Desa Parigi Blok C No. 12',
-            'delivery_method' => 'COD',
-            'subtotal' => 240000, // 2kg udang
-            'shipping_cost' => 10000,
-            'total_amount' => 250000,
-            'payment_method' => 'COD',
-            'payment_status' => 'pending',
-            'shipping_status' => 'pending',
-            'created_at' => now()->subHours(5), // Dipesan 5 jam lalu
-        ]);
-
-        OrderItem::create(['order_id' => $order2->id, 'product_id' => $udang->id, 'product_name' => $udang->name, 'price' => $udang->price, 'quantity' => 2, 'unit' => 'kg']);
-
-        // ORDER 3: Udah Lunas, Tapi Belum Dikirim (Processing - Isinya Beras)
-        $order3 = Order::create([
-            'store_id' => $storeAsep->id,
-            'user_id' => $budi->id,
-            'invoice_number' => '#ORD-'.strtoupper(Str::random(8)),
-            'customer_name' => $budi->name,
-            'customer_phone' => '081234567890',
-            'shipping_address' => 'Jl. Cibenda Raya No. 1, Pangandaran',
-            'delivery_method' => 'Standard',
-            'subtotal' => 75000,
-            'shipping_cost' => 15000,
-            'total_amount' => 90000,
-            'payment_method' => 'MIDTRANS',
-            'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'created_at' => now()->subMinutes(30), // Dipesan 30 menit lalu
-        ]);
-
-        OrderItem::create(['order_id' => $order3->id, 'product_id' => $beras->id, 'product_name' => $beras->name, 'price' => $beras->price, 'quantity' => 1, 'unit' => 'pcs']);
+        User::updateOrCreate(
+            ['email' => 'admin@cibendamart.com'],
+            [
+                'name' => 'Admin CibendaMart',
+                'password' => Hash::make('password123'),
+                'role' => 'admin',
+                'is_password_changed' => true,
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }
