@@ -65,11 +65,21 @@ class FcmChannel
                 }, $payload['data']);
             }
 
-            // FCM v1 HTTP API Format
+            // FCM v1 HTTP API Format with High Urgency for instant desktop & mobile push
+            $baseConfig = [
+                'token' => $token,
+                'android' => [
+                    'priority' => 'high',
+                ],
+                'webpush' => [
+                    'headers' => [
+                        'Urgency' => 'high',
+                    ],
+                ],
+            ];
+
             $fcmMessage = [
-                'message' => array_merge([
-                    'token' => $token,
-                ], $payload),
+                'message' => array_merge($baseConfig, $payload),
             ];
 
             $response = Http::withToken($accessToken['access_token'])
