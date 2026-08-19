@@ -1,7 +1,8 @@
 import React from "react";
-import { Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { Star, ShoppingCart, Store } from "lucide-react";
 import toast from "react-hot-toast";
+import { PageProps } from "@/types";
 
 export interface ProductCardData {
     id: number | string;
@@ -80,9 +81,18 @@ export default function ProductCard({ product }: { product: any }) {
         product.image_path ||
         "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400";
 
+    const { auth } = usePage<PageProps>().props;
+    const user = auth?.user;
+
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (!user) {
+            toast.error("Silakan login terlebih dahulu untuk menambah produk ke keranjang!");
+            router.visit(route("login"));
+            return;
+        }
 
         router.post(
             "/cart",
