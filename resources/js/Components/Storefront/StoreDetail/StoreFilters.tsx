@@ -66,13 +66,13 @@ export default function StoreFilters({ currentFilter, onFilterChange }: Props) {
                     }`}>
                         <button 
                             onClick={() => handleHargaClick('harga_rendah')}
-                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 ${currentFilter === 'harga_rendah' ? 'text-[#245D56] font-bold bg-teal-50/30' : 'text-gray-700'}`}
+                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 ${currentFilter === 'harga_rendah' ? 'text-brand-teal font-bold bg-teal-50/30' : 'text-gray-700'}`}
                         >
                             Rendah ke Tinggi
                         </button>
                         <button 
                             onClick={() => handleHargaClick('harga_tinggi')}
-                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 ${currentFilter === 'harga_tinggi' ? 'text-[#245D56] font-bold bg-teal-50/30' : 'text-gray-700'}`}
+                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 ${currentFilter === 'harga_tinggi' ? 'text-brand-teal font-bold bg-teal-50/30' : 'text-gray-700'}`}
                         >
                             Tinggi ke Rendah
                         </button>

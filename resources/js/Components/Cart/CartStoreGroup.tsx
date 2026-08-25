@@ -141,14 +141,14 @@ export default function CartStoreGroup({
 
                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                 {item.prepOption && (
-                                    <span className="bg-[#EAF7F7] text-[#245D56] text-[10px] md:text-xs font-bold px-2 py-0.5 rounded border border-[#245D56]/20">
+                                    <span className="bg-brand-blue-tint text-brand-blue text-[10px] md:text-xs font-bold px-2 py-0.5 rounded border border-brand-blue-light/30">
                                         {item.prepOption}
                                     </span>
                                 )}
                             </div>
 
                             <div className="flex items-baseline gap-1 mt-1 md:mt-2">
-                                <p className="font-bold text-[#F77F00] text-sm md:text-base">
+                                <p className="font-bold text-brand-orange text-sm md:text-base">
                                     Rp{" "}
                                     {Number(item.price).toLocaleString("id-ID")}
                                 </p>

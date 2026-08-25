@@ -33,7 +33,7 @@ export default function Login() {
                             type="email"
                             value={data.email}
                             onChange={(e) => setData("email", e.target.value)}
-                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none text-gray-900 shadow-inner transition"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none text-gray-900 shadow-inner transition"
                             required
                         />
                         {errors.email && (
@@ -54,7 +54,7 @@ export default function Login() {
                             onChange={(e) =>
                                 setData("password", e.target.value)
                             }
-                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none text-gray-900 shadow-inner transition"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none text-gray-900 shadow-inner transition"
                             required
                         />
                         {errors.password && (
@@ -69,7 +69,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full max-w-50 px-4 py-3 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white font-bold transition hover:scale-105 disabled:opacity-70 shadow-lg shadow-[#004F54]/50"
+                            className="w-full max-w-50 px-4 py-3 rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white font-bold transition hover:scale-105 disabled:opacity-70 shadow-lg shadow-brand-orange/30 cursor-pointer"
                         >
                             Masuk
                         </button>

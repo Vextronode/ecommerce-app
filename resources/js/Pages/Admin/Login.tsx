@@ -111,20 +111,20 @@ export default function AdminLogin() {
             {/* Modal Popup Lupa Password Admin */}
             {isForgotModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200">
-                    <div className="relative w-full max-w-lg bg-[#004246] border border-white/20 rounded-3xl p-6 sm:p-8 shadow-2xl text-white overflow-hidden">
-                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#41B9C5]/20 rounded-full blur-3xl pointer-events-none" />
+                    <div className="relative w-full max-w-lg bg-slate-900 border border-white/20 rounded-3xl p-6 sm:p-8 shadow-2xl text-white overflow-hidden">
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-brand-blue/30 rounded-full blur-3xl pointer-events-none" />
 
                         {/* Modal Header */}
                         <div className="flex items-start justify-between mb-5">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 rounded-2xl bg-[#41B9C5]/20 border border-[#41B9C5]/30 text-[#41B9C5]">
+                                <div className="p-2.5 rounded-2xl bg-brand-orange/20 border border-brand-orange/30 text-brand-orange">
                                     <KeyRound className="w-6 h-6" />
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-white">
                                         Pemulihan Akun Administrator
                                     </h3>
-                                    <p className="text-xs text-teal-200/80">
+                                    <p className="text-xs text-slate-300">
                                         Protokol Keamanan Sistem CibendaMart
                                     </p>
                                 </div>
@@ -140,8 +140,8 @@ export default function AdminLogin() {
                         </div>
 
                         {/* Security Notice Box */}
-                        <div className="mb-5 p-4 rounded-2xl bg-black/30 border border-teal-500/20 text-xs text-teal-100 space-y-2">
-                            <div className="flex items-center gap-2 font-semibold text-[#41B9C5]">
+                        <div className="mb-5 p-4 rounded-2xl bg-black/30 border border-white/10 text-xs text-slate-200 space-y-2">
+                            <div className="flex items-center gap-2 font-semibold text-brand-orange">
                                 <ShieldAlert className="w-4 h-4 shrink-0" />
                                 <span>Reset Mandiri Dinonaktifkan</span>
                             </div>
@@ -152,12 +152,12 @@ export default function AdminLogin() {
 
                         {/* Recovery Steps */}
                         <div className="space-y-3 mb-6">
-                            <p className="text-xs font-semibold text-teal-200 uppercase tracking-wider">
+                            <p className="text-xs font-semibold text-sky-300 uppercase tracking-wider">
                                 Cara Mereset Kredensial:
                             </p>
 
                             <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                                <Mail className="w-4 h-4 text-[#41B9C5] shrink-0 mt-0.5" />
+                                <Mail className="w-4 h-4 text-brand-orange shrink-0 mt-0.5" />
                                 <div className="text-xs text-gray-200">
                                     <span className="font-semibold text-white">Hubungi Super Admin / Webmaster:</span>
                                     <p className="text-gray-400 mt-0.5">
@@ -172,7 +172,7 @@ export default function AdminLogin() {
                             <button
                                 type="button"
                                 onClick={() => setIsForgotModalOpen(false)}
-                                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white font-bold text-xs transition shadow-lg shadow-[#004F54]/50 cursor-pointer"
+                                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-xs transition shadow-lg shadow-brand-orange/30 cursor-pointer"
                             >
                                 Mengerti
                             </button>

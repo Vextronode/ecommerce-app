@@ -136,7 +136,7 @@ export default function ProductCard({ product }: { product: any }) {
 
                 {/* Product Title */}
                 <h3
-                    className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 leading-snug mb-1 group-hover/card:text-[#004F54] transition-colors"
+                    className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 leading-snug mb-1 group-hover/card:text-brand-teal-deep transition-colors"
                     title={name}
                 >
                     {name}
@@ -145,8 +145,8 @@ export default function ProductCard({ product }: { product: any }) {
                 {/* Store Name */}
                 {storeName && (
                     <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
-                        <Store className="w-3.5 h-3.5 text-[#215B63] shrink-0" />
-                        <span className="truncate font-medium hover:text-[#215B63] transition-colors">
+                        <Store className="w-3.5 h-3.5 text-brand-teal-deep shrink-0" />
+                        <span className="truncate font-medium hover:text-brand-teal-deep transition-colors">
                             {storeName}
                         </span>
                     </div>
@@ -156,7 +156,7 @@ export default function ProductCard({ product }: { product: any }) {
                 <div className="flex items-center justify-between text-xs sm:text-sm mb-3">
                     {/* Rating */}
                     <div className="flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF7A00] fill-[#FF7A00]" />
+                        <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-orange fill-brand-orange" />
                         <span className="font-semibold text-gray-800 text-xs sm:text-sm">
                             ({ratingDisplay})
                         </span>
@@ -179,7 +179,7 @@ export default function ProductCard({ product }: { product: any }) {
                     <button
                         type="button"
                         onClick={handleAddToCart}
-                        className="p-1 text-[#FF7A00] hover:text-[#E06900] hover:scale-110 active:scale-95 transition cursor-pointer flex items-center justify-center shrink-0"
+                        className="p-1 text-brand-orange hover:text-brand-orange-hover hover:scale-110 active:scale-95 transition cursor-pointer flex items-center justify-center shrink-0"
                         title="Tambah ke Keranjang"
                     >
                         <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />

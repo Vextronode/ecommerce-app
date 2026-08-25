@@ -68,16 +68,16 @@ export default function ProductActions({
             <button
                 onClick={handleBuyNow}
                 disabled={disabled}
-                className="bg-[#ED7218] text-white py-4 rounded-xl font-bold text-sm hover:opacity-90 transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="bg-brand-orange text-white py-4 rounded-xl font-bold text-sm hover:bg-brand-orange-hover transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
                 Beli Sekarang
             </button>
             <button
                 onClick={handleAddToCart}
                 disabled={disabled}
-                className="bg-white text-[#006591] py-4 rounded-xl font-bold text-sm border-2 border-[#006591] hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="bg-white text-brand-blue py-4 rounded-xl font-bold text-sm border-2 border-brand-blue hover:bg-brand-blue-tint/30 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-                <ShoppingCart className="w-4 h-4 text-[#006591]" /> + Keranjang
+                <ShoppingCart className="w-4 h-4 text-brand-blue" /> + Keranjang
             </button>
         </div>
     );

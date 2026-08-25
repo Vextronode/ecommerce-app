@@ -6,7 +6,7 @@ import AuthBranding from "@/Components/AuthBranding";
 
 const WaveEdge = ({ side }: { side: "right" | "left" }) => (
     <div
-        className="absolute top-0 bottom-0 w-[100px] text-[#245D56]"
+        className="absolute top-0 bottom-0 w-[100px] text-brand-blue"
         style={
             side === "right"
                 ? { right: "-99px" }
@@ -38,45 +38,20 @@ export default function AuthLayout({ children }: PropsWithChildren) {
         contentControls.set({ opacity: 0 });
 
         async function runAnimation() {
-            if (!isLogin) {
-                await panelControls.start({
-                    // eslint-disable-next-line react-doctor/no-layout-property-animation
-                    width: "115%",
-                    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                });
-                await panelControls.start({
-                    // eslint-disable-next-line react-doctor/no-layout-property-animation
-                    left: "50%",
-                    // eslint-disable-next-line react-doctor/no-layout-property-animation
-                    width: "50%",
-                    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                });
-            } else {
-                await panelControls.start({
-                    // eslint-disable-next-line react-doctor/no-layout-property-animation
-                    left: "-15%",
-                    // eslint-disable-next-line react-doctor/no-layout-property-animation
-                    width: "115%",
-                    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                });
-                await panelControls.start({
-                    // eslint-disable-next-line react-doctor/no-layout-property-animation
-                    left: "0%",
-                    // eslint-disable-next-line react-doctor/no-layout-property-animation
-                    width: "50%",
-                    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
-                });
-            }
-
+            // Step 1: Animate the blue panel across
+            await panelControls.start({
+                left: isLogin ? "0%" : "50%",
+                transition: { duration: 0.65, ease: [0.65, 0, 0.35, 1] },
+            });
+            // Step 2: Fade the new content in
             await contentControls.start({
                 opacity: 1,
-                transition: { duration: 0.25 },
+                transition: { duration: 0.3, ease: "easeOut" },
             });
         }
 
         runAnimation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLogin]);
+    }, [isLogin, panelControls, contentControls]);
 
     return (
         <div className="relative w-full min-h-screen overflow-hidden bg-[#F0F2F5]">
@@ -91,7 +66,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                     }}
                     animate={panelControls}
                 >
-                    <div className="absolute inset-0 bg-[#245D56]" />
+                    <div className="absolute inset-0 bg-brand-blue" />
                     <WaveEdge side="right" />
                     <WaveEdge side="left" />
                 </motion.div>
@@ -128,7 +103,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
             </div>
 
             <div className="md:hidden flex flex-col min-h-screen">
-                <div className="bg-[#245D56] flex items-center justify-center py-14 px-6">
+                <div className="bg-brand-blue flex items-center justify-center py-14 px-6">
                     <AuthBranding type={isLogin ? "login" : "register"} />
                 </div>
                 <svg
@@ -138,7 +113,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                 >
                     <path
                         d="M0,0 C360,60 1080,-20 1440,40 L1440,0 L0,0 Z"
-                        fill="#245D56"
+                        fill="var(--color-blue-primary)"
                     />
                 </svg>
 

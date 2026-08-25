@@ -7,7 +7,7 @@ export default function HeroSection() {
     return (
         <div className="w-full mx-auto px-4 md:px-8 mt-32 md:mt-32 mb-8 md:mb-28 relative">
             {/* Main Banner */}
-            <div className="relative w-full bg-gradient-to-r from-[#DF7324] to-[#E88232] rounded-3xl md:rounded-[32px] px-6 md:px-16 pt-6 pb-6 md:pt-8 md:pb-24 flex flex-col md:flex-row items-center justify-between overflow-hidden shadow-sm">
+            <div className="relative w-full bg-gradient-to-r from-brand-orange-hover to-brand-orange-light rounded-3xl md:rounded-[32px] px-6 md:px-16 pt-6 pb-6 md:pt-8 md:pb-24 flex flex-col md:flex-row items-center justify-between overflow-hidden shadow-sm">
                 
                 {/* Diagonal overlay (two-tone effect) */}
                 <div className="absolute top-0 right-0 bottom-0 left-[45%] bg-white/5 skew-x-[-25deg] pointer-events-none transform origin-bottom"></div>
@@ -29,7 +29,7 @@ export default function HeroSection() {
                     <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3 md:gap-4">
                         <Link 
                             href="/shop"
-                            className="bg-[#F8F9FA] hover:bg-white text-[#DF7324] font-bold px-6 md:px-8 py-3 md:py-3.5 rounded-xl transition-colors shadow-sm w-full sm:w-auto text-sm md:text-base text-center"
+                            className="bg-white hover:bg-white/90 text-brand-orange font-bold px-6 md:px-8 py-3 md:py-3.5 rounded-xl transition-colors shadow-sm w-full sm:w-auto text-sm md:text-base text-center"
                             aria-label="Belanja Sekarang"
                         >
                             Belanja Sekarang

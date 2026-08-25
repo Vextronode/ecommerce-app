@@ -8,13 +8,13 @@ export default function AboutSection() {
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-24">
                     {/* TEXT CONTENT */}
                     <div className="w-full lg:w-1/2 flex flex-col justify-center items-center lg:items-start text-center lg:text-left">
-                        <p className="font-bold text-base md:text-lg mb-2 text-[#383A7D]">
+                        <p className="font-bold text-base md:text-lg mb-2 text-brand-cyan">
                             Tentang CibendaMart
                         </p>
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#281B7A] mb-6 leading-tight tracking-tight">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-brand-teal-deep mb-6 leading-tight tracking-tight">
                             UMKM Desa Cibenda
                         </h2>
-                        <p className="text-[#474552] text-sm md:text-base leading-relaxed mb-8 max-w-lg font-medium">
+                        <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-8 max-w-lg font-medium">
                             CibendaMart merupakan marketplace lokal yang menghubungkan
                             masyarakat dengan pedagang.
                         </p>
@@ -24,7 +24,7 @@ export default function AboutSection() {
                             href="https://cibenda.desa.id"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-[#EC922D] hover:bg-[#d68326] text-white font-bold text-sm md:text-base px-10 py-3.5 rounded-full transition-colors shadow-lg shadow-[#EC922D]/30"
+                            className="bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-sm md:text-base px-10 py-3.5 rounded-full transition-colors shadow-lg shadow-brand-orange/30"
                         >
                             Jelajahi
                         </a>

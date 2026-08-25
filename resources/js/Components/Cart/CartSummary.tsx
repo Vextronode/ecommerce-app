@@ -42,7 +42,7 @@ export default function CartSummary({
                     <span className="text-sm font-medium text-slate-500">
                         Total Payment
                     </span>
-                    <span className="text-xl font-bold text-[#F77F00]">
+                    <span className="text-xl font-bold text-brand-orange">
                         Rp {totalPayment.toLocaleString("id-ID")}
                     </span>
                 </div>
@@ -52,7 +52,7 @@ export default function CartSummary({
                     disabled={selectedCount === 0}
                     className={`w-full flex items-center justify-center font-bold py-3.5 rounded-2xl transition shadow-lg mb-4 ${
                         selectedCount > 0
-                            ? "bg-[#ED7218] text-white hover:opacity-90 shadow-[#ED7218]/20 cursor-pointer"
+                            ? "bg-brand-orange text-white hover:bg-brand-orange-hover shadow-brand-orange/20 cursor-pointer"
                             : "bg-gray-200 text-gray-400 pointer-events-none"
                     }`}
                 >
@@ -67,7 +67,7 @@ export default function CartSummary({
 
             <Link
                 href={route("shop")}
-                className="w-full flex items-center justify-center gap-2 bg-[#ED7218] text-white font-bold py-3.5 rounded-2xl hover:opacity-90 transition"
+                className="w-full flex items-center justify-center gap-2 bg-brand-orange text-white font-bold py-3.5 rounded-2xl hover:bg-brand-orange-hover transition"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Kembali belanja

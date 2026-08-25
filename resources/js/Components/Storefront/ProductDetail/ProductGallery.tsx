@@ -61,8 +61,8 @@ export default function ProductGallery({
                             className={`relative flex-1 aspect-square rounded-xl overflow-hidden transition-colors duration-200 focus:outline-none ${
                                 index === selectedImageIndex &&
                                 !(isLastThumbnail && hasMore)
-                                    ? "border-2 border-[#41B9C5] shadow-md p-0.5"
-                                    : "border border-gray-200 hover:border-[#41B9C5]/50 hover:shadow-sm opacity-90 hover:opacity-100"
+                                    ? "border-2 border-brand-cyan shadow-md p-0.5"
+                                    : "border border-gray-200 hover:border-brand-cyan/50 hover:shadow-sm opacity-90 hover:opacity-100"
                             }`}
                         >
                             <img
@@ -117,7 +117,7 @@ export default function ProductGallery({
                                         }}
                                         className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-colors group ${
                                             idx === selectedImageIndex
-                                                ? "border-[#41B9C5] shadow-md p-1"
+                                                ? "border-brand-cyan shadow-md p-1"
                                                 : "border-transparent hover:border-gray-200"
                                         }`}
                                     >
@@ -127,7 +127,7 @@ export default function ProductGallery({
                                             className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-110"
                                         />
                                         {idx === selectedImageIndex && (
-                                            <div className="absolute top-3 right-3 bg-[#41B9C5] text-white text-[10px] font-extrabold px-2 py-1 rounded-full shadow-sm z-10">
+                                            <div className="absolute top-3 right-3 bg-brand-cyan text-white text-[10px] font-extrabold px-2 py-1 rounded-full shadow-sm z-10">
                                                 Aktif
                                             </div>
                                         )}

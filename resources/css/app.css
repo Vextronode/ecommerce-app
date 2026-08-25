@@ -1,11 +1,88 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+:root {
+    /* BRAND ORANGE (Primary Storefront, CTA, Price, Cart, Rating, Follow) */
+    --color-orange-primary: #ED7218;
+    --color-orange-hover: #D95C00;
+    --color-orange-dark: #C44E00;
+    --color-orange-light: #F77F00;
+    --color-orange-tint: #FFF4EC;
+    --color-orange-soft: #FFF9F5;
+
+    /* BRAND BLUE (Courier Live Tracking, Navigation, Batch Delivery, Merchant System) */
+    --color-blue-primary: #006591;
+    --color-blue-hover: #004B6E;
+    --color-blue-dark: #003853;
+    --color-blue-light: #0284C7;
+    --color-blue-sky: #38BDF8;
+    --color-blue-tint: #E0F2FE;
+    --color-blue-soft: #F0F9FF;
+
+    /* HARMONIZED BRAND ALIASES (Aligned with Brand Blue & Ocean Navy) */
+    --color-teal-deep: var(--color-blue-dark);        /* Dark Navy for Headings */
+    --color-teal-forest: var(--color-blue-primary);    /* Primary Brand Blue */
+    --color-teal-hover: var(--color-blue-hover);       /* Darker Blue on Hover */
+    --color-cyan-vibrant: var(--color-blue-light);     /* Bright Ocean Blue Accents */
+    --color-cyan-tint: var(--color-blue-tint);         /* Soft Sky Tint for Badges */
+    --color-cyan-soft: var(--color-blue-soft);         /* Ultra-light Blue Tint */
+
+    /* SYSTEM STATUS COLORS */
+    --color-status-success: #10B981;   /* Delivered, Paid, Active */
+    --color-status-success-dark: #059669;
+    --color-status-success-tint: #ECFDF5;
+
+    --color-status-warning: #F59E0B;   /* Pending, Process, Warning */
+    --color-status-warning-dark: #D97706;
+    --color-status-warning-tint: #FFFBEB;
+
+    --color-status-danger: #EF4444;    /* Cancelled, Error, Out of Stock */
+    --color-status-danger-dark: #DC2626;
+    --color-status-danger-tint: #FEF2F2;
+
+    /* SURFACES & NEUTRALS */
+    --color-bg-main: #F8FAFC;
+    --color-surface-white: #FFFFFF;
+    --color-surface-muted: #F1F5F9;
+    --color-border-subtle: #E2E8F0;
+    --color-border-light: #F1F5F9;
+
+    --color-text-title: #0F172A;
+    --color-text-body: #334155;
+    --color-text-muted: #64748B;
+    --color-text-light: #94A3B8;
+}
+
+@theme {
+    /* Brand Orange Utilities: bg-brand-orange, text-brand-orange, border-brand-orange */
+    --color-brand-orange: var(--color-orange-primary);
+    --color-brand-orange-hover: var(--color-orange-hover);
+    --color-brand-orange-light: var(--color-orange-light);
+    --color-brand-orange-tint: var(--color-orange-tint);
+
+    /* Brand Blue Utilities: bg-brand-blue, text-brand-blue, border-brand-blue */
+    --color-brand-blue: var(--color-blue-primary);
+    --color-brand-blue-hover: var(--color-blue-hover);
+    --color-brand-blue-dark: var(--color-blue-dark);
+    --color-brand-blue-light: var(--color-blue-light);
+    --color-brand-blue-tint: var(--color-blue-tint);
+    --color-brand-blue-soft: var(--color-blue-soft);
+
+    /* Harmonized Aliases to Brand Blue */
+    --color-brand-teal: var(--color-blue-primary);
+    --color-brand-teal-deep: var(--color-blue-dark);
+    --color-brand-teal-hover: var(--color-blue-hover);
+    --color-brand-cyan: var(--color-blue-light);
+    --color-brand-cyan-tint: var(--color-blue-tint);
+    --color-brand-cyan-soft: var(--color-blue-soft);
+}
+
 /* Prevent horizontal scroll at the document level — safe for position:sticky */
 html, body {
     overflow-x: hidden;
+    background-color: var(--color-bg-main);
+    color: var(--color-text-title);
 }
-
 
 .leaflet-container {
     z-index: 10;

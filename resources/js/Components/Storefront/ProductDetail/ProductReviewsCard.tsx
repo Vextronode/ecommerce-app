@@ -84,7 +84,7 @@ export default function ProductReviewsCard({ reviews = [], reviewsCount = 0, ave
                 </div>
                 <a
                     href="#"
-                    className="text-sm font-bold text-[#0066CC] hover:text-[#1a443f] transition whitespace-nowrap"
+                    className="text-sm font-bold text-brand-blue hover:text-brand-teal transition whitespace-nowrap"
                 >
                     See all
                 </a>

@@ -67,7 +67,7 @@ export default function StoreProfileCard({ store }: StoreProfileProps) {
                     <p className="text-sm text-gray-500 mb-3">{store.description || "Toko Kelontong"}</p>
                     <Link
                         href={route('store.detail', store.slug)}
-                        className="inline-flex items-center justify-center gap-1.5 border border-[#41B9C5] text-[#41B9C5] text-xs font-medium px-4 py-1.5 rounded bg-[#e0f7fa]/30 hover:bg-[#41B9C5] hover:text-white transition-colors w-fit"
+                        className="inline-flex items-center justify-center gap-1.5 border border-brand-cyan text-brand-cyan text-xs font-medium px-4 py-1.5 rounded bg-brand-cyan-soft hover:bg-brand-cyan hover:text-white transition-colors w-fit"
                     >
                         <Store className="w-3.5 h-3.5" />
                         Kunjungin Toko
@@ -84,19 +84,19 @@ export default function StoreProfileCard({ store }: StoreProfileProps) {
             <div className="flex-1 grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
                 <div className="flex items-center justify-between md:justify-start gap-2 md:gap-8">
                     <span className="text-gray-500">Penilaian Toko</span>
-                    <span className="font-medium text-[#ED7218]">{ratingDisplay}</span>
+                    <span className="font-medium text-brand-orange">{ratingDisplay}</span>
                 </div>
                 <div className="flex items-center justify-between md:justify-start gap-2 md:gap-8">
                     <span className="text-gray-500">Total Produk</span>
-                    <span className="font-medium text-[#ED7218]">{store.products_count || 0}</span>
+                    <span className="font-medium text-brand-orange">{store.products_count || 0}</span>
                 </div>
                 <div className="flex items-center justify-between md:justify-start gap-2 md:gap-8">
                     <span className="text-gray-500">Pengikut</span>
-                    <span className="font-medium text-[#ED7218]">{formatNumber(store.followers_count || 0)}</span>
+                    <span className="font-medium text-brand-orange">{formatNumber(store.followers_count || 0)}</span>
                 </div>
                 <div className="flex items-center justify-between md:justify-start gap-2 md:gap-8">
                     <span className="text-gray-500">Bergabung</span>
-                    <span className="font-medium text-[#ED7218]">{getJoinedText(store.created_at)}</span>
+                    <span className="font-medium text-brand-orange">{getJoinedText(store.created_at)}</span>
                 </div>
             </div>
 

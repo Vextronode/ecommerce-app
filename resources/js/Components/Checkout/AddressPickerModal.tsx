@@ -71,7 +71,7 @@ export default function AddressPickerModal({
                                     }}
                                     className={`w-full rounded-2xl border p-4 text-left transition ${
                                         selectedAddressId === address.id
-                                            ? "border-[#245D56] bg-[#245D56]/5"
+                                            ? "border-brand-blue bg-brand-blue-tint/30"
                                             : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"
                                     }`}
                                 >
@@ -80,7 +80,7 @@ export default function AddressPickerModal({
                                             {address.label}
                                         </span>
                                         {Boolean(address.is_primary) && (
-                                            <span className="rounded-full bg-[#245D56]/10 px-3 py-1 text-xs font-bold text-[#245D56]">
+                                            <span className="rounded-full bg-brand-blue-tint px-3 py-1 text-xs font-bold text-brand-blue">
                                                 Utama
                                             </span>
                                         )}
@@ -103,7 +103,7 @@ export default function AddressPickerModal({
                         <button
                             type="button"
                             onClick={() => setIsAddressFormOpen(true)}
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#245D56] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#245D56]/15 transition hover:bg-[#1a443f]"
+                            className="inline-flex items-center gap-2 rounded-xl bg-brand-orange px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-orange/20 transition hover:bg-brand-orange-hover cursor-pointer"
                         >
                             <Plus className="h-4 w-4" />
                             Tambah Alamat Baru

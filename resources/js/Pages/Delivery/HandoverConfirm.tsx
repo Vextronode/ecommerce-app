@@ -77,10 +77,10 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
             <div className="max-w-md w-full mx-auto space-y-4 my-auto">
                 {/* Header */}
                 <div className="text-center space-y-1.5">
-                    <div className="w-12 h-12 bg-[#EAF7F7] text-[#14433D] rounded-2xl flex items-center justify-center mx-auto mb-2 border border-[#41B9C5]/30 shadow-xs">
-                        <Truck className="w-6 h-6 text-[#14433D]" />
+                    <div className="w-12 h-12 bg-brand-blue-tint text-brand-blue rounded-2xl flex items-center justify-center mx-auto mb-2 border border-brand-blue-light/30 shadow-xs">
+                        <Truck className="w-6 h-6 text-brand-blue" />
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-teal-50 text-[#14433D] text-[11px] font-semibold border border-teal-200/60">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-brand-blue-tint text-brand-blue text-[11px] font-semibold border border-brand-blue-light/30">
                         Kurir Toko
                     </span>
                     <h1 className="text-xl font-extrabold text-gray-900">
@@ -98,7 +98,7 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
                         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-amber-800 text-xs">
                             <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
                             <p>
-                                Pesanan ini sudah berstatus <strong>Dikirim</strong>. Anda dapat langsung melanjutkan ke halaman pelacak GPS.
+                                <strong>Info:</strong> Pesanan ini sudah dalam status pengantaran. Anda dapat langsung membuka rute navigasi.
                             </p>
                         </div>
                     )}
@@ -112,37 +112,26 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
                         </div>
                     )}
 
-                    {/* Route Details */}
+                    {/* Origin & Destination */}
                     <div className="space-y-3">
-                        {/* Origin Store */}
-                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                            <div className="w-8 h-8 rounded-lg bg-teal-100 text-[#14433D] flex items-center justify-center shrink-0">
+                        {/* Store Origin */}
+                        <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div className="w-8 h-8 rounded-lg bg-brand-blue-tint text-brand-blue flex items-center justify-center shrink-0 mt-0.5">
                                 <Store className="w-4 h-4" />
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <div className="min-w-0 flex-1">
                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
                                     Titik Ambil (Toko)
                                 </span>
-                                <p className="text-sm font-bold text-gray-900 truncate mt-0.5">
+                                <h4 className="font-bold text-sm text-gray-900 truncate">
                                     {order.store_name}
-                                </p>
+                                </h4>
                             </div>
                         </div>
 
-                        {/* Distance Indicator */}
-                        {estimatedDistanceKm !== null && estimatedDistanceKm !== undefined && (
-                            <div className="flex items-center justify-center gap-2 py-0.5">
-                                <div className="h-px bg-gray-200 flex-1" />
-                                <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
-                                    ± {estimatedDistanceKm} km
-                                </span>
-                                <div className="h-px bg-gray-200 flex-1" />
-                            </div>
-                        )}
-
                         {/* Destination Buyer */}
                         <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                            <div className="w-8 h-8 rounded-lg bg-orange-100 text-[#ED7218] flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-brand-orange-tint text-brand-orange flex items-center justify-center shrink-0">
                                 <MapPin className="w-4 h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -153,7 +142,7 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
                                     {order.customer_phone && (
                                         <a
                                             href={`tel:${order.customer_phone}`}
-                                            className="text-[11px] text-[#41B9C5] font-semibold flex items-center gap-1 hover:underline"
+                                            className="text-[11px] text-brand-blue font-semibold flex items-center gap-1 hover:underline"
                                         >
                                             <Phone className="w-3 h-3" />
                                             <span>Hubungi</span>
@@ -210,7 +199,7 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
                         {/* Total Payment */}
                         <div className="pt-2 border-t border-gray-200 flex justify-between items-center">
                             <span className="text-xs font-bold text-gray-900">Total Pembayaran:</span>
-                            <span className="text-sm font-extrabold text-[#14433D]">
+                            <span className="text-sm font-extrabold text-brand-orange">
                                 {formatRupiah(order.total_amount)}
                             </span>
                         </div>
@@ -236,7 +225,7 @@ export default function HandoverConfirm({ order, estimatedDistanceKm }: Props) {
                             type="button"
                             disabled={isSubmitting}
                             onClick={handleAcceptHandover}
-                            className="w-full py-3.5 px-5 rounded-xl bg-[#14433D] hover:bg-[#0f342f] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                            className="w-full py-3.5 px-5 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                         >
                             {isSubmitting ? (
                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

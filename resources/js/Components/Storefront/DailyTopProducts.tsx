@@ -35,12 +35,12 @@ export default function DailyTopProducts({ products }: DailyTopProductsProps) {
     if (!displayProducts.length) return null;
 
     return (
-        <section className="w-full py-12 md:py-16 bg-[#FFDAD6]/20">
+        <section className="w-full py-12 md:py-16 bg-brand-orange-tint/40">
             <div className="w-full xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 md:px-8">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 flex items-center gap-2">
-                        Top Products <Zap className="w-6 h-6 md:w-8 md:h-8 text-[#ED7218] fill-[#ED7218]" />
+                        Top Products <Zap className="w-6 h-6 md:w-8 md:h-8 text-brand-orange fill-brand-orange" />
                     </h2>
                 </div>
 

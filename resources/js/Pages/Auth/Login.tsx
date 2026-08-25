@@ -66,7 +66,7 @@ const Login = () => {
                     don't have an account?{" "}
                     <Link
                         href={route("register")}
-                        className="text-[#1ABCFE] hover:text-[#0c9bd3] transition-colors duration-200 font-medium"
+                        className="text-brand-blue hover:text-brand-blue-hover transition-colors duration-200 font-semibold"
                     >
                         Sign Up
                     </Link>

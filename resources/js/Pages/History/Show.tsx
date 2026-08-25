@@ -118,7 +118,7 @@ export default function Show({ order }: { order: any }) {
                                     <div className="mt-3">
                                         <Link
                                             href={`/payment/${order.id}`}
-                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#ED7218] hover:bg-[#d66311] px-3.5 py-2 rounded-xl shadow-xs transition"
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-brand-orange hover:bg-brand-orange-hover px-3.5 py-2 rounded-xl shadow-xs transition"
                                         >
                                             Bayar Sekarang
                                         </Link>
@@ -132,7 +132,7 @@ export default function Show({ order }: { order: any }) {
                                             href={`/tracker/${order.invoice_number}`}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="inline-flex items-center justify-center w-full gap-2 text-xs font-bold text-white bg-[#41B9C5] hover:bg-[#3498a3] px-4 py-2.5 rounded-xl shadow-md shadow-[#41B9C5]/30 transition"
+                                            className="inline-flex items-center justify-center w-full gap-2 text-xs font-bold text-white bg-brand-blue hover:bg-brand-blue-hover px-4 py-2.5 rounded-xl shadow-md shadow-brand-blue/30 transition"
                                         >
                                             <Navigation className="w-4 h-4" /> Lacak Pengiriman Live
                                         </a>
@@ -145,7 +145,7 @@ export default function Show({ order }: { order: any }) {
                     {/* Store & Products */}
                     <div className="p-6">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="bg-[#ED7218] text-white p-1.5 rounded-md">
+                            <div className="bg-brand-orange text-white p-1.5 rounded-md">
                                 <Store className="w-4 h-4" />
                             </div>
                             <span className="font-bold text-gray-900">
@@ -266,7 +266,7 @@ export default function Show({ order }: { order: any }) {
                         {canComplete && (
                             <button
                                 onClick={() => setIsCompleteModalOpen(true)}
-                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#ED7218] text-white text-sm font-bold rounded-xl hover:bg-[#d66311] transition-colors shadow-xs"
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-orange text-white text-sm font-bold rounded-xl hover:bg-brand-orange-hover transition-colors shadow-xs"
                             >
                                 <CheckCircle className="w-4 h-4 mr-2" />
                                 Pesanan Diterima
@@ -276,7 +276,7 @@ export default function Show({ order }: { order: any }) {
                         {showRatingButton && order.items?.[0]?.id && (
                             <Link
                                 href={route("history.rating.create", { order_item: order.items[0].id })}
-                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#ED7218] text-white text-sm font-bold rounded-xl hover:bg-[#d66311] transition-colors shadow-xs"
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-orange text-white text-sm font-bold rounded-xl hover:bg-brand-orange-hover transition-colors shadow-xs"
                             >
                                 Beri Penilaian
                             </Link>
@@ -285,7 +285,7 @@ export default function Show({ order }: { order: any }) {
                         {order.status === "Selesai" && order.items?.[0] && (
                             <Link
                                 href={route("product.detail", order.items[0].product_slug || order.items[0].product_id)}
-                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#ED7218] text-white text-sm font-bold rounded-xl hover:bg-[#d66311] transition-colors shadow-xs"
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-orange text-white text-sm font-bold rounded-xl hover:bg-brand-orange-hover transition-colors shadow-xs"
                             >
                                 Beli Lagi
                             </Link>

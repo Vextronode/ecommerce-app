@@ -174,7 +174,7 @@ export default function Shop({
                             </p>
                             <Link
                                 href={route("shop")}
-                                className="bg-[#245D56] hover:bg-[#1a443f] text-white px-8 py-3 rounded-full font-bold transition shadow-md"
+                                className="bg-brand-orange hover:bg-brand-orange-hover text-white px-8 py-3 rounded-full font-bold transition shadow-md shadow-brand-orange/20"
                             >
                                 Lihat Semua Produk
                             </Link>

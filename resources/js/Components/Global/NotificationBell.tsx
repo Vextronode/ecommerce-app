@@ -151,7 +151,7 @@ export default function NotificationBell({ user }: { user: any }) {
                                             onClick={() => setActiveNotifTab(tab.id)}
                                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
                                                 isActive
-                                                    ? "bg-[#ED7218] text-white shadow-2xs shadow-orange-500/20"
+                                                    ? "bg-brand-orange text-white shadow-2xs shadow-orange-500/20"
                                                     : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100"
                                             }`}
                                         >
@@ -181,7 +181,7 @@ export default function NotificationBell({ user }: { user: any }) {
                         >
                             {groupedNotifications.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                                    <div className="w-12 h-12 rounded-2xl bg-orange-50 text-[#ED7218] flex items-center justify-center mb-2.5">
+                                    <div className="w-12 h-12 rounded-2xl bg-brand-orange-tint text-brand-orange flex items-center justify-center mb-2.5">
                                         <Bell size={22} className="opacity-80" />
                                     </div>
                                     <p className="text-xs font-medium text-slate-500">
@@ -216,7 +216,7 @@ export default function NotificationBell({ user }: { user: any }) {
                                                             <div
                                                                 className={`w-7 h-7 rounded-lg flex items-center justify-center ${
                                                                     type === "order"
-                                                                        ? "bg-orange-50 text-[#ED7218]"
+                                                                        ? "bg-brand-orange-tint text-brand-orange"
                                                                         : type === "promo"
                                                                         ? "bg-rose-50 text-rose-600"
                                                                         : type === "security"
@@ -260,7 +260,7 @@ export default function NotificationBell({ user }: { user: any }) {
                                                                 <Link
                                                                     href={item.data.action_url}
                                                                     onClick={() => setIsNotifOpen(false)}
-                                                                    className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#ED7218] text-white hover:bg-[#d66311] transition shadow-2xs shadow-orange-500/20 active:scale-95"
+                                                                    className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-brand-orange text-white hover:bg-brand-orange-hover transition shadow-2xs shadow-orange-500/20 active:scale-95"
                                                                 >
                                                                     Lihat Detail
                                                                 </Link>
