@@ -75,15 +75,11 @@ export default function OrderTableRow({
 
     const handleSelfDelivery = (e: React.MouseEvent) => {
         e.stopPropagation();
-        router.put(
-            route("merchant.orders.update-status", order.id),
-            { shipping_status: "shipped" },
-            {
-                onSuccess: () => {
-                    window.open(`/tracker/${order.invoice_number}?role=driver`, "_blank");
-                },
-            }
-        );
+        if (order.handover_url) {
+            window.location.href = order.handover_url;
+        } else {
+            window.location.href = `/tracker/${order.invoice_number}/handover`;
+        }
     };
 
     const firstProduct = order.items?.[0];
@@ -318,10 +314,10 @@ export default function OrderTableRow({
                                     ["shipped", "delivered"].includes(order.shipping_status) && (
                                         <div className="flex flex-col items-end gap-1 text-right">
                                             <a
-                                                href={`/tracker/${order.invoice_number}`}
+                                                href={`/tracker/${order.invoice_number}?role=driver`}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="inline-flex items-center gap-1.5 bg-[#EAF7F7] text-[#14433D] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-[#41B9C5] hover:text-white transition-colors"
+                                                className="inline-flex items-center gap-1.5 bg-brand-cyan-tint text-brand-teal px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-brand-cyan hover:text-white transition-colors"
                                             >
                                                 Tracker Pengiriman
                                             </a>
@@ -340,14 +336,14 @@ export default function OrderTableRow({
                                                     e.stopPropagation();
                                                     setShowQRModal(true);
                                                 }}
-                                                className="inline-flex items-center gap-2 bg-[#EAF7F7] text-[#14433D] hover:bg-[#41B9C5] hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm border border-[#41B9C5]/30 cursor-pointer"
+                                                className="inline-flex items-center gap-2 bg-brand-cyan-tint text-brand-teal hover:bg-brand-cyan hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm border border-brand-cyan/30 cursor-pointer"
                                             >
                                                 <QrCode className="w-4 h-4" />
                                                 Diserahkan ke Kurir
                                             </button>
                                             <button
                                                 onClick={handleSelfDelivery}
-                                                className="inline-flex items-center gap-2 bg-[#14433D] text-white hover:bg-[#1f635a] px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                                                className="inline-flex items-center gap-2 bg-brand-teal text-white hover:bg-brand-teal-hover px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
                                             >
                                                 <Navigation className="w-4 h-4" />
                                                 Saya Antar Sendiri

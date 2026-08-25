@@ -110,7 +110,7 @@ export default function RatingForm({ orderItem }: Props) {
                                 type="checkbox"
                                 checked={data.is_anonymous}
                                 onChange={(e) => setData('is_anonymous', e.target.checked)}
-                                className="w-4 h-4 text-[#245D56] border-gray-300 rounded focus:ring-[#245D56] cursor-pointer"
+                                className="w-4 h-4 text-brand-orange border-gray-300 rounded focus:ring-brand-orange cursor-pointer"
                             />
                             <label htmlFor="is_anonymous" className="ml-2 text-sm text-gray-600 font-medium cursor-pointer">
                                 Sembunyikan username pada penilaian
@@ -140,7 +140,7 @@ export default function RatingForm({ orderItem }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-8 py-3 bg-[#ED7218] text-white font-bold rounded-xl hover:bg-[#d66311] transition-colors disabled:opacity-50 shadow-xs"
+                                className="px-8 py-3 bg-brand-orange text-white font-bold rounded-xl hover:bg-brand-orange-hover transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
                             >
                                 {processing ? 'MENGIRIM...' : 'KIRIM'}
                             </button>

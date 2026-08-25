@@ -61,12 +61,12 @@ export default function MerchantLayout({ children }: Props) {
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col min-w-0">
                 {/* Topbar */}
-                <header className="h-16 md:h-18 px-4 md:px-8 flex items-center justify-between bg-white border border-[#41B9C5]/30 rounded-full shrink-0 mb-4 md:mb-6 shadow-sm transition">
+                <header className="h-16 md:h-18 px-4 md:px-8 flex items-center justify-between bg-white border border-brand-cyan/30 rounded-full shrink-0 mb-4 md:mb-6 shadow-sm transition">
                     <div aria-label="Pilih opsi yang tersedia" className="flex items-center flex-1 max-w-2xl gap-3 md:gap-0">
                         <button
                             aria-label="Tampilkan rincian lebih lanjut"
                             onClick={() => setIsMobileSidebarOpen(true)}
-                            className="lg:hidden text-gray-400 hover:text-[#41B9C5] focus:outline-none transition-colors"
+                            className="lg:hidden text-gray-400 hover:text-brand-cyan focus:outline-none transition-colors"
                         >
                             <Menu className="w-6 h-6" />
                         </button>
@@ -80,7 +80,7 @@ export default function MerchantLayout({ children }: Props) {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={handleSearch}
-                                className="w-full pl-9 md:pl-12 pr-4 py-2 md:py-2.5 bg-gray-50/50 border border-transparent rounded-full focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] text-xs md:text-sm transition"
+                                className="w-full pl-9 md:pl-12 pr-4 py-2 md:py-2.5 bg-gray-50/50 border border-transparent rounded-full focus:outline-none focus:bg-white focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan text-xs md:text-sm transition"
                             />
                         </div>
                     </div>
@@ -97,19 +97,19 @@ export default function MerchantLayout({ children }: Props) {
                                     icon: <Mail />,
                                 })
                             }
-                            className="text-gray-400 hover:text-[#41B9C5] transition-colors hidden sm:block"
+                            className="text-gray-400 hover:text-brand-cyan transition-colors hidden sm:block"
                         >
                             <Mail className="w-5 h-5" />
                         </button>
 
                         <Link
                             href={route("merchant.settings.index")}
-                            className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#F0FAFB] flex items-center justify-center overflow-hidden border border-[#41B9C5]/30 shadow-sm hover:shadow-md transition cursor-pointer shrink-0"
+                            className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-brand-cyan-soft flex items-center justify-center overflow-hidden border border-brand-cyan/30 shadow-sm hover:shadow-md transition cursor-pointer shrink-0"
                         >
                             {profilePhoto ? (
                                 <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
-                                <User className="w-4 h-4 md:w-5 md:h-5 text-[#41B9C5]" />
+                                <User className="w-4 h-4 md:w-5 md:h-5 text-brand-cyan" />
                             )}
                         </Link>
                     </div>

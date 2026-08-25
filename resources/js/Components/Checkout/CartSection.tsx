@@ -37,11 +37,11 @@ export default function CartSection({ items }: { items: CartItem[] }) {
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                    <ShoppingCart className="w-6 h-6 text-[#245D56]" />
+                    <ShoppingCart className="w-6 h-6 text-brand-orange" />
                     <h2 className="text-xl font-bold text-gray-900">Rincian Barang</h2>
                 </div>
                 {storeNames.length > 1 && (
-                    <span className="text-xs font-bold text-[#14433D] bg-[#EAF7F7] px-3 py-1 rounded-full border border-[#41B9C5]/30">
+                    <span className="text-xs font-bold text-brand-blue bg-brand-blue-tint px-3 py-1 rounded-full border border-brand-blue-light/30">
                         {storeNames.length} Toko Berbeda
                     </span>
                 )}
@@ -56,7 +56,7 @@ export default function CartSection({ items }: { items: CartItem[] }) {
                         <div key={storeName} className={storeIdx > 0 ? "pt-6" : ""}>
                             {/* Store Header */}
                             <div className="flex items-center gap-2 mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                                <div className="w-7 h-7 rounded-lg bg-teal-100 text-[#14433D] flex items-center justify-center shrink-0">
+                                <div className="w-7 h-7 rounded-lg bg-brand-blue-tint text-brand-blue flex items-center justify-center shrink-0">
                                     <Store className="w-4 h-4" />
                                 </div>
                                 <div className="min-w-0">
@@ -97,7 +97,7 @@ export default function CartSection({ items }: { items: CartItem[] }) {
                                                 </h3>
 
                                                 {variantName && (
-                                                    <span className="inline-block mt-1 text-[11px] font-semibold bg-[#EAF7F7] text-[#245D56] px-2 py-0.5 rounded-md">
+                                                    <span className="inline-block mt-1 text-[11px] font-semibold bg-brand-blue-tint text-brand-blue px-2 py-0.5 rounded-md">
                                                         Varian: {variantName}
                                                     </span>
                                                 )}

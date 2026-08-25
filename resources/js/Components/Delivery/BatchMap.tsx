@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { LocateFixed } from "lucide-react";
 
 export interface StopLocation {
@@ -27,7 +29,6 @@ interface Props {
 }
 
 const createStoreIcon = () => {
-    const L = (window as any).L;
     return L.divIcon({
         className: "custom-modern-store-pin",
         html: `
@@ -50,7 +51,6 @@ const createStoreIcon = () => {
 };
 
 const createStopIcon = (stopNumber: number, isDelivered: boolean) => {
-    const L = (window as any).L;
     const bgColor = isDelivered ? "#10B981" : "#ED7218";
     const shadowColor = isDelivered ? "rgba(16,185,129,0.4)" : "rgba(237,114,24,0.4)";
     const innerContent = isDelivered
@@ -73,7 +73,6 @@ const createStopIcon = (stopNumber: number, isDelivered: boolean) => {
 };
 
 const createDriverIcon = () => {
-    const L = (window as any).L;
     return L.divIcon({
         className: "custom-modern-driver-pin",
         html: `
@@ -106,16 +105,13 @@ export default function BatchMap({
     refreshCounter = 0,
 }: Props) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<any>(null);
-    const markersRef = useRef<{ [key: string]: any }>({});
-    const routePolylineRef = useRef<any>(null);
+    const mapRef = useRef<L.Map | null>(null);
+    const markersRef = useRef<{ [key: string]: L.Marker }>({});
+    const routePolylineRef = useRef<L.Polyline | null>(null);
     const [isFreeMode, setIsFreeMode] = useState<boolean>(false);
 
     useEffect(() => {
         if (!mapContainerRef.current) return;
-
-        const L = (window as any).L;
-        if (!L) return;
 
         if (!mapRef.current) {
             const map = L.map(mapContainerRef.current, {
@@ -143,7 +139,7 @@ export default function BatchMap({
 
         // Store Marker
         if (store.latitude && store.longitude) {
-            const storeLatLng: [number, number] = [store.latitude, store.longitude];
+            const storeLatLng: [number, number] = [Number(store.latitude), Number(store.longitude)];
             bounds.extend(storeLatLng);
             waypoints.push(storeLatLng);
 
@@ -157,7 +153,7 @@ export default function BatchMap({
         // Stop Markers
         stops.forEach((stop) => {
             if (stop.shipping_latitude && stop.shipping_longitude) {
-                const stopLatLng: [number, number] = [stop.shipping_latitude, stop.shipping_longitude];
+                const stopLatLng: [number, number] = [Number(stop.shipping_latitude), Number(stop.shipping_longitude)];
                 bounds.extend(stopLatLng);
                 waypoints.push(stopLatLng);
 
@@ -244,24 +240,24 @@ export default function BatchMap({
                 mapRef.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
             }
         }
-    }, [refreshCounter]);
+    }, [refreshCounter, driverPos]);
 
     const handleRecenter = () => {
         setIsFreeMode(false);
         if (driverPos && mapRef.current) {
             mapRef.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
         } else if (store.latitude && store.longitude && mapRef.current) {
-            mapRef.current.flyTo([store.latitude, store.longitude], 15, { animate: true, duration: 0.8 });
+            mapRef.current.flyTo([Number(store.latitude), Number(store.longitude)], 15, { animate: true, duration: 0.8 });
         }
     };
 
     return (
         <div className="relative w-full h-[360px] bg-slate-200 shadow-inner">
-            <div ref={mapContainerRef} className="w-full h-full" />
+            <div ref={mapContainerRef} className="w-full h-full z-0" />
 
             {/* Progress floating badge */}
             <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-slate-200/60 z-[1000] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-teal-50 text-[#14433D] flex items-center justify-center font-black text-xs border border-teal-200">
+                <div className="w-8 h-8 rounded-lg bg-teal-50 text-brand-teal flex items-center justify-center font-black text-xs border border-teal-200">
                     {deliveredCount}/{totalStops}
                 </div>
                 <div>
@@ -281,12 +277,12 @@ export default function BatchMap({
                 onClick={handleRecenter}
                 className={`absolute bottom-3 left-3 z-[1000] px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
                     isFreeMode
-                        ? "bg-[#006591] text-white border border-[#006591] shadow-[#006591]/30"
+                        ? "bg-brand-blue text-white border border-brand-blue shadow-brand-blue/30"
                         : "bg-white/90 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-white"
                 }`}
                 title={isFreeMode ? "Pusatkan kembali kamera ke kurir" : "Kamera otomatis mengikuti posisi kurir"}
             >
-                <LocateFixed className={`w-4 h-4 ${isFreeMode ? "text-white" : "text-[#006591]"}`} />
+                <LocateFixed className={`w-4 h-4 ${isFreeMode ? "text-white" : "text-brand-blue"}`} />
                 <span>{isFreeMode ? (isDriver ? "Pusatkan ke Saya" : "Pusatkan ke Kurir") : "Mengikuti Live"}</span>
             </button>
         </div>

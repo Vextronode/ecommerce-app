@@ -70,7 +70,7 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                             ))
                         ) : (
                             <div className="bg-white rounded-3xl p-8 md:p-12 text-center border border-slate-100 shadow-sm">
-                                <div className="w-16 h-16 md:w-20 md:h-20 bg-[#ED7218]/10 rounded-full flex items-center justify-center mx-auto mb-4 text-[#ED7218]">
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-brand-orange-tint rounded-full flex items-center justify-center mx-auto mb-4 text-brand-orange">
                                     <ShoppingBasket className="w-8 h-8 md:w-10 md:h-10" />
                                 </div>
                                 <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
@@ -82,7 +82,7 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                                 </p>
                                 <Link
                                     href={route("shop")}
-                                    className="inline-block bg-[#ED7218] text-white px-6 md:px-8 py-3 md:py-3.5 rounded-2xl font-bold shadow-md hover:bg-[#d66311] transition text-sm"
+                                    className="inline-block bg-brand-orange text-white px-6 md:px-8 py-3 md:py-3.5 rounded-2xl font-bold shadow-md hover:bg-brand-orange-hover transition text-sm"
                                 >
                                     Mulai Belanja
                                 </Link>
@@ -113,7 +113,7 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                             <p className="text-[11px] text-slate-500 font-medium">
                                 Total Pembayaran ({selectedIds.length} item)
                             </p>
-                            <p className="text-base font-black text-[#F77F00]">
+                            <p className="text-base font-black text-brand-orange">
                                 Rp {subtotal.toLocaleString("id-ID")}
                             </p>
                         </div>
@@ -122,7 +122,7 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                             disabled={selectedIds.length === 0}
                             className={`px-6 py-2.5 rounded-xl font-bold text-sm transition ${
                                 selectedIds.length > 0
-                                    ? "bg-[#ED7218] text-white hover:opacity-90 shadow-md"
+                                    ? "bg-brand-orange text-white hover:bg-brand-orange-hover shadow-md"
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                             }`}
                         >

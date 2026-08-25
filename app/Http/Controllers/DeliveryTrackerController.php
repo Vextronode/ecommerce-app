@@ -26,17 +26,13 @@ class DeliveryTrackerController extends Controller
         }
 
         // Determine role securely:
-        // Default is 'user' (Spectator / Viewer mode - no GPS broadcast)
-        $role = 'user';
         $isMerchant = auth()->check() && auth()->user()->store && auth()->user()->store->id === $order->store_id;
 
-        if (request()->query('role') === 'driver') {
+        if (request()->query('role') === 'driver' || session("driver_authorized_{$invoice_number}") === true || $isMerchant) {
             session(["driver_authorized_{$invoice_number}" => true]);
             $role = 'driver';
-        } elseif (session("driver_authorized_{$invoice_number}") === true) {
-            $role = 'driver';
-        } elseif ($isMerchant && request()->query('role') === 'driver') {
-            $role = 'driver';
+        } else {
+            $role = 'user';
         }
 
         $cachedLoc = Cache::get("driver_loc_{$invoice_number}");
@@ -326,10 +322,10 @@ class DeliveryTrackerController extends Controller
         $storeLon = $store?->longitude;
 
         // Determine role
-        if (request()->query('role') === 'driver') {
+        $isMerchant = auth()->check() && auth()->user()->store && auth()->user()->store->id === $store?->id;
+
+        if (request()->query('role') === 'driver' || session("driver_authorized_batch_{$batch_token}") === true || $isMerchant) {
             session(["driver_authorized_batch_{$batch_token}" => true]);
-            $role = 'driver';
-        } elseif (session("driver_authorized_batch_{$batch_token}") === true) {
             $role = 'driver';
         } else {
             $role = 'user';

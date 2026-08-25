@@ -10,8 +10,8 @@ export default function DeliveryBanner({
     description,
 }: DeliveryBannerProps) {
     return (
-        <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-[#F4F8FF] p-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#2E86C1] shadow-sm">
+        <div className="flex items-start gap-3 rounded-2xl border border-brand-blue-tint bg-brand-blue-tint/30 p-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand-blue shadow-sm">
                 <Truck className="w-4 h-4" />
             </div>
             <div>

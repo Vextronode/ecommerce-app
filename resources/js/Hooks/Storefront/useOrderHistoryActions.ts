@@ -70,7 +70,7 @@ export function useOrderHistoryActions() {
     const getStatusColor = (status: string) => {
         switch (status) {
             case "Selesai":
-                return "text-[#245D56] bg-[#245D56]/10 border-[#245D56]";
+                return "text-brand-teal bg-brand-cyan-tint border-brand-teal";
             case "Dibatalkan":
                 return "text-red-600 bg-red-50 border-red-600";
             case "Belum Bayar":

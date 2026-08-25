@@ -30,7 +30,7 @@ export default function StoreAvatar({ logoPath, storeName, className = "w-full h
     const initials = storeName.substring(0, 2).toUpperCase();
 
     return (
-        <div className={`${className} bg-[#E0F7FA] text-[#004f54] flex items-center justify-center font-bold tracking-wide shrink-0 border border-[#80DEEA]/50 shadow-sm`}>
+        <div className={`${className} bg-brand-cyan-soft text-brand-teal-deep flex items-center justify-center font-bold tracking-wide shrink-0 border border-brand-cyan/30 shadow-sm`}>
             {initials}
         </div>
     );

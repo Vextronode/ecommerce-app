@@ -190,10 +190,10 @@ export default function BatchTracker({
     // ALL DELIVERED CELEBRATION SCREEN
     if (isAllDelivered) {
         return (
-            <div className="min-h-screen bg-[#14433D] flex flex-col items-center justify-center p-6 text-center text-white relative overflow-hidden font-sans">
+            <div className="min-h-screen bg-brand-blue-dark flex flex-col items-center justify-center p-6 text-center text-white relative overflow-hidden font-sans">
                 <Head title="Pengiriman Selesai - Cibenda Mart" />
-                <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl" />
-                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-400/20 rounded-full blur-3xl" />
+                <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-sky-400/20 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl" />
 
                 <div className="bg-white text-slate-900 p-8 sm:p-10 rounded-3xl shadow-2xl max-w-md w-full relative z-10 animate-fade-in-up">
                     <div className="w-20 h-20 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -211,7 +211,7 @@ export default function BatchTracker({
 
                     <button
                         onClick={() => (window.location.href = "/")}
-                        className="w-full bg-[#14433D] hover:bg-[#0f342f] text-white font-bold py-3.5 rounded-2xl transition shadow-lg shadow-[#14433D]/30 text-sm cursor-pointer"
+                        className="w-full bg-brand-blue hover:bg-brand-blue-hover text-white font-bold py-3.5 rounded-2xl transition shadow-lg shadow-brand-blue/30 text-sm cursor-pointer"
                     >
                         Kembali ke Beranda
                     </button>
@@ -225,20 +225,20 @@ export default function BatchTracker({
             <Head title={`Rute Pengiriman (${totalStops} Alamat) - CiMart`} />
 
             {/* Header Sticky */}
-            <header className="bg-[#14433D] text-white py-3.5 px-4 sticky top-0 z-30 shadow-md">
+            <header className="bg-brand-blue text-white py-3.5 px-4 sticky top-0 z-30 shadow-md">
                 <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-teal-300 shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-sky-200 shrink-0">
                             <Layers className="w-5 h-5" />
                         </div>
                         <div className="min-w-0">
                             <h1 className="text-sm font-black tracking-wide flex items-center gap-2 truncate">
                                 RUTE GABUNGAN
-                                <span className="bg-teal-500/30 text-teal-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-400/30 shrink-0">
+                                <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/25 shrink-0">
                                     {totalStops} Alamat
                                 </span>
                             </h1>
-                            <p className="text-[11px] text-teal-200/80 truncate max-w-[180px] sm:max-w-xs">
+                            <p className="text-[11px] text-sky-100/90 truncate max-w-[180px] sm:max-w-xs">
                                 {store.name}
                             </p>
                         </div>
@@ -253,7 +253,7 @@ export default function BatchTracker({
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-xs font-bold text-white transition-all shadow-xs border border-white/20 cursor-pointer disabled:opacity-50"
                                 title="Perbarui posisi kurir sekarang"
                             >
-                                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-teal-300' : ''}`} />
+                                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-sky-200' : ''}`} />
                                 <span className="hidden sm:inline">{isRefreshing ? 'Memperbarui...' : 'Refresh'}</span>
                             </button>
                         )}
@@ -266,7 +266,7 @@ export default function BatchTracker({
                                 </>
                             ) : (
                                 <>
-                                    <Eye className="w-3.5 h-3.5 text-teal-300" />
+                                    <Eye className="w-3.5 h-3.5 text-sky-200" />
                                     <span className="text-slate-200 font-medium">Live Viewer</span>
                                 </>
                             )}
@@ -290,7 +290,7 @@ export default function BatchTracker({
 
                 {/* Google Maps Master Navigation Bar for Driver */}
                 {isDriver && googleMapsUrl && googleMapsUrl !== "#" && (
-                    <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 flex items-center justify-between gap-3 shadow-xs">
+                    <div className="px-4 py-3 bg-gradient-to-r from-blue-50/70 to-sky-50/70 border-b border-blue-100 flex items-center justify-between gap-3 shadow-xs">
                         <div className="text-xs text-slate-700 min-w-0">
                             <span className="font-bold text-slate-900 block truncate">
                                 Navigasi Suara Belokan demi Belokan
@@ -303,7 +303,7 @@ export default function BatchTracker({
                             href={googleMapsUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 bg-[#006591] hover:bg-[#005174] text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-[#006591]/25 transition shrink-0 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 bg-brand-blue hover:bg-brand-blue-hover text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-brand-blue/25 transition shrink-0 cursor-pointer"
                         >
                             <Navigation className="w-3.5 h-3.5" />
                             <span>Buka Google Maps</span>

@@ -81,21 +81,21 @@ export default function AdminMerchantsIndex({
                             type="button"
                             onClick={() => setIsFilterModalOpen(true)}
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-colors cursor-pointer ${hasActiveFilters
-                                ? "bg-[#E6F8F9] text-[#245D56] border-[#41B9C5]"
+                                ? "bg-brand-blue-tint text-brand-blue border-brand-blue-light"
                                 : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-2xs"
                                 }`}
                         >
-                            <Filter className="w-4 h-4 text-[#245D56]" />
+                            <Filter className="w-4 h-4 text-brand-blue" />
                             <span>Filter</span>
                             {hasActiveFilters && (
-                                <span className="w-2 h-2 rounded-full bg-[#41B9C5]" />
+                                <span className="w-2 h-2 rounded-full bg-brand-blue" />
                             )}
                         </button>
 
                         {/* Create Account Button */}
                         <Link
                             href={route("admin.merchants.create")}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/25 transition-colors cursor-pointer"
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover shadow-md shadow-brand-orange/25 transition-colors cursor-pointer"
                         >
                             <Plus className="w-4 h-4" />
                             <span>Create Account</span>

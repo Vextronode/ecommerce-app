@@ -192,7 +192,7 @@ export default function Navbar() {
                                                     </p>
                                                 </div>
                                                 <div className="text-right shrink-0">
-                                                    <span className="font-bold text-[#ED7218] text-xs md:text-sm">
+                                                    <span className="font-bold text-brand-orange text-xs md:text-sm">
                                                         Rp {Number(item.price * item.quantity).toLocaleString("id-ID")}
                                                     </span>
                                                 </div>
@@ -208,7 +208,7 @@ export default function Navbar() {
 
                                     <Link
                                         href={route("cart")}
-                                        className="block w-full py-2.5 bg-[#ED7218] text-white text-center font-bold rounded-xl hover:bg-[#d66311] transition shadow-md shadow-[#ED7218]/20 text-xs md:text-sm mt-3"
+                                        className="block w-full py-2.5 bg-brand-orange text-white text-center font-bold rounded-xl hover:bg-brand-orange-hover transition shadow-md shadow-brand-orange/20 text-xs md:text-sm mt-3"
                                     >
                                         View My Shopping Cart
                                     </Link>
@@ -221,7 +221,7 @@ export default function Navbar() {
                                     </p>
                                     <Link
                                         href={route("shop")}
-                                        className="inline-block mt-3 px-4 py-1.5 bg-[#ED7218] text-white text-xs font-bold rounded-lg hover:bg-[#d66311] transition"
+                                        className="inline-block mt-3 px-4 py-1.5 bg-brand-orange text-white text-xs font-bold rounded-lg hover:bg-brand-orange-hover transition"
                                     >
                                         Mulai Belanja
                                     </Link>

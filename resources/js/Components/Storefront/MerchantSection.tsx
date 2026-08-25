@@ -41,7 +41,7 @@ export default function MerchantSection({ stores = [] }: MerchantSectionProps) {
             <div className="w-full xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 md:px-8">
                 {/* HEADER */}
                 <div className="mb-10">
-                    <h2 className="text-3xl md:text-[34px] font-extrabold text-[#13005E] tracking-tight">
+                    <h2 className="text-3xl md:text-[34px] font-extrabold text-brand-teal-deep tracking-tight">
                         Belanja berdasarkan Toko
                     </h2>
                 </div>
@@ -50,7 +50,7 @@ export default function MerchantSection({ stores = [] }: MerchantSectionProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {displayStores.map((store, index) => {
                         // Alternate border colors
-                        const borderColor = index % 2 === 0 ? "border-[#13005E]/40" : "border-[#ED7218]/40";
+                        const borderColor = index % 2 === 0 ? "border-brand-teal/20" : "border-brand-orange/30";
 
                         return (
                             <Link
@@ -81,7 +81,7 @@ export default function MerchantSection({ stores = [] }: MerchantSectionProps) {
                                     <p className="text-gray-500 text-xs md:text-sm truncate mb-1">
                                         {store.description || "Toko Cibenda"}
                                     </p>
-                                    <span className="text-[#ED7218] font-bold text-xs md:text-sm mt-0.5">
+                                    <span className="text-brand-orange font-bold text-xs md:text-sm mt-0.5">
                                         Kunjungi Toko
                                     </span>
                                 </div>

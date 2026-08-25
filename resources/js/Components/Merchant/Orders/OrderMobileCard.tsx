@@ -75,15 +75,11 @@ export default function OrderMobileCard({
 
     const handleSelfDelivery = (e: React.MouseEvent) => {
         e.stopPropagation();
-        router.put(
-            route("merchant.orders.update-status", order.id),
-            { shipping_status: "shipped" },
-            {
-                onSuccess: () => {
-                    window.open(`/tracker/${order.invoice_number}?role=driver`, "_blank");
-                },
-            }
-        );
+        if (order.handover_url) {
+            window.location.href = order.handover_url;
+        } else {
+            window.location.href = `/tracker/${order.invoice_number}/handover`;
+        }
     };
 
     const firstProduct = order.items?.[0];
@@ -216,9 +212,9 @@ export default function OrderMobileCard({
 
             {/* Delivery Action Buttons in Processing State */}
             {order.delivery_method === "local_delivery" && order.shipping_status === "processing" && (
-                <div className="my-3 p-3 bg-[#F0FAFB] rounded-xl border border-[#41B9C5]/30 space-y-2">
-                    <div className="text-[11px] font-bold text-[#14433D] flex items-center gap-1.5">
-                        <Truck className="w-3.5 h-3.5 text-[#41B9C5]" />
+                <div className="my-3 p-3 bg-brand-cyan-soft rounded-xl border border-brand-cyan/30 space-y-2">
+                    <div className="text-[11px] font-bold text-brand-teal flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-brand-cyan" />
                         <span>Pilihan Pengiriman Pesanan:</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -228,15 +224,15 @@ export default function OrderMobileCard({
                                 e.stopPropagation();
                                 setShowQRModal(true);
                             }}
-                            className="flex items-center justify-center gap-1.5 bg-white text-[#14433D] hover:bg-[#EAF7F7] py-2 px-2.5 rounded-lg text-xs font-bold transition shadow-sm border border-[#41B9C5]/40 active:scale-95"
+                            className="flex items-center justify-center gap-1.5 bg-white text-brand-teal hover:bg-brand-cyan-tint py-2 px-2.5 rounded-lg text-xs font-bold transition shadow-sm border border-brand-cyan/40 active:scale-95"
                         >
-                            <QrCode className="w-3.5 h-3.5 text-[#41B9C5]" />
+                            <QrCode className="w-3.5 h-3.5 text-brand-cyan" />
                             <span className="truncate">Scan Kurir</span>
                         </button>
                         <button
                             type="button"
                             onClick={handleSelfDelivery}
-                            className="flex items-center justify-center gap-1.5 bg-[#14433D] text-white hover:bg-[#1f635a] py-2 px-2.5 rounded-lg text-xs font-bold transition shadow-sm active:scale-95"
+                            className="flex items-center justify-center gap-1.5 bg-brand-teal text-white hover:bg-brand-teal-hover py-2 px-2.5 rounded-lg text-xs font-bold transition shadow-sm active:scale-95"
                         >
                             <Navigation className="w-3.5 h-3.5" />
                             <span className="truncate">Antar Sendiri</span>
@@ -250,17 +246,17 @@ export default function OrderMobileCard({
                 <div className="my-2.5 flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
                     <div className="text-[11px] text-gray-500 font-medium truncate pr-2">
                         {order.shipping_status === "shipped" && order.shipping_pin ? (
-                            <span>PIN: <strong className="text-[#14433D] tracking-widest">{order.shipping_pin}</strong></span>
+                            <span>PIN: <strong className="text-brand-teal tracking-widest">{order.shipping_pin}</strong></span>
                         ) : (
                             <span>Kurir Toko</span>
                         )}
                     </div>
                     <a
-                        href={`/tracker/${order.invoice_number}`}
+                        href={`/tracker/${order.invoice_number}?role=driver`}
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 bg-[#EAF7F7] text-[#14433D] hover:bg-[#41B9C5] hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs shrink-0"
+                        className="inline-flex items-center gap-1 bg-brand-cyan-tint text-brand-teal hover:bg-brand-cyan hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs shrink-0"
                     >
                         <Navigation className="w-3 h-3" />
                         <span>Lacak Pengiriman</span>
@@ -274,7 +270,7 @@ export default function OrderMobileCard({
                     <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             paymentStatus === "Paid"
-                                ? "bg-[#EAF7F7] text-[#245D56]"
+                                ? "bg-brand-cyan-tint text-brand-teal"
                                 : "bg-orange-50 text-orange-500"
                         }`}
                     >
@@ -283,7 +279,7 @@ export default function OrderMobileCard({
                     <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             shippingStatus === "Delivered"
-                                ? "bg-[#EAF7F7] text-[#245D56]"
+                                ? "bg-brand-cyan-tint text-brand-teal"
                                 : shippingStatus === "Cancelled"
                                 ? "bg-red-50 text-red-600"
                                 : "bg-blue-50 text-blue-600"
@@ -299,7 +295,7 @@ export default function OrderMobileCard({
                 </div>
                 <div className="text-right">
                     <p className="text-[10px] text-gray-400 font-medium">Total</p>
-                    <p className="text-sm font-bold text-[#14433D] leading-none mt-0.5">
+                    <p className="text-sm font-bold text-brand-teal leading-none mt-0.5">
                         {formatRupiah(order.total_amount)}
                     </p>
                 </div>

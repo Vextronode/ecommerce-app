@@ -76,7 +76,7 @@ export default function StoreHeader({ store, isFollowing, onFollow, isLoadingFol
                             className={`px-6 py-2.5 rounded-2xl font-bold text-sm transition shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
                                 isFollowing
                                     ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
-                                    : "bg-[#F77F00] text-white hover:bg-[#D95C00]"
+                                    : "bg-brand-orange text-white hover:bg-brand-orange-hover"
                             }`}
                         >
                             {isFollowing ? (

@@ -18,7 +18,7 @@ export default function AuthGlassLayout({ children, title, subtitle }: Props) {
                 fetchPriority="high"
             />
 
-            <div className="relative z-10 bg-[#004F54]/60 backdrop-blur-md px-10 py-24 md:px-12 md:py-32 rounded-4xl w-full max-w-120 shadow-2xl border border-white/10 flex flex-col items-center">
+            <div className="relative z-10 bg-brand-teal-deep/60 backdrop-blur-md px-10 py-24 md:px-12 md:py-32 rounded-4xl w-full max-w-120 shadow-2xl border border-white/10 flex flex-col items-center">
                 <div className="text-center mb-12 w-full">
                     <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
                         {title}
