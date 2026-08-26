@@ -65,14 +65,14 @@ export default function BatchStopCard({
                         className={`w-9 h-9 rounded-xl font-black text-sm flex items-center justify-center shrink-0 shadow-sm ${
                             isDelivered
                                 ? "bg-emerald-600 text-white"
-                                : "bg-gradient-to-br from-[#ED7218] to-orange-600 text-white"
+                                : "bg-linear-to-br from-brand-orange to-brand-orange-hover text-white"
                         }`}
                     >
                         {isDelivered ? <CheckCircle2 className="w-5 h-5" /> : stop.stop_number}
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-[#14433D] text-sm truncate">
+                            <h4 className="font-bold text-brand-blue-dark text-sm truncate">
                                 {stop.customer_name}
                             </h4>
                             {isDelivered && (
@@ -106,7 +106,7 @@ export default function BatchStopCard({
                                 )}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="w-8 h-8 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 flex items-center justify-center transition"
+                                className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 flex items-center justify-center transition"
                                 title="WhatsApp"
                             >
                                 <MessageSquare className="w-3.5 h-3.5" />
@@ -129,7 +129,7 @@ export default function BatchStopCard({
                         Tagih COD: {formatRupiah(stop.total_amount)}
                     </span>
                 ) : (
-                    <span className="text-teal-700 font-bold">Lunas (Online)</span>
+                    <span className="text-brand-blue font-bold">Lunas (Online)</span>
                 )}
             </div>
 

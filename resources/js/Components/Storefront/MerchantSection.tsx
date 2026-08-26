@@ -38,7 +38,7 @@ export default function MerchantSection({ stores = [] }: MerchantSectionProps) {
 
     return (
         <section className="w-full py-16 bg-white">
-            <div className="w-full xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 md:px-8">
+            <div className="w-full xl:max-w-360 2xl:max-w-400 mx-auto px-4 md:px-8">
                 {/* HEADER */}
                 <div className="mb-10">
                     <h2 className="text-3xl md:text-[34px] font-extrabold text-brand-teal-deep tracking-tight">

@@ -36,7 +36,7 @@ export default function DailyTopProducts({ products }: DailyTopProductsProps) {
 
     return (
         <section className="w-full py-12 md:py-16 bg-brand-orange-tint/40">
-            <div className="w-full xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 md:px-8">
+            <div className="w-full xl:max-w-360 2xl:max-w-400 mx-auto px-4 md:px-8">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 flex items-center gap-2">
@@ -47,7 +47,7 @@ export default function DailyTopProducts({ products }: DailyTopProductsProps) {
                 {/* Grid Products / Mobile Slider */}
                 <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-3 lg:grid-cols-5 md:gap-6 sm:overflow-visible">
                     {displayProducts.map((product) => (
-                        <div key={product.id} className="min-w-[160px] max-w-[180px] sm:min-w-0 sm:max-w-none flex-shrink-0 snap-start">
+                        <div key={product.id} className="min-w-40 max-w-45 sm:min-w-0 sm:max-w-none shrink-0 snap-start">
                             <ProductCard product={product} />
                         </div>
                     ))}

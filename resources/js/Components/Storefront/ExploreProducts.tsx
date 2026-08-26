@@ -28,7 +28,7 @@ export default function ExploreProducts({ products }: ExploreProductsProps) {
 
     return (
         <section className="w-full py-16 bg-white">
-            <div className="w-full xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto px-4 md:px-8">
+            <div className="w-full xl:max-w-360 2xl:max-w-400 mx-auto px-4 md:px-8">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
                     <div>

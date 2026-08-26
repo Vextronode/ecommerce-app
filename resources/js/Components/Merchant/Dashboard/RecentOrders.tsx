@@ -47,14 +47,14 @@ export default function RecentOrders({ orders }: Props) {
                                 >
                                     <td className="py-3 px-5 md:px-0 border-b border-gray-50">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[#EAF7F7] text-[#245D56] font-bold flex items-center justify-center text-xs shrink-0">
+                                            <div className="w-8 h-8 rounded-full bg-brand-blue-tint text-brand-blue font-bold flex items-center justify-center text-xs shrink-0">
                                                 {order.customer_name ? order.customer_name.charAt(0).toUpperCase() : "?"}
                                             </div>
                                             <div>
                                                 <p className="text-xs md:text-sm font-bold text-gray-900">
                                                     {order.customer_name}
                                                 </p>
-                                                <p className="text-[10px] md:text-xs text-gray-500 font-medium truncate max-w-[100px] md:max-w-none">
+                                                <p className="text-[10px] md:text-xs text-gray-500 font-medium truncate max-w-25 md:max-w-none">
                                                     #{order.invoice_number}
                                                 </p>
                                             </div>
@@ -67,7 +67,7 @@ export default function RecentOrders({ orders }: Props) {
                                                 alt="product"
                                                 className="w-8 h-8 rounded border border-gray-100 object-cover"
                                             />
-                                            <p className="text-xs md:text-sm font-medium text-gray-700 truncate max-w-[100px] md:max-w-none">
+                                            <p className="text-xs md:text-sm font-medium text-gray-700 truncate max-w-25 md:max-w-none">
                                                 {order.product_name}
                                             </p>
                                         </div>

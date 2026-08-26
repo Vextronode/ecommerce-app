@@ -7,7 +7,7 @@ export default function HeroSection() {
     return (
         <div className="w-full mx-auto px-4 md:px-8 mt-32 md:mt-32 mb-8 md:mb-28 relative">
             {/* Main Banner */}
-            <div className="relative w-full bg-gradient-to-r from-brand-orange-hover to-brand-orange-light rounded-3xl md:rounded-[32px] px-6 md:px-16 pt-6 pb-6 md:pt-8 md:pb-24 flex flex-col md:flex-row items-center justify-between overflow-hidden shadow-sm">
+            <div className="relative w-full bg-linear-to-r from-brand-orange-hover to-brand-orange-light rounded-3xl md:rounded-4xl px-6 md:px-16 pt-6 pb-6 md:pt-8 md:pb-24 flex flex-col md:flex-row items-center justify-between overflow-hidden shadow-sm">
                 
                 {/* Diagonal overlay (two-tone effect) */}
                 <div className="absolute top-0 right-0 bottom-0 left-[45%] bg-white/5 skew-x-[-25deg] pointer-events-none transform origin-bottom"></div>
@@ -49,7 +49,7 @@ export default function HeroSection() {
                     <img
                         src={heroImage}
                         alt="Aneka Sayuran Segar"
-                        className="w-full max-w-[240px] md:max-w-[480px] object-contain drop-shadow-2xl translate-y-4 md:translate-y-0"
+                        className="w-full max-w-60 md:max-w-120 object-contain drop-shadow-2xl translate-y-4 md:translate-y-0"
                         fetchPriority="high"
                     />
                 </div>
@@ -57,7 +57,7 @@ export default function HeroSection() {
 
             {/* Floating Info Bar (Desktop Only) */}
             <div className="hidden md:block absolute left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 -bottom-14 md:-bottom-12 z-20 w-[calc(100%-2rem)] md:w-auto">
-                <div className="bg-[#F4F5F7] shadow-xl rounded-[20px] border border-gray-200 px-6 py-4 md:py-5 w-full md:min-w-[900px] max-w-6xl xl:max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+                <div className="bg-[#F4F5F7] shadow-xl rounded-[20px] border border-gray-200 px-6 py-4 md:py-5 w-full md:min-w-225 max-w-6xl xl:max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
                     
                     {/* Item 1 */}
                     <div className="flex items-center gap-4 w-full md:w-auto">

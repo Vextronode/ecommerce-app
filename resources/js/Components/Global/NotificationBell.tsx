@@ -106,7 +106,7 @@ export default function NotificationBell({ user }: { user: any }) {
                         onClick={() => setIsNotifOpen(false)}
                     />
 
-                    <div className="fixed inset-x-3.5 top-16 sm:inset-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-[370px] bg-white/95 backdrop-blur-md max-h-[70vh] sm:max-h-[75vh] flex flex-col shadow-2xl rounded-2xl md:rounded-3xl animate-in fade-in zoom-in-95 duration-200 z-50 overflow-hidden border border-slate-200/80">
+                    <div className="fixed inset-x-3.5 top-16 sm:inset-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-92.5 bg-white/95 backdrop-blur-md max-h-[70vh] sm:max-h-[75vh] flex flex-col shadow-2xl rounded-2xl md:rounded-3xl animate-in fade-in zoom-in-95 duration-200 z-50 overflow-hidden border border-slate-200/80">
                         {/* Header */}
                         <div className="flex justify-between items-center px-4 md:px-5 py-3.5 border-b border-slate-100">
                             <div className="flex items-center gap-2">

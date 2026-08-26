@@ -329,7 +329,7 @@ export default function OrderMobileCard({
                             <QRCodeSVG
                                 value={order.handover_url}
                                 size={220}
-                                className="w-full h-auto max-w-[220px]"
+                                className="w-full h-auto max-w-55"
                             />
                         </div>
 

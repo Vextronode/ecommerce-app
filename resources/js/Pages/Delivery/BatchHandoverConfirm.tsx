@@ -8,6 +8,7 @@ import {
     Navigation,
     ArrowRight,
     AlertCircle,
+    Package,
 } from "lucide-react";
 import { formatRupiah } from "@/utils/formatters";
 
@@ -169,7 +170,7 @@ export default function BatchHandoverConfirm({
 
                     {/* Total Summary Footer */}
                     {totalCodAmount > 0 && (
-                        <div className="pt-2 border-t border-gray-100 flex justify-between items-center bg-amber-50 p-3 rounded-xl border border-amber-200">
+                        <div className="flex justify-between items-center bg-amber-50 p-3 rounded-xl border border-amber-200">
                             <span className="text-xs font-bold text-amber-800">
                                 Total Tagihan COD:
                             </span>

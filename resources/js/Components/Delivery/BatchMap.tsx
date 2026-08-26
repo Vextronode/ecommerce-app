@@ -252,12 +252,12 @@ export default function BatchMap({
     };
 
     return (
-        <div className="relative w-full h-[360px] bg-slate-200 shadow-inner">
+        <div className="relative w-full h-90 bg-slate-200 shadow-inner">
             <div ref={mapContainerRef} className="w-full h-full z-0" />
 
             {/* Progress floating badge */}
-            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-slate-200/60 z-[1000] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-teal-50 text-brand-teal flex items-center justify-center font-black text-xs border border-teal-200">
+            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-slate-200/60 z-1000 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-brand-blue-tint text-brand-blue flex items-center justify-center font-black text-xs border border-brand-blue-light/30">
                     {deliveredCount}/{totalStops}
                 </div>
                 <div>
@@ -275,7 +275,7 @@ export default function BatchMap({
             <button
                 type="button"
                 onClick={handleRecenter}
-                className={`absolute bottom-3 left-3 z-[1000] px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
+                className={`absolute bottom-3 left-3 z-1000 px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
                     isFreeMode
                         ? "bg-brand-blue text-white border border-brand-blue shadow-brand-blue/30"
                         : "bg-white/90 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-white"

@@ -238,7 +238,7 @@ export default function BatchTracker({
                                     {totalStops} Alamat
                                 </span>
                             </h1>
-                            <p className="text-[11px] text-sky-100/90 truncate max-w-[180px] sm:max-w-xs">
+                            <p className="text-[11px] text-sky-100/90 truncate max-w-45 sm:max-w-xs">
                                 {store.name}
                             </p>
                         </div>
@@ -290,7 +290,7 @@ export default function BatchTracker({
 
                 {/* Google Maps Master Navigation Bar for Driver */}
                 {isDriver && googleMapsUrl && googleMapsUrl !== "#" && (
-                    <div className="px-4 py-3 bg-gradient-to-r from-blue-50/70 to-sky-50/70 border-b border-blue-100 flex items-center justify-between gap-3 shadow-xs">
+                    <div className="px-4 py-3 bg-linear-to-r from-blue-50/70 to-sky-50/70 border-b border-blue-100 flex items-center justify-between gap-3 shadow-xs">
                         <div className="text-xs text-slate-700 min-w-0">
                             <span className="font-bold text-slate-900 block truncate">
                                 Navigasi Suara Belokan demi Belokan

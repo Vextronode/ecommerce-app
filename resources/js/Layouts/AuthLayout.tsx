@@ -6,7 +6,7 @@ import AuthBranding from "@/Components/AuthBranding";
 
 const WaveEdge = ({ side }: { side: "right" | "left" }) => (
     <div
-        className="absolute top-0 bottom-0 w-[100px] text-brand-blue"
+        className="absolute top-0 bottom-0 w-25 text-brand-blue"
         style={
             side === "right"
                 ? { right: "-99px" }
@@ -81,7 +81,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                             <AuthBranding type="login" />
                         ) : (
                             <div className="w-full max-w-xl">
-                                <div className="bg-[#F0F2F5] rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
+                                <div className="bg-[#F0F2F5] rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
                                     {children}
                                 </div>
                             </div>
@@ -91,7 +91,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                     <div className="w-1/2 h-full flex items-center justify-center px-8 lg:px-14">
                         {isLogin ? (
                             <div className="w-full max-w-xl">
-                                <div className="bg-[#F0F2F5] rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
+                                <div className="bg-[#F0F2F5] rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
                                     {children}
                                 </div>
                             </div>

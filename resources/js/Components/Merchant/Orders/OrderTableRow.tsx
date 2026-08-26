@@ -177,10 +177,10 @@ export default function OrderTableRow({
                             )}
                         </div>
                         <div className="min-w-0">
-                            <p className="font-bold text-[#14433D] text-sm leading-tight truncate max-w-[120px]">
+                            <p className="font-bold text-brand-blue-dark text-sm leading-tight truncate max-w-30">
                                 {order.customer_name}
                             </p>
-                            <p className="text-[11px] text-gray-400 truncate max-w-[120px]">
+                            <p className="text-[11px] text-gray-400 truncate max-w-30">
                                 {order.user?.email || order.customer_phone}
                             </p>
                         </div>
@@ -188,9 +188,9 @@ export default function OrderTableRow({
                 </td>
 
                 <td className="py-4 px-4">
-                    <div className="flex flex-col max-w-[160px]">
+                    <div className="flex flex-col max-w-40">
                         <span
-                            className="text-sm font-bold text-[#14433D] truncate"
+                            className="text-sm font-bold text-brand-blue-dark truncate"
                             title={firstProduct?.product_name}
                         >
                             {firstProduct?.product_name || "Produk tidak diketahui"}

@@ -16,7 +16,7 @@ export default function RevenueTrendChart({ data, years }: RevenueTrendChartProp
         <div className="bg-white p-6 rounded-[20px] border border-[#41B9C5]/20 shadow-sm col-span-1 lg:col-span-2">
             <div className="flex justify-between items-start mb-6">
                 <div>
-                    <h3 className="font-bold text-[#14433D]">Revenue Trend</h3>
+                    <h3 className="font-bold text-brand-blue-dark">Revenue Trend</h3>
                     <p className="text-xs text-gray-400 mt-1 font-medium">Menampilkan perbandingan tahunan (tidak terpengaruh filter harian)</p>
                 </div>
                 <button aria-label="Action" className="text-gray-400 hover:text-gray-600 mt-1">
@@ -24,7 +24,7 @@ export default function RevenueTrendChart({ data, years }: RevenueTrendChartProp
                 </button>
             </div>
             
-            <div className="h-[300px] w-full">
+            <div className="h-75 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={data}
