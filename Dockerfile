@@ -6,12 +6,15 @@
 # Base image PHP 8.4 CLI sesuai versi yang lu pakai di lokal
 FROM php:8.4-cli
 
-# Install dependencies sistem yang dibutuhkan PHP & Node.js
-RUN apt-get update && apt-get install -y \
+# Hindari dialog interaktif debconf yang menyebabkan error terminal
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies sistem yang dibutuhkan PHP (--no-install-recommends mencegah install paket sampah desktop)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl zip unzip \
     libpng-dev libonig-dev libxml2-dev \
     libzip-dev \
-    nodejs npm \
+    ca-certificates \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install ekstensi PHP yang dibutuhkan Laravel
@@ -27,6 +30,10 @@ RUN docker-php-ext-install \
 
 # Install Composer dari image resminya
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install Node.js & NPM langsung dari image resminya (Cepat, bersih, tanpa 700+ paket sampah apt)
+COPY --from=node:22-slim /usr/local/bin /usr/local/bin
+COPY --from=node:22-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 # Set working directory di dalam container
 WORKDIR /var/www
