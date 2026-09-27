@@ -1,16 +1,33 @@
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LocateFixed } from "lucide-react";
+import {
+    LocateFixed,
+    Maximize2,
+    Minimize2,
+    Navigation,
+    Phone,
+    MessageSquare,
+    Route,
+} from "lucide-react";
+import { createStoreIcon, createStopIcon, createDriverIcon } from "./Map/MapIcons";
+import {
+    sortStopsNearestSequence,
+    fetchOsrmPolylineCoords,
+    GeoLocationItem,
+} from "./Map/osrmRouting";
+import { useBatchMapCamera } from "./Map/useBatchMapCamera";
 
-export interface StopLocation {
+export interface StopLocation extends GeoLocationItem {
     id: number;
     stop_number: number;
     status: string;
     customer_name: string;
+    customer_phone?: string;
     shipping_address: string;
     shipping_latitude: number | null;
     shipping_longitude: number | null;
+    invoice_number?: string;
 }
 
 interface Props {
@@ -26,73 +43,9 @@ interface Props {
     progressPercent: number;
     isDriver?: boolean;
     refreshCounter?: number;
+    selectedTargetStopId?: number | null;
+    onSelectTargetStop?: (stopId: number) => void;
 }
-
-const createStoreIcon = () => {
-    return L.divIcon({
-        className: "custom-modern-store-pin",
-        html: `
-            <div style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-                <div style="background:#14433D;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:2.5px solid #ffffff;box-shadow:0 6px 16px rgba(20,67,61,0.4);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
-                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                        <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
-                        <path d="M2 7h20"/>
-                        <path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/>
-                    </svg>
-                </div>
-            </div>
-        `,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-        popupAnchor: [0, -22],
-    });
-};
-
-const createStopIcon = (stopNumber: number, isDelivered: boolean) => {
-    const bgColor = isDelivered ? "#10B981" : "#ED7218";
-    const shadowColor = isDelivered ? "rgba(16,185,129,0.4)" : "rgba(237,114,24,0.4)";
-    const innerContent = isDelivered
-        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-        : `<span style="font-weight:900;font-size:14px;color:#ffffff;line-height:1;">${stopNumber}</span>`;
-
-    return L.divIcon({
-        className: `custom-modern-stop-pin-${stopNumber}`,
-        html: `
-            <div style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
-                <div style="background:${bgColor};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid #ffffff;box-shadow:0 6px 16px ${shadowColor};">
-                    ${innerContent}
-                </div>
-            </div>
-        `,
-        iconSize: [38, 38],
-        iconAnchor: [19, 19],
-        popupAnchor: [0, -20],
-    });
-};
-
-const createDriverIcon = () => {
-    return L.divIcon({
-        className: "custom-modern-driver-pin",
-        html: `
-            <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
-                <div style="position:absolute;inset:0;background:#006591;border-radius:50%;opacity:0.25;animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
-                <div style="background:#006591;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid #ffffff;box-shadow:0 6px 18px rgba(0,101,145,0.45);z-index:2;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="18.5" cy="17.5" r="3.5"/>
-                        <circle cx="5.5" cy="17.5" r="3.5"/>
-                        <circle cx="15" cy="5" r="1"/>
-                        <path d="M12 17.5V14l-3-3 4-3 2 3h2"/>
-                    </svg>
-                </div>
-            </div>
-        `,
-        iconSize: [44, 44],
-        iconAnchor: [22, 22],
-        popupAnchor: [0, -24],
-    });
-};
 
 export default function BatchMap({
     store,
@@ -103,13 +56,27 @@ export default function BatchMap({
     progressPercent,
     isDriver = false,
     refreshCounter = 0,
+    selectedTargetStopId = null,
+    onSelectTargetStop,
 }: Props) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<L.Map | null>(null);
     const markersRef = useRef<{ [key: string]: L.Marker }>({});
-    const routePolylineRef = useRef<L.Polyline | null>(null);
-    const [isFreeMode, setIsFreeMode] = useState<boolean>(false);
+    const activePolylineRef = useRef<L.Polyline | null>(null);
+    const upcomingPolylineRef = useRef<L.Polyline | null>(null);
 
+    const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+    const [showUpcomingRoute, setShowUpcomingRoute] = useState<boolean>(false);
+
+    // Clean Architecture: Delegate camera viewport orchestration to Custom Hook
+    const camera = useBatchMapCamera({
+        mapRef,
+        driverPos,
+        store,
+        stops,
+    });
+
+    // 1. Initialize Map Instance (Pure Leaflet + OSM)
     useEffect(() => {
         if (!mapContainerRef.current) return;
 
@@ -119,100 +86,84 @@ export default function BatchMap({
                 attributionControl: false,
             }).setView([-7.6974, 108.6534], 13);
 
-            L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
                 maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             }).addTo(map);
 
             L.control.zoom({ position: "bottomright" }).addTo(map);
 
-            // Free Mode on user dragging
-            map.on("dragstart", () => {
-                setIsFreeMode(true);
-            });
+            map.on("dragstart", () => camera.setFreeMode());
+            map.on("zoomstart", () => camera.setFreeMode());
 
             mapRef.current = map;
         }
+    }, [camera]);
 
+    // Handle Fullscreen Transitions & Invalidate Map Dimensions
+    const toggleFullscreen = () => {
+        setIsFullscreen((prev) => {
+            const next = !prev;
+            camera.invalidateSize();
+            return next;
+        });
+    };
+
+    // 2. Render Markers, Polylines & Live Sync
+    useEffect(() => {
         const map = mapRef.current;
-        const bounds = L.latLngBounds([]);
-        const waypoints: [number, number][] = [];
+        if (!map) return;
 
-        // Store Marker
+        const bounds = L.latLngBounds([]);
+
+        // Store Pin
         if (store.latitude && store.longitude) {
-            const storeLatLng: [number, number] = [Number(store.latitude), Number(store.longitude)];
-            bounds.extend(storeLatLng);
-            waypoints.push(storeLatLng);
+            const storePos: [number, number] = [Number(store.latitude), Number(store.longitude)];
+            bounds.extend(storePos);
 
             if (!markersRef.current["store"]) {
-                markersRef.current["store"] = L.marker(storeLatLng, { icon: createStoreIcon() })
+                markersRef.current["store"] = L.marker(storePos, { icon: createStoreIcon() })
                     .addTo(map)
                     .bindPopup(`<b>${store.name}</b><br><small>Titik Ambil Toko</small>`);
             }
         }
 
-        // Stop Markers
+        // Stop Pins
         stops.forEach((stop) => {
             if (stop.shipping_latitude && stop.shipping_longitude) {
-                const stopLatLng: [number, number] = [Number(stop.shipping_latitude), Number(stop.shipping_longitude)];
-                bounds.extend(stopLatLng);
-                waypoints.push(stopLatLng);
+                const pos: [number, number] = [Number(stop.shipping_latitude), Number(stop.shipping_longitude)];
+                bounds.extend(pos);
 
-                const isDeliveredStop = stop.status === "delivered";
+                const isDelivered = stop.status === "delivered";
+                const isSelected = selectedTargetStopId === stop.id;
                 const markerKey = `stop_${stop.id}`;
-                const stopIcon = createStopIcon(stop.stop_number, isDeliveredStop);
+                const icon = createStopIcon(stop.stop_number, isDelivered, isSelected);
 
                 if (markersRef.current[markerKey]) {
-                    markersRef.current[markerKey].setIcon(stopIcon);
+                    markersRef.current[markerKey].setIcon(icon);
                 } else {
-                    markersRef.current[markerKey] = L.marker(stopLatLng, { icon: stopIcon })
-                        .addTo(map)
-                        .bindPopup(
-                            `<b>Stop ${stop.stop_number}: ${stop.customer_name}</b><br><small>${stop.shipping_address}</small>`
-                        );
+                    const marker = L.marker(pos, { icon }).addTo(map);
+                    marker.on("click", () => {
+                        onSelectTargetStop?.(stop.id);
+                    });
+                    markersRef.current[markerKey] = marker;
                 }
+
+                markersRef.current[markerKey].bindPopup(
+                    `<b>Stop ${stop.stop_number}: ${stop.customer_name}</b><br><small>${stop.shipping_address}</small>${
+                        !isDelivered
+                            ? `<br><div style="margin-top:4px;"><span style="color:#0284C7;font-weight:bold;font-size:11px;">${
+                                  isSelected ? "★ Target Rute Aktif" : "Klik untuk arahkan rute ke sini"
+                              }</span></div>`
+                            : ""
+                    }`
+                );
             }
         });
 
-        // Fetch OSRM Road Route along all waypoints
-        if (waypoints.length >= 2) {
-            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${waypoints.map(([lat, lng]) => `${lng},${lat}`).join(';')}?overview=full&geometries=geojson`;
-
-            fetch(osrmUrl)
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data && data.routes && data.routes[0] && data.routes[0].geometry) {
-                        const coords = data.routes[0].geometry.coordinates.map(
-                            ([lng, lat]: [number, number]) => [lat, lng] as [number, number]
-                        );
-
-                        if (routePolylineRef.current) {
-                            routePolylineRef.current.remove();
-                        }
-
-                        routePolylineRef.current = L.polyline(coords, {
-                            color: "#006591",
-                            weight: 5,
-                            opacity: 0.85,
-                            lineJoin: "round",
-                            lineCap: "round",
-                        }).addTo(map);
-                    }
-                })
-                .catch(() => {
-                    if (!routePolylineRef.current) {
-                        routePolylineRef.current = L.polyline(waypoints, {
-                            color: "#006591",
-                            weight: 4,
-                            dashArray: "6, 8",
-                        }).addTo(map);
-                    }
-                });
-        }
-
-        // Driver Live Marker & Auto-Follow
+        // Driver Live Marker
         if (driverPos) {
             bounds.extend(driverPos);
-
             if (markersRef.current["driver"]) {
                 markersRef.current["driver"].setLatLng(driverPos);
             } else {
@@ -220,71 +171,274 @@ export default function BatchMap({
                     .addTo(map)
                     .bindPopup(`<b>Kurir Toko (Live Posisi GPS)</b>`);
             }
+        }
 
-            // Auto-follow if not dragged into free mode
-            if (!isFreeMode) {
-                map.panTo(driverPos, { animate: true, duration: 0.8 });
+        // 3. Dynamic Route Computation
+        const undeliveredStops = stops.filter(
+            (s) => s.status !== "delivered" && s.shipping_latitude && s.shipping_longitude
+        );
+
+        const effectiveOrigin: [number, number] | null = driverPos
+            ? driverPos
+            : store.latitude && store.longitude
+            ? [Number(store.latitude), Number(store.longitude)]
+            : null;
+
+        if (!effectiveOrigin || undeliveredStops.length === 0) {
+            if (activePolylineRef.current) {
+                activePolylineRef.current.remove();
+                activePolylineRef.current = null;
+            }
+            if (upcomingPolylineRef.current) {
+                upcomingPolylineRef.current.remove();
+                upcomingPolylineRef.current = null;
+            }
+        } else {
+            let activeStop: StopLocation;
+            let upcomingStops: StopLocation[];
+
+            if (selectedTargetStopId) {
+                const target = undeliveredStops.find((s) => s.id === selectedTargetStopId);
+                if (target) {
+                    activeStop = target;
+                    const others = undeliveredStops.filter((s) => s.id !== selectedTargetStopId);
+                    upcomingStops = sortStopsNearestSequence(
+                        [Number(target.shipping_latitude), Number(target.shipping_longitude)],
+                        others
+                    );
+                } else {
+                    const seq = sortStopsNearestSequence(effectiveOrigin, undeliveredStops);
+                    activeStop = seq[0];
+                    upcomingStops = seq.slice(1);
+                }
+            } else {
+                const seq = sortStopsNearestSequence(effectiveOrigin, undeliveredStops);
+                activeStop = seq[0];
+                upcomingStops = seq.slice(1);
+            }
+
+            const activeStopPos: [number, number] = [
+                Number(activeStop.shipping_latitude),
+                Number(activeStop.shipping_longitude),
+            ];
+
+            // 1. ACTIVE LEG (Vibrant Blue #0284C7): Driver -> Current Target Stop
+            fetchOsrmPolylineCoords([effectiveOrigin, activeStopPos]).then((coords) => {
+                if (activePolylineRef.current) {
+                    activePolylineRef.current.remove();
+                }
+                const points = coords || [effectiveOrigin, activeStopPos];
+                activePolylineRef.current = L.polyline(points, {
+                    color: "#0284C7",
+                    weight: 6,
+                    opacity: 0.95,
+                    lineJoin: "round",
+                    lineCap: "round",
+                }).addTo(map);
+            });
+
+            // 2. UPCOMING LEG (Vivid Orange Dashed #EA580C): Target Stop -> Remaining Stops
+            // Only rendered if enabled via toggle or in fullscreen to prevent road overlap
+            if (showUpcomingRoute && upcomingStops.length > 0) {
+                const waypoints: [number, number][] = [
+                    activeStopPos,
+                    ...upcomingStops.map(
+                        (s) => [Number(s.shipping_latitude), Number(s.shipping_longitude)] as [number, number]
+                    ),
+                ];
+
+                fetchOsrmPolylineCoords(waypoints).then((coords) => {
+                    if (upcomingPolylineRef.current) {
+                        upcomingPolylineRef.current.remove();
+                    }
+                    const points = coords || waypoints;
+                    upcomingPolylineRef.current = L.polyline(points, {
+                        color: "#EA580C",
+                        weight: 4.5,
+                        opacity: 0.9,
+                        dashArray: "8, 9",
+                        lineJoin: "round",
+                        lineCap: "round",
+                    }).addTo(map);
+                });
+            } else if (upcomingPolylineRef.current) {
+                upcomingPolylineRef.current.remove();
+                upcomingPolylineRef.current = null;
             }
         }
 
-        if (bounds.isValid() && !isFreeMode && !driverPos) {
-            map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+        // Camera initial auto-fit
+        if (!camera.hasFittedOnceRef.current && bounds.isValid()) {
+            camera.fitAllRoutes();
+            camera.hasFittedOnceRef.current = true;
+        } else if (camera.cameraMode === "driver" && driverPos) {
+            map.panTo(driverPos, { animate: true, duration: 0.8 });
         }
-    }, [stops, driverPos, store, isFreeMode]);
+    }, [stops, driverPos, store, selectedTargetStopId, showUpcomingRoute, camera]);
 
-    // External Refresh Trigger -> Reset Free Mode and Fly to Driver
+    // External Refresh Trigger
     useEffect(() => {
-        if (refreshCounter > 0 && mapRef.current) {
-            setIsFreeMode(false);
-            if (driverPos) {
-                mapRef.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
-            }
+        if (refreshCounter > 0) {
+            camera.fitAllRoutes();
         }
-    }, [refreshCounter, driverPos]);
+    }, [refreshCounter, camera]);
 
-    const handleRecenter = () => {
-        setIsFreeMode(false);
-        if (driverPos && mapRef.current) {
-            mapRef.current.flyTo(driverPos, 16, { animate: true, duration: 0.8 });
-        } else if (store.latitude && store.longitude && mapRef.current) {
-            mapRef.current.flyTo([Number(store.latitude), Number(store.longitude)], 15, { animate: true, duration: 0.8 });
-        }
-    };
+    // Active stop details for Fullscreen bottom navigation sheet
+    const undelivered = stops.filter((s) => s.status !== "delivered");
+    const activeTargetStop =
+        (selectedTargetStopId ? stops.find((s) => s.id === selectedTargetStopId) : null) ||
+        undelivered[0] ||
+        null;
 
     return (
-        <div className="relative w-full h-90 bg-slate-200 shadow-inner">
+        <div
+            className={`transition-all duration-300 font-sans ${
+                isFullscreen
+                    ? "fixed inset-0 z-50 w-screen h-screen bg-slate-900"
+                    : "relative w-full h-90 bg-slate-200 shadow-inner"
+            }`}
+        >
             <div ref={mapContainerRef} className="w-full h-full z-0" />
 
-            {/* Progress floating badge */}
-            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-slate-200/60 z-1000 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-brand-blue-tint text-brand-blue flex items-center justify-center font-black text-xs border border-brand-blue-light/30">
-                    {deliveredCount}/{totalStops}
-                </div>
-                <div>
-                    <p className="text-[11px] font-bold text-slate-800">Progres Pengantaran</p>
-                    <div className="w-24 bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1">
-                        <div
-                            className="bg-emerald-500 h-full transition-all duration-500"
-                            style={{ width: `${progressPercent}%` }}
-                        />
+            {/* TOP BAR OVERLAYS (Responsive & Collision-Free) */}
+            <div className="absolute top-3 inset-x-3 z-400 flex items-center justify-between gap-2 pointer-events-none">
+                {/* Left: Compact Progress Pill & Optional Upcoming Route Toggle */}
+                <div className="flex items-center gap-2 pointer-events-auto">
+                    <div className="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-xl shadow-md border border-slate-200/70 flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-brand-blue text-white flex items-center justify-center font-black text-xs">
+                            {deliveredCount}/{totalStops}
+                        </div>
+                        <span className="text-[11px] font-bold text-slate-800">
+                            {progressPercent}%
+                        </span>
                     </div>
+
+                    {/* Toggle Rute Lanjutan (Opsi A+B) */}
+                    <button
+                        type="button"
+                        onClick={() => setShowUpcomingRoute((prev) => !prev)}
+                        className={`px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-md border transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
+                            showUpcomingRoute
+                                ? "bg-amber-500 text-white border-amber-600 shadow-amber-500/20"
+                                : "bg-white/95 backdrop-blur-md text-slate-700 border-slate-200/70 hover:bg-white"
+                        }`}
+                        title="Tampilkan / Sembunyikan garis rute lanjutan ke titik berikutnya"
+                    >
+                        <Route className={`w-3.5 h-3.5 ${showUpcomingRoute ? "text-white" : "text-amber-600"}`} />
+                        <span className="hidden sm:inline">
+                            {showUpcomingRoute ? "Rute Lanjutan Aktif" : "+ Rute Lanjutan"}
+                        </span>
+                    </button>
+                </div>
+
+                {/* Right: Fullscreen Toggle Button */}
+                <div className="flex items-center gap-2 pointer-events-auto">
+                    <button
+                        type="button"
+                        onClick={toggleFullscreen}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold shadow-md border transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
+                            isFullscreen
+                                ? "bg-slate-900/90 text-white border-slate-700 hover:bg-slate-900"
+                                : "bg-white/95 backdrop-blur-md text-slate-800 border-slate-200/70 hover:bg-white"
+                        }`}
+                        title={isFullscreen ? "Keluar Layar Penuh" : "Buka Tampilan Layar Penuh (Navigasi Lapangan)"}
+                    >
+                        {isFullscreen ? (
+                            <>
+                                <Minimize2 className="w-3.5 h-3.5 text-sky-400" />
+                                <span>Tutup</span>
+                            </>
+                        ) : (
+                            <>
+                                <Maximize2 className="w-3.5 h-3.5 text-brand-blue" />
+                                <span className="hidden xs:inline sm:inline">Layar Penuh</span>
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
 
-            {/* Floating Re-center Button */}
-            <button
-                type="button"
-                onClick={handleRecenter}
-                className={`absolute bottom-3 left-3 z-1000 px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
-                    isFreeMode
-                        ? "bg-brand-blue text-white border border-brand-blue shadow-brand-blue/30"
-                        : "bg-white/90 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-white"
+            {/* BOTTOM-LEFT: Camera Mode Buttons */}
+            <div
+                className={`absolute left-3 z-400 flex items-center gap-2 ${
+                    isFullscreen && activeTargetStop ? "bottom-28 sm:bottom-24" : "bottom-3"
                 }`}
-                title={isFreeMode ? "Pusatkan kembali kamera ke kurir" : "Kamera otomatis mengikuti posisi kurir"}
             >
-                <LocateFixed className={`w-4 h-4 ${isFreeMode ? "text-white" : "text-brand-blue"}`} />
-                <span>{isFreeMode ? (isDriver ? "Pusatkan ke Saya" : "Pusatkan ke Kurir") : "Mengikuti Live"}</span>
-            </button>
+                <button
+                    type="button"
+                    onClick={camera.fitAllRoutes}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
+                        camera.cameraMode === "fit"
+                            ? "bg-brand-blue text-white border border-brand-blue shadow-brand-blue/30"
+                            : "bg-white/95 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-white"
+                    }`}
+                    title="Tampilkan seluruh rute kurir dan semua titik tujuan agar tidak terpotong"
+                >
+                    <Maximize2 className={`w-3.5 h-3.5 ${camera.cameraMode === "fit" ? "text-white" : "text-brand-blue"}`} />
+                    <span>Semua Rute</span>
+                </button>
+
+                {driverPos && (
+                    <button
+                        type="button"
+                        onClick={camera.focusDriver}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
+                            camera.cameraMode === "driver"
+                                ? "bg-brand-blue text-white border border-brand-blue shadow-brand-blue/30"
+                                : "bg-white/95 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-white"
+                        }`}
+                        title="Perbesar dan ikuti posisi kurir secara dekat"
+                    >
+                        <LocateFixed className={`w-3.5 h-3.5 ${camera.cameraMode === "driver" ? "text-white" : "text-brand-blue"}`} />
+                        <span>{isDriver ? "Fokus Saya" : "Fokus Kurir"}</span>
+                    </button>
+                )}
+            </div>
+
+            {/* FULLSCREEN BOTTOM SHEET (Driver Turn-by-Turn Action Card) */}
+            {isFullscreen && activeTargetStop && (
+                <div className="absolute bottom-4 inset-x-4 max-w-xl mx-auto z-400 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-slate-200/80 flex items-center justify-between gap-3 animate-fade-in-up">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-md bg-brand-blue text-white flex items-center justify-center font-black text-[11px] shrink-0">
+                                {activeTargetStop.stop_number}
+                            </span>
+                            <h4 className="font-bold text-slate-900 text-sm truncate">
+                                {activeTargetStop.customer_name}
+                            </h4>
+                        </div>
+                        <p className="text-xs text-slate-600 truncate mt-0.5">
+                            {activeTargetStop.shipping_address}
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                        {activeTargetStop.customer_phone && (
+                            <a
+                                href={`https://wa.me/${activeTargetStop.customer_phone
+                                    .replace(/\D/g, "")
+                                    .replace(/^0/, "62")}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-9 h-9 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 flex items-center justify-center transition border border-emerald-200/60"
+                                title="WhatsApp Pembeli"
+                            >
+                                <MessageSquare className="w-4 h-4" />
+                            </a>
+                        )}
+
+                        <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${activeTargetStop.shipping_latitude},${activeTargetStop.shipping_longitude}&travelmode=driving`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 bg-brand-blue hover:bg-brand-blue-hover text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-brand-blue/20 transition cursor-pointer"
+                        >
+                            <Navigation className="w-3.5 h-3.5" />
+                            <span>Navigasi</span>
+                        </a>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -10,6 +10,7 @@ use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -193,13 +194,14 @@ class CheckoutController extends Controller
                 $order = Order::create([
                     'store_id' => $storeId,
                     'user_id' => auth()->id(),
-                    'invoice_number' => 'ORD-'.date('YmdHis').'-'.strtoupper(substr(uniqid(), -4)),
+                    'invoice_number' => 'ORD-'.date('YmdHis').'-'.strtoupper(Str::random(6)),
                     'customer_name' => $validated['name'],
                     'customer_phone' => $validated['phone'],
                     'shipping_address' => $validated['address'],
                     'shipping_latitude' => $addressLat,
                     'shipping_longitude' => $addressLon,
-                    'shipping_pin' => str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT),
+                    'shipping_pin' => str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+
                     'delivery_method' => $validated['delivery_method'],
                     'subtotal' => $subtotal,
                     'shipping_cost' => $deliveryFee,

@@ -25,21 +25,17 @@ export default function OrderManagement({ orders, stats }: any) {
             router.reload({ only: ["orders", "stats"] });
         };
 
-        const globalChan = window.Echo.channel("global-orders");
-        globalChan.listen(".OrderStatusUpdated", handleUpdate);
-        globalChan.listen("OrderStatusUpdated", handleUpdate);
-
+        // private channel — auth required
         let storeChan: any = null;
         if (storeId) {
-            storeChan = window.Echo.channel(`store-orders.${storeId}`);
+            storeChan = window.Echo.private(`store-orders.${storeId}`);
             storeChan.listen(".OrderStatusUpdated", handleUpdate);
             storeChan.listen("OrderStatusUpdated", handleUpdate);
         }
 
         return () => {
-            window.Echo.leaveChannel("global-orders");
             if (storeId) {
-                window.Echo.leaveChannel(`store-orders.${storeId}`);
+                window.Echo.leave(`store-orders.${storeId}`);
             }
         };
     }, [storeId]);

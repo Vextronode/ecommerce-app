@@ -33,8 +33,6 @@ class Order extends Model
         'payment_expiry_time',
         'payment_payload',
         'payment_status',
-        'balance_credited_at',
-        'stock_restored_at',
         'shipping_status',
         'notes',
     ];
@@ -47,6 +45,10 @@ class Order extends Model
         'total_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
+    ];
+
+    protected $hidden = [
+        'payment_payload',
     ];
 
     // Relasi ke tabel order_items
@@ -98,7 +100,7 @@ class Order extends Model
                 }
             }
 
-            $order->update(['stock_restored_at' => now()]);
+            $order->forceFill(['stock_restored_at' => now()])->save();
             $this->stock_restored_at = $order->stock_restored_at;
 
             return true;
@@ -130,14 +132,96 @@ class Order extends Model
                 }
 
                 $store->increment('available_balance', $amount);
-
-                Log::info("Escrow Released: Moved Rp {$amount} from pending to available for store ID {$store->id} for order #{$order->invoice_number}");
             }
 
-            $order->update(['balance_credited_at' => now()]);
+            $order->forceFill(['balance_credited_at' => now()])->save();
             $this->balance_credited_at = $order->balance_credited_at;
 
             return true;
         });
     }
+
+
+    /**
+     * Mark order as arrived at customer delivery location.
+     */
+    public function markAsArrived(): void
+    {
+        \Illuminate\Support\Facades\Cache::put("order_arrived_{$this->id}", now()->toIso8601String(), 86400 * 7);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'arrived_at')) {
+            $this->update(['arrived_at' => now()]);
+        }
+    }
+
+
+    /**
+     * Check whether courier has arrived at destination.
+     */
+    public function isArrived(): bool
+    {
+        if (!empty($this->arrived_at)) {
+            return true;
+        }
+        return \Illuminate\Support\Facades\Cache::has("order_arrived_{$this->id}");
+    }
+
+    /**
+     * Check if buyer is eligible to complete this order.
+     * Buyer button activates when courier arrives OR after 4 hours have passed.
+     */
+    public function canBuyerComplete(): bool
+    {
+        if ($this->delivery_method !== 'local_delivery') {
+            return $this->shipping_status === 'shipped';
+        }
+
+        if ($this->shipping_status !== 'shipped') {
+            return false;
+        }
+
+        // Active if courier marked arrived OR 4 hours have elapsed since last update
+        if ($this->isArrived()) {
+            return true;
+        }
+
+        $hoursElapsed = $this->updated_at ? $this->updated_at->diffInHours(now()) : 0;
+        return $hoursElapsed >= 4;
+    }
+
+    /**
+     * Automatically complete delivery by system (e.g. after 4 hours timeout like Shopee).
+     */
+    public function autoCompleteDelivery(): bool
+    {
+        if ($this->shipping_status !== 'shipped') {
+            return false;
+        }
+
+        return DB::transaction(function () {
+            $locked = self::where('id', $this->id)->lockForUpdate()->first();
+            if (!$locked || $locked->shipping_status !== 'shipped') {
+                return false;
+            }
+
+            $updateData = ['shipping_status' => 'delivered'];
+            if ($locked->payment_method === 'cod') {
+                $updateData['payment_status'] = 'paid';
+            }
+            $locked->update($updateData);
+
+            if ($locked->payment_status === 'paid' && $locked->payment_method !== 'cod') {
+                $locked->creditStoreBalance();
+            }
+
+            \App\Services\OrderNotificationService::orderDelivered($locked);
+
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($locked))->toOthers();
+            } catch (\Throwable $e) {}
+
+            Log::info("Order #{$locked->invoice_number} auto-completed by system (4-hour timeout).");
+            return true;
+        });
+    }
 }
+

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CheckCircle2, Phone, MessageSquare } from "lucide-react";
+import { CheckCircle2, Phone, MessageSquare, Navigation } from "lucide-react";
 import { formatRupiah } from "@/utils/formatters";
 
 export interface BatchStopData {
@@ -12,7 +12,6 @@ export interface BatchStopData {
     shipping_address: string;
     shipping_latitude: number | null;
     shipping_longitude: number | null;
-    shipping_pin?: string;
     distance_km: number | null;
     subtotal?: number;
     shipping_cost?: number;
@@ -29,6 +28,8 @@ export interface BatchStopData {
 interface Props {
     stop: BatchStopData;
     isDriver: boolean;
+    isSelectedTarget?: boolean;
+    onSelectTarget?: (stopId: number) => void;
     onVerifyPin: (invoiceNumber: string, pin: string) => void;
     isSubmitting: boolean;
     errorMessage?: string;
@@ -37,6 +38,8 @@ interface Props {
 export default function BatchStopCard({
     stop,
     isDriver,
+    isSelectedTarget = false,
+    onSelectTarget,
     onVerifyPin,
     isSubmitting,
     errorMessage,
@@ -56,6 +59,8 @@ export default function BatchStopCard({
             className={`rounded-2xl p-4 transition-all shadow-sm border ${
                 isDelivered
                     ? "bg-emerald-50/70 border-emerald-200/80"
+                    : isSelectedTarget
+                    ? "bg-white border-sky-400 ring-2 ring-sky-100 shadow-md"
                     : "bg-white border-slate-200 hover:border-[#41B9C5]/50"
             }`}
         >
@@ -65,6 +70,8 @@ export default function BatchStopCard({
                         className={`w-9 h-9 rounded-xl font-black text-sm flex items-center justify-center shrink-0 shadow-sm ${
                             isDelivered
                                 ? "bg-emerald-600 text-white"
+                                : isSelectedTarget
+                                ? "bg-sky-600 text-white"
                                 : "bg-linear-to-br from-brand-orange to-brand-orange-hover text-white"
                         }`}
                     >
@@ -80,10 +87,29 @@ export default function BatchStopCard({
                                     Terkirim
                                 </span>
                             )}
+                            {!isDelivered && isSelectedTarget && (
+                                <span className="text-[10px] font-bold bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full flex items-center gap-1 border border-sky-200">
+                                    <Navigation className="w-2.5 h-2.5" />
+                                    Target Rute
+                                </span>
+                            )}
                         </div>
-                        <p className="text-[11px] font-mono text-slate-400">
-                            #{stop.invoice_number}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-[11px] font-mono text-slate-400">
+                                #{stop.invoice_number}
+                            </p>
+                            {!isDelivered && !isSelectedTarget && onSelectTarget && (
+                                <button
+                                    type="button"
+                                    onClick={() => onSelectTarget(stop.id)}
+                                    className="text-[10px] font-semibold text-brand-blue hover:text-sky-600 hover:underline cursor-pointer flex items-center gap-0.5"
+                                    title="Arahkan navigasi rute langsung ke titik ini"
+                                >
+                                    <Navigation className="w-2.5 h-2.5" />
+                                    <span>Arahkan ke sini</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 

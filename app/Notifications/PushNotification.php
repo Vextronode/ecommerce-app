@@ -65,6 +65,7 @@ class PushNotification extends Notification implements ShouldQueue
 
         return [
             'data' => [
+                'id' => (string) ($this->id ?? ''),
                 'title' => $this->title,
                 'message' => $this->message,
                 'type' => $this->type,

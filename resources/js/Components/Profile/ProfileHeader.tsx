@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { Camera, Loader2, CheckCircle2, Store, Shield } from "lucide-react";
 import { router } from "@inertiajs/react";
 import toast from "react-hot-toast";
-import { compressImage } from "@/Utils/imageCompressor";
+import { compressImage } from "@/utils/imageCompressor";
 
 interface UserProfile {
     id: number;

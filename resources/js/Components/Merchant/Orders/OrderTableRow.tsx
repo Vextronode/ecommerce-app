@@ -54,7 +54,7 @@ export default function OrderTableRow({
     useEffect(() => {
         if (!showQRModal || !order?.invoice_number || typeof window === "undefined" || !window.Echo) return;
 
-        const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
+        const channel = window.Echo.private(`order-tracking.${order.invoice_number}`);
         const handleScanned = () => {
             setShowQRModal(false);
             router.reload({ only: ["orders", "stats"] });
@@ -64,7 +64,7 @@ export default function OrderTableRow({
         channel.listen("OrderStatusUpdated", handleScanned);
 
         return () => {
-            window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
+            window.Echo.leave(`order-tracking.${order.invoice_number}`);
         };
     }, [showQRModal, order?.invoice_number]);
 
@@ -314,7 +314,7 @@ export default function OrderTableRow({
                                     ["shipped", "delivered"].includes(order.shipping_status) && (
                                         <div className="flex flex-col items-end gap-1 text-right">
                                             <a
-                                                href={`/tracker/${order.invoice_number}?role=driver`}
+                                                href={`/tracker/${order.invoice_number}`}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="inline-flex items-center gap-1.5 bg-brand-cyan-tint text-brand-teal px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-brand-cyan hover:text-white transition-colors"

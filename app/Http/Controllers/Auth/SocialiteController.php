@@ -40,6 +40,9 @@ class SocialiteController extends Controller
                 $user->update([
                     'google_id' => $googleUser->id,
                 ]);
+                if (! $user->email_verified_at) {
+                    $user->forceFill(['email_verified_at' => now()])->save();
+                }
             } else {
                 $user = User::query()->create([
                     'name' => $googleUser->name,
@@ -47,6 +50,10 @@ class SocialiteController extends Controller
                     'google_id' => $googleUser->id,
                     'password' => bcrypt(Str::random(16)),
                 ]);
+                $user->forceFill([
+                    'role' => 'user',
+                    'email_verified_at' => now(),
+                ])->save();
             }
 
             Auth::login($user);

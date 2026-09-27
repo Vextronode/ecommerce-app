@@ -1,5 +1,6 @@
-import React from "react";
-import { Head } from "@inertiajs/react";
+import React, { useEffect } from "react";
+import { Head, router } from "@inertiajs/react";
+import toast from "react-hot-toast";
 import MerchantLayout from "@/Layouts/MerchantLayout";
 import { HelpCircle, Clock, ShieldCheck, CheckCircle2, Zap, Landmark } from "lucide-react";
 import WithdrawalStats from "@/Components/Merchant/Withdrawal/WithdrawalStats";
@@ -45,10 +46,48 @@ export default function Index({ store, withdrawals, stats }: Props) {
         store.bank_name && store.bank_account_number && store.bank_account_holder
     );
 
-    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const handleRequestEditBank = () => {
-        // Edit bank fallback handler
+        const el = document.getElementById("bank-account-section");
+        el?.scrollIntoView({ behavior: "smooth" });
     };
+
+    // Real-Time WebSocket Listener for Payouts
+    useEffect(() => {
+        if (!store?.id || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.private(`store.${store.id}`);
+
+        const handleWithdrawalUpdated = (e: any) => {
+            // Instantly refresh withdrawals table, store balance, and stats without full reload
+            router.reload({
+                only: ["withdrawals", "stats", "store"],
+            });
+
+            if (e?.withdrawal) {
+                const wd = e.withdrawal;
+                const formattedAmount = `Rp ${Number(wd.amount).toLocaleString("id-ID")}`;
+
+                if (wd.status === "completed") {
+                    toast.success(
+                        `Penarikan dana ${formattedAmount} ke rekening ${wd.bank_name} berhasil dicairkan!`,
+                        { id: `wd-status-${wd.id}`, duration: 6000 }
+                    );
+                } else if (wd.status === "failed") {
+                    toast.error(
+                        `Penarikan dana ${formattedAmount} gagal diproses. Saldo dikembalikan ke toko.`,
+                        { id: `wd-status-${wd.id}`, duration: 6000 }
+                    );
+                }
+            }
+        };
+
+        channel.listen(".WithdrawalUpdated", handleWithdrawalUpdated);
+        channel.listen("WithdrawalUpdated", handleWithdrawalUpdated);
+
+        return () => {
+            window.Echo.leave(`store.${store.id}`);
+        };
+    }, [store?.id]);
 
     return (
         <MerchantLayout>

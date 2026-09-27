@@ -42,6 +42,10 @@ export default function WithdrawalHistoryTable({
         setTimeout(() => setCopiedId(null), 2000);
     };
 
+    const completedCount = withdrawals.filter((w) => w.status === "completed").length;
+    const pendingCount = withdrawals.filter((w) => w.status === "pending").length;
+    const failedCount = withdrawals.filter((w) => w.status === "failed").length;
+
     const filteredWithdrawals = withdrawals.filter((item) => {
         const matchesStatus =
             filterStatus === "all" || item.status === filterStatus;
@@ -82,7 +86,7 @@ export default function WithdrawalHistoryTable({
                                 : "text-gray-500 hover:text-gray-800"
                             }`}
                     >
-                        Tercairkan
+                        Tercairkan ({completedCount})
                     </button>
                     <button
                         onClick={() => setFilterStatus("pending")}
@@ -91,7 +95,16 @@ export default function WithdrawalHistoryTable({
                                 : "text-gray-500 hover:text-gray-800"
                             }`}
                     >
-                        Diproses
+                        Diproses ({pendingCount})
+                    </button>
+                    <button
+                        onClick={() => setFilterStatus("failed")}
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${filterStatus === "failed"
+                                ? "bg-red-500 text-white shadow-sm shadow-red-500/30"
+                                : "text-gray-500 hover:text-gray-800"
+                            }`}
+                    >
+                        Gagal ({failedCount})
                     </button>
                 </div>
             </div>

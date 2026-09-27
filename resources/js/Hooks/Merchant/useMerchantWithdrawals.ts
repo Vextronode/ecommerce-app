@@ -19,11 +19,9 @@ export function useMerchantWithdrawals({
         amount: "",
     });
 
-
-
     const handleSelectPreset = (amount: number) => {
         if (amount > availableBalance) {
-            toast.error("Nominal melebihi saldo yang tersedia.");
+            toast.error("Nominal melebihi saldo yang tersedia.", { id: 'withdrawal-toast' });
             return;
         }
         setData("amount", amount.toString());
@@ -31,7 +29,7 @@ export function useMerchantWithdrawals({
 
     const handleSelectAll = () => {
         if (availableBalance < 10000) {
-            toast.error("Minimal penarikan adalah Rp 10.000");
+            toast.error("Minimal penarikan adalah Rp 10.000", { id: 'withdrawal-toast' });
             return;
         }
         setData("amount", Math.floor(availableBalance).toString());
@@ -40,19 +38,25 @@ export function useMerchantWithdrawals({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!hasBankAccount) {
-            toast.error("Silakan lengkapi data rekening bank terlebih dahulu.");
+            toast.error("Silakan lengkapi data rekening bank terlebih dahulu.", { id: 'withdrawal-toast' });
             onRequestEditBank();
             return;
         }
 
         post(route("merchant.withdrawals.store"), {
             preserveScroll: true,
-            onSuccess: () => {
-                toast.success("Penarikan saldo berhasil diproses!");
+            onSuccess: (page) => {
+                const flashErr = (page.props as any)?.flash?.error;
+                if (flashErr) {
+                    toast.error(flashErr, { id: 'withdrawal-toast', duration: 5000 });
+                    return;
+                }
+                toast.success("Permintaan penarikan saldo berhasil diajukan!", { id: 'withdrawal-toast' });
                 reset("amount");
             },
             onError: (errs) => {
-                toast.error(errs.amount || "Gagal memproses penarikan saldo.");
+                const msg = errs.amount || errs.error || (errs as any)?.message || "Gagal memproses penarikan saldo.";
+                toast.error(msg, { id: 'withdrawal-toast', duration: 5000 });
             },
         });
     };

@@ -55,7 +55,7 @@ export default function OrderMobileCard({
     useEffect(() => {
         if (!showQRModal || !order?.invoice_number || typeof window === "undefined" || !window.Echo) return;
 
-        const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
+        const channel = window.Echo.private(`order-tracking.${order.invoice_number}`);
         const handleScanned = () => {
             setShowQRModal(false);
             router.reload({ only: ["orders", "stats"] });
@@ -65,7 +65,7 @@ export default function OrderMobileCard({
         channel.listen("OrderStatusUpdated", handleScanned);
 
         return () => {
-            window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
+            window.Echo.leave(`order-tracking.${order.invoice_number}`);
         };
     }, [showQRModal, order?.invoice_number]);
 
@@ -252,7 +252,7 @@ export default function OrderMobileCard({
                         )}
                     </div>
                     <a
-                        href={`/tracker/${order.invoice_number}?role=driver`}
+                        href={`/tracker/${order.invoice_number}`}
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}

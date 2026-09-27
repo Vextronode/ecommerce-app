@@ -23,12 +23,16 @@ messaging.onBackgroundMessage(function(payload) {
   const defaultIcon = isMerchant ? '/icons/icon-merchant-192.png' : '/icons/icon-192.png';
   const customIcon = payload.data?.icon ? payload.data.icon : defaultIcon;
 
+  const notifTag = payload.data?.id || (notificationTitle + ':' + (payload.data?.message || ''));
+
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.message || 'Anda mendapatkan notifikasi baru dari CibendaMart.',
     icon: self.location.origin + customIcon,
     badge: self.location.origin + customIcon,
     sound: self.location.origin + '/sounds/notification.mp3',
     vibrate: [200, 100, 200, 100, 200],
+    tag: notifTag,
+    renotify: false,
     data: payload.data || {}
   };
 

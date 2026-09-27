@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
+import { Eye, EyeOff } from "lucide-react";
 
 import AuthGlassLayout from "@/Layouts/AuthGlassLayout";
 
 export default function Login() {
+    const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors } = useForm({
         email: "",
         password: "",
@@ -24,16 +26,17 @@ export default function Login() {
                 subtitle="Masukkan informasi yg sesuai admin berikan"
             >
                 <form onSubmit={submit} className="space-y-7 w-full">
-                    {/* Input Email */}
+                    {/* Input Email/Username */}
                     <div>
                         <label htmlFor="field_29" className="block text-white text-sm mb-2 font-medium">
-                            Email Address<span aria-label="Action" className="text-red-500">*</span>
+                            Username / Email<span aria-label="Action" className="text-red-500">*</span>
                         </label>
                         <input id="field_29"
-                            type="email"
+                            type="text"
                             value={data.email}
                             onChange={(e) => setData("email", e.target.value)}
-                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none text-gray-900 shadow-inner transition"
+                            placeholder="Masukkan username atau email"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none text-gray-900 shadow-inner transition placeholder:text-gray-400"
                             required
                         />
                         {errors.email && (
@@ -48,15 +51,31 @@ export default function Login() {
                         <label htmlFor="field_48" className="block text-white text-sm mb-2 font-medium">
                             Password<span aria-label="Action" className="text-red-500">*</span>
                         </label>
-                        <input id="field_48"
-                            type="password"
-                            value={data.password}
-                            onChange={(e) =>
-                                setData("password", e.target.value)
-                            }
-                            className="w-full px-4 py-3.5 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none text-gray-900 shadow-inner transition"
-                            required
-                        />
+                        <div className="relative">
+                            <input id="field_48"
+                                type={showPassword ? "text" : "password"}
+                                value={data.password}
+                                onChange={(e) =>
+                                    setData("password", e.target.value)
+                                }
+                                placeholder="Masukkan password"
+                                className="w-full px-4 py-3.5 pr-11 rounded-2xl bg-white border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none text-gray-900 shadow-inner transition"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                tabIndex={-1}
+                                aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors cursor-pointer"
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="w-5 h-5" />
+                                ) : (
+                                    <Eye className="w-5 h-5" />
+                                )}
+                            </button>
+                        </div>
                         {errors.password && (
                             <div className="text-red-400 text-xs mt-1.5">
                                 {errors.password}

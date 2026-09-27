@@ -83,12 +83,18 @@ class NotificationController extends Controller
      */
     public function saveFcmToken(Request $request)
     {
-        $request->validate([
-            'fcm_token' => 'required|string'
+        $validated = $request->validate([
+            'fcm_token' => [
+                'required',
+                'string',
+                'min:30',
+                'max:500',
+                'regex:/^[a-zA-Z0-9_\-:]+$/',
+            ],
         ]);
 
         $user = $request->user();
-        $user->fcm_token = $request->fcm_token;
+        $user->fcm_token = $validated['fcm_token'];
         $user->save();
 
         return response()->json(['success' => true]);

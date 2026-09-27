@@ -102,7 +102,7 @@ function playWebAudioChimeFallback() {
 /**
  * Show native OS/browser notification banner (works both foreground & background)
  */
-function showNativeNotification(title: string, message?: string, actionUrl?: string) {
+function showNativeNotification(title: string, message?: string, actionUrl?: string, tag?: string) {
     if (typeof window === "undefined" || !("Notification" in window)) return;
     if (Notification.permission !== "granted") return;
 
@@ -113,12 +113,14 @@ function showNativeNotification(title: string, message?: string, actionUrl?: str
         ? "/icons/icon-merchant-192.png"
         : "/icons/icon-192.png";
     const iconUrl = window.location.origin + iconRelativePath;
+    const notifTag = tag || `${title}:${message || ""}`;
 
     try {
         const notif = new Notification(title, {
             body: message || "",
             icon: iconUrl,
             badge: iconUrl,
+            tag: notifTag,
         });
 
         notif.onclick = () => {
@@ -136,6 +138,7 @@ function showNativeNotification(title: string, message?: string, actionUrl?: str
                     body: message || "",
                     icon: iconUrl,
                     badge: iconUrl,
+                    tag: notifTag,
                     data: { action_url: actionUrl },
                 });
             });
@@ -163,6 +166,7 @@ export function useNotifications(user: any) {
 
     const prevUnreadCountRef = useRef<number | null>(null);
     const isInitialMountRef = useRef<boolean>(true);
+    const recentlyNotifiedRef = useRef<Set<string>>(new Set());
 
     // Helper to play notification sound with Web Audio fallback
     const playNotificationSound = useCallback(() => {
@@ -213,20 +217,25 @@ export function useNotifications(user: any) {
             .then((res) => {
                 const newCount = typeof res.data.count === "number" ? res.data.count : 0;
                 
-                // If count increases after initial load, play sound & trigger banner!
+                // If count increases after initial load, play sound & trigger banner (deduplicated against FCM)!
                 if (!isInitialMountRef.current && prevUnreadCountRef.current !== null && newCount > prevUnreadCountRef.current) {
-                    playNotificationSound();
-                    triggerBellAnimation();
-
-                    // Trigger banner for the latest incoming item
+                    // Trigger banner for the latest incoming item only if not already triggered by FCM
                     axios.get("/api/notifications").then((notifRes) => {
                         const latest = notifRes.data?.all?.[0];
                         if (latest?.data) {
-                            showNativeNotification(
-                                latest.data.title || "Notifikasi Baru",
-                                latest.data.message,
-                                latest.data.action_url
-                            );
+                            const notifTitle = latest.data.title || "Notifikasi Baru";
+                            const notifMsg = latest.data.message || "";
+                            const actionUrl = latest.data.action_url;
+                            const notifId = String(latest.id || `${notifTitle}:${notifMsg}`);
+
+                            if (!recentlyNotifiedRef.current.has(notifId)) {
+                                recentlyNotifiedRef.current.add(notifId);
+                                setTimeout(() => recentlyNotifiedRef.current.delete(notifId), 15000);
+
+                                playNotificationSound();
+                                triggerBellAnimation();
+                                showNativeNotification(notifTitle, notifMsg, actionUrl, notifId);
+                            }
                         }
                     }).catch(() => {});
                 }
@@ -269,16 +278,19 @@ export function useNotifications(user: any) {
 
         const unsubscribe = onMessageListener((payload: any) => {
             if (payload?.data) {
-                // 1. Play sound
-                playNotificationSound();
-                // 2. Animate bell
-                triggerBellAnimation();
-                // 3. ALWAYS show native OS push notification banner (even if web is open!)
-                showNativeNotification(
-                    payload.data.title || "Notifikasi Baru",
-                    payload.data.message,
-                    payload.data.action_url
-                );
+                const notifTitle = payload.data.title || "Notifikasi Baru";
+                const notifMsg = payload.data.message || "";
+                const actionUrl = payload.data.action_url;
+                const notifId = String(payload.data.id || `${notifTitle}:${notifMsg}`);
+
+                if (!recentlyNotifiedRef.current.has(notifId)) {
+                    recentlyNotifiedRef.current.add(notifId);
+                    setTimeout(() => recentlyNotifiedRef.current.delete(notifId), 15000);
+
+                    playNotificationSound();
+                    triggerBellAnimation();
+                    showNativeNotification(notifTitle, notifMsg, actionUrl, notifId);
+                }
             }
 
             fetchNotifications();

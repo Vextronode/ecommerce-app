@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import ConfirmModal from "@/Components/ConfirmModal";
-import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle, Navigation } from "lucide-react";
+import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle, Navigation, Clock } from "lucide-react";
 import { useOrderHistoryActions } from "@/Hooks/Storefront/useOrderHistoryActions";
+
 
 export default function Show({ order }: { order: any }) {
     const {
@@ -20,27 +21,26 @@ export default function Show({ order }: { order: any }) {
     useEffect(() => {
         if (!order?.invoice_number || typeof window === "undefined" || !window.Echo) return;
 
-        const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
-        const globalChan = window.Echo.channel("global-orders");
-
+        const channel = window.Echo.private(`order-tracking.${order.invoice_number}`);
         const handleUpdate = () => {
             router.reload({ only: ["order"] });
         };
 
         channel.listen(".OrderStatusUpdated", handleUpdate);
         channel.listen("OrderStatusUpdated", handleUpdate);
-        globalChan.listen(".OrderStatusUpdated", handleUpdate);
-        globalChan.listen("OrderStatusUpdated", handleUpdate);
 
         return () => {
-            window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
-            window.Echo.leaveChannel("global-orders");
+            window.Echo.leave(`order-tracking.${order.invoice_number}`);
         };
     }, [order?.id, order?.invoice_number]);
 
+
     const canCancel = order.shipping_status === 'pending';
-    const canComplete = order.shipping_status === 'shipped';
+    const isLocalDelivery = order.delivery_method === 'local_delivery';
+    const canComplete = order.shipping_status === 'shipped' && (order.can_buyer_complete ?? (!isLocalDelivery || order.is_arrived));
+    const isWaitingCourierArrival = order.shipping_status === 'shipped' && isLocalDelivery && !canComplete;
     const showRatingButton = order.status === 'Selesai' && order.items && order.items.length > 0;
+
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
@@ -272,6 +272,23 @@ export default function Show({ order }: { order: any }) {
                                 Pesanan Diterima
                             </button>
                         )}
+
+                        {isWaitingCourierArrival && (
+                            <div className="flex flex-col items-end">
+                                <button
+                                    disabled
+                                    className="inline-flex items-center justify-center px-5 py-2.5 bg-gray-100 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed border border-gray-200"
+                                    title="Tombol ini akan aktif saat kurir tiba di lokasi Anda, atau otomatis selesai setelah 4 jam."
+                                >
+                                    <Clock className="w-4 h-4 mr-1.5 text-gray-400" />
+                                    Menunggu Kurir Tiba di Lokasi
+                                </button>
+                                <span className="text-[10px] text-gray-400 mt-1 text-right max-w-xs">
+                                    Tombol aktif saat kurir tiba atau otomatis selesai dalam 4 jam.
+                                </span>
+                            </div>
+                        )}
+
                         
                         {showRatingButton && order.items?.[0]?.id && (
                             <Link

@@ -134,13 +134,13 @@ class OrderNotificationService
 
                 if ($isAllowed) {
                     $title = 'Pesanan Sedang Dikirim!';
-                    $pinText = !empty($order->shipping_pin) ? " PIN Serah Terima: {$order->shipping_pin}." : "";
-                    $message = "Pesanan #{$order->invoice_number} sedang diantar ke alamat Anda.{$pinText}";
+                    $message = "Pesanan #{$order->invoice_number} sedang diantar ke alamat Anda. Silakan buka aplikasi untuk melihat PIN serah terima.";
                     $actionUrl = $order->delivery_method === 'local_delivery'
                         ? route('tracker.show', $order->invoice_number, false)
                         : route('history.show', $order->id, false);
 
                     $order->user->notify(new PushNotification($title, $message, 'order', $actionUrl));
+
                 }
             }
         } catch (\Throwable $e) {
@@ -149,9 +149,30 @@ class OrderNotificationService
     }
 
     /**
+     * Notify buyer when courier arrives at delivery location.
+     */
+    public static function orderArrived(Order $order): void
+    {
+        try {
+            $order->loadMissing(['user', 'store']);
+
+            if ($order->user) {
+                $title = 'Kurir Tiba di Lokasi Anda!';
+                $message = "Kurir telah sampai di lokasi alamat pengiriman pesanan #{$order->invoice_number}. Silakan temui kurir.";
+                $actionUrl = route('history.show', $order->id, false);
+
+                $order->user->notify(new PushNotification($title, $message, 'order', $actionUrl));
+            }
+        } catch (\Throwable $e) {
+            Log::error('OrderNotificationService::orderArrived error: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Notify buyer when status changes to 'delivered'.
      */
     public static function orderDelivered(Order $order): void
+
     {
         try {
             $order->loadMissing(['user', 'store', 'items']);

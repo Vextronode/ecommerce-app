@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Merchant;
 
+use App\Events\OrderStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -48,6 +51,21 @@ class OrderController extends Controller
                     now()->addHours(24) // Valid for 24 hours
                 );
             }
+
+            // Defense-in-depth: Strip raw payment gateway tokens and internal financial audit timestamps
+            $order->makeHidden([
+                'payment_payload',
+                'va_number',
+                'bill_key',
+                'biller_code',
+                'qr_code_url',
+                'parent_transaction_id',
+                'payment_type',
+                'payment_channel',
+                'payment_expiry_time',
+                'balance_credited_at',
+                'stock_restored_at',
+            ]);
 
             return $order;
         });
@@ -137,7 +155,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'shipping_status' => 'required|in:pending,processing,shipped,delivered,cancelled',
+            'shipping_status' => 'required|in:pending,processing,shipped,cancelled',
         ]);
 
         $store = $request->user()->store;
@@ -155,8 +173,8 @@ class OrderController extends Controller
 
             $newStatus = $request->shipping_status;
 
-            // Security Guard (Vuln 8)
-            if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid' && in_array($newStatus, ['processing', 'shipped', 'delivered'])) {
+            // Security Guard: Non-COD orders must be paid before being processed or shipped
+            if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid' && in_array($newStatus, ['processing', 'shipped'])) {
                 return redirect()->route('merchant.orders.index')->with('error', 'Pesanan non-COD belum dibayar oleh pembeli.');
             }
 
@@ -164,43 +182,27 @@ class OrderController extends Controller
 
             if ($newStatus === 'shipped') {
                 if (empty($order->shipping_pin)) {
-                    $updateData['shipping_pin'] = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-                }
-            }
-
-            if ($newStatus === 'delivered') {
-                if ($order->payment_method === 'cod') {
-                    $updateData['payment_status'] = 'paid';
+                    $updateData['shipping_pin'] = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
                 }
                 $order->update($updateData);
-
-                // Only credit store balance if payment is actually paid
-                if ($order->payment_status === 'paid' || ($updateData['payment_status'] ?? '') === 'paid') {
-                    $order->creditStoreBalance();
-                }
-
-                \App\Services\OrderNotificationService::orderDelivered($order);
+                OrderNotificationService::orderShipped($order);
             } elseif ($newStatus === 'cancelled') {
                 $updateData['payment_status'] = $order->payment_status === 'paid' ? 'refunded' : 'failed';
                 $order->update($updateData);
                 // Idempotent stock restoration
                 $order->restoreStock();
-
-                \App\Services\OrderNotificationService::orderCancelled($order, 'Dibatalkan oleh penjual');
-            } elseif ($newStatus === 'shipped') {
-                $order->update($updateData);
-                \App\Services\OrderNotificationService::orderShipped($order);
+                OrderNotificationService::orderCancelled($order, 'Dibatalkan oleh penjual');
             } elseif ($newStatus === 'processing') {
                 $order->update($updateData);
-                \App\Services\OrderNotificationService::orderProcessing($order);
+                OrderNotificationService::orderProcessing($order);
             } else {
                 $order->update($updateData);
             }
 
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($order));
+                broadcast(new OrderStatusUpdated($order));
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
             }
 
             return redirect()->route('merchant.orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
