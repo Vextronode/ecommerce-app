@@ -110,14 +110,14 @@ class CustomerController extends Controller
                 'customer_id' => '#CUS-'.str_pad($user->id, 2, '0', STR_PAD_LEFT),
                 'name' => $user->name,
                 'avatar' => $user->profile_photo_path ? asset('storage/'.$user->profile_photo_path) : null,
-                'email' => $user->email,
-                'phone' => $user->latest_phone ?? $user->phone ?? '-',
+                'phone' => $user->latest_phone ?? '-',
                 'orders_count' => $user->store_orders_count,
                 'total_spent' => $user->store_total_spent ?? 0,
                 'join_date' => $joinDate->format('M d, Y'),
                 'status' => $isNew ? 'New' : 'Active',
             ];
         });
+
 
         return Inertia::render('Merchant/Customers/Index', [
             'metrics' => [

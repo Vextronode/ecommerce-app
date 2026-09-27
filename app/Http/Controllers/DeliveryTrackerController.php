@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DriverLocationBroadcasted;
+use App\Events\OrderStatusUpdated;
 use App\Models\Order;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class DeliveryTrackerController extends Controller
@@ -25,15 +30,26 @@ class DeliveryTrackerController extends Controller
             abort(404, 'Tracking hanya tersedia untuk Kurir Toko.');
         }
 
-        // Determine role securely:
-        $isMerchant = auth()->check() && auth()->user()->store && auth()->user()->store->id === $order->store_id;
+        // Determine role & authorization:
+        $isDriver = session("driver_authorized_{$invoice_number}") === true;
+        $isBuyer = auth()->check() && (int) auth()->id() === (int) $order->user_id;
+        $isMerchant = auth()->check() && (int) auth()->user()->store?->id === (int) $order->store_id;
+        $canViewFullPII = $isDriver || $isBuyer || $isMerchant;
 
-        if (request()->query('role') === 'driver' || session("driver_authorized_{$invoice_number}") === true || $isMerchant) {
-            session(["driver_authorized_{$invoice_number}" => true]);
-            $role = 'driver';
-        } else {
-            $role = 'user';
-        }
+        $role = $isDriver ? 'driver' : 'user';
+
+        // PII Masking: If unauthenticated/unauthorized public viewer, obscure customer phone and address
+        $displayCustomerName = $canViewFullPII
+            ? $order->customer_name
+            : (strlen($order->customer_name) > 3 ? Str::mask($order->customer_name, '*', 2, -1) : $order->customer_name);
+
+        $displayPhone = $canViewFullPII
+            ? $order->customer_phone
+            : ($order->customer_phone ? Str::mask($order->customer_phone, '*', 4, -3) : null);
+
+        $displayAddress = $canViewFullPII
+            ? $order->shipping_address
+            : ($order->shipping_address ? preg_replace('/^([^,]+,[^,]+),?.*/', '$1, [Alamat Disamarkan]', $order->shipping_address) : '');
 
         $cachedLoc = Cache::get("driver_loc_{$invoice_number}");
 
@@ -43,9 +59,10 @@ class DeliveryTrackerController extends Controller
                 'id' => $order->id,
                 'invoice_number' => $order->invoice_number,
                 'status' => $order->shipping_status,
-                'customer_name' => $order->customer_name,
-                'customer_phone' => $order->customer_phone,
-                'shipping_address' => $order->shipping_address,
+                'is_arrived' => $order->isArrived(),
+                'customer_name' => $displayCustomerName,
+                'customer_phone' => $displayPhone,
+                'shipping_address' => $displayAddress,
                 'shipping_latitude' => $order->shipping_latitude,
                 'shipping_longitude' => $order->shipping_longitude,
                 'driver_latitude' => $cachedLoc['latitude'] ?? null,
@@ -78,6 +95,9 @@ class DeliveryTrackerController extends Controller
         if (! $request->hasValidSignature()) {
             abort(401, 'Link QR Code kadaluarsa atau tidak valid.');
         }
+
+        // Establish 30-minute handover eligibility session upon physical signed QR code scan
+        session(["handover_scanned_{$invoice_number}" => now()->addMinutes(30)->timestamp]);
 
         $order = Order::with(['store', 'items.product', 'user'])
             ->where('invoice_number', $invoice_number)
@@ -129,21 +149,28 @@ class DeliveryTrackerController extends Controller
      */
     public function acceptHandover(Request $request, $invoice_number)
     {
+        $scannedAt = session("handover_scanned_{$invoice_number}");
+        if (! $scannedAt || now()->timestamp > $scannedAt) {
+            abort(403, 'Sesi serah terima QR Code tidak valid atau telah kadaluarsa. Silakan scan ulang QR Code toko.');
+        }
+        session()->forget("handover_scanned_{$invoice_number}");
+
         $order = Order::where('invoice_number', $invoice_number)->firstOrFail();
 
         // Update status to shipped if currently processing or pending
         if (in_array($order->shipping_status, ['pending', 'processing'])) {
             $updateData = ['shipping_status' => 'shipped'];
             if (empty($order->shipping_pin)) {
-                $updateData['shipping_pin'] = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+                $updateData['shipping_pin'] = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
             }
+
             $order->update($updateData);
 
-            \App\Services\OrderNotificationService::orderShipped($order);
+            OrderNotificationService::orderShipped($order);
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+                broadcast(new OrderStatusUpdated($order))->toOthers();
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
             }
         }
 
@@ -161,6 +188,9 @@ class DeliveryTrackerController extends Controller
         if (! $request->hasValidSignature()) {
             abort(401, 'Link Master QR Code kadaluarsa atau tidak valid.');
         }
+
+        // Establish 30-minute batch handover eligibility session upon physical signed Master QR code scan
+        session(["batch_handover_scanned_{$batch_token}" => now()->addMinutes(30)->timestamp]);
 
         $batchData = Cache::get("delivery_batch_{$batch_token}");
         $orders = null;
@@ -183,8 +213,8 @@ class DeliveryTrackerController extends Controller
         $storeLat = $store?->latitude;
         $storeLon = $store?->longitude;
 
-        // Calculate distance for each stop and sort from nearest to farthest
-        $stops = $orders->map(function ($order) use ($storeLat, $storeLon) {
+        // Calculate distance for each stop and optimize visiting sequence (Nearest-Neighbor TSP)
+        $rawStops = $orders->map(function ($order) use ($storeLat, $storeLon) {
             $distKm = $this->calculateHaversineDistance(
                 $storeLat,
                 $storeLon,
@@ -216,7 +246,9 @@ class DeliveryTrackerController extends Controller
                     ];
                 }),
             ];
-        })->sortBy('distance_km')->values()->all();
+        })->values()->all();
+
+        $stops = $this->optimizeStopSequence($storeLat, $storeLon, $rawStops);
 
         // Assign sequential stop numbers (1, 2, 3...)
         foreach ($stops as $index => &$stop) {
@@ -249,6 +281,12 @@ class DeliveryTrackerController extends Controller
      */
     public function acceptBatchHandover(Request $request, $batch_token)
     {
+        $scannedAt = session("batch_handover_scanned_{$batch_token}");
+        if (! $scannedAt || now()->timestamp > $scannedAt) {
+            abort(403, 'Sesi serah terima Master QR Code tidak valid atau telah kadaluarsa. Silakan scan ulang Master QR Code.');
+        }
+        session()->forget("batch_handover_scanned_{$batch_token}");
+
         $batchData = Cache::get("delivery_batch_{$batch_token}");
         $orderIds = $batchData['order_ids'] ?? [];
 
@@ -273,16 +311,17 @@ class DeliveryTrackerController extends Controller
                         'delivery_batch_token' => $batch_token,
                     ];
                     if (empty($order->shipping_pin)) {
-                        $updateData['shipping_pin'] = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+                        $updateData['shipping_pin'] = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
                     }
+
                     $order->update($updateData);
 
                     // Notify each buyer individually
-                    \App\Services\OrderNotificationService::orderShipped($order);
+                    OrderNotificationService::orderShipped($order);
                     try {
-                        broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+                        broadcast(new OrderStatusUpdated($order))->toOthers();
                     } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                        Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
                     }
                 }
 
@@ -321,20 +360,14 @@ class DeliveryTrackerController extends Controller
         $storeLat = $store?->latitude;
         $storeLon = $store?->longitude;
 
-        // Determine role
-        $isMerchant = auth()->check() && auth()->user()->store && auth()->user()->store->id === $store?->id;
-
-        if (request()->query('role') === 'driver' || session("driver_authorized_batch_{$batch_token}") === true || $isMerchant) {
-            session(["driver_authorized_batch_{$batch_token}" => true]);
-            $role = 'driver';
-        } else {
-            $role = 'user';
-        }
+        // Determine role: Only genuine authorized batch driver session is driver
+        $isBatchDriver = session("driver_authorized_batch_{$batch_token}") === true;
+        $role = $isBatchDriver ? 'driver' : 'user';
 
         $cachedBatchLoc = Cache::get("driver_loc_batch_{$batch_token}");
 
-        // Sort stops nearest to farthest
-        $stops = $orders->map(function ($order) use ($storeLat, $storeLon) {
+        // Optimize multi-stop route sequence (Nearest-Neighbor TSP from driver/store origin)
+        $rawStops = $orders->map(function ($order) use ($storeLat, $storeLon, $isBatchDriver) {
             $distKm = $this->calculateHaversineDistance(
                 $storeLat,
                 $storeLon,
@@ -342,16 +375,30 @@ class DeliveryTrackerController extends Controller
                 $order->shipping_longitude
             );
 
+            $isOwnOrder = auth()->check() && (int) auth()->id() === (int) $order->user_id;
+            $canViewFullPII = $isBatchDriver || $isOwnOrder;
+
+            $displayCustomerName = $canViewFullPII
+                ? $order->customer_name
+                : (strlen($order->customer_name) > 3 ? Str::mask($order->customer_name, '*', 2, -1) : $order->customer_name);
+
+            $displayPhone = $canViewFullPII
+                ? $order->customer_phone
+                : ($order->customer_phone ? Str::mask($order->customer_phone, '*', 4, -3) : null);
+
+            $displayAddress = $canViewFullPII
+                ? $order->shipping_address
+                : ($order->shipping_address ? preg_replace('/^([^,]+,[^,]+),?.*/', '$1, [Alamat Disamarkan]', $order->shipping_address) : '');
+
             return [
                 'id' => $order->id,
                 'invoice_number' => $order->invoice_number,
-                'status' => $order->shipping_status,
-                'customer_name' => $order->customer_name,
-                'customer_phone' => $order->customer_phone,
-                'shipping_address' => $order->shipping_address,
+                'shipping_status' => $order->shipping_status,
+                'customer_name' => $displayCustomerName,
+                'customer_phone' => $displayPhone,
+                'shipping_address' => $displayAddress,
                 'shipping_latitude' => $order->shipping_latitude,
                 'shipping_longitude' => $order->shipping_longitude,
-                'shipping_pin' => $order->shipping_pin,
                 'distance_km' => $distKm,
                 'subtotal' => $order->subtotal,
                 'shipping_cost' => $order->shipping_cost,
@@ -366,33 +413,17 @@ class DeliveryTrackerController extends Controller
                     ];
                 }),
             ];
-        })->sortBy('distance_km')->values()->all();
+        })->values()->all();
+
+        $originLat = ($cachedBatchLoc && isset($cachedBatchLoc['latitude'])) ? $cachedBatchLoc['latitude'] : $storeLat;
+        $originLon = ($cachedBatchLoc && isset($cachedBatchLoc['longitude'])) ? $cachedBatchLoc['longitude'] : $storeLon;
+        $stops = $this->optimizeStopSequence($originLat, $originLon, $rawStops);
 
         foreach ($stops as $index => &$stop) {
             $stop['stop_number'] = $index + 1;
         }
 
-        // Build Google Maps Multi-Waypoint Navigation URL
-        $validStops = array_values(array_filter($stops, function ($s) {
-            return $s['shipping_latitude'] && $s['shipping_longitude'];
-        }));
-
-        $googleMapsUrl = '#';
-        if (count($validStops) > 0) {
-            $origin = $storeLat && $storeLon ? "{$storeLat},{$storeLon}" : "{$validStops[0]['shipping_latitude']},{$validStops[0]['shipping_longitude']}";
-            $destinationStop = end($validStops);
-            $destination = "{$destinationStop['shipping_latitude']},{$destinationStop['shipping_longitude']}";
-
-            $waypointStops = array_slice($validStops, 0, count($validStops) - 1);
-            $waypoints = implode('|', array_map(function ($s) {
-                return "{$s['shipping_latitude']},{$s['shipping_longitude']}";
-            }, $waypointStops));
-
-            $googleMapsUrl = 'https://www.google.com/maps/dir/?api=1&origin='.urlencode($origin).'&destination='.urlencode($destination);
-            if (! empty($waypoints)) {
-                $googleMapsUrl .= '&waypoints='.urlencode($waypoints);
-            }
-        }
+        $googleMapsUrl = $this->buildGoogleMapsMultiStopUrl($storeLat, $storeLon, $stops) ?? '#';
 
         return Inertia::render('Delivery/BatchTracker', [
             'role' => $role,
@@ -420,11 +451,18 @@ class DeliveryTrackerController extends Controller
             'pin' => 'required|string|size:4',
         ]);
 
-        // Security / Rate Limiting: Max 5 attempts per minute per IP to prevent PIN brute force
-        $throttleKey = 'pin_verify_' . $invoice_number . '_' . $request->ip();
+        if (session("driver_authorized_batch_{$batch_token}") !== true) {
+            return back()->with('error', 'Hanya kurir yang diotorisasi yang dapat menyelesaikan pesanan.');
+        }
+
+        // Security / Rate Limiting: Max 5 attempts per invoice (locked across all IPs) to prevent PIN brute force
+        $throttleKey = 'pin_verify_' . $invoice_number;
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-            return back()->with('error', "Terlalu banyak percobaan PIN yang salah. Silakan coba lagi dalam {$seconds} detik.");
+            $minutes = ceil($seconds / 60);
+            $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
+            $errMsg = "Terlalu banyak percobaan PIN salah. Akses diblokir selama {$timeText}. Silakan coba lagi nanti.";
+            return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
         }
 
         return DB::transaction(function () use ($request, $invoice_number, $throttleKey) {
@@ -439,8 +477,17 @@ class DeliveryTrackerController extends Controller
             }
 
             if ($order->shipping_pin !== $request->pin) {
-                RateLimiter::hit($throttleKey, 60);
-                return back()->with('error', 'PIN tidak valid. Silakan tanya pembeli untuk 4-digit PIN pengiriman.');
+                RateLimiter::hit($throttleKey, 300);
+                $retriesLeft = RateLimiter::retriesLeft($throttleKey, 5);
+                if ($retriesLeft > 0) {
+                    $errMsg = "PIN tidak valid. Silakan tanya pembeli untuk 4-digit PIN pengiriman. Sisa percobaan: {$retriesLeft} kali lagi.";
+                } else {
+                    $seconds = RateLimiter::availableIn($throttleKey);
+                    $minutes = ceil($seconds / 60);
+                    $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
+                    $errMsg = "PIN salah. Terlalu banyak percobaan salah. Form diblokir selama {$timeText}.";
+                }
+                return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
             }
 
             RateLimiter::clear($throttleKey);
@@ -455,15 +502,19 @@ class DeliveryTrackerController extends Controller
 
             $order->update($updateData);
 
-            if ($order->payment_status === 'paid' || ($updateData['payment_status'] ?? '') === 'paid') {
+            // Security & Financial Integrity: Only credit digital store escrow balance for online payment (non-COD).
+            // For COD, the merchant/driver has already collected the physical cash directly from the customer.
+            if (($order->payment_status === 'paid' || ($updateData['payment_status'] ?? '') === 'paid') && $order->payment_method !== 'cod') {
                 $order->creditStoreBalance();
             }
 
-            \App\Services\OrderNotificationService::orderDelivered($order);
+            Cache::forget("driver_loc_{$invoice_number}");
+
+            OrderNotificationService::orderDelivered($order);
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+                broadcast(new OrderStatusUpdated($order))->toOthers();
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
             }
 
             return back()->with('success', "Pesanan #{$invoice_number} berhasil diselesaikan!");
@@ -475,6 +526,10 @@ class DeliveryTrackerController extends Controller
      */
     public function updateBatchLocation(Request $request, $batch_token)
     {
+        if (session("driver_authorized_batch_{$batch_token}") !== true) {
+            return response()->json(['error' => 'Tidak diotorisasi sebagai kurir pengiriman gabungan.'], 403);
+        }
+
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
@@ -506,7 +561,7 @@ class DeliveryTrackerController extends Controller
                 (float) $request->longitude
             ))->toOthers();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
+            Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
         }
 
         return response()->json(['success' => true]);
@@ -527,14 +582,22 @@ class DeliveryTrackerController extends Controller
      */
     public function complete(Request $request, $invoice_number)
     {
+        if (session("driver_authorized_{$invoice_number}") !== true) {
+            return back()->with('error', 'Hanya kurir yang diotorisasi yang dapat menyelesaikan pesanan via PIN.');
+        }
+
         $request->validate([
             'pin' => 'required|string|size:4',
         ]);
 
-        $throttleKey = 'pin_verify_' . $invoice_number . '_' . $request->ip();
+        // Security / Rate Limiting: Max 5 attempts per invoice (locked across all IPs) to prevent PIN brute force
+        $throttleKey = 'pin_verify_' . $invoice_number;
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-            return back()->with('error', "Terlalu banyak percobaan PIN salah. Coba lagi dalam {$seconds} detik.");
+            $minutes = ceil($seconds / 60);
+            $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
+            $errMsg = "Terlalu banyak percobaan PIN salah. Akses diblokir selama {$timeText}. Silakan coba lagi nanti.";
+            return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
         }
 
         return DB::transaction(function () use ($request, $invoice_number, $throttleKey) {
@@ -545,8 +608,17 @@ class DeliveryTrackerController extends Controller
             }
 
             if ($order->shipping_pin !== $request->pin) {
-                RateLimiter::hit($throttleKey, 60);
-                return back()->with('error', 'PIN tidak valid. Silakan tanya pembeli untuk 4-digit PIN.');
+                RateLimiter::hit($throttleKey, 300);
+                $retriesLeft = RateLimiter::retriesLeft($throttleKey, 5);
+                if ($retriesLeft > 0) {
+                    $errMsg = "PIN tidak valid. Silakan tanya pembeli untuk 4-digit PIN. Sisa percobaan: {$retriesLeft} kali lagi.";
+                } else {
+                    $seconds = RateLimiter::availableIn($throttleKey);
+                    $minutes = ceil($seconds / 60);
+                    $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
+                    $errMsg = "PIN salah. Terlalu banyak percobaan salah. Form diblokir selama {$timeText}.";
+                }
+                return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
             }
 
             RateLimiter::clear($throttleKey);
@@ -561,15 +633,19 @@ class DeliveryTrackerController extends Controller
 
             $order->update($updateData);
 
-            if ($order->payment_status === 'paid' || ($updateData['payment_status'] ?? '') === 'paid') {
+            // Security & Financial Integrity: Only credit digital store escrow balance for online payment (non-COD).
+            // For COD, the merchant/driver has already collected the physical cash directly from the customer.
+            if (($order->payment_status === 'paid' || ($updateData['payment_status'] ?? '') === 'paid') && $order->payment_method !== 'cod') {
                 $order->creditStoreBalance();
             }
 
-            \App\Services\OrderNotificationService::orderDelivered($order);
+            Cache::forget("driver_loc_{$invoice_number}");
+
+            OrderNotificationService::orderDelivered($order);
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+                broadcast(new OrderStatusUpdated($order))->toOthers();
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
             }
 
             return back()->with('success', 'Pengiriman berhasil diselesaikan!');
@@ -577,10 +653,43 @@ class DeliveryTrackerController extends Controller
     }
 
     /**
+     * Courier marks that they have arrived at the buyer's delivery destination.
+     * This activates the buyer's "Pesanan Diterima" button and starts the 4-hour countdown.
+     */
+    public function markArrived(Request $request, $invoice_number)
+    {
+        if (session("driver_authorized_{$invoice_number}") !== true) {
+            return back()->with('error', 'Hanya kurir yang diotorisasi yang dapat mengonfirmasi kedatangan.');
+        }
+
+        $order = Order::where('invoice_number', $invoice_number)->firstOrFail();
+
+        if ($order->shipping_status !== 'shipped') {
+            return back()->with('error', 'Status pesanan belum dalam pengiriman.');
+        }
+
+        $order->markAsArrived();
+
+        OrderNotificationService::orderArrived($order);
+
+        try {
+            broadcast(new OrderStatusUpdated($order))->toOthers();
+        } catch (\Throwable $e) {
+            Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Konfirmasi tiba di lokasi pembeli berhasil! Pembeli telah diberi tahu.');
+    }
+
+    /**
      * Driver broadcasts single GPS coordinate.
      */
     public function updateLocation(Request $request, $invoice_number)
     {
+        if (session("driver_authorized_{$invoice_number}") !== true) {
+            return response()->json(['error' => 'Tidak diotorisasi sebagai kurir.'], 403);
+        }
+
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
@@ -592,14 +701,14 @@ class DeliveryTrackerController extends Controller
         ], 86400);
 
         try {
-            broadcast(new \App\Events\DriverLocationBroadcasted(
+            broadcast(new DriverLocationBroadcasted(
                 null,
                 $invoice_number,
                 (float) $request->latitude,
                 (float) $request->longitude
             ))->toOthers();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
+            Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
         }
 
         return response()->json(['success' => true]);
@@ -643,9 +752,9 @@ class DeliveryTrackerController extends Controller
      */
     private function buildGoogleMapsMultiStopUrl($storeLat, $storeLon, $stops): ?string
     {
-        $validStops = array_filter($stops, function ($stop) {
+        $validStops = array_values(array_filter($stops, function ($stop) {
             return !empty($stop['shipping_latitude']) && !empty($stop['shipping_longitude']);
-        });
+        }));
 
         if (empty($validStops) || !$storeLat || !$storeLon) {
             return null;
@@ -663,6 +772,58 @@ class DeliveryTrackerController extends Controller
 
         $waypointParam = !empty($waypointCoords) ? '&waypoints=' . implode('|', $waypointCoords) : '';
 
-        return "https://www.google.com/maps/dir/?api=1&origin={$origin}&destination={$destination}{$waypointParam}";
+        return "https://www.google.com/maps/dir/?api=1&origin=" . urlencode($origin) . "&destination=" . urlencode($destination) . $waypointParam;
+    }
+
+    /**
+     * Optimize multi-stop route sequence using Nearest-Neighbor TSP algorithm.
+     * Starts from the origin (store/driver) and iteratively chains to the closest unvisited stop,
+     * preventing erratic zig-zagging across the map.
+     */
+    private function optimizeStopSequence($originLat, $originLon, array $stops): array
+    {
+        if (count($stops) <= 1) {
+            return $stops;
+        }
+
+        $unvisited = $stops;
+        $optimized = [];
+        $currentLat = $originLat;
+        $currentLon = $originLon;
+
+        while (!empty($unvisited)) {
+            $nearestIdx = null;
+            $shortestDist = null;
+
+            foreach ($unvisited as $idx => $stop) {
+                $dist = $this->calculateHaversineDistance(
+                    $currentLat,
+                    $currentLon,
+                    $stop['shipping_latitude'],
+                    $stop['shipping_longitude']
+                );
+
+                if ($shortestDist === null || ($dist !== null && $dist < $shortestDist)) {
+                    $shortestDist = $dist;
+                    $nearestIdx = $idx;
+                }
+            }
+
+            if ($nearestIdx === null) {
+                $next = array_shift($unvisited);
+            } else {
+                $next = $unvisited[$nearestIdx];
+                unset($unvisited[$nearestIdx]);
+                $unvisited = array_values($unvisited);
+            }
+
+            $optimized[] = $next;
+            if (!empty($next['shipping_latitude']) && !empty($next['shipping_longitude'])) {
+                $currentLat = $next['shipping_latitude'];
+                $currentLon = $next['shipping_longitude'];
+            }
+        }
+
+        return $optimized;
     }
 }

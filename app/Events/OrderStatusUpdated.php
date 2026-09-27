@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\Order;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -30,29 +29,31 @@ class OrderStatusUpdated implements ShouldBroadcastNow
 
     /**
      * Get the channels the event should broadcast on.
+     * All channels are private — no unauthenticated subscriber can receive order data.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, \Illuminate\Broadcasting\PrivateChannel>
      */
     public function broadcastOn(): array
     {
-        $channels = [
-            new Channel('order-tracking.' . $this->order->invoice_number),
-            new Channel('global-orders'),
-        ];
+        $channels = [];
 
         if ($this->order->store_id) {
-            $channels[] = new Channel('store-orders.' . $this->order->store_id);
             $channels[] = new PrivateChannel('store.' . $this->order->store_id);
+            $channels[] = new PrivateChannel('store-orders.' . $this->order->store_id);
         }
 
         if ($this->order->user_id) {
-            $channels[] = new Channel('user-orders.' . $this->order->user_id);
             $channels[] = new PrivateChannel('order.' . $this->order->id);
             $channels[] = new PrivateChannel('App.Models.User.' . $this->order->user_id);
+            $channels[] = new PrivateChannel('user-orders.' . $this->order->user_id);
+        }
+
+        if ($this->order->invoice_number) {
+            $channels[] = new PrivateChannel('order-tracking.' . $this->order->invoice_number);
         }
 
         if (!empty($this->order->delivery_batch_token)) {
-            $channels[] = new Channel('batch.' . $this->order->delivery_batch_token);
+            $channels[] = new PrivateChannel('batch.' . $this->order->delivery_batch_token);
         }
 
         return $channels;
@@ -68,20 +69,20 @@ class OrderStatusUpdated implements ShouldBroadcastNow
 
     /**
      * Get the data to broadcast.
+     * shipping_pin is intentionally excluded — never sent over WebSocket.
      *
      * @return array<string, mixed>
      */
     public function broadcastWith(): array
     {
         return [
-            'order_id' => $this->order->id,
-            'invoice_number' => $this->order->invoice_number,
-            'status' => $this->status,
-            'shipping_status' => $this->shippingStatus,
-            'shipping_pin' => $this->order->shipping_pin,
+            'order_id'             => $this->order->id,
+            'invoice_number'       => $this->order->invoice_number,
+            'status'               => $this->status,
+            'shipping_status'      => $this->shippingStatus,
             'delivery_batch_token' => $this->order->delivery_batch_token,
-            'total_amount' => $this->order->total_amount,
-            'updated_at' => $this->order->updated_at?->toIso8601String(),
+            'total_amount'         => $this->order->total_amount,
+            'updated_at'           => $this->order->updated_at?->toIso8601String(),
         ];
     }
 }

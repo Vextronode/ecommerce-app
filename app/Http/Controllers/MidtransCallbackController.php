@@ -4,21 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\MidtransService;
+use App\Services\PaymentSyncService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MidtransCallbackController extends Controller
 {
-    public function handle(Request $request, MidtransService $midtransService)
+    public function handle(Request $request, MidtransService $midtransService, PaymentSyncService $paymentSyncService): JsonResponse
     {
         $notificationData = $request->all();
 
-        Log::info('Midtrans Webhook Received', $notificationData);
+        $logData = $notificationData;
+        if (isset($logData['signature_key'])) {
+            $logData['signature_key'] = substr((string) $logData['signature_key'], 0, 8) . '...[MASKED]';
+        }
+
+        Log::info('Midtrans Webhook Received', $logData);
 
         // Verify Midtrans SHA-512 Signature Key
         if (! $midtransService->verifySignatureKey($notificationData)) {
-            Log::warning('Midtrans Webhook Invalid Signature Key', $notificationData);
+            Log::warning('Midtrans Webhook Invalid Signature Key', $logData);
 
             return response()->json(['message' => 'Invalid signature key'], 403);
         }
@@ -52,54 +58,10 @@ class MidtransCallbackController extends Controller
             return response()->json(['message' => 'Gross amount mismatch'], 400);
         }
 
-        // Process Status Updates Atomically
-        DB::transaction(function () use ($orders, $transactionStatus, $fraudStatus) {
-            foreach ($orders as $order) {
-                // Lock row
-                $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
-                if (! $lockedOrder) {
-                    continue;
-                }
-
-                if ($transactionStatus === 'capture') {
-                    if ($fraudStatus === 'accept' && $lockedOrder->payment_status !== 'paid') {
-                        $lockedOrder->update(['payment_status' => 'paid']);
-                        if ($lockedOrder->store) {
-                            $lockedOrder->store->increment('pending_balance', $lockedOrder->total_amount);
-                        }
-                        \App\Services\OrderNotificationService::paymentReceived($lockedOrder);
-                        try {
-                            broadcast(new \App\Events\OrderStatusUpdated($lockedOrder));
-                        } catch (\Throwable $e) {}
-                    }
-                } elseif ($transactionStatus === 'settlement') {
-                    if ($lockedOrder->payment_status !== 'paid') {
-                        $lockedOrder->update(['payment_status' => 'paid']);
-                        if ($lockedOrder->store) {
-                            $lockedOrder->store->increment('pending_balance', $lockedOrder->total_amount);
-                        }
-                        \App\Services\OrderNotificationService::paymentReceived($lockedOrder);
-                        try {
-                            broadcast(new \App\Events\OrderStatusUpdated($lockedOrder));
-                        } catch (\Throwable $e) {}
-                    }
-                } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-                    if ($lockedOrder->payment_status !== 'paid') {
-                        $lockedOrder->update(['payment_status' => 'failed']);
-                        // Idempotent and thread-safe stock restoration
-                        $lockedOrder->restoreStock();
-                        \App\Services\OrderNotificationService::orderCancelled($lockedOrder, 'Pembayaran tidak berhasil atau kadaluarsa');
-                        try {
-                            broadcast(new \App\Events\OrderStatusUpdated($lockedOrder));
-                        } catch (\Throwable $e) {}
-                    }
-                } elseif ($transactionStatus === 'pending') {
-                    if ($lockedOrder->payment_status !== 'paid') {
-                        $lockedOrder->update(['payment_status' => 'pending']);
-                    }
-                }
-            }
-        });
+        // Process Status Updates Atomically via PaymentSyncService
+        foreach ($orders as $order) {
+            $paymentSyncService->applyPaymentStatus($order->id, $transactionStatus, $fraudStatus);
+        }
 
         return response()->json(['message' => 'Notification processed successfully']);
     }

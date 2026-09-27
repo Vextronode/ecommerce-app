@@ -24,6 +24,40 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust all proxies (Cloudflare Tunnel, Nginx, etc.)
         // Wajib agar signed URL & HTTPS detection bekerja dengan benar
         $middleware->trustProxies(at: '*');
+        // Restrict trusted proxies to Cloudflare IP ranges & local Docker gateways in production to prevent IP spoofing
+        if (env('APP_ENV') !== 'local' && env('APP_ENV') !== 'testing') {
+            $middleware->trustProxies(at: [
+                '173.245.48.0/20',
+                '103.21.244.0/22',
+                '103.22.200.0/22',
+                '103.31.4.0/22',
+                '141.101.64.0/18',
+                '108.162.192.0/18',
+                '190.93.240.0/20',
+                '188.114.96.0/20',
+                '197.234.240.0/22',
+                '198.41.128.0/17',
+                '162.158.0.0/15',
+                '104.16.0.0/13',
+                '104.24.0.0/14',
+                '172.64.0.0/13',
+                '131.0.72.0/22',
+                '2400:cb00::/32',
+                '2606:4700::/32',
+                '2803:f800::/32',
+                '2405:b500::/32',
+                '2405:8100::/32',
+                '2a06:98c0::/29',
+                '2c0f:f248::/32',
+                // Internal docker bridge, host gateway, and private subnet ranges
+                '127.0.0.1',
+                '10.0.0.0/8',
+                '172.16.0.0/12',
+                '192.168.0.0/16',
+            ]);
+        } else {
+            $middleware->trustProxies(at: '*');
+        }
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
@@ -74,6 +108,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // Render HTTP errors (404, 403, 500, 503) sebagai halaman Inertia
         $exceptions->render(function (HttpException $e, Request $request) {
             $status = $e->getStatusCode();
+
+            if ($status === 429 && $request->header('X-Inertia')) {
+                $retryAfter = $e->getHeaders()['Retry-After'] ?? null;
+                $throttleMsg = $retryAfter
+                    ? "Terlalu banyak permintaan penarikan. Mohon tunggu {$retryAfter} detik lagi sebelum mencoba kembali."
+                    : 'Terlalu banyak permintaan dalam waktu singkat. Mohon tunggu beberapa detik.';
+                return redirect()->back()
+                    ->with('error', $throttleMsg)
+                    ->withErrors(['amount' => $throttleMsg, 'error' => $throttleMsg]);
+            }
 
             if (in_array($status, [404, 403, 500, 503]) && ! $request->is('api/*') && ! $request->expectsJson()) {
                 return Inertia::render('Error', ['status' => $status])

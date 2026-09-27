@@ -31,6 +31,7 @@ interface OrderData {
     total_amount: number;
     payment_method: string;
     payment_status: string;
+    is_arrived?: boolean;
     items: OrderItem[];
 }
 
@@ -63,6 +64,8 @@ export default function Tracker({ order, role }: Props) {
             ? [order.shipping_latitude, order.shipping_longitude] 
             : null;
     }, [order.shipping_latitude, order.shipping_longitude]);
+
+    const lastGpsSentRef = React.useRef<number>(0);
 
     // Haversine distance in meters
     const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -102,7 +105,7 @@ export default function Tracker({ order, role }: Props) {
         if (order.status !== 'shipped') return;
 
         if (isDriver) {
-            // DRIVER MODE: Broadcast live GPS coordinates continuously
+            // DRIVER MODE: Broadcast live GPS coordinates (throttled to max 1 request every 5s)
             const sendGpsUpdate = (latitude: number, longitude: number) => {
                 setDriverPos([latitude, longitude]);
 
@@ -110,6 +113,13 @@ export default function Tracker({ order, role }: Props) {
                     const dist = getDistance(latitude, longitude, buyerPos[0], buyerPos[1]);
                     setDistanceToBuyer(Math.round(dist));
                 }
+
+                // Throttle backend GPS sync to once every 5 seconds to prevent rate limit 429
+                const now = Date.now();
+                if (now - lastGpsSentRef.current < 5000) {
+                    return;
+                }
+                lastGpsSentRef.current = now;
 
                 // Send to backend (CSRF-exempt route)
                 fetch(`/tracker/${order.invoice_number}/location`, {
@@ -150,7 +160,7 @@ export default function Tracker({ order, role }: Props) {
         } else {
             // SPECTATOR MODE (Buyer & Merchant): Real-time WebSocket + fallback polling
             if (typeof window !== 'undefined' && window.Echo) {
-                const channel = window.Echo.channel(`order-tracking.${order.invoice_number}`);
+                const channel = window.Echo.private(`order-tracking.${order.invoice_number}`);
 
                 const handleLocation = (e: any) => {
                     if (e.latitude && e.longitude) {
@@ -201,7 +211,7 @@ export default function Tracker({ order, role }: Props) {
             return () => {
                 clearInterval(interval);
                 if (typeof window !== 'undefined' && window.Echo) {
-                    window.Echo.leaveChannel(`order-tracking.${order.invoice_number}`);
+                    window.Echo.leave(`order-tracking.${order.invoice_number}`);
                 }
             };
         }
@@ -346,9 +356,10 @@ export default function Tracker({ order, role }: Props) {
 
                 {order.status === 'shipped' && isDriver && (
                     <div className="p-4 pt-0">
-                        <DriverPinForm invoice_number={order.invoice_number} />
+                        <DriverPinForm invoice_number={order.invoice_number} is_arrived={order.is_arrived} />
                     </div>
                 )}
+
             </main>
         </div>
     );

@@ -33,7 +33,8 @@ class PaymentSecurityAuditTest extends TestCase
             'user_id' => $merchant->id,
             'name' => 'Toko Nelayan',
             'slug' => 'toko-nelayan-'.Str::random(6),
-            'balance' => 50000,
+            'available_balance' => 50000,
+            'pending_balance' => 0,
             'bank_name' => 'BCA',
             'bank_account_number' => '1234567890',
             'bank_account_holder' => 'Nelayan Jaya',
@@ -50,7 +51,7 @@ class PaymentSecurityAuditTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('amount');
-        $this->assertEquals(50000, $store->fresh()->balance);
+        $this->assertEquals(50000, (float) $store->fresh()->available_balance);
         $this->assertDatabaseCount('withdrawals', 0);
     }
 

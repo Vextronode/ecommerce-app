@@ -168,16 +168,17 @@ class MerchantController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
-            $user = User::create([
+            $user = new User([
                 'name' => $validated['owner_name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($validated['password']),
-                'role' => 'pedagang',
-                'status' => 'active',
                 'is_password_changed' => false,
-                'email_verified_at' => now(),
             ]);
+            $user->role = 'pedagang';
+            $user->status = 'active';
+            $user->email_verified_at = now();
+            $user->save();
 
             $baseSlug = ! empty($validated['username']) ? Str::slug($validated['username']) : Str::slug($validated['merchant_name']);
             $slug = $baseSlug ?: 'toko-'.$user->id;
@@ -226,7 +227,6 @@ class MerchantController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
-                'status' => $validated['status'],
             ];
 
             if (! empty($validated['password'])) {
@@ -234,6 +234,8 @@ class MerchantController extends Controller
             }
 
             $user->update($userPayload);
+            $user->status = $validated['status'];
+            $user->save();
 
             $store = $user->store;
             if ($store) {
@@ -278,7 +280,8 @@ class MerchantController extends Controller
         ]);
 
         $user = User::where('role', 'pedagang')->findOrFail($id);
-        $user->update(['status' => $validated['status']]);
+        $user->status = $validated['status'];
+        $user->save();
 
         $statusLabel = ucfirst($validated['status']);
 

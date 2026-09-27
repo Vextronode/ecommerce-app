@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Services\MidtransService;
+use App\Services\PaymentSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -62,28 +62,11 @@ class OrderHistoryController extends Controller
                 if ($order->payment_status === 'pending' && $order->payment_method !== 'cod') {
                     $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
                     if ($midtransOrderId) {
-                        try {
-                            $midtransService = app(MidtransService::class);
-                            $statusResp = $midtransService->getTransactionStatus($midtransOrderId);
-
-                            if ($statusResp) {
-                                $trxStatus = is_object($statusResp) ? ($statusResp->transaction_status ?? null) : ($statusResp['transaction_status'] ?? null);
-                                $fraudStatus = is_object($statusResp) ? ($statusResp->fraud_status ?? null) : ($statusResp['fraud_status'] ?? null);
-
-                                if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
-                                    $order->update(['payment_status' => 'paid']);
-                                    $order->payment_status = 'paid';
-                                } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
-                                    $order->update(['payment_status' => 'failed']);
-                                    $order->payment_status = 'failed';
-                                    $order->restoreStock();
-                                }
-                            }
-                        } catch (\Exception $e) {
-                            // ignore network failure
-                        }
+                        app(PaymentSyncService::class)->syncByMidtransOrderId($midtransOrderId);
+                        $order->refresh();
                     }
                 }
+
 
                 return [
                     'id' => $order->id,
@@ -142,6 +125,12 @@ class OrderHistoryController extends Controller
     {
         $order = Order::with(['items.product', 'store'])->where('user_id', auth()->id())->findOrFail($id);
 
+        // Shopee-style: Jika pesanan sudah berstatus shipped lebih dari 4 jam, otomatis selesaikan
+        if ($order->shipping_status === 'shipped' && $order->updated_at && $order->updated_at->diffInHours(now()) >= 4) {
+            $order->autoCompleteDelivery();
+            $order->refresh();
+        }
+
         $orderData = [
             'id' => $order->id,
             'invoice_number' => $order->invoice_number,
@@ -150,6 +139,8 @@ class OrderHistoryController extends Controller
             'status' => $this->mapStatusToLabel($order),
             'shipping_status' => $order->shipping_status,
             'payment_status' => $order->payment_status,
+            'is_arrived' => $order->isArrived(),
+            'can_buyer_complete' => $order->canBuyerComplete(),
             'created_at' => $order->created_at->format('d M Y, H:i'),
             'updated_at' => $order->updated_at->toISOString(),
             'total_amount' => $order->total_amount,
@@ -161,6 +152,7 @@ class OrderHistoryController extends Controller
             'delivery_method' => $order->delivery_method,
             'payment_method' => $order->payment_method,
             'shipping_pin' => $order->shipping_pin,
+
             'items' => $order->items->map(function ($item) {
                 return [
                     'id' => $item->id,
@@ -208,7 +200,8 @@ class OrderHistoryController extends Controller
     }
 
     /**
-     * Complete order and safely credit store balance
+     * Complete order and safely credit store balance.
+     * Buyer can complete once courier arrives at destination or after 4 hours have passed.
      */
     public function complete($id)
     {
@@ -219,17 +212,27 @@ class OrderHistoryController extends Controller
                 return back()->with('error', 'Pesanan belum dapat diselesaikan.');
             }
 
-            $order->update([
-                'shipping_status' => 'delivered',
-                'payment_status' => 'paid',
-            ]);
+            // Guard: untuk kurir toko, pembeli baru dapat konfirmasi selesai jika kurir sudah tiba
+            // atau jika sudah 4 jam sejak dikirim
+            if ($order->delivery_method === 'local_delivery' && ! $order->canBuyerComplete()) {
+                return back()->with('error', 'Pesanan belum dapat diselesaikan. Harap tunggu kurir tiba di lokasi pengiriman Anda atau sistem akan menyelesaikan otomatis dalam 4 jam.');
+            }
 
-            // Idempotent and thread-safe balance credit to store
-            $order->creditStoreBalance();
+            $updateData = ['shipping_status' => 'delivered'];
+            if ($order->payment_method === 'cod') {
+                $updateData['payment_status'] = 'paid';
+            }
+            $order->update($updateData);
+
+            // Non-COD: kredit balance hanya jika sudah paid via Midtrans
+            if ($order->payment_status === 'paid' && $order->payment_method !== 'cod') {
+                $order->creditStoreBalance();
+            }
 
             \App\Services\OrderNotificationService::orderDelivered($order);
 
-            return back()->with('success', 'Pesanan berhasil diselesaikan.');
+            return back()->with('success', 'Pesanan berhasil dikonfirmasi selesai.');
         });
     }
 }
+

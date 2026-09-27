@@ -42,7 +42,6 @@ class HandleInertiaRequests extends Middleware
                     'gender' => $request->user()->gender,
                     'dob' => $request->user()->dob,
                     'role' => $request->user()->role,
-                    'is_password_changed' => $request->user()->is_password_changed,
                 ] : null,
             ],
             'flash' => [

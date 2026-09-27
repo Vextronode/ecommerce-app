@@ -25,7 +25,8 @@ class ReportController extends Controller
         $period = $request->input('period', 'all');
         $storeId = $request->input('store_id');
         $categoryId = $request->input('category_id');
-        $sortBy = $request->input('sort_by', 'sales');
+        $rawSortBy = $request->input('sort_by', 'sales');
+        $sortBy = in_array($rawSortBy, ['sales', 'revenue', 'name'], true) ? $rawSortBy : 'sales';
         $perPage = max(5, min((int) $request->input('per_page', 10), 100));
 
         // Date range filtering
@@ -129,7 +130,8 @@ class ReportController extends Controller
         $period = $request->input('period', 'all');
         $storeId = $request->input('store_id');
         $categoryId = $request->input('category_id');
-        $sortBy = $request->input('sort_by', 'sales');
+        $rawSortBy = $request->input('sort_by', 'sales');
+        $sortBy = in_array($rawSortBy, ['sales', 'revenue', 'name'], true) ? $rawSortBy : 'sales';
 
         [$startDate, $endDate] = $this->resolveDateRange($period, $request->input('start_date'), $request->input('end_date'));
 

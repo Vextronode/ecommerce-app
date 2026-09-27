@@ -6,6 +6,7 @@ import AdminMerchantTable, {
     MerchantItem,
 } from "@/Components/Admin/Merchants/AdminMerchantTable";
 import MerchantFilterModal from "@/Components/Admin/Merchants/MerchantFilterModal";
+import { formatPaginationLabel } from "@/utils/formatPaginationLabel";
 import {
     Filter,
     Plus,
@@ -192,18 +193,16 @@ export default function AdminMerchantsIndex({
                                                 ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30 border border-[#41B9C5]"
                                                 : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-2xs"
                                                 }`}
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
+                                        >
+                                            {formatPaginationLabel(link.label)}
+                                        </Link>
                                     ) : (
                                         <span
                                             key={index}
                                             className="w-9 h-9 flex items-center justify-center text-xs text-gray-400"
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
+                                        >
+                                            {formatPaginationLabel(link.label)}
+                                        </span>
                                     );
                                 })}
                             </div>

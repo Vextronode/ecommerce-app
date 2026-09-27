@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PaymentOrderResource;
 use App\Models\Order;
-use App\Services\MidtransService;
+use App\Services\PaymentSyncService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class PaymentController extends Controller
 {
     /**
      * Display the dedicated Shopee-style payment page.
      */
-    public function show(Request $request, $orderId, MidtransService $midtransService)
+    public function show(Request $request, int|string $orderId, PaymentSyncService $paymentSyncService): Response|RedirectResponse
     {
         $order = Order::with(['items.product', 'store'])
             ->where('user_id', auth()->id())
@@ -30,49 +32,11 @@ class PaymentController extends Controller
             $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
 
             if ($midtransOrderId) {
-                try {
-                    $statusResp = Cache::remember("midtrans_status_{$midtransOrderId}", 3, function () use ($midtransService, $midtransOrderId) {
-                        return $midtransService->getTransactionStatus($midtransOrderId);
-                    });
+                $paymentSyncService->syncByMidtransOrderId($midtransOrderId);
+                $order->refresh();
 
-                    if ($statusResp) {
-                        $trxStatus = is_object($statusResp) ? ($statusResp->transaction_status ?? null) : ($statusResp['transaction_status'] ?? null);
-                        $fraudStatus = is_object($statusResp) ? ($statusResp->fraud_status ?? null) : ($statusResp['fraud_status'] ?? null);
-
-                        $siblingOrders = Order::where('parent_transaction_id', $midtransOrderId)
-                            ->orWhere('id', $order->id)
-                            ->get();
-
-                        DB::transaction(function () use ($siblingOrders, $trxStatus, $fraudStatus) {
-                            foreach ($siblingOrders as $sib) {
-                                $lockedSib = Order::where('id', $sib->id)->lockForUpdate()->first();
-                                if (! $lockedSib) {
-                                    continue;
-                                }
-
-                                if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
-                                    if ($lockedSib->payment_status !== 'paid') {
-                                        $lockedSib->update(['payment_status' => 'paid']);
-                                        \App\Services\OrderNotificationService::paymentReceived($lockedSib);
-                                    }
-                                } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
-                                    if ($lockedSib->payment_status !== 'paid') {
-                                        $lockedSib->update(['payment_status' => 'failed']);
-                                        $lockedSib->restoreStock();
-                                        \App\Services\OrderNotificationService::orderCancelled($lockedSib, 'Pembayaran kadaluarsa atau dibatalkan');
-                                    }
-                                }
-                            }
-                        });
-
-                        $order->refresh();
-
-                        if ($order->payment_status === 'paid') {
-                            return redirect()->route('checkout.success', ['order_id' => $order->id]);
-                        }
-                    }
-                } catch (\Exception $e) {
-                    // Ignore API network errors
+                if ($order->payment_status === 'paid') {
+                    return redirect()->route('checkout.success', ['order_id' => $order->id]);
                 }
             }
         }
@@ -103,7 +67,7 @@ class PaymentController extends Controller
         ];
 
         return Inertia::render('Payment/Show', [
-            'order' => $order,
+            'order' => (new PaymentOrderResource($order))->resolve(),
             'paymentInfo' => $paymentInfo,
         ]);
     }
@@ -111,7 +75,7 @@ class PaymentController extends Controller
     /**
      * Check payment status via AJAX with caching & sibling sync
      */
-    public function checkStatus(Request $request, $orderId, MidtransService $midtransService)
+    public function checkStatus(Request $request, int|string $orderId, PaymentSyncService $paymentSyncService): JsonResponse
     {
         $order = Order::where('id', $orderId)
             ->where('user_id', auth()->id())
@@ -121,46 +85,8 @@ class PaymentController extends Controller
             $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
 
             if ($midtransOrderId) {
-                try {
-                    $statusResp = Cache::remember("midtrans_status_{$midtransOrderId}", 3, function () use ($midtransService, $midtransOrderId) {
-                        return $midtransService->getTransactionStatus($midtransOrderId);
-                    });
-
-                    if ($statusResp) {
-                        $trxStatus = is_object($statusResp) ? ($statusResp->transaction_status ?? null) : ($statusResp['transaction_status'] ?? null);
-                        $fraudStatus = is_object($statusResp) ? ($statusResp->fraud_status ?? null) : ($statusResp['fraud_status'] ?? null);
-
-                        $siblingOrders = Order::where('parent_transaction_id', $midtransOrderId)
-                            ->orWhere('id', $order->id)
-                            ->get();
-
-                        DB::transaction(function () use ($siblingOrders, $trxStatus, $fraudStatus) {
-                            foreach ($siblingOrders as $sib) {
-                                $lockedSib = Order::where('id', $sib->id)->lockForUpdate()->first();
-                                if (! $lockedSib) {
-                                    continue;
-                                }
-
-                                if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
-                                    if ($lockedSib->payment_status !== 'paid') {
-                                        $lockedSib->update(['payment_status' => 'paid']);
-                                        \App\Services\OrderNotificationService::paymentReceived($lockedSib);
-                                    }
-                                } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
-                                    if ($lockedSib->payment_status !== 'paid') {
-                                        $lockedSib->update(['payment_status' => 'failed']);
-                                        $lockedSib->restoreStock();
-                                        \App\Services\OrderNotificationService::orderCancelled($lockedSib, 'Pembayaran kadaluarsa atau dibatalkan');
-                                    }
-                                }
-                            }
-                        });
-
-                        $order->refresh();
-                    }
-                } catch (\Exception $e) {
-                    // Ignore API connection exceptions
-                }
+                $paymentSyncService->syncByMidtransOrderId($midtransOrderId);
+                $order->refresh();
             }
         }
 

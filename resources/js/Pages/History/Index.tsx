@@ -37,24 +37,22 @@ export default function Index({
             router.reload({ only: ["orders", "ratingItems"] });
         };
 
-        const globalChan = window.Echo.channel("global-orders");
-        globalChan.listen(".OrderStatusUpdated", handleUpdate);
-        globalChan.listen("OrderStatusUpdated", handleUpdate);
-
+        // private channel — auth required
         let userChan: any = null;
         if (userId) {
-            userChan = window.Echo.channel(`user-orders.${userId}`);
+            userChan = window.Echo.private(`user-orders.${userId}`);
             userChan.listen(".OrderStatusUpdated", handleUpdate);
             userChan.listen("OrderStatusUpdated", handleUpdate);
         }
 
         return () => {
-            window.Echo.leaveChannel("global-orders");
             if (userId) {
-                window.Echo.leaveChannel(`user-orders.${userId}`);
+                window.Echo.leave(`user-orders.${userId}`);
             }
         };
     }, [userId]);
+
+
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">

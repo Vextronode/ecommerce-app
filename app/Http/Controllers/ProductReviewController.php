@@ -50,10 +50,16 @@ class ProductReviewController extends Controller
 
     public function store(Request $request, $order_item_id)
     {
-        $orderItem = OrderItem::with(['order', 'review'])->findOrFail($order_item_id);
+        $orderItem = OrderItem::with(['order', 'review'])
+            ->where('id', $order_item_id)
+            ->whereHas('order', function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->where('shipping_status', 'delivered');
+            })
+            ->first();
 
-        if ($orderItem->order->user_id !== auth()->id() || $orderItem->order->shipping_status !== 'delivered') {
-            abort(403, 'Anda hanya dapat memberikan ulasan untuk pesanan yang telah selesai.');
+        if (! $orderItem) {
+            abort(403, 'Anda hanya dapat memberikan ulasan untuk pesanan Anda sendiri yang telah selesai.');
         }
 
         $validated = $request->validate([
@@ -63,29 +69,82 @@ class ProductReviewController extends Controller
             'seller_rating' => 'nullable|integer|min:1|max:5',
             'shipping_rating' => 'nullable|integer|min:1|max:5',
             'courier_rating' => 'nullable|integer|min:1|max:5',
-            'images' => 'nullable|array|max:3',
-            'images.*' => 'nullable|file|mimes:jpeg,png,jpg,mp4,mov|max:10240',
+            'images' => ['nullable', 'array', 'max:3'],
+            'images.*' => [
+                'nullable',
+                'file',
+                'mimes:jpeg,png,jpg,webp,mp4,mov',
+                'mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/quicktime',
+                'max:5120',
+            ],
         ]);
 
         $imagePaths = $orderItem->review ? ($orderItem->review->images ?? []) : [];
         if ($request->hasFile('images')) {
-            // Kita bisa menghapus gambar lama di storage jika diperlukan, untuk simpelnya kita tumpuk saja
-            $imagePaths = [];
             $files = is_array($request->file('images')) ? $request->file('images') : [$request->file('images')];
+            $videoCount = 0;
+
+            foreach ($files as $file) {
+                $mime = (string) $file->getMimeType();
+                $isImage = str_starts_with($mime, 'image/');
+                $isVideo = str_starts_with($mime, 'video/');
+
+                if (! $isImage && ! $isVideo) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'images' => 'Tipe file tidak valid. Hanya foto (JPEG, PNG, WebP) dan video (MP4, MOV) yang diizinkan.',
+                    ]);
+                }
+
+                // Foto maksimal 2MB (2048 KB)
+                if ($isImage && $file->getSize() > 2048 * 1024) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'images' => "Ukuran foto '{$file->getClientOriginalName()}' melebihi batas maksimal 2MB.",
+                    ]);
+                }
+
+                // Video maksimal 1 file dan ukuran maksimal 5MB (5120 KB)
+                if ($isVideo) {
+                    $videoCount++;
+                    if ($videoCount > 1) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'images' => 'Maksimal hanya diperbolehkan mengunggah 1 file video per ulasan.',
+                        ]);
+                    }
+                    if ($file->getSize() > 5120 * 1024) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'images' => "Ukuran video '{$file->getClientOriginalName()}' melebihi batas maksimal 5MB.",
+                        ]);
+                    }
+                }
+            }
+
+            // Hapus file review lama di disk jika diganti baru
+            if ($orderItem->review && is_array($orderItem->review->images)) {
+                foreach ($orderItem->review->images as $oldPath) {
+                    $relativeOldPath = str_replace('/storage/', '', (string) $oldPath);
+                    if (Storage::disk('public')->exists($relativeOldPath)) {
+                        Storage::disk('public')->delete($relativeOldPath);
+                    }
+                }
+            }
+
+            $imagePaths = [];
             foreach ($files as $file) {
                 $path = $file->store('reviews', 'public');
                 $imagePaths[] = '/storage/'.$path;
             }
         }
 
+        $sanitizedComment = isset($validated['comment']) ? strip_tags(trim($validated['comment'])) : null;
+
         $reviewData = [
             'rating' => $validated['rating'],
-            'comment' => $validated['comment'] ?? null,
+            'comment' => $sanitizedComment,
             'is_anonymous' => $validated['is_anonymous'] ?? false,
             'seller_rating' => $validated['seller_rating'] ?? null,
             'shipping_rating' => $validated['shipping_rating'] ?? null,
             'courier_rating' => $validated['courier_rating'] ?? null,
-            'images' => count($imagePaths) > 0 ? $imagePaths : null, // keep old ones if no new files? Actually if they don't upload new, keep old. wait, the frontend might send files again or not. We'll simplify: if they upload new ones, overwrite. Otherwise keep old.
+            'images' => count($imagePaths) > 0 ? $imagePaths : null,
         ];
 
         if (! $request->hasFile('images')) {

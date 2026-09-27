@@ -40,6 +40,8 @@ export default function BatchTracker({
     const [submittingInvoice, setSubmittingInvoice] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [refreshCounter, setRefreshCounter] = useState(0);
+    const [selectedTargetStopId, setSelectedTargetStopId] = useState<number | null>(null);
+    const lastBatchGpsSentRef = React.useRef<number>(0);
 
     const isDriver = role === "driver";
     const totalStops = stops.length;
@@ -76,6 +78,13 @@ export default function BatchTracker({
             const sendBatchGps = (latitude: number, longitude: number) => {
                 setDriverPos([latitude, longitude]);
 
+                // Throttle backend GPS sync to once every 5 seconds to prevent rate limit 429
+                const now = Date.now();
+                if (now - lastBatchGpsSentRef.current < 5000) {
+                    return;
+                }
+                lastBatchGpsSentRef.current = now;
+
                 fetch(`/tracker/batch/${batchToken}/location`, {
                     method: "POST",
                     headers: {
@@ -105,7 +114,7 @@ export default function BatchTracker({
         } else {
             // Real-time WebSocket Listener via Laravel Reverb
             if (typeof window !== "undefined" && window.Echo) {
-                const channel = window.Echo.channel(`batch.${batchToken}`);
+                const channel = window.Echo.private(`batch.${batchToken}`);
 
                 const handleBatchLocation = (e: any) => {
                     if (e.latitude && e.longitude) {
@@ -131,7 +140,7 @@ export default function BatchTracker({
                 channel.listen("OrderStatusUpdated", handleBatchStatus);
 
                 return () => {
-                    window.Echo.leaveChannel(`batch.${batchToken}`);
+                    window.Echo.leave(`batch.${batchToken}`);
                 };
             }
 
@@ -174,6 +183,7 @@ export default function BatchTracker({
                 preserveScroll: true,
                 onSuccess: () => {
                     setSubmittingInvoice(null);
+                    setSelectedTargetStopId(null);
                 },
                 onError: (errors: any) => {
                     setSubmittingInvoice(null);
@@ -286,6 +296,8 @@ export default function BatchTracker({
                     progressPercent={progressPercent}
                     isDriver={isDriver}
                     refreshCounter={refreshCounter}
+                    selectedTargetStopId={selectedTargetStopId}
+                    onSelectTargetStop={(stopId) => setSelectedTargetStopId(stopId)}
                 />
 
                 {/* Google Maps Master Navigation Bar for Driver */}
@@ -324,16 +336,23 @@ export default function BatchTracker({
                     </div>
 
                     <div className="space-y-3">
-                        {stops.map((stop) => (
-                            <BatchStopCard
-                                key={stop.id}
-                                stop={stop}
-                                isDriver={isDriver}
-                                onVerifyPin={handlePinSubmit}
-                                isSubmitting={submittingInvoice === stop.invoice_number}
-                                errorMessage={pinErrors[stop.invoice_number]}
-                            />
-                        ))}
+                        {stops.map((stop) => {
+                            const isTarget = selectedTargetStopId
+                                ? selectedTargetStopId === stop.id
+                                : stops.find((s) => s.status !== "delivered")?.id === stop.id;
+                            return (
+                                <BatchStopCard
+                                    key={stop.id}
+                                    stop={stop}
+                                    isDriver={isDriver}
+                                    isSelectedTarget={isTarget}
+                                    onSelectTarget={(stopId) => setSelectedTargetStopId(stopId)}
+                                    onVerifyPin={handlePinSubmit}
+                                    isSubmitting={submittingInvoice === stop.invoice_number}
+                                    errorMessage={pinErrors[stop.invoice_number]}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             </main>
