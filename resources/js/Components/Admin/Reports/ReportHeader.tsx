@@ -16,11 +16,11 @@ export default function ReportHeader({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             {/* Title & Subtitle */}
             <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#004F54] tracking-tight">
-                    Best Selling Products
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                    Laporan Produk Terlaris
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
-                    Top performing products across all merchants for the current period.
+                    Daftar produk dengan penjualan tertinggi dari seluruh pedagang CibendaMart.
                 </p>
             </div>
 
@@ -31,14 +31,14 @@ export default function ReportHeader({
                     type="button"
                     onClick={onOpenFilter}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition cursor-pointer shadow-2xs ${activeFiltersCount > 0
-                            ? "bg-[#E6F8F9] border-[#41B9C5] text-[#004F54]"
+                            ? "bg-orange-50 border-brand-orange/40 text-brand-orange"
                             : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300"
                         }`}
                 >
                     <SlidersHorizontal className="w-3.5 h-3.5" />
                     <span>Filter</span>
                     {activeFiltersCount > 0 && (
-                        <span className="w-5 h-5 rounded-full bg-[#41B9C5] text-white text-[10px] flex items-center justify-center font-extrabold">
+                        <span className="w-5 h-5 rounded-full bg-brand-orange text-white text-[10px] flex items-center justify-center font-extrabold">
                             {activeFiltersCount}
                         </span>
                     )}
@@ -48,10 +48,10 @@ export default function ReportHeader({
                 <button
                     type="button"
                     onClick={onExport}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-[#41B9C5] hover:bg-[#38a3ae] text-white shadow-md shadow-[#41B9C5]/25 transition cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-brand-orange hover:bg-brand-orange-dark text-white shadow-md shadow-brand-orange/25 transition cursor-pointer"
                 >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Export</span>
+                    <span>Ekspor Data</span>
                 </button>
             </div>
         </div>

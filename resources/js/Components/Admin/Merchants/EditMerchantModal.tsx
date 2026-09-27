@@ -94,7 +94,7 @@ export default function EditMerchantModal({
                 {/* Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-[#F0FAFB] border border-[#41B9C5]/30 flex items-center justify-center text-[#245D56]">
+                        <div className="w-10 h-10 rounded-2xl bg-orange-50 border border-brand-orange/30 flex items-center justify-center text-brand-orange">
                             <Store className="w-5 h-5" />
                         </div>
                         <div>
@@ -127,7 +127,7 @@ export default function EditMerchantModal({
                                 required
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             />
                         </div>
 
@@ -141,7 +141,7 @@ export default function EditMerchantModal({
                                 required
                                 value={storeName}
                                 onChange={(e) => setStoreName(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             />
                         </div>
                     </div>
@@ -157,7 +157,7 @@ export default function EditMerchantModal({
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             />
                         </div>
 
@@ -171,7 +171,7 @@ export default function EditMerchantModal({
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 placeholder="08123456789"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             />
                         </div>
                     </div>
@@ -185,7 +185,7 @@ export default function EditMerchantModal({
                             <select id="field_177"
                                 value={subdistrict}
                                 onChange={(e) => setSubdistrict(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             >
                                 <option value="Cibenda">Cibenda</option>
                                 <option value="Parigi">Parigi</option>
@@ -207,7 +207,7 @@ export default function EditMerchantModal({
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Kosongkan jika tidak diubah"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             />
                         </div>
                     </div>
@@ -221,7 +221,7 @@ export default function EditMerchantModal({
                             rows={2}
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                         />
                     </div>
 
@@ -234,12 +234,12 @@ export default function EditMerchantModal({
                             <select id="field_226"
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             >
-                                <option value="active">Active</option>
-                                <option value="warning">Warning</option>
-                                <option value="suspended">Suspended</option>
-                                <option value="inactive">Inactive</option>
+                                <option value="active">Aktif</option>
+                                <option value="warning">Peringatan</option>
+                                <option value="suspended">Ditangguhkan (Suspended)</option>
+                                <option value="inactive">Nonaktif</option>
                             </select>
                         </div>
 
@@ -251,11 +251,11 @@ export default function EditMerchantModal({
                             <select id="field_243"
                                 value={sidStatus}
                                 onChange={(e) => setSidStatus(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5]"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             >
-                                <option value="verified">Verified</option>
-                                <option value="pending">Pending</option>
-                                <option value="rejected">Rejected</option>
+                                <option value="verified">Terverifikasi (Verified)</option>
+                                <option value="pending">Menunggu Verifikasi (Pending)</option>
+                                <option value="rejected">Ditolak (Rejected)</option>
                             </select>
                         </div>
                     </div>
@@ -272,7 +272,7 @@ export default function EditMerchantModal({
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/20 transition cursor-pointer disabled:opacity-50"
+                            className="px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover shadow-md shadow-brand-orange/20 transition cursor-pointer disabled:opacity-50"
                         >
                             {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
                         </button>

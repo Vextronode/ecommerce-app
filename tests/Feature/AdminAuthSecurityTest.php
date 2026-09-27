@@ -70,7 +70,7 @@ class AdminAuthSecurityTest extends TestCase
         ]);
 
         $this->assertGuest();
-        $response->assertSessionHasErrors('name');
+        $response->assertSessionHasErrors('email');
     }
 
     public function test_non_admin_account_cannot_login_through_admin_portal(): void
@@ -97,7 +97,7 @@ class AdminAuthSecurityTest extends TestCase
     {
         $response = $this->get('/cibenda-portal/dashboard');
 
-        $response->assertRedirect('/login');
+        $response->assertRedirect('/cibenda-portal/login');
     }
 
     public function test_regular_user_is_redirected_away_from_admin_dashboard(): void

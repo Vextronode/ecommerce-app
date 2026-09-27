@@ -38,7 +38,7 @@ export default function AdminMerchantStatCards({ stats }: Props) {
                         {stats.total_merchants.toLocaleString()}
                     </div>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#F0FAFB] border border-[#41B9C5]/30 flex items-center justify-center text-[#245D56] shadow-xs shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-brand-orange/30 flex items-center justify-center text-brand-orange shadow-xs shrink-0">
                     <Store className="w-6 h-6" />
                 </div>
             </div>

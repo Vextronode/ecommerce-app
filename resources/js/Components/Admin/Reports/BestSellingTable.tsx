@@ -59,23 +59,23 @@ export default function BestSellingTable({
     // Empty state when no products found or no sales yet
     if (list.length === 0) {
         return (
-            <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm my-auto">
-                <div className="w-16 h-16 rounded-2xl bg-[#E6F8F9] border border-[#41B9C5]/30 flex items-center justify-center text-[#004F54] mx-auto mb-4">
+            <div className="bg-white rounded-3xl border border-gray-100 p-8 sm:p-12 text-center shadow-sm my-auto">
+                <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-brand-orange/30 flex items-center justify-center text-brand-orange mx-auto mb-4">
                     <ShoppingBag className="w-8 h-8" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-1">
                     Belum Ada Data Penjualan Produk
                 </h3>
-                <p className="text-xs text-gray-400 max-w-md mx-auto mb-6 leading-relaxed">
+                <p className="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
                     {hasActiveFilters
-                        ? "Tidak ada transaksi penjualan produk yang cocok dengan filter atau kata kunci pencarian yang dipilih."
+                        ? "Tidak ada transaksi penjualan produk yang cocok dengan filter pencarian yang dipilih."
                         : "Hanya produk unggulan toko dengan riwayat penjualan berhasil yang akan ditampilkan di halaman ini."}
                 </p>
                 {hasActiveFilters && onResetFilter && (
                     <button
                         type="button"
                         onClick={onResetFilter}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/20 transition-colors cursor-pointer"
+                        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-dark shadow-md shadow-brand-orange/20 transition-colors cursor-pointer"
                     >
                         Reset Filter Pencarian
                     </button>
@@ -85,16 +85,74 @@ export default function BestSellingTable({
     }
 
     return (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-            {/* Table Container */}
-            <div className="overflow-x-auto w-full">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col w-full min-w-0">
+            {/* Mobile View: Clean, Touch-Friendly Cards (No horizontal scroll) */}
+            <div className="block md:hidden divide-y divide-gray-100">
+                {list.map((item) => (
+                    <div key={item.id} className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                                <RankBadge rank={item.rank} />
+                                <span className="text-[11px] font-semibold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200/60">
+                                    {item.category_name}
+                                </span>
+                            </div>
+                            <span
+                                className="font-bold text-brand-orange text-xs"
+                                title={item.formatted_revenue}
+                            >
+                                {item.compact_revenue}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            {item.image_path ? (
+                                <img
+                                    src={item.image_path}
+                                    alt={item.name}
+                                    className="w-12 h-12 rounded-xl object-cover border border-gray-100 shadow-2xs shrink-0 bg-gray-50"
+                                />
+                            ) : (
+                                <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-200/70 flex items-center justify-center text-gray-400 shrink-0 shadow-2xs">
+                                    <Package className="w-5 h-5 text-gray-400" />
+                                </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                                <h4 className="font-bold text-gray-900 text-sm line-clamp-1">
+                                    {item.name}
+                                </h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <StoreAvatar
+                                        logoPath={item.store.logo_path}
+                                        storeName={item.store.name}
+                                        className="w-4 h-4 rounded-full text-[8px]"
+                                    />
+                                    <span className="text-xs text-gray-500 font-medium truncate">
+                                        {item.store.name}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-50 text-xs">
+                            <span className="text-gray-400 font-medium">Total Terjual:</span>
+                            <span className="font-bold text-gray-800">
+                                {item.total_sales.toLocaleString("id-ID")} unit
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto w-full">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
-                            <th className="py-4 px-6 text-center w-20">RANK</th>
-                            <th className="py-4 px-6">PRODUCT</th>
-                            <th className="py-4 px-6">MERCHANT</th>
-                            <th className="py-4 px-6 text-center">TOTAL SALES</th>
+                            <th className="py-4 px-6 text-center w-20">PERINGKAT</th>
+                            <th className="py-4 px-6">PRODUK</th>
+                            <th className="py-4 px-6">PEDAGANG / TOKO</th>
+                            <th className="py-4 px-6 text-center">TOTAL TERJUAL</th>
                             <th className="py-4 px-8 text-right">PENDAPATAN</th>
                         </tr>
                     </thead>
@@ -103,7 +161,7 @@ export default function BestSellingTable({
                             return (
                                 <tr
                                     key={item.id}
-                                    className="hover:bg-[#F9FCFC] transition-colors group"
+                                    className="hover:bg-orange-50/20 transition-colors group"
                                 >
                                     {/* RANK */}
                                     <td className="py-4 px-6 text-center align-middle">
@@ -125,7 +183,7 @@ export default function BestSellingTable({
                                                 </div>
                                             )}
                                             <div className="min-w-0">
-                                                <div className="font-bold text-gray-900 text-sm line-clamp-1 group-hover:text-[#004F54] transition-colors">
+                                                <div className="font-bold text-gray-900 text-sm line-clamp-1 group-hover:text-brand-orange transition-colors">
                                                     {item.name}
                                                 </div>
                                                 <div className="text-gray-400 text-[11px] font-medium truncate">
@@ -159,7 +217,7 @@ export default function BestSellingTable({
                                     {/* PENDAPATAN */}
                                     <td className="py-4 px-8 text-right align-middle whitespace-nowrap">
                                         <span
-                                            className="font-bold text-[#00838F] text-sm"
+                                            className="font-bold text-brand-orange text-sm"
                                             title={item.formatted_revenue}
                                         >
                                             {item.compact_revenue}
@@ -175,19 +233,19 @@ export default function BestSellingTable({
             {/* Pagination Footer */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-100 bg-white">
                 <div className="text-xs text-gray-500 font-medium">
-                    Showing{" "}
+                    Menampilkan{" "}
                     <span className="font-bold text-gray-800">
                         {products.from || 0}
                     </span>{" "}
-                    to{" "}
+                    sampai{" "}
                     <span className="font-bold text-gray-800">
                         {products.to || 0}
                     </span>{" "}
-                    of{" "}
+                    dari{" "}
                     <span className="font-bold text-gray-800">
                         {products.total.toLocaleString("id-ID")}
                     </span>{" "}
-                    products
+                    produk
                 </div>
 
                 {/* Pagination Controls */}
@@ -269,7 +327,7 @@ export default function BestSellingTable({
                                     preserveScroll
                                     preserveState
                                     className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-colors ${link.active
-                                            ? "bg-[#41B9C5] text-white shadow-xs font-extrabold"
+                                            ? "bg-brand-orange text-white shadow-xs font-extrabold shadow-brand-orange/30"
                                             : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-2xs"
                                         }`}
                                 >
@@ -287,7 +345,7 @@ export default function BestSellingTable({
                     </div>
                 ) : (
                     <div className="flex items-center gap-1.5">
-                        <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#41B9C5] text-white text-xs font-extrabold shadow-xs">
+                        <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-brand-orange text-white text-xs font-extrabold shadow-xs shadow-brand-orange/30">
                             1
                         </span>
                     </div>

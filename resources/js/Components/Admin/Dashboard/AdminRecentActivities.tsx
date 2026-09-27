@@ -21,7 +21,7 @@ export default function AdminRecentActivities({ activities }: Props) {
     const getDotStyle = (color: ActivityItem["dotColor"]) => {
         switch (color) {
             case "teal":
-                return "bg-[#004F54] ring-4 ring-[#E6F7F8]";
+                return "bg-brand-orange ring-4 ring-orange-50";
             case "amber":
                 return "bg-amber-600 ring-4 ring-amber-50";
             case "red":
@@ -33,7 +33,7 @@ export default function AdminRecentActivities({ activities }: Props) {
     };
 
     return (
-        <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex flex-col h-full w-full">
+        <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex flex-col h-full w-full min-w-0 overflow-hidden">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-base md:text-lg font-bold text-gray-900">
@@ -43,9 +43,9 @@ export default function AdminRecentActivities({ activities }: Props) {
                     <button
                         type="button"
                         onClick={() => toast("Menampilkan semua riwayat aktivitas...")}
-                        className="text-xs font-bold text-[#41B9C5] hover:text-[#004F54] transition-colors cursor-pointer"
+                        className="text-xs font-bold text-brand-orange hover:text-brand-orange-dark transition-colors cursor-pointer"
                     >
-                        View All
+                        Lihat Semua
                     </button>
                 )}
             </div>
@@ -82,7 +82,7 @@ export default function AdminRecentActivities({ activities }: Props) {
                                 <span className="text-[11px] font-semibold text-gray-400 block mb-0.5">
                                     {activity.time}
                                 </span>
-                                <h4 className="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-[#004F54] transition-colors">
+                                <h4 className="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-brand-orange transition-colors">
                                     {activity.title}
                                 </h4>
                                 <p className="text-xs text-gray-500 mt-1 leading-relaxed">

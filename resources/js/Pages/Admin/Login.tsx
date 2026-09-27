@@ -31,14 +31,14 @@ export default function AdminLogin() {
                     {/* Input Full Name */}
                     <div>
                         <label htmlFor="field_32" className="block text-white text-sm mb-2 font-medium">
-                            Full Name<span className="text-red-400">*</span>
+                            Nama Lengkap<span className="text-red-400">*</span>
                         </label>
                         <input aria-label="Input field" id="field_32"
                             type="text"
                             value={data.name}
                             onChange={(e) => setData("name", e.target.value)}
                             placeholder="Admin CibendaMart"
-                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
                             required
                         />
                         {errors.name && (
@@ -51,14 +51,14 @@ export default function AdminLogin() {
                     {/* Input Email */}
                     <div>
                         <label htmlFor="field_52" className="block text-white text-sm mb-2 font-medium">
-                            Email<span className="text-red-400">*</span>
+                            Alamat Email<span className="text-red-400">*</span>
                         </label>
                         <input aria-label="Input field" id="field_52"
                             type="email"
                             value={data.email}
                             onChange={(e) => setData("email", e.target.value)}
                             placeholder="admin@cibendamart.com"
-                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
+                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
                             required
                         />
                         {errors.email && (
@@ -71,7 +71,7 @@ export default function AdminLogin() {
                     {/* Input Password */}
                     <div>
                         <label htmlFor="field_72" className="block text-white text-sm mb-2 font-medium">
-                            Password<span className="text-red-400">*</span>
+                            Kata Sandi<span className="text-red-400">*</span>
                         </label>
                         <div className="relative">
                             <input aria-label="Input field" id="field_72"
@@ -79,14 +79,14 @@ export default function AdminLogin() {
                                 value={data.password}
                                 onChange={(e) => setData("password", e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full px-4 py-3.5 pr-11 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
+                                className="w-full px-4 py-3.5 pr-11 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-brand-orange/40 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
                                 required
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword((prev) => !prev)}
                                 tabIndex={-1}
-                                aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                                aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
                                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
                             >
                                 {showPassword ? (
@@ -108,7 +108,7 @@ export default function AdminLogin() {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full max-w-56 px-6 py-3 rounded-full bg-[#467382] hover:bg-[#3b6370] text-white font-bold transition hover:scale-105 disabled:opacity-70 shadow-lg shadow-[#00383C]/60 cursor-pointer"
+                            className="w-full max-w-56 px-6 py-3 rounded-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold transition hover:scale-105 disabled:opacity-70 shadow-lg shadow-brand-orange/40 cursor-pointer"
                         >
                             {processing ? "Memproses..." : "Masuk"}
                         </button>
@@ -116,9 +116,9 @@ export default function AdminLogin() {
                         <button
                             type="button"
                             onClick={() => setIsForgotModalOpen(true)}
-                            className="text-[#41B9C5] hover:text-[#52d3e0] text-xs font-medium transition-colors hover:underline cursor-pointer bg-transparent border-0"
+                            className="text-brand-orange hover:text-brand-orange-light text-xs font-semibold transition-colors hover:underline cursor-pointer bg-transparent border-0"
                         >
-                            Lupa Password?
+                            Lupa Kata Sandi?
                         </button>
                     </div>
                 </form>

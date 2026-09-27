@@ -55,12 +55,12 @@ class DashboardController extends Controller
             ->withSum(['orderItems as total_sold' => function ($q) {
                 $q->whereHas('order', fn ($o) => $o->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success']));
             }], 'quantity')
-            ->having('total_sold', '>', 0)
             ->orderByDesc('total_sold')
             ->first();
 
-        $topProductName = $topProduct ? $topProduct->name : 'Belum ada penjualan';
-        $topCategoryName = $topProduct ? ($topProduct->category?->name ?: 'Umum') : '-';
+        $hasSold = $topProduct && (int) ($topProduct->total_sold ?? 0) > 0;
+        $topProductName = $hasSold ? $topProduct->name : 'Belum ada penjualan';
+        $topCategoryName = $hasSold ? ($topProduct->category?->name ?: 'Umum') : '-';
 
         // Pendaftaran Pedagang (Toko Mitra Terbaru)
         $recentStores = Store::with('user:id,name,email')
@@ -130,7 +130,7 @@ class DashboardController extends Controller
             $activities[] = [
                 'id' => 'order-'.$order->id,
                 'time' => $order->created_at->diffForHumans(),
-                'title' => 'Pesanan Baru #'.$order->order_number,
+                'title' => 'Pesanan Baru #'.($order->invoice_number ?: $order->id),
                 'description' => 'Transaksi baru senilai Rp '.number_format($order->total_amount, 0, ',', '.').' dibuat oleh '.($order->user?->name ?: 'Pelanggan').'.',
                 'dotColor' => 'amber',
             ];
