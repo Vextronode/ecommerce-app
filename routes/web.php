@@ -192,6 +192,35 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
             $customersCount = $storeId ? Order::where('store_id', $storeId)->distinct('user_id')->count('user_id') : 0;
             $productsCount = $storeId ? Product::where('store_id', $storeId)->count() : 0;
 
+            // Hitung tren pertumbuhan riil (Bulan Ini vs Bulan Lalu)
+            $startThisMonth = now()->startOfMonth();
+            $startLastMonth = now()->subMonth()->startOfMonth();
+            $endLastMonth = now()->subMonth()->endOfMonth();
+
+            $salesThisMonth = $storeId ? (float) Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->where('created_at', '>=', $startThisMonth)->sum('total_amount') : 0;
+            $salesLastMonth = $storeId ? (float) Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->whereBetween('created_at', [$startLastMonth, $endLastMonth])->sum('total_amount') : 0;
+
+            $ordersThisMonth = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->where('created_at', '>=', $startThisMonth)->count() : 0;
+            $ordersLastMonth = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count() : 0;
+
+            $customersThisMonth = $storeId ? Order::where('store_id', $storeId)->where('created_at', '>=', $startThisMonth)->distinct('user_id')->count('user_id') : 0;
+            $customersLastMonth = $storeId ? Order::where('store_id', $storeId)->whereBetween('created_at', [$startLastMonth, $endLastMonth])->distinct('user_id')->count('user_id') : 0;
+
+            $productsThisMonth = $storeId ? Product::where('store_id', $storeId)->where('created_at', '>=', $startThisMonth)->count() : 0;
+            $productsLastMonth = $storeId ? Product::where('store_id', $storeId)->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count() : 0;
+
+            $calcGrowth = function ($current, $previous) {
+                if ($previous > 0) {
+                    return round((($current - $previous) / $previous) * 100, 1);
+                }
+                return $current > 0 ? 100.0 : 0.0;
+            };
+
+            $salesGrowth = $calcGrowth($salesThisMonth, $salesLastMonth);
+            $ordersGrowth = $calcGrowth($ordersThisMonth, $ordersLastMonth);
+            $customersGrowth = $calcGrowth($customersThisMonth, $customersLastMonth);
+            $productsGrowth = $calcGrowth($productsThisMonth, $productsLastMonth);
+
             $pending = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'pending')->count() : 0;
             $processing = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'processing')->count() : 0;
             $shipped = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'shipped')->count() : 0;
@@ -302,10 +331,14 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                     'store_name' => $user->store ? $user->store->name : 'Toko Anda',
                 ],
                 'stats' => [
-                    'sales' => $sales,
+                    'sales' => (float) $sales,
                     'orders' => $ordersCount,
                     'customers' => $customersCount,
                     'products' => $productsCount,
+                    'sales_growth' => $salesGrowth,
+                    'orders_growth' => $ordersGrowth,
+                    'customers_growth' => $customersGrowth,
+                    'products_growth' => $productsGrowth,
                 ],
                 'chartData' => $chartData,
                 'monthlyChartData' => $monthlyChartData,

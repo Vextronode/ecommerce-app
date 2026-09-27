@@ -6,7 +6,7 @@ import RevenueTrendChart from '@/Components/Merchant/Analytics/RevenueTrendChart
 import TopCategoriesChart from '@/Components/Merchant/Analytics/TopCategoriesChart';
 import OrdersTrendChart from '@/Components/Merchant/Analytics/OrdersTrendChart';
 import BestSellingProductsTable from '@/Components/Merchant/Analytics/BestSellingProductsTable';
-import { Banknote, ShoppingBag, ArrowLeftRight, Receipt, Calendar } from 'lucide-react';
+import { Banknote, ShoppingBag, Star, Receipt, Calendar } from 'lucide-react';
 
 interface Metrics {
     total_revenue: number;
@@ -15,6 +15,7 @@ interface Metrics {
     total_orders_growth?: number;
     rating_shop: number;
     rating_shop_growth?: number;
+    reviews_count?: number;
     average_order: number;
     average_order_growth?: number;
 }
@@ -124,9 +125,11 @@ export default function AnalyticsIndex({
                     <AnalyticsOverviewCard
                         title="Rating Toko"
                         value={metrics.rating_shop}
-                        icon={ArrowLeftRight}
+                        icon={Star}
                         growth={metrics.rating_shop_growth}
-                        iconTheme="blue"
+                        isRating={true}
+                        reviewsCount={metrics.reviews_count}
+                        iconTheme="orange"
                     />
                     <AnalyticsOverviewCard
                         title="Rata-rata Order"

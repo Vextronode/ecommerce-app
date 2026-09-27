@@ -46,10 +46,57 @@ class AnalyticsController extends Controller
         $totalPendapatan = (float) $overviewQuery->sum('total_amount');
         $totalOrderan = $ordersQuery->count();
 
-        // Mock rating since it doesn't exist yet
-        $ratingShop = 3.4;
+        // Rating Toko Riil: Dihitung dari ulasan produk toko di tabel product_reviews
+        $reviewsCount = $store->reviews()->count();
+        $ratingShop = $reviewsCount > 0 ? round((float) $store->reviews()->avg('rating'), 1) : 0.0;
 
         $averageOrder = $totalOrderan > 0 ? $totalPendapatan / $totalOrderan : 0;
+
+        // Periode pembanding sebelumnya untuk menghitung persentase pertumbuhan asli
+        $previousStartDate = null;
+        $previousEndDate = $startDate;
+
+        if ($period === '7d') {
+            $previousStartDate = Carbon::now()->subDays(14);
+        } elseif ($period === '30d') {
+            $previousStartDate = Carbon::now()->subDays(60);
+        } elseif ($period === '12m') {
+            $previousStartDate = Carbon::now()->subMonths(24);
+        }
+
+        $prevRevenueQuery = Order::where('store_id', $store->id)->where('payment_status', 'paid');
+        $prevOrdersQuery = Order::where('store_id', $store->id);
+
+        if ($previousStartDate && $previousEndDate) {
+            $prevRevenueQuery->whereBetween('created_at', [$previousStartDate, $previousEndDate]);
+            $prevOrdersQuery->whereBetween('created_at', [$previousStartDate, $previousEndDate]);
+        }
+
+        $prevRevenue = (float) $prevRevenueQuery->sum('total_amount');
+        $prevOrders = $prevOrdersQuery->count();
+        $prevAverageOrder = $prevOrders > 0 ? $prevRevenue / $prevOrders : 0;
+
+        $calcGrowth = function ($current, $previous) {
+            if ($previous > 0) {
+                return round((($current - $previous) / $previous) * 100, 1);
+            }
+            return $current > 0 ? 100.0 : 0.0;
+        };
+
+        $revenueGrowth = $calcGrowth($totalPendapatan, $prevRevenue);
+        $ordersGrowth = $calcGrowth($totalOrderan, $prevOrders);
+        $averageOrderGrowth = $calcGrowth($averageOrder, $prevAverageOrder);
+
+        // Pertumbuhan rating riil
+        $prevRating = 0.0;
+        $currRating = 0.0;
+        if ($previousStartDate && $previousEndDate) {
+            $prevRating = (float) ($store->reviews()->whereBetween('created_at', [$previousStartDate, $previousEndDate])->avg('rating') ?? 0);
+        }
+        if ($startDate) {
+            $currRating = (float) ($store->reviews()->where('created_at', '>=', $startDate)->avg('rating') ?? 0);
+        }
+        $ratingGrowth = ($prevRating > 0 && $currRating > 0) ? round((($currRating - $prevRating) / $prevRating) * 100, 1) : 0.0;
 
         // Revenue Trend
         $years = [$currentYear - 2, $currentYear - 1, $currentYear];
@@ -147,9 +194,14 @@ class AnalyticsController extends Controller
         return Inertia::render('Merchant/Analytics/Index', [
             'metrics' => [
                 'total_revenue' => $totalPendapatan,
+                'total_revenue_growth' => $revenueGrowth,
                 'total_orders' => $totalOrderan,
+                'total_orders_growth' => $ordersGrowth,
                 'rating_shop' => $ratingShop,
+                'rating_shop_growth' => $reviewsCount > 0 ? $ratingGrowth : 0.0,
+                'reviews_count' => $reviewsCount,
                 'average_order' => $averageOrder,
+                'average_order_growth' => $averageOrderGrowth,
             ],
             'years' => $years,
             'revenueTrend' => $revenueTrend,

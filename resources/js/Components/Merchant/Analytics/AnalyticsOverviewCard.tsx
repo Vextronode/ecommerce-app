@@ -9,7 +9,9 @@ interface AnalyticsOverviewCardProps {
     growth?: number;
     isPositive?: boolean;
     isCurrency?: boolean;
-    iconTheme?: 'teal' | 'emerald' | 'blue' | 'orange';
+    isRating?: boolean;
+    reviewsCount?: number;
+    iconTheme?: 'teal' | 'emerald' | 'blue' | 'orange' | 'amber';
 }
 
 export default function AnalyticsOverviewCard({ 
@@ -19,11 +21,26 @@ export default function AnalyticsOverviewCard({
     growth, 
     isPositive,
     isCurrency = false,
+    isRating = false,
+    reviewsCount,
     iconTheme = 'teal',
 }: AnalyticsOverviewCardProps) {
-    const formattedValue = isCurrency 
-        ? `Rp. ${formatNumberId(Number(value))}` 
-        : (typeof value === 'number' ? formatNumberEn(value) : value);
+    const isRatingCard = isRating || title.toUpperCase().includes('RATING');
+
+    let formattedValue: React.ReactNode;
+    if (isCurrency) {
+        formattedValue = `Rp. ${formatNumberId(Number(value))}`;
+    } else if (isRatingCard) {
+        const numVal = typeof value === 'number' ? value : parseFloat(String(value)) || 0;
+        formattedValue = (
+            <span className="flex items-baseline gap-1.5">
+                <span>{numVal > 0 ? numVal.toFixed(1) : '0.0'}</span>
+                <span className="text-xs md:text-sm font-semibold text-gray-400">/ 5.0</span>
+            </span>
+        );
+    } else {
+        formattedValue = typeof value === 'number' ? formatNumberEn(value) : value;
+    }
 
     // Auto calculate isPositive if not explicitly provided
     const positiveStatus = isPositive !== undefined ? isPositive : (growth !== undefined ? growth > 0 : true);
@@ -34,6 +51,7 @@ export default function AnalyticsOverviewCard({
         emerald: 'bg-[#E8F8F5] text-[#10B981]',
         blue: 'bg-[#E0F2FE] text-[#0284C7]',
         orange: 'bg-brand-orange-tint text-brand-orange',
+        amber: 'bg-amber-50 text-amber-500',
     };
 
     return (
@@ -43,14 +61,18 @@ export default function AnalyticsOverviewCard({
                     <div className={`p-3 rounded-xl ${themeStyles[iconTheme]} transition-colors`}>
                         <Icon className="w-5 h-5" />
                     </div>
-                    {growth !== undefined && (
+                    {isRatingCard && (reviewsCount === undefined || reviewsCount === 0) ? (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200/80">
+                            0 Ulasan
+                        </span>
+                    ) : growth !== undefined && (
                         <span 
                             className={`text-xs font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${
                                 isZero 
-                                    ? 'bg-amber-50 text-amber-600'
+                                    ? 'bg-slate-100 text-slate-500 border border-slate-200/80'
                                     : positiveStatus 
-                                        ? 'bg-emerald-50 text-emerald-600' 
-                                        : 'bg-rose-50 text-rose-500'
+                                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' 
+                                        : 'bg-rose-50 text-rose-500 border border-rose-200'
                             }`}
                         >
                             {isZero ? '→ ' : positiveStatus ? '↗ +' : '↘ -'}{Math.abs(growth)}%
@@ -59,10 +81,15 @@ export default function AnalyticsOverviewCard({
                 </div>
 
                 <div className="mt-2">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">{title}</h3>
-                    <p className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
-                        {formattedValue}{title.toUpperCase().includes('RATING') ? '%' : ''}
-                    </p>
+                    <div className="flex items-center justify-between mb-1.5">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{title}</h3>
+                        {isRatingCard && reviewsCount !== undefined && reviewsCount > 0 && (
+                            <span className="text-[11px] text-gray-400 font-medium">({reviewsCount} ulasan)</span>
+                        )}
+                    </div>
+                    <div className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                        {formattedValue}
+                    </div>
                 </div>
             </div>
         </div>
