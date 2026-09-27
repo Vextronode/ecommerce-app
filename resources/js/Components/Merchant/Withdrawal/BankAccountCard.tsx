@@ -23,7 +23,7 @@ export default function BankAccountCard({ store }: BankAccountCardProps) {
     } = useMerchantBankAccount({ store });
 
     return (
-        <div className="bg-white rounded-3xl p-5 md:p-6 border border-[#41B9C5]/30 shadow-sm space-y-5">
+        <div id="bank-account-section" className="bg-white rounded-3xl p-5 md:p-6 border border-[#41B9C5]/30 shadow-sm space-y-5">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[#F0FAFB] rounded-full flex items-center justify-center shrink-0">

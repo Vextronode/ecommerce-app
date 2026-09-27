@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import { formatNumberEn } from '@/utils/formatters';
+import { formatPaginationLabel } from '@/utils/formatPaginationLabel';
 
 interface LinkType {
     url: string | null;
@@ -61,7 +62,7 @@ export default function CustomerPagination({ from, to, total, links }: CustomerP
                             preserveState
                             as={link.url ? 'a' : 'button'}
                         >
-                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                            <span>{formatPaginationLabel(link.label)}</span>
                         </Link>
                     );
                 })}

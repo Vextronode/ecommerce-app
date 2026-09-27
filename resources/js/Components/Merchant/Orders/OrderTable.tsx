@@ -38,7 +38,7 @@ export default function OrderTable({
     useEffect(() => {
         if (!showBatchModal || !batchData?.batch_token || typeof window === "undefined" || !window.Echo) return;
 
-        const channel = window.Echo.channel(`batch.${batchData.batch_token}`);
+        const channel = window.Echo.private(`batch.${batchData.batch_token}`);
         const handleBatchScanned = () => {
             setShowBatchModal(false);
             setSelectedOrderIds([]);
@@ -49,7 +49,7 @@ export default function OrderTable({
         channel.listen("OrderStatusUpdated", handleBatchScanned);
 
         return () => {
-            window.Echo.leaveChannel(`batch.${batchData.batch_token}`);
+            window.Echo.leave(`batch.${batchData.batch_token}`);
         };
     }, [showBatchModal, batchData?.batch_token]);
 

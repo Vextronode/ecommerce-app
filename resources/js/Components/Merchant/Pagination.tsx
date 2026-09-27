@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { formatPaginationLabel } from "@/utils/formatPaginationLabel";
 
 export default function Pagination({ data }: { data: any }) {
     if (!data) return null;
@@ -71,8 +72,9 @@ export default function Pagination({ data }: { data: any }) {
                                         ? "bg-[#E0F7FA] border border-[#41B9C5] text-[#41B9C5]"
                                         : "bg-white text-gray-500 hover:bg-gray-50 border border-transparent"
                                 } ${!link.url && "pointer-events-none opacity-50"}`}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
+                            >
+                                {formatPaginationLabel(link.label)}
+                            </Link>
                         );
                     })}
                 </div>

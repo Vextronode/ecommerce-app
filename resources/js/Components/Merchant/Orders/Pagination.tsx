@@ -37,14 +37,16 @@ export default function Pagination({ pagination }: { pagination: any }) {
                                     ? "bg-[#14433D] text-white"
                                     : "hover:bg-gray-50 text-gray-600 border border-transparent hover:border-gray-200"
                             }`}
-                            dangerouslySetInnerHTML={{ __html: label }}
-                        />
+                        >
+                            {label}
+                        </Link>
                     ) : (
                         <span
                             key={idx}
                             className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm"
-                            dangerouslySetInnerHTML={{ __html: label }}
-                        />
+                        >
+                            {label}
+                        </span>
                     );
                 })}
             </div>

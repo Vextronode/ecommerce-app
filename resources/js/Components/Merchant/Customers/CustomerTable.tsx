@@ -8,13 +8,14 @@ export interface Customer {
     customer_id: string;
     name: string;
     avatar: string | null;
-    email: string;
+    email?: string;
     phone: string;
     orders_count: number;
     total_spent: number;
     join_date: string;
     status: 'Active' | 'New';
 }
+
 
 interface CustomerTableProps {
     customers: Customer[];
@@ -82,9 +83,10 @@ export default function CustomerTable({ customers, currentStatus }: CustomerTabl
                                     </div>
                                 </td>
                                 <td className="py-4 px-6">
-                                    <p className="text-sm text-[#14433D] font-medium">{customer.email}</p>
-                                    <p className="text-xs text-gray-500 font-medium mt-0.5">{customer.phone}</p>
+                                    {customer.email && <p className="text-sm text-[#14433D] font-medium">{customer.email}</p>}
+                                    <p className="text-sm text-gray-700 font-medium">{customer.phone}</p>
                                 </td>
+
                                 <td className="py-4 px-6">
                                     <span className="text-sm font-bold text-[#14433D]">{customer.orders_count}</span>
                                 </td>
