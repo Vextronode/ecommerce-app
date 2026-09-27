@@ -4,11 +4,16 @@
 :root {
     /* BRAND ORANGE (Primary Storefront, CTA, Price, Cart, Rating, Follow) */
     --color-orange-primary: #ED7218;
+    --color-orange-warm: #FC9B34;
     --color-orange-hover: #D95C00;
     --color-orange-dark: #C44E00;
     --color-orange-light: #F77F00;
     --color-orange-tint: #FFF4EC;
     --color-orange-soft: #FFF9F5;
+
+    /* BRAND INDIGO (Merchant Login Theme & Accent) */
+    --color-indigo-merchant: #2D2A6E;
+    --color-indigo-merchant-hover: #24215B;
 
     /* BRAND BLUE (Courier Live Tracking, Navigation, Batch Delivery, Merchant System) */
     --color-blue-primary: #006591;
@@ -56,11 +61,16 @@
 @theme {
     /* Brand Orange Utilities: bg-brand-orange, text-brand-orange, border-brand-orange */
     --color-brand-orange: var(--color-orange-primary);
+    --color-brand-orange-warm: var(--color-orange-warm);
     --color-brand-orange-hover: var(--color-orange-hover);
     --color-brand-orange-dark: var(--color-orange-dark);
     --color-brand-orange-light: var(--color-orange-light);
     --color-brand-orange-tint: var(--color-orange-tint);
     --color-brand-orange-soft: var(--color-orange-soft);
+
+    /* Brand Indigo Utilities for Merchant */
+    --color-brand-indigo-merchant: var(--color-indigo-merchant);
+    --color-brand-indigo-merchant-hover: var(--color-indigo-merchant-hover);
 
     /* Brand Blue Utilities: bg-brand-blue, text-brand-blue, border-brand-blue */
     --color-brand-blue: var(--color-blue-primary);
