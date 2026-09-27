@@ -1,26 +1,25 @@
 import React from 'react';
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { MoreVertical } from 'lucide-react';
 
 interface RevenueTrendChartProps {
     data: any[];
     years: number[];
 }
 
-const colors = ['#1f4b45', '#41B9C5', '#b2d8d8', '#e2e8f0'];
+const colors = ['#E27C38', '#4F86F7', '#E5A962', '#10B981'];
 
 export default function RevenueTrendChart({ data, years }: RevenueTrendChartProps) {
-
-
     return (
-        <div className="bg-white p-6 rounded-[20px] border border-[#41B9C5]/20 shadow-sm col-span-1 lg:col-span-2">
+        <div className="bg-white p-6 rounded-2xl border border-brand-orange/20 shadow-sm col-span-1 lg:col-span-2">
             <div className="flex justify-between items-start mb-6">
                 <div>
-                    <h3 className="font-bold text-brand-blue-dark">Revenue Trend</h3>
-                    <p className="text-xs text-gray-400 mt-1 font-medium">Menampilkan perbandingan tahunan (tidak terpengaruh filter harian)</p>
+                    <h3 className="font-bold text-lg text-gray-900">Tren Pendapatan</h3>
+                    <p className="text-xs text-gray-400 mt-0.5 font-medium">Perbandingan pendapatan tahunan (tidak terpengaruh filter harian)</p>
                 </div>
-                <button aria-label="Action" className="text-gray-400 hover:text-gray-600 mt-1">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                <button aria-label="Opsi Lainnya" className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-50 transition">
+                    <MoreVertical className="w-5 h-5" />
                 </button>
             </div>
             
@@ -29,7 +28,7 @@ export default function RevenueTrendChart({ data, years }: RevenueTrendChartProp
                     <BarChart
                         data={data}
                         margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
-                        barGap={0}
+                        barGap={2}
                         barCategoryGap="20%"
                     >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -44,16 +43,23 @@ export default function RevenueTrendChart({ data, years }: RevenueTrendChartProp
                             axisLine={false}
                             tickLine={false}
                             tick={{ fontSize: 12, fill: '#94a3b8' }}
-                            tickFormatter={(value) => `${value >= 1000 ? value/1000 + 'k' : value}`}
+                            tickFormatter={(value) => `${value >= 1000 ? (value/1000).toLocaleString('id-ID') + 'k' : value}`}
                         />
                         <Tooltip 
                             cursor={{ fill: '#f8fafc' }}
-                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            contentStyle={{ 
+                                borderRadius: '12px', 
+                                border: '1px solid #fed7aa', 
+                                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)',
+                                fontSize: '12px'
+                            }}
+                            formatter={(value: any, name: any) => [`Rp ${Number(value).toLocaleString('id-ID')}`, `Tahun ${name}`]}
                         />
                         <Legend 
                             iconType="square"
                             iconSize={8}
                             wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+                            formatter={(value: any) => <span className="text-xs font-semibold text-gray-600">{value}</span>}
                         />
                         
                         {years.map((year, index) => (

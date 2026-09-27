@@ -106,7 +106,7 @@ export default function OrderTable({
     };
 
     return (
-        <div className="relative bg-white rounded-[20px] border border-[#41B9C5]/20 shadow-sm overflow-hidden flex flex-col w-full">
+        <div className="relative bg-white rounded-3xl border border-brand-orange/30 shadow-sm overflow-hidden flex flex-col w-full">
             <TableToolbar />
 
             {/* Desktop View */}
@@ -120,7 +120,7 @@ export default function OrderTable({
                                         <button
                                             type="button"
                                             onClick={handleSelectAll}
-                                            className="text-[#41B9C5] hover:text-[#14433D] transition rounded shrink-0 cursor-pointer"
+                                            className="text-brand-orange hover:text-brand-orange-hover transition rounded shrink-0 cursor-pointer"
                                             title={
                                                 isAllEligibleSelected
                                                     ? "Batal Pilih Semua"
@@ -128,28 +128,28 @@ export default function OrderTable({
                                             }
                                         >
                                             {isAllEligibleSelected ? (
-                                                <CheckSquare className="w-4 h-4 text-[#41B9C5]" />
+                                                <CheckSquare className="w-4 h-4 text-brand-orange" />
                                             ) : (
                                                 <Square className="w-4 h-4 text-gray-300 hover:text-gray-400" />
                                             )}
                                         </button>
                                     )}
-                                    <span>ORDER ID</span>
+                                    <span>NO. PESANAN</span>
                                 </div>
                             </th>
                             {[
-                                "CUSTOMER",
-                                "ITEMS",
-                                "DATE",
+                                "PELANGGAN",
+                                "ITEM",
+                                "TANGGAL",
                                 "TOTAL",
-                                "PAYMENT",
-                                "SHIPPING",
-                                "ACTIONS",
+                                "PEMBAYARAN",
+                                "PENGIRIMAN",
+                                "AKSI",
                             ].map((th) => (
                                 <th
                                     key={th}
                                     className={`py-4 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider ${
-                                        th === "ACTIONS" ? "text-center" : ""
+                                        th === "AKSI" ? "text-center" : ""
                                     }`}
                                 >
                                     {th}
@@ -183,7 +183,7 @@ export default function OrderTable({
             </div>
 
             {/* Mobile View */}
-            <div className="block lg:hidden divide-y divide-gray-100">
+            <div className="block lg:hidden p-3 sm:p-4 space-y-3 bg-gray-50/70 border-t border-gray-100">
                 {orders?.data?.length > 0 ? (
                     orders.data.map((order: any) => (
                         <OrderMobileCard
@@ -207,10 +207,10 @@ export default function OrderTable({
             {selectedOrderIds.length >= 2 && (
                 <aside
                     aria-label="Floating Batch Bar"
-                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#14433D]/95 backdrop-blur-xl text-white py-2.5 px-4 rounded-full shadow-2xl border border-white/20 flex items-center gap-3 animate-[slideUp_0.25s_ease-out]"
+                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-brand-blue-dark/95 backdrop-blur-xl text-white py-2.5 px-4 rounded-full shadow-2xl border border-white/20 flex items-center gap-3 animate-[slideUp_0.25s_ease-out]"
                 >
                     <div className="flex items-center gap-2 pl-1">
-                        <span className="w-6 h-6 rounded-full bg-[#41B9C5] text-[#14433D] flex items-center justify-center font-black text-xs">
+                        <span className="w-6 h-6 rounded-full bg-brand-orange text-white flex items-center justify-center font-black text-xs">
                             {selectedOrderIds.length}
                         </span>
                         <span className="text-xs font-bold text-white whitespace-nowrap">
@@ -224,7 +224,7 @@ export default function OrderTable({
                         type="button"
                         disabled={isGeneratingBatch}
                         onClick={handleCreateMasterQR}
-                        className="bg-gradient-to-r from-[#41B9C5] to-[#38a6b1] hover:from-[#38a6b1] hover:to-[#2e8f99] text-white font-bold text-xs py-2 px-4 rounded-full shadow-md transition flex items-center gap-1.5 active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+                        className="bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-xs py-2 px-4 rounded-full shadow-md transition flex items-center gap-1.5 active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
                     >
                         {isGeneratingBatch ? (
                             <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -263,16 +263,16 @@ export default function OrderTable({
                             <X className="w-5 h-5" />
                         </button>
 
-                        <div className="w-16 h-16 bg-[#EAF7F7] text-[#41B9C5] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                        <div className="w-16 h-16 bg-brand-orange-tint text-brand-orange rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
                             <Layers className="w-8 h-8" />
                         </div>
 
-                        <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#EAF7F7] text-[#14433D] text-xs font-bold mb-2">
-                            <Sparkles className="w-3.5 h-3.5 text-[#41B9C5]" />
+                        <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-orange-tint text-brand-orange text-xs font-bold mb-2">
+                            <Sparkles className="w-3.5 h-3.5 text-brand-orange" />
                             <span>Pengiriman Gabungan ({batchData.orders_count} Pesanan)</span>
                         </div>
 
-                        <h3 className="text-xl font-extrabold text-[#14433D] mb-1">
+                        <h3 className="text-xl font-extrabold text-brand-orange mb-1">
                             Master QR Code Serah Terima
                         </h3>
                         <p className="text-xs text-gray-500 mb-5 max-w-sm mx-auto">
@@ -290,7 +290,7 @@ export default function OrderTable({
                         <div className="bg-gray-50 p-3.5 rounded-xl text-left text-xs mb-4 border border-gray-100 space-y-1.5">
                             <div className="flex justify-between items-center text-gray-500">
                                 <span>Kode Batch:</span>
-                                <span className="font-mono font-bold text-[#14433D]">
+                                <span className="font-mono font-bold text-brand-orange">
                                     #{batchData.batch_token}
                                 </span>
                             </div>
@@ -308,7 +308,7 @@ export default function OrderTable({
                                 setShowBatchModal(false);
                                 setSelectedOrderIds([]);
                             }}
-                            className="w-full py-3 bg-[#14433D] hover:bg-[#0f342f] text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                            className="w-full py-3 bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold rounded-xl transition cursor-pointer"
                         >
                             Selesai / Tutup
                         </button>

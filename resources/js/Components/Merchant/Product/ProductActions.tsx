@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { MoreHorizontal, Edit, Trash2, AlertCircle } from "lucide-react";
 import { Link, useForm } from "@inertiajs/react";
 
@@ -9,23 +10,54 @@ interface Props {
 export default function ProductActions({ product }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { delete: destroy, processing } = useForm();
 
-    // fungsi buat nutup dropdown kalau klik di luar
+    const toggleDropdown = () => {
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const dropdownWidth = 144; // w-36 (144px)
+            const dropdownHeight = 90;
+
+            const openUpwards =
+                window.innerHeight - rect.bottom < dropdownHeight + 10;
+
+            setCoords({
+                top: openUpwards ? rect.top - dropdownHeight - 4 : rect.bottom + 6,
+                left: Math.max(10, rect.right - dropdownWidth),
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
+    // Close on click outside or scroll
     useEffect(() => {
+        if (!isOpen) return;
+
+        const handleClose = () => setIsOpen(false);
+        window.addEventListener("scroll", handleClose, true);
+        window.addEventListener("resize", handleClose);
+
         function handleClickOutside(event: MouseEvent) {
             if (
                 dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node)
+                !dropdownRef.current.contains(event.target as Node) &&
+                buttonRef.current &&
+                !buttonRef.current.contains(event.target as Node)
             ) {
                 setIsOpen(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
-        return () =>
+
+        return () => {
+            window.removeEventListener("scroll", handleClose, true);
+            window.removeEventListener("resize", handleClose);
             document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+        };
+    }, [isOpen]);
 
     const confirmDelete = (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,17 +74,29 @@ export default function ProductActions({ product }: Props) {
 
     return (
         <>
-            <div aria-label="Pilih opsi yang tersedia" className="relative inline-block text-left" ref={dropdownRef}>
-                <button aria-label="Tampilkan rincian lebih lanjut"
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="text-gray-400 hover:text-[#41B9C5] p-1 md:p-2 rounded-lg hover:bg-[#E0F7FA] transition-colors focus:outline-none"
+            <div aria-label="Pilih opsi yang tersedia" className="relative inline-block text-left">
+                <button
+                    ref={buttonRef}
+                    aria-label="Tampilkan rincian lebih lanjut"
+                    onClick={toggleDropdown}
+                    className="text-gray-400 hover:text-brand-orange p-1 md:p-2 rounded-lg hover:bg-brand-orange-tint transition-colors focus:outline-none"
                 >
                     <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
 
-                {isOpen && (
-                    <div className="absolute right-0 mt-2 w-36 bg-white rounded-2xl shadow-lg border border-[#41B9C5]/20 z-10 overflow-hidden">
-                        <div className="py-1">
+                {isOpen &&
+                    coords &&
+                    typeof document !== "undefined" &&
+                    createPortal(
+                        <div
+                            ref={dropdownRef}
+                            style={{
+                                position: "fixed",
+                                top: `${coords.top}px`,
+                                left: `${coords.left}px`,
+                            }}
+                            className="w-36 bg-white rounded-2xl shadow-xl border border-brand-orange/30 z-50 overflow-hidden py-1"
+                        >
                             <Link
                                 href={route(
                                     "merchant.products.edit",
@@ -60,7 +104,7 @@ export default function ProductActions({ product }: Props) {
                                 )}
                                 className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors w-full text-left whitespace-nowrap"
                             >
-                                <Edit className="w-4 h-4 text-[#41B9C5]" />
+                                <Edit className="w-4 h-4 text-brand-orange" />
                                 Edit Produk
                             </Link>
                             <button
@@ -70,9 +114,9 @@ export default function ProductActions({ product }: Props) {
                                 <Trash2 className="w-4 h-4" />
                                 Hapus
                             </button>
-                        </div>
-                    </div>
-                )}
+                        </div>,
+                        document.body,
+                    )}
             </div>
 
             {/* Custom Modal Delete */}
@@ -84,7 +128,7 @@ export default function ProductActions({ product }: Props) {
                     />
 
                     {/* Modal Content */}
-                    <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-xl border border-[#41B9C5]/30 transform transition flex flex-col items-center text-center">
+                    <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-xl border border-brand-orange/30 transform transition flex flex-col items-center text-center">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 border-4 border-red-100">
                             <AlertCircle className="w-8 h-8 text-red-500" />
                         </div>

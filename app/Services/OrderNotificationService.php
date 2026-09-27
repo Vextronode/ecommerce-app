@@ -37,11 +37,16 @@ class OrderNotificationService
             // 2. Notify Store Owner via In-App Bell & Web Push (Pesanan Baru Masuk)
             $storeOwner = $order->store?->user;
             if ($storeOwner) {
-                $title = 'Pesanan Baru Masuk!';
-                $message = "Toko {$order->store->name} menerima pesanan baru #{$order->invoice_number} dari {$order->customer_name}.";
-                $actionUrl = '/pedagang/orders';
+                $merchantSettings = $storeOwner->notification_settings ?? [];
+                $isAllowed = $merchantSettings['pesanan_baru'] ?? true;
 
-                $storeOwner->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                if ($isAllowed) {
+                    $title = 'Pesanan Baru Masuk!';
+                    $message = "Toko {$order->store->name} menerima pesanan baru #{$order->invoice_number} dari {$order->customer_name}.";
+                    $actionUrl = '/pedagang/orders';
+
+                    $storeOwner->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                }
             }
 
             // 3. Send Email Notification to Store Owner (Laravel Mailable)
@@ -83,11 +88,16 @@ class OrderNotificationService
             // 2. Notify Store Owner
             $storeOwner = $order->store?->user;
             if ($storeOwner) {
-                $title = 'Pembayaran Pesanan Terverifikasi!';
-                $message = "Pesanan #{$order->invoice_number} telah dibayar lunas. Silakan proses dan kemas produk.";
-                $actionUrl = '/pedagang/orders';
+                $merchantSettings = $storeOwner->notification_settings ?? [];
+                $isAllowed = $merchantSettings['pembayaran_berhasil'] ?? true;
 
-                $storeOwner->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                if ($isAllowed) {
+                    $title = 'Pembayaran Pesanan Terverifikasi!';
+                    $message = "Pesanan #{$order->invoice_number} telah dibayar lunas. Silakan proses dan kemas produk.";
+                    $actionUrl = '/pedagang/orders';
+
+                    $storeOwner->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                }
             }
         } catch (\Throwable $e) {
             Log::error('OrderNotificationService::paymentReceived error: ' . $e->getMessage());
@@ -187,6 +197,21 @@ class OrderNotificationService
                     $actionUrl = route('history.index', ['status' => 'rating'], false);
 
                     $order->user->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                }
+            }
+
+            // 2. Notify Store Owner
+            $storeOwner = $order->store?->user;
+            if ($storeOwner) {
+                $merchantSettings = $storeOwner->notification_settings ?? [];
+                $isAllowed = $merchantSettings['pengiriman_pesanan'] ?? true;
+
+                if ($isAllowed) {
+                    $title = 'Pesanan Telah Tiba di Pembeli!';
+                    $message = "Pesanan #{$order->invoice_number} telah sampai dan selesai diterima pembeli.";
+                    $actionUrl = '/pedagang/orders';
+
+                    $storeOwner->notify(new PushNotification($title, $message, 'order', $actionUrl));
                 }
             }
         } catch (\Throwable $e) {

@@ -32,15 +32,15 @@ export default function ProductPricingStock({
     return (
         <div className="mb-8 border-b border-gray-100 pb-8">
             {hasVariants ? (
-                <div className="bg-[#E0F7FA] border border-[#41B9C5]/30 p-4 rounded-xl flex gap-3 items-start">
-                    <span className="text-[#41B9C5] text-xl leading-none mt-2">
+                <div className="bg-brand-orange-tint border border-brand-orange/30 p-4 rounded-xl flex gap-3 items-start">
+                    <span className="text-brand-orange text-xl leading-none mt-2">
                         <MessageCircleWarning />
                     </span>
                     <div>
-                        <p className="text-sm font-bold text-[#245D56] mb-1">
+                        <p className="text-sm font-bold text-brand-orange-dark mb-1">
                             Harga dan Stok Mengikuti Varian
                         </p>
-                        <p className="text-xs text-[#245D56]/80">
+                        <p className="text-xs text-brand-orange-dark/80">
                             Karena Anda mengaktifkan Varian Produk, Harga Dasar
                             dan Total Stok akan dihitung secara otomatis dari
                             tabel Detail Harga & Stok di bawah.
@@ -59,7 +59,7 @@ export default function ProductPricingStock({
                             placeholder="Harga dasar produk"
                             value={data.price}
                             onChange={(e) => setData("price", e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition bg-white"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm transition bg-white"
                             required={!hasVariants}
                         />
                         {errors.price && (
@@ -79,7 +79,7 @@ export default function ProductPricingStock({
                             placeholder="Jumlah stok tersedia"
                             value={data.stock}
                             onChange={(e) => setData("stock", e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm transition bg-white"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm transition bg-white"
                             required={!hasVariants}
                         />
                         {errors.stock && (
@@ -101,7 +101,7 @@ export default function ProductPricingStock({
                         </div>
 
                         {/* Form Qty dan Deropdown */}
-                        <div className="flex w-full rounded-xl border border-gray-200 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#41B9C5]/50 transition shadow-sm">
+                        <div className="flex w-full rounded-xl border border-gray-200 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-brand-orange/50 focus-within:border-brand-orange transition shadow-sm">
                             <input aria-label="Input field" id="field_95"
                                 type="number"
                                 placeholder="Misal: 1, 500"

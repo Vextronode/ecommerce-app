@@ -16,6 +16,7 @@ interface DashboardProps {
         products: number;
     };
     chartData: any[];
+    monthlyChartData?: any[];
     recentOrders: any[];
     topSelling: any[];
     orderStatus: {
@@ -30,6 +31,7 @@ export default function Dashboard({
     merchantInfo,
     stats,
     chartData,
+    monthlyChartData = [],
     recentOrders,
     topSelling,
     orderStatus,
@@ -55,15 +57,11 @@ export default function Dashboard({
 
             {/* Header */}
             <div className="mb-6 md:mb-8">
-                <h1 className="text-xl md:text-2xl font-extrabold text-brand-teal-deep flex items-center gap-2">
-                    {greeting}, {merchantInfo.name}
+                <h1 className="text-xl md:text-2xl font-extrabold text-brand-orange flex items-center gap-2">
+                    {greeting}, {merchantInfo.name || "Penjual"}
                 </h1>
                 <p className="text-gray-500 mt-1 text-xs md:text-sm font-medium">
-                    Toko{" "}
-                    <span className="font-bold text-brand-cyan">
-                        {merchantInfo.store_name}
-                    </span>{" "}
-                    siap beroperasi hari ini!
+                    Produk apa yang akan kamu jual hari ini?
                 </p>
             </div>
 
@@ -72,7 +70,7 @@ export default function Dashboard({
             {/* Grid layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
                 <div className="lg:col-span-2">
-                    <SalesChart chartData={chartData} />
+                    <SalesChart chartData={chartData} monthlyChartData={monthlyChartData} />
                 </div>
                 <div className="space-y-4 md:space-y-6 flex flex-col">
                     <div className="flex-1 min-h-55">

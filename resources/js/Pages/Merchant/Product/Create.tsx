@@ -62,12 +62,12 @@ export default function Create({ categories }: Props) {
 
     return (
         <MerchantLayout>
-            <Head title="Add Product" />
+            <Head title="Tambah Produk" />
 
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-extrabold text-[#41B9C5]">
-                        Add Product
+                    <h1 className="text-2xl font-extrabold text-brand-orange">
+                        Tambah Produk
                     </h1>
                     <p className="text-gray-500 mt-1 text-sm">
                         Tambahkan produk yang akan dijual disini

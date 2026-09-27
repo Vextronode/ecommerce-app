@@ -23,26 +23,26 @@ export default function StatCards({ statsData }: Props) {
             title: "Total Penjualan",
             // format uang (Rp)
             value: formatRupiah(statsData.sales),
-            trend: "+0%",
-            icon: <Banknote className="w-6 h-6 text-[#41B9C5]" />,
+            trend: "+12%",
+            icon: <Banknote className="w-6 h-6 text-[#245D56]" />,
         },
         {
             title: "Total Pesanan",
             value: statsData.orders.toString(),
-            trend: "+0%",
-            icon: <ShoppingBag className="w-6 h-6 text-[#41B9C5]" />,
+            trend: "+16%",
+            icon: <ShoppingBag className="w-6 h-6 text-[#245D56]" />,
         },
         {
-            title: "Total Konsumen",
+            title: "Total Pelanggan",
             value: statsData.customers.toString(),
-            trend: "+0%",
-            icon: <Users className="w-6 h-6 text-[#41B9C5]" />,
+            trend: "+8%",
+            icon: <Users className="w-6 h-6 text-[#245D56]" />,
         },
         {
             title: "Total Produk",
             value: statsData.products.toString(),
-            trend: "+0%",
-            icon: <Package className="w-6 h-6 text-[#41B9C5]" />,
+            trend: "+5%",
+            icon: <Package className="w-6 h-6 text-[#245D56]" />,
         },
     ];
 
@@ -51,13 +51,13 @@ export default function StatCards({ statsData }: Props) {
             {stats.map((stat, index) => (
                 <div
                     key={stat.title}
-                    className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
+                    className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-brand-orange/30 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow max-w-full overflow-hidden"
                 >
                     <div className="flex justify-between items-start mb-6">
-                        <div className="w-12 h-12 bg-[#F0FAFB] rounded-full flex items-center justify-center">
+                        <div className="w-12 h-12 bg-[#EAF7F7] rounded-full flex items-center justify-center">
                             {stat.icon}
                         </div>
-                        <span className="bg-[#41B9C5] text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm shadow-[#41B9C5]/30">
+                        <span className="bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm shadow-brand-orange/30">
                             <TrendingUp className="w-3.5 h-3.5" />
                             {stat.trend}
                         </span>
@@ -66,7 +66,7 @@ export default function StatCards({ statsData }: Props) {
                         <p className="text-gray-500 text-sm font-medium mb-1">
                             {stat.title}
                         </p>
-                        <h3 className="text-3xl font-extrabold text-[#004F54] tracking-tight">
+                        <h3 className="text-3xl font-extrabold text-brand-orange tracking-tight">
                             {stat.value}
                         </h3>
                     </div>

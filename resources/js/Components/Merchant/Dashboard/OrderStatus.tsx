@@ -11,26 +11,26 @@ interface Props {
 
 export default function OrderStatus({ statusData }: Props) {
     const statuses = [
-        { label: "Pending", count: statusData.pending, color: "bg-gray-400" },
+        { label: "Menunggu", count: statusData.pending, color: "bg-gray-400" },
         {
-            label: "Processing",
+            label: "Diproses",
             count: statusData.processing,
-            color: "bg-[#41B9C5]",
+            color: "bg-brand-orange-light",
         },
-        { label: "Shipped", count: statusData.shipped, color: "bg-blue-400" },
+        { label: "Dikirim", count: statusData.shipped, color: "bg-brand-orange" },
         {
-            label: "Completed",
+            label: "Selesai",
             count: statusData.completed,
-            color: "bg-[#004F54]",
+            color: "bg-brand-orange-dark",
         },
     ];
 
     const total = statuses.reduce((acc, curr) => acc + curr.count, 0) || 1;
 
     return (
-        <div className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm h-full flex flex-col">
-            <h3 className="text-lg font-bold text-gray-800 mb-6">
-                Order Status
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-brand-orange/30 shadow-sm h-full flex flex-col max-w-full overflow-hidden">
+            <h3 className="text-base sm:text-lg font-bold text-brand-orange mb-4 sm:mb-6">
+                Status Pesanan
             </h3>
 
             <div className="space-y-4 flex-1">
@@ -47,7 +47,7 @@ export default function OrderStatus({ statusData }: Props) {
                                 {item.label}
                             </span>
                         </div>
-                        <span className="text-sm font-bold text-[#004F54]">
+                        <span className="text-sm font-bold text-brand-orange">
                             {item.count}
                         </span>
                     </div>
@@ -58,8 +58,8 @@ export default function OrderStatus({ statusData }: Props) {
                 {statuses.map((item, index) => (
                     <div
                         key={index}
-                        className={`h-full ${item.color}`}
-                        style={{ width: `${(item.count / total) * 100}%` }}
+                        className={`h-full ${item.color} transition-all duration-300`}
+                        style={{ width: `${total > 0 && item.count > 0 ? (item.count / total) * 100 : 0}%` }}
                     ></div>
                 ))}
             </div>

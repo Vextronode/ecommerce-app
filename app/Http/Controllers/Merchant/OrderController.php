@@ -28,7 +28,7 @@ class OrderController extends Controller
         $search = $request->query('search');
         $status = $request->query('status', 'all');
 
-        $orders = Order::with(['user', 'items'])
+        $orders = Order::with(['user', 'items.product.images'])
             ->where('store_id', $store->id)
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {

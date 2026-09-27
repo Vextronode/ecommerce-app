@@ -61,8 +61,8 @@ export default function Edit({ product, categories }: any) {
             <Head title={`Edit ${product.name}`} />
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-extrabold text-[#41B9C5]">
-                        Edit Product
+                    <h1 className="text-2xl font-extrabold text-brand-orange">
+                        Edit Produk
                     </h1>
                 </div>
             </div>
@@ -77,6 +77,7 @@ export default function Edit({ product, categories }: any) {
                             poDays={data.po_days}
                             poHours={data.po_hours}
                             processing={processing}
+                            isEdit={true}
                         />
                     </div>
                     <div className="lg:col-span-2">

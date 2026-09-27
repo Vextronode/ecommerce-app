@@ -37,22 +37,23 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in transition-opacity duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in transition-opacity duration-200 border border-brand-orange/20">
                 <div className="flex justify-between items-center p-5 border-b border-gray-100">
                     <div>
-                        <h3 className="font-bold text-[#14433D] text-lg">
-                            Update Status
+                        <h3 className="font-bold text-brand-orange text-lg">
+                            Perbarui Status Pesanan
                         </h3>
                         <p className="text-xs text-gray-500 mt-0.5">
-                            Order ID:{" "}
-                            <span className="font-bold text-[#41B9C5]">
-                                {order.invoice_number}
+                            No. Pesanan:{" "}
+                            <span className="font-bold text-brand-orange">
+                                #{order.invoice_number}
                             </span>
                         </p>
                     </div>
-                    <button aria-label="Action"
+                    <button
+                        aria-label="Tutup modal"
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                        className="text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2 rounded-full transition-colors cursor-pointer"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -63,10 +64,11 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
                         {statuses.map((s) => (
                             <label
                                 key={s.id}
-                                className={`flex items-center p-3 border rounded-xl cursor-pointer transition-colors ${data.shipping_status === s.id
-                                        ? "border-[#41B9C5] bg-[#EAF7F7]"
-                                        : "border-gray-200 hover:border-[#41B9C5]/50 hover:bg-gray-50"
-                                    }`}
+                                className={`flex items-center p-3 border rounded-xl cursor-pointer transition-colors ${
+                                    data.shipping_status === s.id
+                                        ? "border-brand-orange bg-brand-orange-tint"
+                                        : "border-gray-200 hover:border-brand-orange/50 hover:bg-gray-50"
+                                }`}
                             >
                                 <div className="flex items-center">
                                     <input
@@ -80,18 +82,26 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-4 h-4 text-[#41B9C5] bg-white border-gray-300 focus:ring-[#41B9C5]"
+                                        className="w-4 h-4 text-brand-orange bg-white border-gray-300 focus:ring-brand-orange"
                                     />
                                 </div>
                                 <div className="ml-3 flex-1 flex items-center gap-3">
                                     <div
-                                        className={`p-2 rounded-full ${data.shipping_status === s.id ? "bg-[#41B9C5] text-white" : "bg-gray-100 text-gray-500"}`}
+                                        className={`p-2 rounded-full ${
+                                            data.shipping_status === s.id
+                                                ? "bg-brand-orange text-white"
+                                                : "bg-gray-100 text-gray-500"
+                                        }`}
                                     >
                                         <s.icon className="w-4 h-4" />
                                     </div>
                                     <div>
                                         <span
-                                            className={`block text-sm font-bold ${data.shipping_status === s.id ? "text-[#14433D]" : "text-gray-700"}`}
+                                            className={`block text-sm font-bold ${
+                                                data.shipping_status === s.id
+                                                    ? "text-brand-orange"
+                                                    : "text-gray-700"
+                                            }`}
                                         >
                                             {s.label}
                                         </span>
@@ -108,14 +118,14 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition-colors"
+                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition-colors cursor-pointer"
                         >
                             Batal
                         </button>
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex-1 py-2.5 px-4 bg-[#14433D] hover:bg-[#14433D]/90 text-white font-bold text-sm rounded-xl transition-colors disabled:opacity-50"
+                            className="flex-1 py-2.5 px-4 bg-brand-orange hover:bg-brand-orange-hover text-white font-bold text-sm rounded-xl transition-colors shadow-md shadow-brand-orange/20 disabled:opacity-50 cursor-pointer"
                         >
                             {processing ? "Menyimpan..." : "Simpan Perubahan"}
                         </button>

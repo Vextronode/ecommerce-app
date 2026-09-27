@@ -62,7 +62,7 @@ export default function VariantBuilder({ data, setData }: Props) {
                 <button
                     type="button"
                     onClick={addVariant}
-                    className="flex items-center gap-1 bg-[#E0F7FA] text-[#245D56] px-4 py-2 rounded-full text-xs font-bold hover:bg-[#41B9C5] hover:text-white transition-colors"
+                    className="flex items-center gap-1 bg-brand-orange-tint text-brand-orange px-4 py-2 rounded-full text-xs font-bold hover:bg-brand-orange hover:text-white transition-colors"
                 >
                     <Plus className="w-4 h-4" /> Tambah Varian
                 </button>
@@ -98,7 +98,7 @@ export default function VariantBuilder({ data, setData }: Props) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full md:w-1/2 px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm"
+                                        className="w-full md:w-1/2 px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
                                     />
                                 </div>
 
@@ -148,7 +148,7 @@ export default function VariantBuilder({ data, setData }: Props) {
                                                     addOption(vIndex);
                                                 }
                                             }}
-                                            className="flex-1 px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm"
+                                            className="flex-1 px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
                                         />
                                         <button
                                             type="button"

@@ -62,7 +62,7 @@ export default function SkuMatrix({ data, setData }: Props) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm"
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
                                         required
                                     />
                                 </td>
@@ -78,7 +78,7 @@ export default function SkuMatrix({ data, setData }: Props) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm"
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
                                         required
                                     />
                                 </td>

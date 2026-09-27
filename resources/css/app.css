@@ -57,8 +57,10 @@
     /* Brand Orange Utilities: bg-brand-orange, text-brand-orange, border-brand-orange */
     --color-brand-orange: var(--color-orange-primary);
     --color-brand-orange-hover: var(--color-orange-hover);
+    --color-brand-orange-dark: var(--color-orange-dark);
     --color-brand-orange-light: var(--color-orange-light);
     --color-brand-orange-tint: var(--color-orange-tint);
+    --color-brand-orange-soft: var(--color-orange-soft);
 
     /* Brand Blue Utilities: bg-brand-blue, text-brand-blue, border-brand-blue */
     --color-brand-blue: var(--color-blue-primary);

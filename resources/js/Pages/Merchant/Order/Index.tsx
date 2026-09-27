@@ -42,15 +42,15 @@ export default function OrderManagement({ orders, stats }: any) {
 
     return (
         <MerchantLayout>
-            <Head title="Order Management - Cibenda Mart" />
+            <Head title="Kelola Pesanan - Cibenda Mart" />
 
-            <div className="p-4 md:p-8 w-full bg-[#F5F8FA] min-h-screen">
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-[#14433D] mb-1">
-                        Order Management
+            <div className="w-full">
+                <div className="mb-6 md:mb-8">
+                    <h1 className="text-xl md:text-2xl font-extrabold text-brand-orange">
+                        Kelola Pesanan
                     </h1>
-                    <p className="text-sm text-gray-500">
-                        Manage and track your recent sales in real time.
+                    <p className="text-gray-500 mt-1 text-xs md:text-sm">
+                        Kelola dan lacak pesanan toko Anda secara real-time.
                     </p>
                 </div>
 
