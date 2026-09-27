@@ -125,6 +125,44 @@ class AdminAuthSecurityTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_admin_can_authenticate_with_email_and_password_only(): void
+    {
+        $admin = User::factory()->create([
+            'name' => 'Admin CibendaMart',
+            'email' => 'admin@cibendamart.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'admin@cibendamart.com',
+            'password' => 'password123',
+            'expected_role' => 'admin',
+        ]);
+
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect('/cibenda-portal/dashboard');
+    }
+
+    public function test_admin_can_authenticate_with_username_and_password_only(): void
+    {
+        $admin = User::factory()->create([
+            'name' => 'admincibenda',
+            'email' => 'admin@cibendamart.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'admincibenda',
+            'password' => 'password123',
+            'expected_role' => 'admin',
+        ]);
+
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect('/cibenda-portal/dashboard');
+    }
+
     public function test_admin_logout_redirects_back_to_admin_login_portal(): void
     {
         $admin = User::factory()->create([
