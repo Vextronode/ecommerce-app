@@ -38,7 +38,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
     Route::post('/api/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
     Route::post('/api/notifications/clear-all', [\App\Http\Controllers\NotificationController::class, 'clearAll'])->name('notifications.clearAll');
-    Route::post('/api/notifications/fcm-token', [\App\Http\Controllers\NotificationController::class, 'saveFcmToken'])->name('notifications.saveFcmToken');
+    Route::post('/api/notifications/fcm-token', [\App\Http\Controllers\NotificationController::class, 'saveFcmToken'])
+        ->middleware('throttle:fcm-token')
+        ->name('notifications.saveFcmToken');
     Route::post('/api/notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::delete('/api/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
@@ -58,12 +60,14 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::delete('/profile/other-sessions', [ProfileController::class, 'destroyOtherSessions'])->name('profile.other-sessions.destroy');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::post('/checkout', [CheckoutController::class, 'store'])
+        ->middleware('throttle:checkout')
+        ->name('checkout.store');
     Route::get('/checkout/calculate-fee', [CheckoutController::class, 'calculateFee'])->name('checkout.calculate-fee');
     Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/payment/{order}', [PaymentController::class, 'show'])->name('payment.show');
     Route::get('/payment/{order}/check-status', [PaymentController::class, 'checkStatus'])
-        ->middleware('throttle:30,1')
+        ->middleware('throttle:payment-status')
         ->name('payment.check-status');
     Route::get('/history', [OrderHistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{order}', [OrderHistoryController::class, 'show'])->name('history.show');
@@ -130,18 +134,38 @@ Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->n
 // Delivery Tracker Routes (Publicly accessible with invoice number)
 Route::get('/tracker/{invoice_number}', [DeliveryTrackerController::class, 'show'])->name('tracker.show');
 Route::get('/tracker/{invoice_number}/handover', [DeliveryTrackerController::class, 'handover'])->name('tracker.handover')->middleware('signed');
-Route::post('/tracker/{invoice_number}/accept-handover', [DeliveryTrackerController::class, 'acceptHandover'])->name('tracker.acceptHandover');
-Route::get('/tracker/{invoice_number}/location', [DeliveryTrackerController::class, 'getLocation'])->name('tracker.getLocation');
-Route::post('/tracker/{invoice_number}/location', [DeliveryTrackerController::class, 'updateLocation'])->name('tracker.location');
-Route::post('/tracker/{invoice_number}/complete', [DeliveryTrackerController::class, 'complete'])->name('tracker.complete');
+Route::post('/tracker/{invoice_number}/accept-handover', [DeliveryTrackerController::class, 'acceptHandover'])
+    ->name('tracker.acceptHandover')
+    ->middleware('throttle:tracker-action');
+Route::get('/tracker/{invoice_number}/location', [DeliveryTrackerController::class, 'getLocation'])
+    ->name('tracker.getLocation')
+    ->middleware('throttle:tracker-location');
+Route::post('/tracker/{invoice_number}/location', [DeliveryTrackerController::class, 'updateLocation'])
+    ->name('tracker.location')
+    ->middleware('throttle:tracker-location');
+Route::post('/tracker/{invoice_number}/arrive', [DeliveryTrackerController::class, 'markArrived'])
+    ->name('tracker.arrive')
+    ->middleware('throttle:tracker-action');
+Route::post('/tracker/{invoice_number}/complete', [DeliveryTrackerController::class, 'complete'])
+    ->name('tracker.complete');
 
 // Multi-Order Batch Delivery Tracker Routes
-Route::get('/tracker/batch/{batch_token}/handover', [DeliveryTrackerController::class, 'batchHandover'])->name('tracker.batchHandover')->middleware('signed');
-Route::post('/tracker/batch/{batch_token}/accept', [DeliveryTrackerController::class, 'acceptBatchHandover'])->name('tracker.acceptBatchHandover');
-Route::get('/tracker/batch/{batch_token}', [DeliveryTrackerController::class, 'showBatch'])->name('tracker.showBatch');
-Route::get('/tracker/batch/{batch_token}/location', [DeliveryTrackerController::class, 'getBatchLocation'])->name('tracker.getBatchLocation');
-Route::post('/tracker/batch/{batch_token}/location', [DeliveryTrackerController::class, 'updateBatchLocation'])->name('tracker.updateBatchLocation');
-Route::post('/tracker/batch/{batch_token}/{invoice_number}/complete', [DeliveryTrackerController::class, 'completeBatchStop'])->name('tracker.completeBatchStop');
+Route::get('/tracker/batch/{batch_token}/handover', [DeliveryTrackerController::class, 'batchHandover'])
+    ->name('tracker.batchHandover')
+    ->middleware('signed');
+Route::post('/tracker/batch/{batch_token}/accept', [DeliveryTrackerController::class, 'acceptBatchHandover'])
+    ->name('tracker.acceptBatchHandover')
+    ->middleware('throttle:tracker-action');
+Route::get('/tracker/batch/{batch_token}', [DeliveryTrackerController::class, 'showBatch'])
+    ->name('tracker.showBatch');
+Route::get('/tracker/batch/{batch_token}/location', [DeliveryTrackerController::class, 'getBatchLocation'])
+    ->name('tracker.getBatchLocation')
+    ->middleware('throttle:tracker-location');
+Route::post('/tracker/batch/{batch_token}/location', [DeliveryTrackerController::class, 'updateBatchLocation'])
+    ->name('tracker.updateBatchLocation')
+    ->middleware('throttle:tracker-location');
+Route::post('/tracker/batch/{batch_token}/{invoice_number}/complete', [DeliveryTrackerController::class, 'completeBatchStop'])
+    ->name('tracker.completeBatchStop');
 
 // route dashboard pedagang (auth)
 Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::class])
@@ -268,7 +292,9 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
         Route::get('/settings', [SettingsController::class, 'index'])->name('merchant.settings.index');
         Route::post('/settings', [SettingsController::class, 'update'])->name('merchant.settings.update');
         Route::get('/withdrawals', [WithdrawalController::class, 'index'])->name('merchant.withdrawals.index');
-        Route::post('/withdrawals', [WithdrawalController::class, 'store'])->name('merchant.withdrawals.store');
+        Route::post('/withdrawals', [WithdrawalController::class, 'store'])
+            ->name('merchant.withdrawals.store')
+            ->middleware('throttle:withdrawals');
         Route::put('/withdrawals/bank', [WithdrawalController::class, 'updateBank'])->name('merchant.withdrawals.update-bank');
     });
 
