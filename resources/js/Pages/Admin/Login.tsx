@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
-import { ShieldAlert, KeyRound, X, Mail } from "lucide-react";
+import { ShieldAlert, KeyRound, X, Mail, Eye, EyeOff } from "lucide-react";
 import AuthGlassLayout from "@/Layouts/AuthGlassLayout";
 
 export default function AdminLogin() {
     const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         name: "",
@@ -72,14 +73,29 @@ export default function AdminLogin() {
                         <label htmlFor="field_72" className="block text-white text-sm mb-2 font-medium">
                             Password<span className="text-red-400">*</span>
                         </label>
-                        <input aria-label="Input field" id="field_72"
-                            type="password"
-                            value={data.password}
-                            onChange={(e) => setData("password", e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full px-4 py-3.5 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
-                            required
-                        />
+                        <div className="relative">
+                            <input aria-label="Input field" id="field_72"
+                                type={showPassword ? "text" : "password"}
+                                value={data.password}
+                                onChange={(e) => setData("password", e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full px-4 py-3.5 pr-11 rounded-2xl bg-[#EBE9E9] text-gray-900 border-0 focus:ring-4 focus:ring-[#41B9C5]/50 outline-none shadow-inner transition placeholder:text-gray-400 font-medium"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                tabIndex={-1}
+                                aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors cursor-pointer"
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="w-5 h-5" />
+                                ) : (
+                                    <Eye className="w-5 h-5" />
+                                )}
+                            </button>
+                        </div>
                         {errors.password && (
                             <div className="text-red-300 text-xs mt-1.5 font-medium">
                                 {errors.password}

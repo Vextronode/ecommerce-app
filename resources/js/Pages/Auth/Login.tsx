@@ -38,9 +38,9 @@ const Login = () => {
                     <FormInput
                         label="Username/Email"
                         id="email"
-                        type="email"
+                        type="text"
                         value={data.email}
-                        placeholder="Enter your email"
+                        placeholder="Masukkan username atau email"
                         onChange={(e) => setData("email", e.target.value)}
                         errorMessage={errors.email}
                         required
