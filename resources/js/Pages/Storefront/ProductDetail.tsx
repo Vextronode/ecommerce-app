@@ -16,6 +16,8 @@ import ProductReviewsCard from "@/Components/Storefront/ProductDetail/ProductRev
 import ProductCarousel from "@/Components/Storefront/ProductCarousel";
 import VariantSelector from "@/Components/Storefront/ProductDetail/VariantSelector";
 import StoreProfileCard from "@/Components/Storefront/ProductDetail/StoreProfileCard";
+import ProductDetailPageSkeleton from "@/Components/Storefront/ProductDetail/ProductDetailPageSkeleton";
+import { useInertiaNetworkLoading } from "@/Hooks/useInertiaNetworkLoading";
 import { GuaranteeItem } from "@/Components/Storefront/ProductDetail/types";
 
 const staticGuarantees: GuaranteeItem[] = [
@@ -48,6 +50,8 @@ interface Props {
 }
 
 export default function ProductDetail({ product, relatedProducts }: Props) {
+    const isNetworkLoading = useInertiaNetworkLoading();
+
     const [quantity, setQuantity] = useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [activeTab, setActiveTab] = useState<"details" | "reviews">(
@@ -156,6 +160,15 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         sold: p.sold || 0,
         image: p.image_path || mainImage,
     }));
+
+    if (isNetworkLoading) {
+        return (
+            <StorefrontLayout>
+                <Head title={`${formattedProduct.name} - Cibenda Mart`} />
+                <ProductDetailPageSkeleton />
+            </StorefrontLayout>
+        );
+    }
 
     return (
         <StorefrontLayout>

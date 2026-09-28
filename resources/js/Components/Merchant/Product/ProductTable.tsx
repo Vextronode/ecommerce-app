@@ -3,13 +3,18 @@ import { Link } from "@inertiajs/react";
 import { formatRupiah } from "@/utils/formatters";
 import { Image as ImageIcon, Edit } from "lucide-react";
 import ProductActions from "./ProductActions";
+import TableSkeleton from "@/Components/Global/Skeletons/TableSkeleton";
 
 interface Props {
     products: any[];
     getStockIndicator: (stock: number) => any;
+    isLoading?: boolean;
 }
 
-export default function ProductTable({ products, getStockIndicator }: Props) {
+export default function ProductTable({ products, getStockIndicator, isLoading = false }: Props) {
+    if (isLoading) {
+        return <TableSkeleton rows={5} columns={7} />;
+    }
     return (
         <div className="bg-white rounded-3xl border border-brand-orange/30 shadow-sm overflow-hidden w-full max-w-full">
             {/* Desktop Table View (>= 768px) */}

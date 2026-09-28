@@ -7,6 +7,9 @@ import StoreHeader from '@/Components/Storefront/StoreDetail/StoreHeader';
 import StoreFilters from '@/Components/Storefront/StoreDetail/StoreFilters';
 import ShopProductRow from '@/Components/Storefront/ShopProductRow';
 import ProductCard from '@/Components/Storefront/ProductCard';
+import ProductGridSkeleton from '@/Components/Global/Skeletons/ProductGridSkeleton';
+import StoreDetailPageSkeleton from '@/Components/Storefront/StoreDetail/StoreDetailPageSkeleton';
+import { useInertiaNetworkLoading } from '@/Hooks/useInertiaNetworkLoading';
 import toast from 'react-hot-toast';
 import { PageProps } from '@/types';
 
@@ -29,6 +32,7 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
     const user = auth?.user;
     const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
     const [isLoadingFollow, setIsLoadingFollow] = useState(false);
+    const isNetworkLoading = useInertiaNetworkLoading();
 
     React.useEffect(() => {
         setIsFollowing(initialIsFollowing);
@@ -129,6 +133,17 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
 
 
 
+    if (isNetworkLoading) {
+        return (
+            <div className="min-h-screen bg-[#F8FAFC]">
+                <Head title={`${store?.name || "Memuat Toko"} - Cibenda Mart`} />
+                <Navbar />
+                <StoreDetailPageSkeleton />
+                <Footer />
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
             <Head title={`${store.name} - Cibenda Mart`} />
@@ -206,7 +221,9 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
                         {currentTab === 'produk' && (
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900 mb-6">Semua Produk</h2>
-                                {products.data.length > 0 ? (
+                                {isNetworkLoading ? (
+                                    <ProductGridSkeleton count={8} />
+                                ) : products.data.length > 0 ? (
                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                         {products.data.map((product: any) => (
                                             <ProductCard key={product.id} product={product} />

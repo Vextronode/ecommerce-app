@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import HeroSection from "@/Components/Storefront/HeroSection";
@@ -6,6 +6,8 @@ import DailyTopProducts from "@/Components/Storefront/DailyTopProducts";
 import ExploreProducts from "@/Components/Storefront/ExploreProducts";
 import MerchantSection from "@/Components/Storefront/MerchantSection";
 import AboutSection from "@/Components/Storefront/AboutSection";
+import DashboardPageSkeleton from "@/Components/Storefront/DashboardPageSkeleton";
+import { useInertiaNetworkLoading } from "@/Hooks/useInertiaNetworkLoading";
 
 interface Props {
     categories: any[];
@@ -16,6 +18,8 @@ interface Props {
 const EMPTY_ARRAY: any[] = [];
 
 export default function Dashboard({ categories, featuredProducts, stores = EMPTY_ARRAY }: Props) {
+    const isNetworkLoading = useInertiaNetworkLoading();
+
     // Live Real-Time Product & Stock Sync for Home Page
     useEffect(() => {
         if (typeof window === "undefined" || !window.Echo) return;
@@ -75,14 +79,20 @@ export default function Dashboard({ categories, featuredProducts, stores = EMPTY
         <StorefrontLayout>
             <Head title="Home - Cibenda Mart" />
 
-            <HeroSection />
+            {isNetworkLoading ? (
+                <DashboardPageSkeleton />
+            ) : (
+                <>
+                    <HeroSection />
 
-            <DailyTopProducts products={formattedProducts} />
-            
-            <ExploreProducts products={formattedProducts} />
+                    <DailyTopProducts products={formattedProducts} />
+                    
+                    <ExploreProducts products={formattedProducts} />
 
-            <MerchantSection stores={stores} />
-            <AboutSection />
+                    <MerchantSection stores={stores} />
+                    <AboutSection />
+                </>
+            )}
         </StorefrontLayout>
     );
 }

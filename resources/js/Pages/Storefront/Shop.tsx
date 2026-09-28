@@ -14,6 +14,9 @@ import ShopSidebarFilter from "@/Components/Storefront/Shop/ShopSidebarFilter";
 import ShopToolbar from "@/Components/Storefront/Shop/ShopToolbar";
 import ShopMobileDrawer from "@/Components/Storefront/Shop/ShopMobileDrawer";
 import ShopEmptyState from "@/Components/Storefront/Shop/ShopEmptyState";
+import ProductGridSkeleton from "@/Components/Global/Skeletons/ProductGridSkeleton";
+import ShopPageSkeleton from "@/Components/Storefront/Shop/ShopPageSkeleton";
+import { useInertiaNetworkLoading } from "@/Hooks/useInertiaNetworkLoading";
 
 interface Props {
     allProducts?: ShopProduct[];
@@ -61,6 +64,8 @@ export default function Shop({
     const [priceMin, setPriceMin] = useState(minPrice ? String(minPrice) : "");
     const [priceMax, setPriceMax] = useState(maxPrice ? String(maxPrice) : "");
     const [isLoading, setIsLoading] = useState(false);
+    const isNetworkLoading = useInertiaNetworkLoading();
+    const isBusy = isLoading || isNetworkLoading;
 
     // Sync input state if props change from URL
     useEffect(() => {
@@ -104,7 +109,7 @@ export default function Shop({
         });
 
         router.get("/shop", params, {
-            preserveState: false,
+            preserveState: true,
             preserveScroll: true,
             replace: true,
             onFinish: () => setIsLoading(false),
@@ -124,7 +129,7 @@ export default function Shop({
         setPriceMax("");
         setIsLoading(true);
         router.get("/shop", {}, {
-            preserveState: false,
+            preserveState: true,
             preserveScroll: true,
             onFinish: () => setIsLoading(false),
         });
@@ -160,13 +165,16 @@ export default function Shop({
         <StorefrontLayout>
             <Head title={pageTitle} />
 
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 md:pt-36 pb-20">
-                {/* Breadcrumbs & Header Section */}
-                <div className="mb-6">
-                    <nav className="flex items-center gap-1.5 text-xs text-gray-500 font-semibold mb-2.5">
-                        <Link href="/dashboard" className="hover:text-brand-orange transition-colors">
-                            Beranda
-                        </Link>
+            {isNetworkLoading && !isLoading ? (
+                <ShopPageSkeleton />
+            ) : (
+                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 md:pt-36 pb-20">
+                    {/* Breadcrumbs & Header Section */}
+                    <div className="mb-6">
+                        <nav className="flex items-center gap-1.5 text-xs text-gray-500 font-semibold mb-2.5">
+                            <Link href="/dashboard" className="hover:text-brand-orange transition-colors">
+                                Beranda
+                            </Link>
                         <ChevronRight size={13} className="text-gray-400" />
                         <Link href="/shop" className="hover:text-brand-orange transition-colors">
                             Belanja
@@ -253,25 +261,22 @@ export default function Shop({
                             onClearPrice={handleClearPrice}
                         />
 
-                        {/* Product Grid with Loading Fade Transition */}
-                        <div
-                            className={`transition-opacity duration-200 ${
-                                isLoading ? "opacity-40 pointer-events-none" : "opacity-100"
-                            }`}
-                        >
-                            {allProducts.length > 0 ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5">
-                                    {allProducts.map((p, index) => (
-                                        <ProductCard key={p.id || index} product={formatProduct(p)} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <ShopEmptyState onResetAll={handleResetAll} />
-                            )}
-                        </div>
+                        {/* Product Grid with Network-driven Skeleton Transition */}
+                        {isBusy ? (
+                            <ProductGridSkeleton count={allProducts.length > 0 ? Math.min(allProducts.length, 8) : 8} />
+                        ) : allProducts.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5">
+                                {allProducts.map((p, index) => (
+                                    <ProductCard key={p.id || index} product={formatProduct(p)} />
+                                ))}
+                            </div>
+                        ) : (
+                            <ShopEmptyState onResetAll={handleResetAll} />
+                        )}
                     </main>
                 </div>
             </div>
+            )}
 
             {/* Mobile Filter Modal/Drawer (Smooth Slide-in from LEFT) */}
             <ShopMobileDrawer

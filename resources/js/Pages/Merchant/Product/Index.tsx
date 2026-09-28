@@ -13,6 +13,8 @@ import toast from "react-hot-toast";
 import ProductTable from "@/Components/Merchant/Product/ProductTable";
 import ProductGrid from "@/Components/Merchant/Product/ProductGrid";
 import Pagination from "@/Components/Merchant/Pagination";
+import ProductGridSkeleton from "@/Components/Global/Skeletons/ProductGridSkeleton";
+import { useInertiaNetworkLoading } from "@/Hooks/useInertiaNetworkLoading";
 
 const STOCK_RULES = [
     {
@@ -63,6 +65,7 @@ interface Props {
 
 export default function Index({ products, categories, filters }: Props) {
     const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+    const isNetworkLoading = useInertiaNetworkLoading();
 
     // Real-Time Product List Sync for Merchant
     React.useEffect(() => {
@@ -172,10 +175,21 @@ export default function Index({ products, categories, filters }: Props) {
                 </div>
             </div>
 
-            {viewMode === "list" ? (
+            {isNetworkLoading ? (
+                viewMode === "list" ? (
+                    <ProductTable
+                        products={products.data}
+                        getStockIndicator={getStockIndicator}
+                        isLoading={true}
+                    />
+                ) : (
+                    <ProductGridSkeleton count={products.data?.length || 6} />
+                )
+            ) : viewMode === "list" ? (
                 <ProductTable
                     products={products.data}
                     getStockIndicator={getStockIndicator}
+                    isLoading={false}
                 />
             ) : (
                 <ProductGrid
