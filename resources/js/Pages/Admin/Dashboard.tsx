@@ -44,11 +44,11 @@ export default function AdminDashboard({ stats, chartData, registrations, activi
 
             {/* Header */}
             <div className="mb-6 md:mb-8">
-                <h1 className="text-2xl md:text-3xl font-extrabold text-[#004F54] tracking-tight">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
                     {greeting}
                 </h1>
                 <p className="text-gray-500 mt-1 text-xs md:text-sm font-medium">
-                    Overview of CibendaMart platform performance.
+                    Ringkasan performa dan aktivitas operasional platform CibendaMart.
                 </p>
             </div>
 
@@ -56,16 +56,16 @@ export default function AdminDashboard({ stats, chartData, registrations, activi
             <AdminStatCards stats={stats} />
 
             {/* Grid Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 items-start">
-                <div className="lg:col-span-2 space-y-5 md:space-y-6">
-                    <div className="w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 items-start w-full min-w-0 overflow-hidden">
+                <div className="lg:col-span-2 space-y-5 md:space-y-6 min-w-0 w-full overflow-hidden">
+                    <div className="w-full min-w-0 overflow-hidden">
                         <AdminSalesChart chartData={chartData} />
                     </div>
-                    <div className="w-full">
+                    <div className="w-full min-w-0 overflow-hidden">
                         <AdminMerchantRegistrations registrations={registrations} />
                     </div>
                 </div>
-                <div className="w-full">
+                <div className="w-full min-w-0 overflow-hidden">
                     <AdminRecentActivities activities={activities} />
                 </div>
             </div>

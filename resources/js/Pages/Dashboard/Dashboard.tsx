@@ -33,6 +33,20 @@ export default function Dashboard({ categories, featuredProducts, stores = EMPTY
         };
     }, []);
 
+    // Smooth scroll to anchor if hash is present in URL on mount
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.location.hash) {
+            const hash = window.location.hash.substring(1);
+            const timer = setTimeout(() => {
+                const el = document.getElementById(hash);
+                if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            }, 150);
+            return () => clearTimeout(timer);
+        }
+    }, []);
+
     const formattedProducts = featuredProducts.map((product) => ({
         id: product.id,
         name: product.name,

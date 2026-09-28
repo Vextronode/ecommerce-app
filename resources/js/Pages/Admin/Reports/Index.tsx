@@ -80,7 +80,7 @@ export default function Index({
         <AdminLayout>
             <Head title="Laporan Produk Terlaris - Cibenda Mart" />
 
-            <div className="space-y-6">
+            <div className="space-y-6 w-full max-w-full min-w-0 overflow-x-hidden">
                 {/* Header with Filter & Export Buttons */}
                 <ReportHeader
                     activeFiltersCount={activeFiltersCount}

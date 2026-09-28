@@ -85,10 +85,15 @@ class ProcessWithdrawalPayout implements ShouldQueue
             // In-app notification for merchant owner
             $store = $this->withdrawal->store;
             if ($store?->user) {
-                $formattedAmount = 'Rp '.number_format($amount, 0, ',', '.');
-                $title = 'Penarikan Saldo Berhasil!';
-                $message = "Dana penarikan {$formattedAmount} berhasil dicairkan ke rekening {$this->withdrawal->bank_name} ({$this->withdrawal->account_number}).";
-                $store->user->notify(new PushNotification($title, $message, 'withdrawal', '/pedagang/withdrawals'));
+                $merchantSettings = $store->user->notification_settings ?? [];
+                $isAllowed = $merchantSettings['penarikan_saldo'] ?? true;
+
+                if ($isAllowed) {
+                    $formattedAmount = 'Rp '.number_format($amount, 0, ',', '.');
+                    $title = 'Penarikan Saldo Berhasil!';
+                    $message = "Dana penarikan {$formattedAmount} berhasil dicairkan ke rekening {$this->withdrawal->bank_name} ({$this->withdrawal->account_number}).";
+                    $store->user->notify(new PushNotification($title, $message, 'withdrawal', '/pedagang/withdrawals'));
+                }
             }
 
             // Real-time WebSocket broadcast to merchant dashboard

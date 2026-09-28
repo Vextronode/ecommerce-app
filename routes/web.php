@@ -192,12 +192,49 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
             $customersCount = $storeId ? Order::where('store_id', $storeId)->distinct('user_id')->count('user_id') : 0;
             $productsCount = $storeId ? Product::where('store_id', $storeId)->count() : 0;
 
+            // Hitung tren pertumbuhan riil (Bulan Ini vs Bulan Lalu)
+            $startThisMonth = now()->startOfMonth();
+            $startLastMonth = now()->subMonth()->startOfMonth();
+            $endLastMonth = now()->subMonth()->endOfMonth();
+
+            $salesThisMonth = $storeId ? (float) Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->where('created_at', '>=', $startThisMonth)->sum('total_amount') : 0;
+            $salesLastMonth = $storeId ? (float) Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->whereBetween('created_at', [$startLastMonth, $endLastMonth])->sum('total_amount') : 0;
+
+            $ordersThisMonth = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->where('created_at', '>=', $startThisMonth)->count() : 0;
+            $ordersLastMonth = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count() : 0;
+
+            $customersThisMonth = $storeId ? Order::where('store_id', $storeId)->where('created_at', '>=', $startThisMonth)->distinct('user_id')->count('user_id') : 0;
+            $customersLastMonth = $storeId ? Order::where('store_id', $storeId)->whereBetween('created_at', [$startLastMonth, $endLastMonth])->distinct('user_id')->count('user_id') : 0;
+
+            $productsThisMonth = $storeId ? Product::where('store_id', $storeId)->where('created_at', '>=', $startThisMonth)->count() : 0;
+            $productsLastMonth = $storeId ? Product::where('store_id', $storeId)->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count() : 0;
+
+            $calcGrowth = function ($current, $previous) {
+                if ($previous > 0) {
+                    return round((($current - $previous) / $previous) * 100, 1);
+                }
+                return $current > 0 ? 100.0 : 0.0;
+            };
+
+            $salesGrowth = $calcGrowth($salesThisMonth, $salesLastMonth);
+            $ordersGrowth = $calcGrowth($ordersThisMonth, $ordersLastMonth);
+            $customersGrowth = $calcGrowth($customersThisMonth, $customersLastMonth);
+            $productsGrowth = $calcGrowth($productsThisMonth, $productsLastMonth);
+
             $pending = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'pending')->count() : 0;
             $processing = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'processing')->count() : 0;
             $shipped = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'shipped')->count() : 0;
             $completed = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->count() : 0;
 
-            $recentOrders = $storeId ? Order::with(['items.product'])->where('store_id', $storeId)->where('shipping_status', 'delivered')->orderBy('created_at', 'desc')->take(5)->get()->map(function ($o) {
+            $statusMap = [
+                'pending' => 'Menunggu',
+                'processing' => 'Diproses',
+                'shipped' => 'Dikirim',
+                'delivered' => 'Selesai',
+                'cancelled' => 'Dibatalkan',
+            ];
+
+            $recentOrders = $storeId ? Order::with(['items.product'])->where('store_id', $storeId)->where('shipping_status', 'delivered')->orderBy('created_at', 'desc')->take(5)->get()->map(function ($o) use ($statusMap) {
                 $firstItem = $o->items->first();
 
                 return [
@@ -207,7 +244,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                     'product_image' => $firstItem && $firstItem->product ? $firstItem->product->image_path : null,
                     'date' => $o->created_at->format('d M Y'),
                     'amount' => 'Rp '.number_format($o->total_amount, 0, ',', '.'),
-                    'status' => ucfirst($o->shipping_status),
+                    'status' => $statusMap[$o->shipping_status] ?? ucfirst($o->shipping_status),
                 ];
             }) : [];
 
@@ -219,27 +256,32 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                 ->map(function ($p) {
                     return [
                         'name' => $p->name,
-                        'category' => $p->category->name ?? 'Uncategorized',
+                        'category' => $p->category->name ?? 'Umum',
                         'image' => $p->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                         'sold' => $p->order_items_sum_quantity ?? 0,
                         'price' => 'Rp '.number_format($p->price, 0, ',', '.'),
-                        'status' => $p->stock > 0 ? 'In Stock' : 'Out of Stock',
+                        'status' => $p->stock > 0 ? 'Tersedia' : 'Stok Habis',
                         'statusColor' => $p->stock > 0 ? 'text-green-500' : 'text-red-500',
                     ];
                 }) : [];
 
             $chartData = [];
+            $monthlyChartData = [];
             if ($storeId) {
+                // Weekly Data
                 $startDate = now()->startOfWeek()->subWeeks(2);
-                $orders = Order::where('store_id', $storeId)
+                $weeklyOrders = Order::where('store_id', $storeId)
                     ->where('shipping_status', 'delivered')
                     ->where('created_at', '>=', $startDate)
-                    ->selectRaw('DATE(created_at) as date, SUM(total_amount) as sales')
-                    ->groupBy('date')
                     ->get()
-                    ->keyBy('date');
+                    ->groupBy(function ($o) {
+                        return $o->created_at->format('Y-m-d');
+                    })
+                    ->map(function ($group) {
+                        return (float) $group->sum('total_amount');
+                    });
 
-                $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+                $days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
                 for ($i = 0; $i < 7; $i++) {
                     $dayName = $days[$i];
 
@@ -249,9 +291,36 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
 
                     $chartData[] = [
                         'name' => $dayName,
-                        'minggu1' => isset($orders[$dateW1]) ? $orders[$dateW1]->sales : 0,
-                        'minggu2' => isset($orders[$dateW2]) ? $orders[$dateW2]->sales : 0,
-                        'minggu3' => isset($orders[$dateW3]) ? $orders[$dateW3]->sales : 0,
+                        'minggu1' => $weeklyOrders[$dateW1] ?? 0,
+                        'minggu2' => $weeklyOrders[$dateW2] ?? 0,
+                        'minggu3' => $weeklyOrders[$dateW3] ?? 0,
+                    ];
+                }
+
+                // Monthly Data
+                $monthlyOrders = Order::where('store_id', $storeId)
+                    ->where('shipping_status', 'delivered')
+                    ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+                    ->get()
+                    ->groupBy(function ($o) {
+                        return $o->created_at->format('Y-m');
+                    })
+                    ->map(function ($group) {
+                        return (float) $group->sum('total_amount');
+                    });
+
+                $monthNames = [
+                    1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
+                    7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'
+                ];
+
+                for ($m = 5; $m >= 0; $m--) {
+                    $dateObj = now()->subMonths($m);
+                    $ym = $dateObj->format('Y-m');
+                    $monthLabel = $monthNames[(int) $dateObj->format('n')] . ' ' . $dateObj->format('y');
+                    $monthlyChartData[] = [
+                        'name' => $monthLabel,
+                        'sales' => $monthlyOrders[$ym] ?? 0,
                     ];
                 }
             }
@@ -262,12 +331,17 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                     'store_name' => $user->store ? $user->store->name : 'Toko Anda',
                 ],
                 'stats' => [
-                    'sales' => $sales,
+                    'sales' => (float) $sales,
                     'orders' => $ordersCount,
                     'customers' => $customersCount,
                     'products' => $productsCount,
+                    'sales_growth' => $salesGrowth,
+                    'orders_growth' => $ordersGrowth,
+                    'customers_growth' => $customersGrowth,
+                    'products_growth' => $productsGrowth,
                 ],
                 'chartData' => $chartData,
+                'monthlyChartData' => $monthlyChartData,
                 'recentOrders' => $recentOrders,
                 'topSelling' => $topSelling,
                 'orderStatus' => [
@@ -291,6 +365,8 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
         Route::get('/customers', [CustomerController::class, 'index'])->name('merchant.customers.index');
         Route::get('/settings', [SettingsController::class, 'index'])->name('merchant.settings.index');
         Route::post('/settings', [SettingsController::class, 'update'])->name('merchant.settings.update');
+        Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('merchant.settings.notifications.update');
+        Route::delete('/settings/sessions', [SettingsController::class, 'destroyOtherSessions'])->name('merchant.settings.sessions.destroy');
         Route::get('/withdrawals', [WithdrawalController::class, 'index'])->name('merchant.withdrawals.index');
         Route::post('/withdrawals', [WithdrawalController::class, 'store'])
             ->name('merchant.withdrawals.store')

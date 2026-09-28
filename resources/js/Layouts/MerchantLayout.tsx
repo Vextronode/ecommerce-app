@@ -11,16 +11,27 @@ interface Props {
 
 export default function MerchantLayout({ children }: Props) {
     const { auth } = usePage().props as any;
+    const { url } = usePage();
     const profilePhoto = auth?.user?.profile_photo_path
         ? `/storage/${auth.user.profile_photo_path}`
         : null;
     // state buat ngatur sidebar di mobile
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+    const isProductManagement =
+        (typeof route === "function" && route().current("merchant.products.index")) ||
+        url.split("?")[0] === "/pedagang/products";
+
     // state buat nyimpen ketikan search
     const [searchQuery, setSearchQuery] = useState(
         () => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get("search") || "",
     );
+
+    // sinkronkan searchQuery dengan parameter url saat navigasi
+    React.useEffect(() => {
+        const query = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get("search") || "";
+        setSearchQuery(query);
+    }, [url]);
 
     // fungsi buat nembak pencarian pas tekan Enter
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -40,7 +51,7 @@ export default function MerchantLayout({ children }: Props) {
     };
 
     return (
-        <div className="flex h-screen bg-[#F8F9FA] p-4 md:p-6 gap-4 md:gap-6 font-sans overflow-hidden">
+        <div className="flex h-screen bg-[#F8F9FA] p-3 sm:p-4 md:p-6 gap-3 sm:gap-4 md:gap-6 font-sans overflow-hidden max-w-full w-full">
             {isMobileSidebarOpen && (
                 <button
                     type="button"
@@ -59,30 +70,32 @@ export default function MerchantLayout({ children }: Props) {
             </div>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col min-w-0">
+            <main className="flex-1 flex flex-col min-w-0 max-w-full overflow-hidden w-full">
                 {/* Topbar */}
-                <header className="h-16 md:h-18 px-4 md:px-8 flex items-center justify-between bg-white border border-brand-cyan/30 rounded-full shrink-0 mb-4 md:mb-6 shadow-sm transition">
+                <header className="h-16 md:h-18 px-4 md:px-8 flex items-center justify-between bg-white border border-brand-orange/30 rounded-full shrink-0 mb-4 md:mb-6 shadow-sm transition">
                     <div aria-label="Pilih opsi yang tersedia" className="flex items-center flex-1 max-w-2xl gap-3 md:gap-0">
                         <button
                             aria-label="Tampilkan rincian lebih lanjut"
                             onClick={() => setIsMobileSidebarOpen(true)}
-                            className="lg:hidden text-gray-400 hover:text-brand-cyan focus:outline-none transition-colors"
+                            className="lg:hidden text-gray-400 hover:text-brand-orange focus:outline-none transition-colors mr-2"
                         >
                             <Menu className="w-6 h-6" />
                         </button>
 
-                        <div className="relative flex-1">
-                            <Search className="w-4 h-4 md:w-5 md:h-5 absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
-                                aria-label="Input field"
-                                type="text"
-                                placeholder="Search products... "
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={handleSearch}
-                                className="w-full pl-9 md:pl-12 pr-4 py-2 md:py-2.5 bg-gray-50/50 border border-transparent rounded-full focus:outline-none focus:bg-white focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan text-xs md:text-sm transition"
-                            />
-                        </div>
+                        {isProductManagement && (
+                            <div className="relative flex-1">
+                                <Search className="w-4 h-4 md:w-5 md:h-5 absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    aria-label="Input field"
+                                    type="text"
+                                    placeholder="Cari produk..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={handleSearch}
+                                    className="w-full pl-9 md:pl-12 pr-4 py-2 md:py-2.5 bg-gray-50/50 border border-transparent rounded-full focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange text-xs md:text-sm transition"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Header Right Section */}
@@ -97,25 +110,25 @@ export default function MerchantLayout({ children }: Props) {
                                     icon: <Mail />,
                                 })
                             }
-                            className="text-gray-400 hover:text-brand-cyan transition-colors hidden sm:block"
+                            className="text-gray-400 hover:text-brand-orange transition-colors hidden sm:block"
                         >
                             <Mail className="w-5 h-5" />
                         </button>
 
                         <Link
                             href={route("merchant.settings.index")}
-                            className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-brand-cyan-soft flex items-center justify-center overflow-hidden border border-brand-cyan/30 shadow-sm hover:shadow-md transition cursor-pointer shrink-0"
+                            className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-brand-orange-tint flex items-center justify-center overflow-hidden border border-brand-orange/30 shadow-sm hover:shadow-md transition cursor-pointer shrink-0"
                         >
                             {profilePhoto ? (
                                 <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
-                                <User className="w-4 h-4 md:w-5 md:h-5 text-brand-cyan" />
+                                <User className="w-4 h-4 md:w-5 md:h-5 text-brand-orange" />
                             )}
                         </Link>
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto pb-6 pr-1 md:pr-2">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 pr-1 md:pr-2 max-w-full w-full">
                     <Toaster position="top-right" />
                     {children}
                 </div>

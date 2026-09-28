@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255', 'required_if:expected_role,admin'],
+            'name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             'expected_role' => ['nullable', 'string', 'in:user,pedagang,admin'],
@@ -96,8 +96,8 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // Additional Security Check for Admin: Verify Full Name Matches
-        if ($expectedRole === 'admin') {
+        // Additional Security Check for Admin: Verify Full Name Matches if name was provided
+        if ($expectedRole === 'admin' && $this->filled('name')) {
             $inputName = trim((string) $this->input('name'));
             $registeredName = trim((string) $authenticatedUser->name);
 

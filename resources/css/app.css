@@ -1,14 +1,26 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+html {
+    scroll-behavior: smooth;
+}
+
 :root {
     /* BRAND ORANGE (Primary Storefront, CTA, Price, Cart, Rating, Follow) */
     --color-orange-primary: #ED7218;
+    --color-orange-warm: #FC9B34;
     --color-orange-hover: #D95C00;
     --color-orange-dark: #C44E00;
     --color-orange-light: #F77F00;
     --color-orange-tint: #FFF4EC;
     --color-orange-soft: #FFF9F5;
+
+    /* BRAND INDIGO (Merchant & Admin Themes) */
+    --color-indigo-merchant: #2D2A6E;
+    --color-indigo-merchant-hover: #24215B;
+    --color-indigo-admin: #281B7A;
+    --color-indigo-admin-hover: #1F1462;
+    --color-indigo-admin-light: #372899;
 
     /* BRAND BLUE (Courier Live Tracking, Navigation, Batch Delivery, Merchant System) */
     --color-blue-primary: #006591;
@@ -56,9 +68,19 @@
 @theme {
     /* Brand Orange Utilities: bg-brand-orange, text-brand-orange, border-brand-orange */
     --color-brand-orange: var(--color-orange-primary);
+    --color-brand-orange-warm: var(--color-orange-warm);
     --color-brand-orange-hover: var(--color-orange-hover);
+    --color-brand-orange-dark: var(--color-orange-dark);
     --color-brand-orange-light: var(--color-orange-light);
     --color-brand-orange-tint: var(--color-orange-tint);
+    --color-brand-orange-soft: var(--color-orange-soft);
+
+    /* Brand Indigo Utilities for Merchant & Admin */
+    --color-brand-indigo-merchant: var(--color-indigo-merchant);
+    --color-brand-indigo-merchant-hover: var(--color-indigo-merchant-hover);
+    --color-brand-indigo-admin: var(--color-indigo-admin);
+    --color-brand-indigo-admin-hover: var(--color-indigo-admin-hover);
+    --color-brand-indigo-admin-light: var(--color-indigo-admin-light);
 
     /* Brand Blue Utilities: bg-brand-blue, text-brand-blue, border-brand-blue */
     --color-brand-blue: var(--color-blue-primary);

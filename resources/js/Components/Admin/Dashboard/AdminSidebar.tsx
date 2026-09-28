@@ -8,34 +8,43 @@ import {
     LogOut,
 } from "lucide-react";
 import parigiLogo from "@/assets/images/parigi_logo.png";
-import toast from "react-hot-toast";
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+    onCloseMobile?: () => void;
+}
+
+export default function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
     return (
-        <aside className="w-64 bg-white border border-[#41B9C5]/30 rounded-3xl flex flex-col h-full shrink-0 shadow-sm">
+        <aside className="w-64 bg-white border border-brand-orange/30 rounded-3xl flex flex-col h-full shrink-0 shadow-sm">
             {/* Brand Logo */}
             <div className="h-24 flex items-center px-7">
                 <div className="flex items-center gap-3">
                     <img
                         src={parigiLogo}
-                        alt="Brand Logo"
+                        alt="Logo CibendaMart"
                         className="w-9 h-9 object-contain"
                     />
-                    <span className="text-xl font-extrabold tracking-tight">
-                        <span className="text-[#41B9C5]">Cibenda</span>
-                        <span className="text-[#004F54]">Mart</span>
-                    </span>
+                    <div className="flex flex-col">
+                        <span className="text-xl font-extrabold tracking-tight">
+                            <span className="text-brand-orange">Cibenda</span>
+                            <span className="text-brand-orange-dark">Mart</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-gray-400 tracking-wider uppercase -mt-0.5">
+                            Admin Portal
+                        </span>
+                    </div>
                 </div>
             </div>
 
             {/* Nav Menu */}
-            <nav className="flex-1 px-4 py-2 space-y-2.5 overflow-y-auto">
+            <nav className="flex-1 px-4 py-2 space-y-2 overflow-y-auto">
                 <Link
                     href={route("admin.dashboard")}
+                    onClick={onCloseMobile}
                     className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
                         route().current("admin.dashboard")
-                            ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
+                            ? "bg-brand-orange text-white shadow-lg shadow-brand-orange/30"
+                            : "text-gray-600 hover:bg-orange-50/60 hover:text-brand-orange border border-transparent"
                     }`}
                 >
                     <LayoutDashboard className="w-5 h-5 shrink-0" />
@@ -44,38 +53,41 @@ export default function AdminSidebar() {
 
                 <Link
                     href={route("admin.merchants.index")}
+                    onClick={onCloseMobile}
                     className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
                         route().current("admin.merchants.index")
-                            ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
+                            ? "bg-brand-orange text-white shadow-lg shadow-brand-orange/30"
+                            : "text-gray-600 hover:bg-orange-50/60 hover:text-brand-orange border border-transparent"
                     }`}
                 >
                     <Store className="w-5 h-5 shrink-0" />
-                    Pedagang
+                    Kelola Pedagang
                 </Link>
 
                 <Link
                     href={route("admin.merchants.create")}
+                    onClick={onCloseMobile}
                     className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
                         route().current("admin.merchants.create")
-                            ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
+                            ? "bg-brand-orange text-white shadow-lg shadow-brand-orange/30"
+                            : "text-gray-600 hover:bg-orange-50/60 hover:text-brand-orange border border-transparent"
                     }`}
                 >
                     <UserPlus className="w-5 h-5 shrink-0" />
-                    Tambah User
+                    Tambah Pedagang
                 </Link>
 
                 <Link
                     href={route("admin.reports.index")}
+                    onClick={onCloseMobile}
                     className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
                         route().current("admin.reports.*")
-                            ? "bg-[#41B9C5] text-white shadow-lg shadow-[#41B9C5]/30"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-100"
+                            ? "bg-brand-orange text-white shadow-lg shadow-brand-orange/30"
+                            : "text-gray-600 hover:bg-orange-50/60 hover:text-brand-orange border border-transparent"
                     }`}
                 >
                     <BarChart2 className="w-5 h-5 shrink-0" />
-                    Laporan
+                    Laporan Penjualan
                 </Link>
             </nav>
 
@@ -89,7 +101,7 @@ export default function AdminSidebar() {
                     className="flex items-center justify-start gap-3 w-full px-4 py-2.5 text-rose-500 hover:bg-rose-50 border border-rose-200 rounded-2xl font-semibold transition text-sm cursor-pointer"
                 >
                     <LogOut className="w-4 h-4 shrink-0 text-rose-500" />
-                    Logout
+                    Keluar Akun
                 </Link>
             </div>
         </aside>

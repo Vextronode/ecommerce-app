@@ -6,17 +6,17 @@ import CreateMerchantForm from "@/Components/Admin/Merchants/CreateMerchantForm"
 export default function AdminMerchantsCreate() {
     return (
         <AdminLayout>
-            <Head title="Membuat Pedagang Baru - CibendaMart Admin" />
+            <Head title="Tambah Pedagang Baru - CibendaMart Admin" />
 
-            <div className="bg-white rounded-3xl p-6 sm:p-8 md:p-10 border border-gray-100 shadow-sm w-full">
+            <div className="bg-white rounded-3xl p-5 sm:p-8 md:p-10 border border-gray-100 shadow-sm w-full min-w-0 max-w-full overflow-hidden">
                 {/* Header Title & Subtitle */}
                 <div className="pb-4 border-b border-gray-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-[#004F54] tracking-tight">
-                            Membuat Pedagang Baru
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                            Tambah Pedagang Baru
                         </h1>
                         <p className="text-xs md:text-sm text-gray-500 mt-1 font-normal">
-                            Masukkan detail di bawah ini untuk menambahkan pengguna baru ke dalam sistem.
+                            Masukkan detail di bawah ini untuk menambahkan akun pedagang baru ke dalam sistem.
                         </p>
                     </div>
                     <div className="flex items-center gap-1 text-[11px] font-semibold text-gray-400">

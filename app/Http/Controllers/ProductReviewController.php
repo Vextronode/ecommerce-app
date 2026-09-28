@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\OrderItem;
 use App\Models\ProductReview;
+use App\Notifications\PushNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class ProductReviewController extends Controller
@@ -159,6 +162,25 @@ class ProductReviewController extends Controller
             $reviewData['product_id'] = $orderItem->product_id;
             $reviewData['order_item_id'] = $orderItem->id;
             ProductReview::create($reviewData);
+
+            // Notify Store Owner
+            try {
+                $store = $orderItem->order?->store;
+                $storeOwner = $store?->user;
+                if ($storeOwner) {
+                    $merchantSettings = $storeOwner->notification_settings ?? [];
+                    $isAllowed = $merchantSettings['ulasan_baru'] ?? true;
+                    if ($isAllowed) {
+                        $productName = $orderItem->product?->name ?? 'Produk';
+                        $ratingStars = str_repeat('⭐', (int) ($reviewData['rating'] ?? 5));
+                        $title = "Ulasan Baru ({$ratingStars})";
+                        $message = "Pelanggan memberikan ulasan pada {$productName}: \"" . Str::limit($reviewData['comment'] ?? '', 60) . "\"";
+                        $storeOwner->notify(new PushNotification($title, $message, 'review', '/pedagang/products'));
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Review notification error: ' . $e->getMessage());
+            }
         }
 
         return redirect()->route('history.index', ['status' => 'rating'])

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Cart;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -70,6 +71,7 @@ class HandleInertiaRequests extends Middleware
                     }),
                 'total_count' => Cart::where('user_id', $request->user()->id)->count(),
             ] : null,
+            'global_categories' => fn () => Category::select('id', 'name', 'slug')->get(),
         ];
     }
 }

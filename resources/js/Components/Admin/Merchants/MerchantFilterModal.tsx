@@ -74,7 +74,7 @@ export default function MerchantFilterModal({
                 {/* Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-[#F0FAFB] border border-[#41B9C5]/30 flex items-center justify-center text-[#245D56]">
+                        <div className="w-8 h-8 rounded-xl bg-orange-50 border border-brand-orange/30 flex items-center justify-center text-brand-orange">
                             <Filter className="w-4 h-4" />
                         </div>
                         <h3 className="text-base font-bold text-gray-900">
@@ -99,16 +99,16 @@ export default function MerchantFilterModal({
                         <div className="grid grid-cols-2 gap-2">
                             {[
                                 { label: "Semua Status", value: "" },
-                                { label: "Active", value: "active" },
-                                { label: "Warning", value: "warning" },
-                                { label: "Suspended", value: "suspended" },
+                                { label: "Aktif", value: "active" },
+                                { label: "Peringatan", value: "warning" },
+                                { label: "Ditangguhkan", value: "suspended" },
                             ].map((item) => (
                                 <button
                                     key={item.value}
                                     type="button"
                                     onClick={() => setStatus(item.value)}
                                     className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${status === item.value
-                                            ? "bg-[#41B9C5] text-white border-[#41B9C5] shadow-xs"
+                                            ? "bg-brand-orange text-white border-brand-orange shadow-xs"
                                             : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                                         }`}
                                 >
@@ -126,15 +126,15 @@ export default function MerchantFilterModal({
                         <div className="grid grid-cols-3 gap-2">
                             {[
                                 { label: "Semua", value: "" },
-                                { label: "Verified", value: "verified" },
-                                { label: "Pending", value: "pending" },
+                                { label: "Terverifikasi", value: "verified" },
+                                { label: "Menunggu", value: "pending" },
                             ].map((item) => (
                                 <button
                                     key={item.value}
                                     type="button"
                                     onClick={() => setSidStatus(item.value)}
                                     className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${sidStatus === item.value
-                                            ? "bg-[#41B9C5] text-white border-[#41B9C5] shadow-xs"
+                                            ? "bg-brand-orange text-white border-brand-orange shadow-xs"
                                             : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                                         }`}
                                 >
@@ -152,7 +152,7 @@ export default function MerchantFilterModal({
                         <select id="field_149"
                             value={subdistrict}
                             onChange={(e) => setSubdistrict(e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] transition-colors"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-colors"
                         >
                             <option value="">Semua Wilayah</option>
                             <option value="Cibenda">Cibenda</option>
@@ -186,7 +186,7 @@ export default function MerchantFilterModal({
                             </button>
                             <button
                                 type="submit"
-                                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/20 transition-colors cursor-pointer"
+                                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover shadow-md shadow-brand-orange/20 transition-colors cursor-pointer"
                             >
                                 Terapkan Filter
                             </button>

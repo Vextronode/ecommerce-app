@@ -32,4 +32,9 @@ export type PageProps<
         items: CartPreviewItem[];
         total_count: number;
     } | null;
+    global_categories?: {
+        id: number;
+        name: string;
+        slug: string;
+    }[];
 };

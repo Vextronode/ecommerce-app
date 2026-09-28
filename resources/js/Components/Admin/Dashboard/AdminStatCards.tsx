@@ -48,14 +48,14 @@ export default function AdminStatCards({ stats }: Props) {
                             {formatNumber(stats?.total_merchants)}
                         </h3>
                     </div>
-                    <div className="w-11 h-11 rounded-xl bg-[#E6F7F8] flex items-center justify-center text-[#245D56] shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-brand-orange shrink-0">
                         <Store className="w-5 h-5" />
                     </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-50 flex items-center text-xs font-semibold text-emerald-600 gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5" />
                     <span>{stats?.merchants_trend || "+0%"}</span>
-                    <span className="text-gray-400 font-normal">vs akhir bulan</span>
+                    <span className="text-gray-400 font-normal">vs bulan lalu</span>
                 </div>
             </div>
 
@@ -70,14 +70,14 @@ export default function AdminStatCards({ stats }: Props) {
                             {formatNumber(stats?.total_products)}
                         </h3>
                     </div>
-                    <div className="w-11 h-11 rounded-xl bg-[#FAF0E6] flex items-center justify-center text-[#C05621] shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
                         <Package className="w-5 h-5" />
                     </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-50 flex items-center text-xs font-semibold text-emerald-600 gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5" />
                     <span>{stats?.products_trend || "+0%"}</span>
-                    <span className="text-gray-400 font-normal">vs akhir bulan</span>
+                    <span className="text-gray-400 font-normal">vs bulan lalu</span>
                 </div>
             </div>
 
@@ -92,14 +92,14 @@ export default function AdminStatCards({ stats }: Props) {
                             {formatCompactNumber(stats?.total_sold)}
                         </h3>
                     </div>
-                    <div className="w-11 h-11 rounded-xl bg-[#E8F8F8] flex items-center justify-center text-[#0D9488] shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
                         <ShoppingCart className="w-5 h-5" />
                     </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-50 flex items-center text-xs font-semibold text-emerald-600 gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5" />
                     <span>{stats?.sold_trend || "+0%"}</span>
-                    <span className="text-gray-400 font-normal">vs akhir bulan</span>
+                    <span className="text-gray-400 font-normal">vs bulan lalu</span>
                 </div>
             </div>
 
@@ -117,7 +117,7 @@ export default function AdminStatCards({ stats }: Props) {
                             {stats?.top_product_name || "Belum ada penjualan"}
                         </h3>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-[#FEE2E2] flex items-center justify-center text-[#EF4444] shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                         <Flame className="w-5 h-5" />
                     </div>
                 </div>

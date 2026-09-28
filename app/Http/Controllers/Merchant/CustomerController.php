@@ -58,6 +58,25 @@ class CustomerController extends Controller
             ? (($newCustomersThisMonth - $newCustomersLastMonth) / $newCustomersLastMonth) * 100
             : ($newCustomersThisMonth > 0 ? 100 : 0);
 
+        // Weekly customer trend for this month (4 intervals: 1-7, 8-14, 15-21, 22-end)
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $daysInMonth = Carbon::now()->daysInMonth;
+
+        $weekIntervals = [
+            [$startOfMonth->copy()->day(1)->startOfDay(), $startOfMonth->copy()->day(7)->endOfDay()],
+            [$startOfMonth->copy()->day(8)->startOfDay(), $startOfMonth->copy()->day(14)->endOfDay()],
+            [$startOfMonth->copy()->day(15)->startOfDay(), $startOfMonth->copy()->day(21)->endOfDay()],
+            [$startOfMonth->copy()->day(22)->startOfDay(), $startOfMonth->copy()->day($daysInMonth)->endOfDay()],
+        ];
+
+        $chartData = [];
+        foreach ($weekIntervals as $interval) {
+            $chartData[] = Order::where('store_id', $storeId)
+                ->where('created_at', '<=', $interval[1])
+                ->distinct('user_id')
+                ->count('user_id');
+        }
+
         // Fetch Customers List
         $query = User::whereHas('orders', function ($query) use ($storeId) {
             $query->where('store_id', $storeId);
@@ -81,7 +100,7 @@ class CustomerController extends Controller
             ]);
 
         // Filter by Status
-        if ($statusFilter === 'New') {
+        if ($statusFilter === 'New' || $statusFilter === 'Baru') {
             $thirtyDaysAgo = Carbon::now()->subDays(30);
             $query->whereIn('id', function ($q) use ($storeId, $thirtyDaysAgo) {
                 $q->select('user_id')
@@ -90,7 +109,7 @@ class CustomerController extends Controller
                     ->groupBy('user_id')
                     ->havingRaw('MIN(created_at) >= ?', [$thirtyDaysAgo]);
             });
-        } elseif ($statusFilter === 'Active') {
+        } elseif ($statusFilter === 'Active' || $statusFilter === 'Aktif') {
             $thirtyDaysAgo = Carbon::now()->subDays(30);
             $query->whereIn('id', function ($q) use ($storeId, $thirtyDaysAgo) {
                 $q->select('user_id')
@@ -109,11 +128,12 @@ class CustomerController extends Controller
                 'id' => $user->id,
                 'customer_id' => '#CUS-'.str_pad($user->id, 2, '0', STR_PAD_LEFT),
                 'name' => $user->name,
+                'email' => $user->email,
                 'avatar' => $user->profile_photo_path ? asset('storage/'.$user->profile_photo_path) : null,
                 'phone' => $user->latest_phone ?? '-',
                 'orders_count' => $user->store_orders_count,
                 'total_spent' => $user->store_total_spent ?? 0,
-                'join_date' => $joinDate->format('M d, Y'),
+                'join_date' => $joinDate->locale('id')->translatedFormat('d M Y'),
                 'status' => $isNew ? 'New' : 'Active',
             ];
         });
@@ -125,6 +145,7 @@ class CustomerController extends Controller
                 'total_customers_growth' => round($totalCustomersGrowth, 1),
                 'new_customers' => $newCustomersThisMonth,
                 'new_customers_growth' => round($newCustomersGrowth, 1),
+                'chart_data' => $chartData,
             ],
             'customers' => $customers,
             'filters' => [
