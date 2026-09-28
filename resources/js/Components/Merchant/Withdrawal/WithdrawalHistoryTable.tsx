@@ -163,7 +163,7 @@ export default function WithdrawalHistoryTable({
 
             {/* Table Content */}
             <div className="overflow-x-auto no-scrollbar pb-2">
-                <table className="w-full text-left border-collapse min-w-[550px]">
+                <table className="w-full text-left border-collapse min-w-137.5">
                     <thead>
                         <tr className="border-b border-gray-100">
                             <th className="pb-3 text-[10px] md:text-xs font-extrabold text-gray-400 uppercase tracking-wider whitespace-nowrap">

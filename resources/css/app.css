@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+html {
+    scroll-behavior: smooth;
+}
+
 :root {
     /* BRAND ORANGE (Primary Storefront, CTA, Price, Cart, Rating, Follow) */
     --color-orange-primary: #ED7218;

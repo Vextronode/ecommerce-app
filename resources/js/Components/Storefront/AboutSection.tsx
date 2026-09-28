@@ -3,7 +3,7 @@ import aboutImage from "@/assets/images/about.webp";
 
 export default function AboutSection() {
     return (
-        <section className="w-full py-16 md:py-24 bg-white overflow-hidden">
+        <section id="about" className="w-full py-16 md:py-24 bg-white overflow-hidden scroll-mt-28">
             <div className="w-full xl:max-w-360 2xl:max-w-400 mx-auto px-4 md:px-8">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-24">
                     {/* TEXT CONTENT */}

@@ -26,7 +26,7 @@ export default function OrdersTrendChart({ data }: OrdersTrendChartProps) {
                 </div>
             </div>
             
-            <div className="h-[250px] w-full">
+            <div className="h-62.5 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={data}

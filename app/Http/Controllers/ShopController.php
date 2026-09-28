@@ -22,6 +22,22 @@ class ShopController extends Controller
             ->where('is_active', true)
             ->where('stock', '>', 0);
 
+        // Category filter
+        if ($request->filled('category') && $request->category !== 'all') {
+            $cat = $request->category;
+            $query->whereHas('category', function ($q) use ($cat) {
+                $q->where('slug', $cat)->orWhere('name', $cat);
+            });
+        }
+
+        // Price range filter
+        if ($request->filled('min_price') && is_numeric($request->min_price)) {
+            $query->where('price', '>=', (float) $request->min_price);
+        }
+        if ($request->filled('max_price') && is_numeric($request->max_price)) {
+            $query->where('price', '<=', (float) $request->max_price);
+        }
+
         $relatedStores = [];
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
@@ -52,7 +68,6 @@ class ShopController extends Controller
                     
                 $store->average_rating = $storeStats->avg('rating') ? number_format($storeStats->avg('rating'), 1) : "0.0";
                 $store->total_sold = $storeStats->sum('sold') ?? 0;
-                // created_at dikirim langsung, joined_date dihitung di frontend
                 
                 $randomNoise = mt_rand(1, 1000) / 1000;
                 $store->score = ((float)$store->average_rating * 20) + $store->total_sold + $randomNoise;
@@ -61,21 +76,91 @@ class ShopController extends Controller
             $relatedStores = $relatedStores->sortByDesc('score')->take(3)->values();
         }
 
+        // Sorting: Primary (default, popular, newest) and Extra (price_asc, price_desc, top_rated)
+        $sort = $request->get('sort', 'default');
+        $extraSort = $request->get('extra_sort', '');
+
+        // Compatibility if extra sort was passed in sort param
+        if (in_array($sort, ['price_asc', 'price_desc', 'top_rated']) && empty($extraSort)) {
+            $extraSort = $sort;
+            $sort = 'default';
+        }
+
+        if ($sort === 'newest') {
+            $query->latest();
+        }
+
         $products = $query->get();
 
-        // Seed harian agar urutan berubah setiap hari, tapi tetap mempertimbangkan rating & penjualan
-        mt_srand((int) date('Ymd'));
-        $products = $products->map(function ($product) {
-            $noise = mt_rand(1, 1000) / 1000;
-            $product->score = (($product->rating ?? 0) * 20) + ($product->sold ?? 0) + $noise;
-            return $product;
-        })->sortByDesc('score')->values();
-        mt_srand();
+        // Rating filter in memory if specified
+        if ($request->filled('min_rating') && is_numeric($request->min_rating)) {
+            $minRating = (float) $request->min_rating;
+            $products = $products->filter(function ($p) use ($minRating) {
+                return ($p->rating ?? 0) >= $minRating;
+            })->values();
+        }
+
+        // Apply Primary Sorting
+        if ($sort === 'popular') {
+            $products = $products->sortByDesc(fn ($p) => ($p->sold ?? 0))->values();
+        } elseif ($sort === 'newest') {
+            $products = $products->sortByDesc(fn ($p) => $p->created_at)->values();
+        } elseif ($sort === 'default') {
+            mt_srand((int) date('Ymd'));
+            $products = $products->map(function ($product) {
+                $noise = mt_rand(1, 1000) / 1000;
+                $product->score = (($product->rating ?? 0) * 20) + ($product->sold ?? 0) + $noise;
+                return $product;
+            })->sortByDesc('score')->values();
+            mt_srand();
+        }
+
+        // Combine with Extra Sort (Price / Rating)
+        if ($extraSort === 'price_asc') {
+            if ($sort === 'popular') {
+                $products = $products->sort(function ($a, $b) {
+                    $soldDiff = ($b->sold ?? 0) <=> ($a->sold ?? 0);
+                    return $soldDiff !== 0 ? $soldDiff : ((float)$a->price <=> (float)$b->price);
+                })->values();
+            } else {
+                $products = $products->sortBy(fn ($p) => (float) $p->price)->values();
+            }
+        } elseif ($extraSort === 'price_desc') {
+            if ($sort === 'popular') {
+                $products = $products->sort(function ($a, $b) {
+                    $soldDiff = ($b->sold ?? 0) <=> ($a->sold ?? 0);
+                    return $soldDiff !== 0 ? $soldDiff : ((float)$b->price <=> (float)$a->price);
+                })->values();
+            } else {
+                $products = $products->sortByDesc(fn ($p) => (float) $p->price)->values();
+            }
+        } elseif ($extraSort === 'top_rated') {
+            if ($sort === 'popular') {
+                $products = $products->sort(function ($a, $b) {
+                    $ratingDiff = ($b->rating ?? 0) <=> ($a->rating ?? 0);
+                    return $ratingDiff !== 0 ? $ratingDiff : (($b->sold ?? 0) <=> ($a->sold ?? 0));
+                })->values();
+            } else {
+                $products = $products->sortByDesc(fn ($p) => (float) ($p->rating ?? 0))->values();
+            }
+        }
+
+        // Fetch categories with active product count
+        $categories = Category::withCount(['products' => function ($q) {
+            $q->where('is_active', true)->where('stock', '>', 0);
+        }])->get();
 
         return Inertia::render('Storefront/Shop', [
             'allProducts' => $products,
             'searchQuery' => $request->search ?? '',
             'relatedStores' => $relatedStores,
+            'categories' => $categories,
+            'currentCategory' => $request->category ?? '',
+            'currentSort' => $sort,
+            'currentExtraSort' => $extraSort,
+            'minPrice' => $request->min_price ?? '',
+            'maxPrice' => $request->max_price ?? '',
+            'minRating' => $request->min_rating ?? '',
         ]);
     }
 

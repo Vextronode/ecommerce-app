@@ -10,7 +10,7 @@ import logoPangandaran from "@/assets/images/lambang-pangandaran.webp";
 export default function Footer() {
     return (
         <footer className="w-full bg-[#281B7A] text-white py-12 md:py-16 px-6 md:px-12 lg:px-20 font-sans">
-            <div className="max-w-[1400px] mx-auto">
+            <div className="max-w-350 mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-8 mb-12">
                     {/* Column 1: Brand & Logos */}
                     <div className="flex flex-col items-start w-full">

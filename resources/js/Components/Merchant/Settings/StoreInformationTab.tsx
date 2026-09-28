@@ -84,7 +84,7 @@ export default function StoreInformationTab({
                     onKeyDown={(e) => {
                         if (e.key === "Enter") e.currentTarget.click();
                     }}
-                    className="flex flex-col items-center justify-center py-7 sm:py-8 px-6 cursor-pointer group relative bg-gradient-to-r from-brand-orange to-brand-orange-hover"
+                    className="flex flex-col items-center justify-center py-7 sm:py-8 px-6 cursor-pointer group relative bg-linear-to-r from-brand-orange to-brand-orange-hover"
                     onClick={() => photoInput.current?.click()}
                 >
                     <div className="relative mb-3">

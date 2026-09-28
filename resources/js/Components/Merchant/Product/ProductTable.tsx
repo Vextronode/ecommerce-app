@@ -148,7 +148,7 @@ export default function ProductTable({ products, getStockIndicator }: Props) {
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between gap-1 mb-1">
-                                            <span className="bg-gray-100 text-gray-600 text-[10px] font-semibold px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                                            <span className="bg-gray-100 text-gray-600 text-[10px] font-semibold px-2 py-0.5 rounded-md truncate max-w-30">
                                                 {product.category?.name || "Umum"}
                                             </span>
                                             <span

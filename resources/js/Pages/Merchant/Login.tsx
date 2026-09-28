@@ -25,7 +25,7 @@ export default function Login() {
 
             <div className="w-full h-full flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
                 {/* Left Column: Warm Gradient Hero Panel (Balanced 50%) */}
-                <div className="bg-gradient-to-br from-brand-orange-warm via-[#FFB86C] to-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-between relative overflow-hidden">
+                <div className="bg-linear-to-br from-brand-orange-warm via-[#FFB86C] to-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-between relative overflow-hidden">
                     {/* Decorative ambient lights */}
                     <div className="absolute -top-16 -left-16 w-56 h-56 bg-white/20 rounded-full blur-2xl pointer-events-none" />
                     <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-400/20 rounded-full blur-3xl pointer-events-none" />

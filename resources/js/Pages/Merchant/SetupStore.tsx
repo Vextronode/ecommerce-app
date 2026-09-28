@@ -22,7 +22,7 @@ export default function SetupStore({ initialStoreName = "" }: Props) {
 
             <div className="w-full h-full flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
                 {/* Left Column: Warm Gradient Hero Panel (Identik dengan Login) */}
-                <div className="bg-gradient-to-br from-brand-orange-warm via-[#FFB86C] to-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-between relative overflow-hidden">
+                <div className="bg-linear-to-br from-brand-orange-warm via-[#FFB86C] to-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-between relative overflow-hidden">
                     {/* Decorative ambient lights */}
                     <div className="absolute -top-16 -left-16 w-56 h-56 bg-white/20 rounded-full blur-2xl pointer-events-none" />
                     <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-400/20 rounded-full blur-3xl pointer-events-none" />
@@ -114,7 +114,7 @@ export default function SetupStore({ initialStoreName = "" }: Props) {
                                 <div className="flex items-center justify-between mb-2">
                                     <label
                                         htmlFor="field_store_name"
-                                        className="block text-xs font-bold text-gray-700 flex items-center gap-1.5"
+                                        className="text-xs font-bold text-gray-700 flex items-center gap-1.5"
                                     >
                                         <Store className="w-3.5 h-3.5 text-brand-indigo-merchant" />
                                         <span>Nama Toko / Usaha</span>
@@ -148,7 +148,7 @@ export default function SetupStore({ initialStoreName = "" }: Props) {
                             <div>
                                 <label
                                     htmlFor="field_new_password"
-                                    className="block text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5"
+                                    className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5"
                                 >
                                     <KeyRound className="w-3.5 h-3.5 text-brand-indigo-merchant" />
                                     <span>Kata Sandi Baru</span>
@@ -193,7 +193,7 @@ export default function SetupStore({ initialStoreName = "" }: Props) {
                             <div>
                                 <label
                                     htmlFor="field_confirm_password"
-                                    className="block text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5"
+                                    className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5"
                                 >
                                     <KeyRound className="w-3.5 h-3.5 text-brand-indigo-merchant" />
                                     <span>Konfirmasi Kata Sandi Baru</span>
