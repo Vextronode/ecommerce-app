@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatRupiah } from "@/utils/formatters";
+import TableSkeleton from "@/Components/Global/Skeletons/TableSkeleton";
 
 interface WithdrawalItem {
     id: number;
@@ -27,11 +28,16 @@ interface WithdrawalItem {
 
 interface WithdrawalHistoryTableProps {
     withdrawals: WithdrawalItem[];
+    isLoading?: boolean;
 }
 
 export default function WithdrawalHistoryTable({
     withdrawals,
+    isLoading = false,
 }: WithdrawalHistoryTableProps) {
+    if (isLoading) {
+        return <TableSkeleton rows={5} columns={6} />;
+    }
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [copiedId, setCopiedId] = useState<string | null>(null);

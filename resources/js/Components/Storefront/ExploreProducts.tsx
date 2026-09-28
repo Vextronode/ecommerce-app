@@ -1,12 +1,14 @@
 import React, { useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import ProductCard from "./ProductCard";
+import ProductGridSkeleton from "@/Components/Global/Skeletons/ProductGridSkeleton";
 
 interface ExploreProductsProps {
     products: any[];
+    isLoading?: boolean;
 }
 
-export default function ExploreProducts({ products }: ExploreProductsProps) {
+export default function ExploreProducts({ products, isLoading = false }: ExploreProductsProps) {
     // Shuffle products daily to be fair
     const displayProducts = useMemo(() => {
         if (!products || products.length === 0) return [];
@@ -42,11 +44,18 @@ export default function ExploreProducts({ products }: ExploreProductsProps) {
                 </div>
 
                 {/* Grid Products */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-12">
-                    {displayProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
-                </div>
+                {isLoading ? (
+                    <ProductGridSkeleton
+                        count={10}
+                        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-12"
+                    />
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-12">
+                        {displayProducts.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
+                )}
 
                 {/* View All Button */}
                 <div className="flex justify-center">

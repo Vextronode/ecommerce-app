@@ -7,6 +7,7 @@ import WithdrawalStats from "@/Components/Merchant/Withdrawal/WithdrawalStats";
 import BankAccountCard from "@/Components/Merchant/Withdrawal/BankAccountCard";
 import WithdrawFormCard from "@/Components/Merchant/Withdrawal/WithdrawFormCard";
 import WithdrawalHistoryTable from "@/Components/Merchant/Withdrawal/WithdrawalHistoryTable";
+import { useInertiaNetworkLoading } from "@/Hooks/useInertiaNetworkLoading";
 
 interface StoreInfo {
     id: number;
@@ -42,6 +43,7 @@ interface Props {
 }
 
 export default function Index({ store, withdrawals, stats }: Props) {
+    const isNetworkLoading = useInertiaNetworkLoading();
     const hasBankAccount = Boolean(
         store.bank_name && store.bank_account_number && store.bank_account_holder
     );
@@ -123,7 +125,7 @@ export default function Index({ store, withdrawals, stats }: Props) {
                     </div>
 
                     <div className="lg:col-span-2 space-y-4 md:space-y-6">
-                        <WithdrawalHistoryTable withdrawals={withdrawals} />
+                        <WithdrawalHistoryTable withdrawals={withdrawals} isLoading={isNetworkLoading} />
 
                         <div className="bg-white rounded-2xl p-5 md:p-6 border border-brand-orange/20 shadow-sm space-y-5">
                             <div className="flex items-center gap-3">

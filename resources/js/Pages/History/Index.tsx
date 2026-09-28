@@ -1,9 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import { Store, Star } from "lucide-react";
 import RatingItemCard, { RatingItemType } from "@/Components/History/RatingItemCard";
 import OrderItemCard, { OrderType } from "@/Components/History/OrderItemCard";
+import OrderCardSkeleton from "@/Components/Global/Skeletons/OrderCardSkeleton";
+import { useInertiaNetworkLoading } from "@/Hooks/useInertiaNetworkLoading";
 import { useOrderHistoryActions } from "@/Hooks/Storefront/useOrderHistoryActions";
 
 const tabs = [
@@ -28,6 +30,7 @@ export default function Index({
     const { auth } = usePage().props as any;
     const userId = auth?.user?.id;
     const { navigateTab } = useOrderHistoryActions();
+    const isNetworkLoading = useInertiaNetworkLoading();
 
     // Real-Time WebSocket Order Status Synchronization for Buyer's History Tab
     useEffect(() => {
@@ -61,21 +64,22 @@ export default function Index({
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 pt-32">
                 <div className="flex flex-col md:flex-row gap-6">
-                    {/* Sidebar */}
+                    {/* Sidebar / Tabs Bar */}
                     <div className="w-full md:w-64 shrink-0">
-                        <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4">
+                        <div className="bg-white rounded-2xl shadow-xs border border-gray-100 p-3.5 sm:p-4 md:p-6 md:sticky md:top-24">
+                            <h2 className="text-base md:text-lg font-bold text-gray-900 mb-2.5 md:mb-4">
                                 Riwayat Pesanan
                             </h2>
-                            <div className="flex flex-col space-y-2">
+                            {/* Mobile: Horizontal scrollable pills. Desktop: Vertical list */}
+                            <div className="flex md:flex-col overflow-x-auto no-scrollbar gap-2 md:gap-0 md:space-y-2 pb-1 md:pb-0 -mx-1 px-1">
                                 {tabs.map((tab) => (
                                     <button
                                         key={tab.key}
                                         onClick={() => navigateTab(tab.key)}
-                                        className={`text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                                        className={`shrink-0 md:w-full text-center md:text-left px-3.5 sm:px-4 py-2 md:py-2.5 rounded-full md:rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
                                             currentStatus === tab.key
                                                 ? "bg-brand-orange text-white shadow-xs font-semibold"
-                                                : "text-gray-700 bg-gray-50/80 hover:bg-gray-100 border border-gray-200/60"
+                                                : "text-gray-700 bg-gray-50/90 hover:bg-gray-100 border border-gray-200/60"
                                         }`}
                                     >
                                         {tab.label}
@@ -87,9 +91,13 @@ export default function Index({
 
                     {/* Main Content */}
                     <div className="flex-1 space-y-6">
-                        
-                        {/* If status is rating, show Rating Items */}
-                        {currentStatus === "rating" && ratingItems && (
+                        {isNetworkLoading ? (
+                            <div className="space-y-4">
+                                <OrderCardSkeleton />
+                                <OrderCardSkeleton />
+                                <OrderCardSkeleton />
+                            </div>
+                        ) : currentStatus === "rating" && ratingItems ? (
                             <>
                                 {ratingItems.length === 0 ? (
                                     <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
@@ -109,10 +117,7 @@ export default function Index({
                                     ))
                                 )}
                             </>
-                        )}
-
-                        {/* If status is NOT rating, show regular Orders */}
-                        {currentStatus !== "rating" && orders && (
+                        ) : currentStatus !== "rating" && orders ? (
                             <>
                                 {orders.length === 0 ? (
                                     <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
@@ -138,7 +143,7 @@ export default function Index({
                                     ))
                                 )}
                             </>
-                        )}
+                        ) : null}
                     </div>
                 </div>
             </main>
