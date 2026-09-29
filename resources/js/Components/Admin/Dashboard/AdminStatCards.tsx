@@ -2,7 +2,7 @@ import React from "react";
 import { Store, Package, ShoppingCart, Flame, TrendingUp } from "lucide-react";
 
 interface Props {
-    stats: {
+    stats?: {
         total_merchants?: number | string;
         total_products?: number | string;
         total_sold?: number | string;
@@ -15,13 +15,24 @@ interface Props {
 }
 
 export default function AdminStatCards({ stats }: Props) {
-    const formatCompactNumber = (val: number | string | undefined) => {
-        if (!val) return "0";
-        if (typeof val === "string") return val;
-        if (val >= 1000) {
-            return (val / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+    const formatCompactNumber = (val: number | string | undefined | null) => {
+        if (val === undefined || val === null || val === "") return "0";
+        const num = Number(val);
+        if (isNaN(num)) return "0";
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
         }
-        return val.toLocaleString("id-ID");
+        if (num >= 1000) {
+            return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+        }
+        return num.toLocaleString("id-ID");
+    };
+
+    const formatNumber = (val: number | string | undefined | null) => {
+        if (val === undefined || val === null || val === "") return "0";
+        const num = Number(val);
+        if (isNaN(num)) return "0";
+        return num.toLocaleString("id-ID");
     };
 
     return (
@@ -34,17 +45,17 @@ export default function AdminStatCards({ stats }: Props) {
                             Total Pedagang
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 tracking-tight">
-                            {stats?.total_merchants ? Number(stats.total_merchants).toLocaleString("id-ID") : "1,248"}
+                            {formatNumber(stats?.total_merchants)}
                         </h3>
                     </div>
-                    <div className="w-11 h-11 rounded-xl bg-[#E6F7F8] flex items-center justify-center text-[#245D56] shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-brand-orange shrink-0">
                         <Store className="w-5 h-5" />
                     </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-50 flex items-center text-xs font-semibold text-emerald-600 gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5" />
-                    <span>{stats?.merchants_trend || "+12.5%"}</span>
-                    <span className="text-gray-400 font-normal">vs akhir bulan</span>
+                    <span>{stats?.merchants_trend || "+0%"}</span>
+                    <span className="text-gray-400 font-normal">vs bulan lalu</span>
                 </div>
             </div>
 
@@ -56,17 +67,17 @@ export default function AdminStatCards({ stats }: Props) {
                             Total Produk
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 tracking-tight">
-                            {stats?.total_products ? Number(stats.total_products).toLocaleString("id-ID") : "15,892"}
+                            {formatNumber(stats?.total_products)}
                         </h3>
                     </div>
-                    <div className="w-11 h-11 rounded-xl bg-[#FAF0E6] flex items-center justify-center text-[#C05621] shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
                         <Package className="w-5 h-5" />
                     </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-50 flex items-center text-xs font-semibold text-emerald-600 gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5" />
-                    <span>{stats?.products_trend || "+4.2%"}</span>
-                    <span className="text-gray-400 font-normal">vs akhir bulan</span>
+                    <span>{stats?.products_trend || "+0%"}</span>
+                    <span className="text-gray-400 font-normal">vs bulan lalu</span>
                 </div>
             </div>
 
@@ -78,17 +89,17 @@ export default function AdminStatCards({ stats }: Props) {
                             Produk Terjual
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 tracking-tight">
-                            {stats?.total_sold ? formatCompactNumber(stats.total_sold) : "45.2K"}
+                            {formatCompactNumber(stats?.total_sold)}
                         </h3>
                     </div>
-                    <div className="w-11 h-11 rounded-xl bg-[#E8F8F8] flex items-center justify-center text-[#0D9488] shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
                         <ShoppingCart className="w-5 h-5" />
                     </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-50 flex items-center text-xs font-semibold text-emerald-600 gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5" />
-                    <span>{stats?.sold_trend || "+18.7%"}</span>
-                    <span className="text-gray-400 font-normal">vs akhir bulan</span>
+                    <span>{stats?.sold_trend || "+0%"}</span>
+                    <span className="text-gray-400 font-normal">vs bulan lalu</span>
                 </div>
             </div>
 
@@ -101,18 +112,18 @@ export default function AdminStatCards({ stats }: Props) {
                         </span>
                         <h3
                             className="text-base sm:text-lg font-bold text-gray-900 mt-1 tracking-tight leading-tight line-clamp-2"
-                            title={stats?.top_product_name || "Toko Ola"}
+                            title={stats?.top_product_name || "Belum ada penjualan"}
                         >
-                            {stats?.top_product_name || "Toko Ola"}
+                            {stats?.top_product_name || "Belum ada penjualan"}
                         </h3>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-[#FEE2E2] flex items-center justify-center text-[#EF4444] shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                         <Flame className="w-5 h-5" />
                     </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-gray-50 flex items-center">
                     <span className="bg-gray-100/90 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">
-                        {stats?.top_category_name || "Sembako"}
+                        {stats?.top_category_name || "-"}
                     </span>
                 </div>
             </div>

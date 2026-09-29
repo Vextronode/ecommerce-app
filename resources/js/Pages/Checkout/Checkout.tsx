@@ -27,12 +27,11 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
         processing,
         errors,
         deliveryFee,
+        storesBreakdown,
         adminFee,
-        grandTotal,
         isAddressPickerOpen,
         setIsAddressPickerOpen,
         applyAddress,
-        handleShippingChange,
         handlePaymentSelect,
         handlePlaceOrder,
     } = useCheckoutForm({ initialCartItems, addresses });
@@ -52,7 +51,6 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
 
                         <ShippingSection
                             data={data}
-                            setData={handleShippingChange}
                             errors={errors}
                             selectedAddress={selectedAddress}
                             onOpenAddressPicker={() =>
@@ -63,6 +61,8 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                         <DeliverySection
                             selected={data.delivery_method}
                             onSelect={(val) => setData("delivery_method", val)}
+                            deliveryFee={deliveryFee}
+                            storesBreakdown={storesBreakdown}
                         />
 
                         <PaymentSection
@@ -72,12 +72,13 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                         />
                     </div>
 
-                    <div className="lg:col-span-4">
+                    <div className="lg:col-span-4 self-start sticky top-32">
                         <OrderSummary
                             subtotal={subtotal}
                             deliveryFee={deliveryFee}
                             adminFee={adminFee}
                             totalItems={totalItems}
+                            storesBreakdown={storesBreakdown}
                             onPlaceOrder={handlePlaceOrder}
                             processing={processing}
                         />

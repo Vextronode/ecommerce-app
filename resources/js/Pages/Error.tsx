@@ -45,14 +45,14 @@ export default function Error({ status }: Props) {
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     {/* Top-left teal blob */}
                     <div
-                        className="absolute -top-32 -left-32 w-80 h-80 md:w-[500px] md:h-[500px] rounded-full opacity-[0.07]"
+                        className="absolute -top-32 -left-32 w-80 h-80 md:w-125 md:h-125 rounded-full opacity-[0.07]"
                         style={{
                             background: "radial-gradient(circle, #40E0D0 0%, transparent 70%)",
                         }}
                     />
                     {/* Bottom-right dark blob */}
                     <div
-                        className="absolute -bottom-40 -right-40 w-96 h-96 md:w-[600px] md:h-[600px] rounded-full opacity-[0.05]"
+                        className="absolute -bottom-40 -right-40 w-96 h-96 md:w-150 md:h-150 rounded-full opacity-[0.05]"
                         style={{
                             background: "radial-gradient(circle, #215B63 0%, transparent 70%)",
                         }}
@@ -110,7 +110,7 @@ export default function Error({ status }: Props) {
                         {/* Tombol utama */}
                         <Link
                             href="/dashboard"
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#215B63] to-[#389f9f] hover:from-[#1a464d] hover:to-[#2d8282] text-white font-bold px-7 py-3.5 rounded-full shadow-lg shadow-[#215B63]/20 hover:shadow-xl hover:shadow-[#215B63]/30 hover:-translate-y-0.5 transition-all duration-300"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-linear-to-r from-[#215B63] to-[#389f9f] hover:from-[#1a464d] hover:to-[#2d8282] text-white font-bold px-7 py-3.5 rounded-full shadow-lg shadow-[#215B63]/20 hover:shadow-xl hover:shadow-[#215B63]/30 hover:-translate-y-0.5 transition duration-300"
                         >
                             <Home className="w-5 h-5" />
                             Kembali ke Home
@@ -119,7 +119,7 @@ export default function Error({ status }: Props) {
                         {/* Tombol sekunder */}
                         <Link
                             href="/shop"
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white hover:bg-gray-50 text-gray-700 font-bold px-7 py-3.5 rounded-full border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white hover:bg-gray-50 text-gray-700 font-bold px-7 py-3.5 rounded-full border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition duration-300"
                         >
                             <ShoppingBag className="w-5 h-5" />
                             Cari Produk

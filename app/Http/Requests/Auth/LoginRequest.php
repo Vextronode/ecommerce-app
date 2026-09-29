@@ -28,8 +28,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255', 'required_if:expected_role,admin'],
-            'email' => ['required', 'string', 'email'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             'expected_role' => ['nullable', 'string', 'in:user,pedagang,admin'],
         ];
@@ -44,11 +44,28 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        $loginInput = trim((string) $this->input('email'));
+        $targetUser = \App\Models\User::where('email', $loginInput)
+            ->orWhere('name', $loginInput)
+            ->first();
+
+        $credentials = [
+            'email' => $targetUser ? $targetUser->email : $loginInput,
+            'password' => (string) $this->input('password'),
+        ];
+
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
+            RateLimiter::hit($this->throttleKey(), 300);
+            RateLimiter::hit($this->emailThrottleKey(), 300);
+
+            $retriesLeft = RateLimiter::retriesLeft($this->throttleKey(), 5);
+            $msg = 'Email/Username atau kata sandi tidak cocok.';
+            if ($retriesLeft > 0) {
+                $msg .= " Sisa percobaan: {$retriesLeft} kali lagi.";
+            }
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => $msg,
             ]);
         }
 
@@ -64,31 +81,46 @@ class LoginRequest extends FormRequest
 
         if ($roleMismatch) {
             Auth::guard('web')->logout();
-            RateLimiter::hit($this->throttleKey());
+            RateLimiter::hit($this->throttleKey(), 300);
+            RateLimiter::hit($this->emailThrottleKey(), 300);
+
+            $retriesLeft = RateLimiter::retriesLeft($this->throttleKey(), 5);
+            $msg = 'Email atau kata sandi tidak cocok.';
+            if ($retriesLeft > 0) {
+                $msg .= " Sisa percobaan: {$retriesLeft} kali lagi.";
+            }
 
             // Generic error message to prevent User Enumeration and Role Disclosure
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => $msg,
             ]);
         }
 
-        // Additional Security Check for Admin: Verify Full Name Matches
-        if ($expectedRole === 'admin') {
+        // Additional Security Check for Admin: Verify Full Name Matches if name was provided
+        if ($expectedRole === 'admin' && $this->filled('name')) {
             $inputName = trim((string) $this->input('name'));
             $registeredName = trim((string) $authenticatedUser->name);
 
             if (strcasecmp($inputName, $registeredName) !== 0) {
                 Auth::guard('web')->logout();
-                RateLimiter::hit($this->throttleKey());
+                RateLimiter::hit($this->throttleKey(), 300);
+                RateLimiter::hit($this->emailThrottleKey(), 300);
+
+                $retriesLeft = RateLimiter::retriesLeft($this->throttleKey(), 5);
+                $msg = 'Email atau kata sandi tidak cocok.';
+                if ($retriesLeft > 0) {
+                    $msg .= " Sisa percobaan: {$retriesLeft} kali lagi.";
+                }
 
                 // Generic error message to prevent information leakage
                 throw ValidationException::withMessages([
-                    'email' => trans('auth.failed'),
+                    'email' => $msg,
                 ]);
             }
         }
 
         RateLimiter::clear($this->throttleKey());
+        RateLimiter::clear($this->emailThrottleKey());
     }
 
     /**
@@ -98,20 +130,30 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
+        if (RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+            event(new Lockout($this));
+            $seconds = RateLimiter::availableIn($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => trans('auth.throttle', [
+                    'seconds' => $seconds,
+                    'minutes' => ceil($seconds / 60),
+                ]),
+            ]);
         }
 
-        event(new Lockout($this));
+        // Secondary check: max 10 attempts per email across all IPs
+        if (RateLimiter::tooManyAttempts($this->emailThrottleKey(), 10)) {
+            event(new Lockout($this));
+            $seconds = RateLimiter::availableIn($this->emailThrottleKey());
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
-
-        throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
+            throw ValidationException::withMessages([
+                'email' => trans('auth.throttle', [
+                    'seconds' => $seconds,
+                    'minutes' => ceil($seconds / 60),
+                ]),
+            ]);
+        }
     }
 
     /**
@@ -120,5 +162,13 @@ class LoginRequest extends FormRequest
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+    }
+
+    /**
+     * Secondary throttle key based solely on email to prevent distributed brute force.
+     */
+    public function emailThrottleKey(): string
+    {
+        return Str::transliterate('login_email_throttle|'.Str::lower($this->string('email')));
     }
 }

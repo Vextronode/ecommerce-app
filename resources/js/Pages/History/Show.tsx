@@ -1,9 +1,10 @@
-import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useEffect } from "react";
+import { Head, Link, router } from "@inertiajs/react";
 import Navbar from "@/Components/Global/Navbar";
 import ConfirmModal from "@/Components/ConfirmModal";
-import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle } from "lucide-react";
+import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle, Navigation, Clock } from "lucide-react";
 import { useOrderHistoryActions } from "@/Hooks/Storefront/useOrderHistoryActions";
+
 
 export default function Show({ order }: { order: any }) {
     const {
@@ -16,8 +17,30 @@ export default function Show({ order }: { order: any }) {
         getStatusColor,
     } = useOrderHistoryActions();
 
+    // Real-Time WebSocket Order Status Synchronization for Buyer
+    useEffect(() => {
+        if (!order?.invoice_number || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.private(`order-tracking.${order.invoice_number}`);
+        const handleUpdate = () => {
+            router.reload({ only: ["order"] });
+        };
+
+        channel.listen(".OrderStatusUpdated", handleUpdate);
+        channel.listen("OrderStatusUpdated", handleUpdate);
+
+        return () => {
+            window.Echo.leave(`order-tracking.${order.invoice_number}`);
+        };
+    }, [order?.id, order?.invoice_number]);
+
+
     const canCancel = order.shipping_status === 'pending';
-    const canComplete = order.shipping_status === 'shipped';
+    const isLocalDelivery = order.delivery_method === 'local_delivery';
+    const canComplete = order.shipping_status === 'shipped' && (order.can_buyer_complete ?? (!isLocalDelivery || order.is_arrived));
+    const isWaitingCourierArrival = order.shipping_status === 'shipped' && isLocalDelivery && !canComplete;
+    const showRatingButton = order.status === 'Selesai' && order.items && order.items.length > 0;
+
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
@@ -27,7 +50,7 @@ export default function Show({ order }: { order: any }) {
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-32">
                 <Link
                     href={route("history.index")}
-                    className="inline-flex items-center text-sm text-gray-500 hover:text-[#245D56] mb-6 transition-colors font-medium"
+                    className="inline-flex items-center text-sm text-gray-500 hover:text-[#ED7218] mb-6 transition-colors font-medium"
                 >
                     <ChevronLeft className="w-4 h-4 mr-1" />
                     Kembali ke Riwayat
@@ -68,6 +91,13 @@ export default function Show({ order }: { order: any }) {
                                     <p className="whitespace-pre-line leading-relaxed">
                                         {order.shipping_address}
                                     </p>
+                                    {order.shipping_status === 'shipped' && order.delivery_method === 'local_delivery' && order.shipping_pin && (
+                                        <div className="mt-4 bg-[#EAF7F7] p-4 rounded-xl border border-[#41B9C5]/30">
+                                            <p className="text-xs font-bold text-[#14433D] uppercase tracking-wider mb-1">PIN Pengiriman</p>
+                                            <div className="text-3xl font-black text-[#41B9C5] tracking-[0.2em]">{order.shipping_pin}</div>
+                                            <p className="text-[10px] text-gray-500 mt-1">Berikan PIN ini kepada kurir toko saat menerima barang untuk menyelesaikan pesanan.</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div>
@@ -83,14 +113,29 @@ export default function Show({ order }: { order: any }) {
                                         {order.payment_status === 'pending' ? 'Belum Bayar' : order.payment_status === 'paid' ? 'Sudah Bayar / Lunas' : order.payment_status}
                                     </span>
                                 </p>
+                                
                                 {order.payment_status === 'pending' && order.payment_method !== 'cod' && (
                                     <div className="mt-3">
                                         <Link
                                             href={`/payment/${order.id}`}
-                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#245D56] hover:bg-[#1a4540] px-3.5 py-2 rounded-xl shadow-xs transition"
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-brand-orange hover:bg-brand-orange-hover px-3.5 py-2 rounded-xl shadow-xs transition"
                                         >
                                             Bayar Sekarang
                                         </Link>
+                                    </div>
+                                )}
+
+                                {/* Lacak Pengiriman Button */}
+                                {order.shipping_status === 'shipped' && order.delivery_method === 'local_delivery' && (
+                                    <div className="mt-4 pt-4 border-t border-gray-100">
+                                        <a
+                                            href={`/tracker/${order.invoice_number}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center justify-center w-full gap-2 text-xs font-bold text-white bg-brand-blue hover:bg-brand-blue-hover px-4 py-2.5 rounded-xl shadow-md shadow-brand-blue/30 transition"
+                                        >
+                                            <Navigation className="w-4 h-4" /> Lacak Pengiriman Live
+                                        </a>
                                     </div>
                                 )}
                             </div>
@@ -100,7 +145,7 @@ export default function Show({ order }: { order: any }) {
                     {/* Store & Products */}
                     <div className="p-6">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="bg-[#245D56] text-white p-1.5 rounded-md">
+                            <div className="bg-brand-orange text-white p-1.5 rounded-md">
                                 <Store className="w-4 h-4" />
                             </div>
                             <span className="font-bold text-gray-900">
@@ -132,7 +177,7 @@ export default function Show({ order }: { order: any }) {
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-[#245D56]">
+                                        <p className="font-bold text-[#281B7A]">
                                             Rp
                                             {Number(item.price).toLocaleString(
                                                 "id-ID"
@@ -169,7 +214,7 @@ export default function Show({ order }: { order: any }) {
                                 <span className="font-bold text-gray-900">
                                     Total Pesanan
                                 </span>
-                                <span className="text-xl font-bold text-[#245D56]">
+                                <span className="text-xl font-bold text-[#281B7A]">
                                     Rp
                                     {Number(order.total_amount).toLocaleString(
                                         "id-ID"
@@ -181,20 +226,37 @@ export default function Show({ order }: { order: any }) {
 
                     {/* Action Buttons */}
                     <div className="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end bg-white">
-                        <button className="inline-flex items-center justify-center px-6 py-2.5 border border-[#245D56] text-[#245D56] text-sm font-bold rounded-lg hover:bg-[#EAF7F7] transition-colors">
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Hubungi Penjual
-                        </button>
+                        {(() => {
+                            if (order.shipping_status === 'cancelled') return null;
+                            if (order.shipping_status === 'delivered' && order.updated_at) {
+                                const updatedTime = new Date(order.updated_at).getTime();
+                                const currentTime = new Date().getTime();
+                                // Hide after 30 minutes
+                                if (currentTime - updatedTime > 1800000) return null;
+                            }
+                            return (
+                                <a 
+                                    href={order.store_phone ? `https://wa.me/${order.store_phone.replace(/\D/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo admin ${order.store_name}, saya pembeli dengan nomor pesanan #${order.invoice_number}. Saya ingin bertanya mengenai pesanan saya...`)}` : '#'}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center justify-center px-6 py-2.5 bg-[#281B7A]/5 border border-[#281B7A]/20 text-[#281B7A] text-sm font-bold rounded-xl hover:bg-[#281B7A]/10 transition-colors"
+                                >
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    Hubungi Penjual
+                                </a>
+                            );
+                        })()}
                         
                         {(order.shipping_status === 'pending' || order.shipping_status === 'processing') && (
                             <button
                                 onClick={() => setIsCancelModalOpen(true)}
-                                disabled={order.shipping_status === 'processing'}
+                                disabled={order.shipping_status === 'processing' || order.payment_status === 'paid'}
                                 className={`inline-flex items-center justify-center px-6 py-2.5 bg-white border text-sm font-bold rounded-lg transition-colors ${
-                                    order.shipping_status === 'processing' 
+                                    order.shipping_status === 'processing' || order.payment_status === 'paid'
                                     ? 'border-gray-200 text-gray-400 cursor-not-allowed'
                                     : 'border-red-500 text-red-500 hover:bg-red-50'
                                 }`}
+                                title={order.payment_status === 'paid' ? 'Pesanan yang sudah dibayar tidak dapat dibatalkan secara langsung' : ''}
                             >
                                 <AlertCircle className="w-4 h-4 mr-2" />
                                 Batalkan Pesanan
@@ -204,17 +266,43 @@ export default function Show({ order }: { order: any }) {
                         {canComplete && (
                             <button
                                 onClick={() => setIsCompleteModalOpen(true)}
-                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#245D56] text-white text-sm font-bold rounded-lg hover:bg-[#1a4540] transition-colors"
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-orange text-white text-sm font-bold rounded-xl hover:bg-brand-orange-hover transition-colors shadow-xs"
                             >
                                 <CheckCircle className="w-4 h-4 mr-2" />
                                 Pesanan Diterima
                             </button>
                         )}
+
+                        {isWaitingCourierArrival && (
+                            <div className="flex flex-col items-end">
+                                <button
+                                    disabled
+                                    className="inline-flex items-center justify-center px-5 py-2.5 bg-gray-100 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed border border-gray-200"
+                                    title="Tombol ini akan aktif saat kurir tiba di lokasi Anda, atau otomatis selesai setelah 4 jam."
+                                >
+                                    <Clock className="w-4 h-4 mr-1.5 text-gray-400" />
+                                    Menunggu Kurir Tiba di Lokasi
+                                </button>
+                                <span className="text-[10px] text-gray-400 mt-1 text-right max-w-xs">
+                                    Tombol aktif saat kurir tiba atau otomatis selesai dalam 4 jam.
+                                </span>
+                            </div>
+                        )}
+
                         
-                        {order.status === "Selesai" && (
+                        {showRatingButton && order.items?.[0]?.id && (
                             <Link
-                                href={route("product.detail", order.items[0]?.product_slug || order.items[0]?.product_id)}
-                                className="inline-flex items-center justify-center px-6 py-2.5 bg-[#245D56] text-white text-sm font-bold rounded-lg hover:bg-[#1a4540] transition-colors"
+                                href={route("history.rating.create", { order_item: order.items[0].id })}
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-orange text-white text-sm font-bold rounded-xl hover:bg-brand-orange-hover transition-colors shadow-xs"
+                            >
+                                Beri Penilaian
+                            </Link>
+                        )}
+
+                        {order.status === "Selesai" && order.items?.[0] && (
+                            <Link
+                                href={route("product.detail", order.items[0].product_slug || order.items[0].product_id)}
+                                className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-orange text-white text-sm font-bold rounded-xl hover:bg-brand-orange-hover transition-colors shadow-xs"
                             >
                                 Beli Lagi
                             </Link>

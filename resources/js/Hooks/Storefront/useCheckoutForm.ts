@@ -3,6 +3,15 @@ import { useForm, usePage } from "@inertiajs/react";
 import toast from "react-hot-toast";
 import type { CheckoutAddress } from "@/Components/Checkout/AddressPickerModal";
 
+export interface StoreShippingBreakdown {
+    store_id: number;
+    store_name: string;
+    store_address: string;
+    distance_km: number | null;
+    delivery_fee: number;
+    items_count: number;
+}
+
 interface UseCheckoutFormOptions {
     initialCartItems: any[];
     addresses: CheckoutAddress[];
@@ -20,13 +29,16 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
     );
     const totalItems = cartItems.reduce((sum, item) => sum + item.qty, 0);
 
+    const [deliveryFee, setDeliveryFee] = useState(0);
+    const [storesBreakdown, setStoresBreakdown] = useState<StoreShippingBreakdown[]>([]);
+
     const { data, setData, post, processing, errors } = useForm({
         cart_ids: cartItems.map((item) => item.id),
         address_id: null as number | null,
         name: auth?.user?.name || "",
         phone: auth?.user?.phone || "",
         address: "",
-        delivery_method: "coastal",
+        delivery_method: "local_delivery",
         payment_method: "va" as "va" | "qris" | "gopay" | "cod",
         payment_channel: "bca_va",
     });
@@ -39,18 +51,6 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
             name: address.recipient_name,
             phone: address.phone,
             address: address.full_address,
-        });
-    };
-
-    const handleShippingChange = (
-        field: "name" | "phone" | "address",
-        value: string,
-    ) => {
-        setSelectedAddressId(null);
-        setData({
-            ...data,
-            address_id: null,
-            [field]: value,
         });
     };
 
@@ -73,9 +73,57 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
             addresses[0];
 
         applyAddress(primaryAddress);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addresses]);
 
-    const deliveryFee = data.delivery_method === "coastal" ? 25000 : 15000;
+    // eslint-disable-next-line react-doctor/no-fetch-in-effect, react-doctor/no-set-state-after-await-in-effect
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchFee = async () => {
+            try {
+                let url = `/checkout/calculate-fee?delivery_method=${data.delivery_method}`;
+
+                if (data.address_id) {
+                    url += `&address_id=${data.address_id}`;
+                }
+
+                data.cart_ids.forEach((id) => {
+                    url += `&cart_ids[]=${id}`;
+                });
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error("Failed to calculate fee");
+                }
+                const result = await response.json();
+
+                // eslint-disable-next-line react-doctor/no-set-state-after-await-in-effect
+                if (isMounted) {
+                    if (result.delivery_fee !== undefined) {
+                        setDeliveryFee(result.delivery_fee);
+                    }
+                    if (result.stores_breakdown) {
+                        setStoresBreakdown(result.stores_breakdown);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch delivery fee", error);
+            }
+        };
+
+        if (data.delivery_method === "self_pickup") {
+            setDeliveryFee(0);
+            setStoresBreakdown([]);
+        } else {
+            fetchFee();
+        }
+
+        return () => {
+            isMounted = false;
+        };
+    }, [data.delivery_method, data.address_id, data.cart_ids]);
+
     const adminFee = data.payment_method === "cod" ? 0 : 2000;
     const grandTotal = subtotal + deliveryFee + adminFee;
 
@@ -86,12 +134,10 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
                 toast.success("Pesanan berhasil dibuat!");
             },
             onError: (errs) => {
-                const firstError = Object.values(errs)[0];
-                toast.error(
-                    typeof firstError === "string"
-                        ? firstError
-                        : "Gagal membuat pesanan, pastikan semua form terisi.",
-                );
+                const firstKey = Object.keys(errs)[0];
+                if (firstKey) {
+                    toast.error(errs[firstKey]);
+                }
             },
         });
     };
@@ -105,12 +151,12 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         processing,
         errors,
         deliveryFee,
+        storesBreakdown,
         adminFee,
         grandTotal,
         isAddressPickerOpen,
         setIsAddressPickerOpen,
         applyAddress,
-        handleShippingChange,
         handlePaymentSelect,
         handlePlaceOrder,
     };

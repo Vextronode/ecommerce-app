@@ -66,6 +66,8 @@ export default function AddressModal({
                                 provinsi: search.parseAddressResult(
                                     item.address,
                                 ).provinsi,
+                                latitude: lat,
+                                longitude: lng,
                             }));
                             search.setProvQuery("");
                             search.setActiveDropdown(null);
@@ -103,6 +105,8 @@ export default function AddressModal({
                                 jalan:
                                     item.display_name.split(",")[0] ||
                                     parsed.jalan,
+                                latitude: lat,
+                                longitude: lng,
                             }));
                             search.setJalanQuery("");
                             search.setActiveDropdown(null);
@@ -111,15 +115,15 @@ export default function AddressModal({
                     />
 
                     <div>
-                        <label className="text-xs font-semibold text-gray-500 mb-1 block">
+                        <label htmlFor="field_114" className="text-xs font-semibold text-gray-500 mb-1 block">
                             Detail Lainnya (Cth: Blok / Unit., Patokan)
                         </label>
-                        <input
+                        <input aria-label="Input field" id="field_114"
                             type="text"
                             value={data.detail}
                             onChange={(e) => setData("detail", e.target.value)}
                             placeholder="Contoh: Samping warung madura, pager hitam"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#245D56] text-sm bg-slate-50/50"
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#ED7218] text-sm bg-slate-50/50"
                         />
                     </div>
 
@@ -130,7 +134,7 @@ export default function AddressModal({
                     />
 
                     <div>
-                        <label className="text-sm font-bold text-gray-700 mb-3 block">
+                        <label htmlFor="field_133" className="text-sm font-bold text-gray-700 mb-3 block">
                             Tandai Sebagai:
                         </label>
                         <div className="flex gap-3">
@@ -139,7 +143,7 @@ export default function AddressModal({
                                     key={lbl}
                                     type="button"
                                     onClick={() => setData("label", lbl)}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-bold border transition ${data.label === lbl ? "border-[#245D56] text-[#245D56] bg-[#245D56]/5" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-bold border transition ${data.label === lbl ? "border-[#ED7218] text-[#ED7218] bg-[#ED7218]/5" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
                                 >
                                     {lbl}
                                 </button>
@@ -148,13 +152,13 @@ export default function AddressModal({
                     </div>
 
                     <label className="flex items-center gap-2 cursor-pointer w-fit mt-2">
-                        <input
+                        <input id="field_133"
                             type="checkbox"
                             checked={data.is_primary}
                             onChange={(e) =>
                                 setData("is_primary", e.target.checked)
                             }
-                            className="w-4 h-4 text-[#245D56] border-slate-300 rounded focus:ring-[#245D56]"
+                            className="w-4 h-4 text-[#ED7218] border-slate-300 rounded focus:ring-[#ED7218]"
                         />
                         <span className="text-sm text-slate-600 font-medium">
                             Atur sebagai alamat pribadi
@@ -172,7 +176,7 @@ export default function AddressModal({
                         <button
                             type="submit"
                             disabled={processing}
-                            className="px-8 py-3 rounded-xl font-bold text-white bg-[#245D56] hover:bg-[#1a443f] shadow-lg shadow-[#245D56]/20 transition disabled:opacity-50"
+                            className="px-8 py-3 rounded-xl font-bold text-white bg-[#ED7218] hover:bg-[#d66311] shadow-lg shadow-[#ED7218]/20 transition disabled:opacity-50"
                         >
                             Simpan Alamat
                         </button>

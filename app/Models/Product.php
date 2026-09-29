@@ -12,7 +12,7 @@ class Product extends Model
     protected $fillable = [
         'store_id', 'category_id', 'name', 'slug', 'description',
         'price', 'stock', 'image_path', 'is_active',
-        'is_preorder', 'po_days', 'po_hours','unit',
+        'is_preorder', 'po_days', 'po_hours', 'unit',
     ];
 
     protected $appends = ['sold'];
@@ -26,6 +26,7 @@ class Product extends Model
     {
         return $this->belongsTo(Store::class);
     }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -35,6 +36,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class);
     }
+
     public function variants()
     {
         return $this->hasMany(ProductVariant::class);

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
 import { QrCode, Download, ExternalLink, ShieldCheck, Smartphone, Check, Copy, Info } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -18,11 +19,7 @@ export default function QrisCard({
     const [copiedAmount, setCopiedAmount] = useState(false);
 
     const formatRupiah = (amount: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-        }).format(amount);
+        return formatRupiah(amount);
     };
 
     const copyAmount = () => {

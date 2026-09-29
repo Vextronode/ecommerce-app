@@ -3,6 +3,7 @@
 .env
 .env.backup
 .env.production
+.env.docker
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -28,3 +29,8 @@ Thumbs.db
 /.agents/
 skills-lock.json
 .direnv/
+session.md
+
+# Agents Customizations
+.agents/session/
+.agents

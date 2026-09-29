@@ -4,21 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\MidtransService;
+use App\Services\PaymentSyncService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MidtransCallbackController extends Controller
 {
-    public function handle(Request $request, MidtransService $midtransService)
+    public function handle(Request $request, MidtransService $midtransService, PaymentSyncService $paymentSyncService): JsonResponse
     {
         $notificationData = $request->all();
 
-        Log::info('Midtrans Webhook Received', $notificationData);
+        $logData = $notificationData;
+        if (isset($logData['signature_key'])) {
+            $logData['signature_key'] = substr((string) $logData['signature_key'], 0, 8) . '...[MASKED]';
+        }
+
+        Log::info('Midtrans Webhook Received', $logData);
 
         // Verify Midtrans SHA-512 Signature Key
-        if (!$midtransService->verifySignatureKey($notificationData)) {
-            Log::warning('Midtrans Webhook Invalid Signature Key', $notificationData);
+        if (! $midtransService->verifySignatureKey($notificationData)) {
+            Log::warning('Midtrans Webhook Invalid Signature Key', $logData);
+
             return response()->json(['message' => 'Invalid signature key'], 403);
         }
 
@@ -27,7 +34,7 @@ class MidtransCallbackController extends Controller
         $fraudStatus = $notificationData['fraud_status'] ?? null;
         $incomingGross = (float) ($notificationData['gross_amount'] ?? 0);
 
-        if (!$orderId) {
+        if (! $orderId) {
             return response()->json(['message' => 'Order ID is missing'], 400);
         }
 
@@ -37,12 +44,9 @@ class MidtransCallbackController extends Controller
             ->orWhereJsonContains('payment_payload->order_id', $orderId)
             ->get();
 
-        if ($orders->isEmpty() && $request->has('snap_token')) {
-            $orders = Order::where('snap_token', $request->input('snap_token'))->get();
-        }
-
         if ($orders->isEmpty()) {
-            Log::warning('Midtrans Webhook Order Not Found: ' . $orderId);
+            Log::warning('Midtrans Webhook Order Not Found: '.$orderId);
+
             return response()->json(['message' => 'Order not found'], 404);
         }
 
@@ -50,35 +54,14 @@ class MidtransCallbackController extends Controller
         $expectedGross = (float) $orders->sum('total_amount');
         if (abs($incomingGross - $expectedGross) > 1.0) {
             Log::critical("SECURITY ALERT: Midtrans Gross Amount Mismatch! Expected: {$expectedGross}, Received: {$incomingGross} for Order ID: {$orderId}");
+
             return response()->json(['message' => 'Gross amount mismatch'], 400);
         }
 
-        // Process Status Updates Atomically
-        DB::transaction(function () use ($orders, $transactionStatus, $fraudStatus) {
-            foreach ($orders as $order) {
-                // Lock row
-                $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
-                if (!$lockedOrder) continue;
-
-                if ($transactionStatus === 'capture') {
-                    if ($fraudStatus === 'accept') {
-                        $lockedOrder->update(['payment_status' => 'paid']);
-                    }
-                } elseif ($transactionStatus === 'settlement') {
-                    $lockedOrder->update(['payment_status' => 'paid']);
-                } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-                    if ($lockedOrder->payment_status !== 'paid') {
-                        $lockedOrder->update(['payment_status' => 'failed']);
-                        // Idempotent and thread-safe stock restoration
-                        $lockedOrder->restoreStock();
-                    }
-                } elseif ($transactionStatus === 'pending') {
-                    if ($lockedOrder->payment_status !== 'paid') {
-                        $lockedOrder->update(['payment_status' => 'pending']);
-                    }
-                }
-            }
-        });
+        // Process Status Updates Atomically via PaymentSyncService
+        foreach ($orders as $order) {
+            $paymentSyncService->applyPaymentStatus($order->id, $transactionStatus, $fraudStatus);
+        }
 
         return response()->json(['message' => 'Notification processed successfully']);
     }

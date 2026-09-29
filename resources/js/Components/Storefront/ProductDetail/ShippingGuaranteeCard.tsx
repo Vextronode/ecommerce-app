@@ -25,7 +25,7 @@ export default function ShippingGuaranteeCard({
                     const Icon = iconMap[item.icon];
                     const toneClasses =
                         item.tone === "blue"
-                            ? "bg-blue-100 text-[#2E86C1]"
+                            ? "bg-brand-blue-tint text-brand-blue"
                             : "bg-green-100 text-green-600";
 
                     return (

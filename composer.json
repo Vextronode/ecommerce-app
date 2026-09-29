@@ -7,13 +7,16 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "google/apiclient": "^2.19",
         "inertiajs/inertia-laravel": "^2.0",
         "jenssegers/agent": "^2.6",
         "laravel/framework": "^13.8",
+        "laravel/reverb": "^1.11",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.27",
         "laravel/tinker": "^3.0",
         "midtrans/midtrans-php": "^2.6",
+        "predis/predis": "^3.6",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

@@ -12,7 +12,7 @@ class EnsureUserHasRole
     {
         $user = $request->user();
 
-        if (!$user || !in_array($user->role, $roles, true)) {
+        if (! $user || ! in_array($user->role, $roles, true)) {
             return redirect($this->dashboardFor($user?->role));
         }
 
@@ -25,7 +25,7 @@ class EnsureUserHasRole
 
         return match ($role) {
             'pedagang' => '/pedagang/dashboard',
-            'admin' => '/' . $adminPrefix . '/dashboard',
+            'admin' => '/'.$adminPrefix.'/dashboard',
             default => '/dashboard',
         };
     }

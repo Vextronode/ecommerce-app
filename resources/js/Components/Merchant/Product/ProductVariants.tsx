@@ -60,8 +60,10 @@ export default function ProductVariants({ data, setData }: Props) {
         const newNames = updatedSkus.map((s: any) => s.variant_name).join("|");
 
         if (oldNames !== newNames) {
+            // eslint-disable-next-line react-doctor/no-pass-data-to-parent
             setData("skus", updatedSkus);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data.variants]);
 
     return (

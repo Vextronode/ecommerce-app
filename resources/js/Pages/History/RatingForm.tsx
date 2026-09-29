@@ -68,7 +68,7 @@ export default function RatingForm({ orderItem }: Props) {
 
                         {/* Main Product Rating */}
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                            <label className="block text-sm font-bold text-gray-900 mb-3">Nilai Produk</label>
+                            <label htmlFor="field_71" className="block text-sm font-bold text-gray-900 mb-3">Nilai Produk</label>
                             <StarRating
                                 value={data.rating}
                                 onChange={(val) => setData('rating', val)}
@@ -92,12 +92,12 @@ export default function RatingForm({ orderItem }: Props) {
 
                         {/* Comment */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-800 mb-3">Tulis ulasannya</label>
-                            <textarea
+                            <label htmlFor="field_95" className="block text-sm font-semibold text-gray-800 mb-3">Tulis ulasannya</label>
+                            <textarea aria-label="Input field" id="field_95"
                                 value={data.comment}
                                 onChange={(e) => setData('comment', e.target.value)}
                                 rows={4}
-                                className="w-full rounded-2xl border-gray-200 shadow-sm focus:border-[#245D56] focus:ring-[#245D56] bg-gray-50/50 p-4 transition-colors"
+                                className="w-full rounded-2xl border-gray-200 shadow-sm focus:border-[#ED7218] focus:ring-[#ED7218] bg-gray-50/50 p-4 transition-colors"
                                 placeholder="Bagikan pengalamanmu menggunakan produk ini..."
                             ></textarea>
                             <InputError message={errors.comment} className="mt-2" />
@@ -110,7 +110,7 @@ export default function RatingForm({ orderItem }: Props) {
                                 type="checkbox"
                                 checked={data.is_anonymous}
                                 onChange={(e) => setData('is_anonymous', e.target.checked)}
-                                className="w-4 h-4 text-[#245D56] border-gray-300 rounded focus:ring-[#245D56] cursor-pointer"
+                                className="w-4 h-4 text-brand-orange border-gray-300 rounded focus:ring-brand-orange cursor-pointer"
                             />
                             <label htmlFor="is_anonymous" className="ml-2 text-sm text-gray-600 font-medium cursor-pointer">
                                 Sembunyikan username pada penilaian
@@ -140,7 +140,7 @@ export default function RatingForm({ orderItem }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-8 py-3 bg-[#245D56] text-white font-bold rounded-xl hover:bg-[#1a4540] transition-colors disabled:opacity-50"
+                                className="px-8 py-3 bg-brand-orange text-white font-bold rounded-xl hover:bg-brand-orange-hover transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
                             >
                                 {processing ? 'MENGIRIM...' : 'KIRIM'}
                             </button>

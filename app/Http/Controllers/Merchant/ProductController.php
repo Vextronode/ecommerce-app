@@ -16,7 +16,7 @@ class ProductController extends Controller
     {
         $user = $request->user()->load('store');
 
-        if (!$user->store) {
+        if (! $user->store) {
             return redirect()->route('merchant.store.setup');
         }
 
@@ -57,8 +57,19 @@ class ProductController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $user = $request->user()->load('store');
+
+        if (! $user->store) {
+            return redirect()->route('merchant.store.setup');
+        }
+
+        if (empty(trim($user->store->address ?? ''))) {
+            return redirect()->route('merchant.settings.index')
+                ->with('warning', 'Alamat toko wajib diisi terlebih dahulu sebelum Anda dapat mengunggah atau membuat produk baru.');
+        }
+
         return Inertia::render('Merchant/Product/Create', [
             'categories' => Category::all(),
         ]);
@@ -66,6 +77,17 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        $user = $request->user()->load('store');
+
+        if (! $user->store) {
+            return redirect()->route('merchant.store.setup');
+        }
+
+        if (empty(trim($user->store->address ?? ''))) {
+            return redirect()->route('merchant.settings.index')
+                ->with('warning', 'Alamat toko wajib diisi terlebih dahulu sebelum Anda dapat mengunggah atau membuat produk baru.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -98,18 +120,12 @@ class ProductController extends Controller
             $totalStock = collect($request->skus)->sum('stock');
         }
 
-        $user = $request->user()->load('store');
-
-        if (!$user->store) {
-            return redirect()->route('merchant.store.setup');
-        }
-
         $product = $user->store->products()->create([
             'category_id' => $request->category_id,
             'name' => $request->name,
             'description' => $request->description,
             'price' => $basePrice,
-            'slug' => Str::slug($request->name) . '-' . uniqid(),
+            'slug' => Str::slug($request->name).'-'.uniqid(),
             'unit' => $request->unit,
             'stock' => $totalStock,
             'is_active' => true,
@@ -121,7 +137,7 @@ class ProductController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $file) {
                 $path = $file->store('products', 'public');
-                $url = '/storage/' . $path;
+                $url = '/storage/'.$path;
 
                 if ($index === 0) {
                     $product->update(['image_path' => $url]);
@@ -132,9 +148,9 @@ class ProductController extends Controller
 
         if ($request->has('variants') && is_array($request->variants)) {
             foreach ($request->variants as $variantData) {
-                if (!empty($variantData['name'])) {
+                if (! empty($variantData['name'])) {
                     $variant = $product->variants()->create(['name' => $variantData['name']]);
-                    if (!empty($variantData['options'])) {
+                    if (! empty($variantData['options'])) {
                         foreach ($variantData['options'] as $optionName) {
                             $variant->options()->create(['name' => $optionName]);
                         }
@@ -151,6 +167,27 @@ class ProductController extends Controller
                     'stock' => $sku['stock'],
                 ]);
             }
+        }
+
+        try {
+            broadcast(new \App\Events\ProductStockUpdated($product, 'created'))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+        }
+
+        // Notify all store followers about the new product
+        try {
+            $followers = $user->store->followers()->get();
+            foreach ($followers as $follower) {
+                $follower->notify(new \App\Notifications\PushNotification(
+                    title: '✨ Produk Baru dari ' . $user->store->name,
+                    message: $user->store->name . ' baru saja menambahkan produk baru: "' . $product->name . '". Yuk cek sekarang!',
+                    type: 'promo',
+                    actionUrl: route('product.detail', $product->slug)
+                ));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Follower notification error: ' . $e->getMessage());
         }
 
         return redirect()->route('merchant.products.index');
@@ -213,7 +250,7 @@ class ProductController extends Controller
         $product->update([
             'category_id' => $request->category_id,
             'name' => $request->name,
-            'slug' => Str::slug($request->name . '-' . uniqid()),
+            'slug' => Str::slug($request->name.'-'.uniqid()),
             'description' => $request->description,
             'price' => $basePrice,
             'stock' => $totalStock,
@@ -234,7 +271,7 @@ class ProductController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
                 $path = $file->store('products', 'public');
-                $url = '/storage/' . $path;
+                $url = '/storage/'.$path;
                 $product->images()->create(['image_path' => $url]);
             }
         }
@@ -245,9 +282,9 @@ class ProductController extends Controller
         $product->variants()->delete();
         if ($request->has('variants') && is_array($request->variants)) {
             foreach ($request->variants as $variantData) {
-                if (!empty($variantData['name'])) {
+                if (! empty($variantData['name'])) {
                     $variant = $product->variants()->create(['name' => $variantData['name']]);
-                    if (!empty($variantData['options'])) {
+                    if (! empty($variantData['options'])) {
                         foreach ($variantData['options'] as $optionName) {
                             $variant->options()->create(['name' => $optionName]);
                         }
@@ -267,6 +304,12 @@ class ProductController extends Controller
             }
         }
 
+        try {
+            broadcast(new \App\Events\ProductStockUpdated($product, 'updated'))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+        }
+
         return redirect()->route('merchant.products.index');
     }
 
@@ -284,6 +327,12 @@ class ProductController extends Controller
             $this->safeDeleteStoredFile($img->image_path);
         }
 
+        try {
+            broadcast(new \App\Events\ProductStockUpdated($product, 'deleted'))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+        }
+
         $product->delete();
 
         return redirect()->route('merchant.products.index');
@@ -291,7 +340,7 @@ class ProductController extends Controller
 
     private function safeDeleteStoredFile(?string $path): void
     {
-        if (!$path) {
+        if (! $path) {
             return;
         }
 

@@ -21,15 +21,15 @@ export default function ReviewAdditionalRatings({
     return (
         <div className="space-y-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <label className="text-sm font-semibold text-gray-700">Pelayanan Penjual</label>
+                <label htmlFor="field_24" className="text-sm font-semibold text-gray-700">Pelayanan Penjual</label>
                 <StarRating value={sellerRating} onChange={onChangeSeller} />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <label className="text-sm font-semibold text-gray-700">Kecepatan Jasa Kirim</label>
+                <label htmlFor="field_28" className="text-sm font-semibold text-gray-700">Kecepatan Jasa Kirim</label>
                 <StarRating value={shippingRating} onChange={onChangeShipping} />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <label className="text-sm font-semibold text-gray-700">Pelayanan Kurir</label>
+                <label htmlFor="field_32" className="text-sm font-semibold text-gray-700">Pelayanan Kurir</label>
                 <StarRating value={courierRating} onChange={onChangeCourier} />
             </div>
         </div>

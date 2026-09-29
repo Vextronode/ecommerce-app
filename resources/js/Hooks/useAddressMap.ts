@@ -12,6 +12,8 @@ const customMarker = L.icon({
 export function useAddressMap(
     isOpen: boolean,
     onCoordsChange: (lat: number, lng: number) => void,
+    initialLat?: number | null,
+    initialLng?: number | null
 ) {
     const [isLocating, setIsLocating] = useState(false);
     const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,9 @@ export function useAddressMap(
         if (!isOpen || !mapContainerRef.current) return;
 
         if (!mapRef.current) {
-            const initialPos: [number, number] = [-7.6876, 108.6506]; // Pangandaran
+            const initialPos: [number, number] = (initialLat && initialLng) 
+                ? [initialLat, initialLng] 
+                : [-7.6876, 108.6506]; // Pangandaran
             const map = L.map(mapContainerRef.current).setView(initialPos, 13);
 
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -40,15 +44,27 @@ export function useAddressMap(
 
             mapRef.current = map;
             markerRef.current = marker;
-            setTimeout(() => map.invalidateSize(), 150);
+            const timerId = setTimeout(() => map.invalidateSize(), 150);
+
+            return () => {
+                clearTimeout(timerId);
+                map.off("click");
+                if (mapRef.current) {
+                    mapRef.current.remove();
+                    mapRef.current = null;
+                }
+            };
         }
 
+        // If map was already initialized but we are cleaning up, we don't have the local references,
+        // but the above return only happens when initializing.
         return () => {
             if (mapRef.current) {
                 mapRef.current.remove();
                 mapRef.current = null;
             }
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const handleGetLocation = () => {
@@ -69,6 +85,7 @@ export function useAddressMap(
                 toast.error("Gagal ambil lokasi, pastikan izin GPS nyala.");
                 setIsLocating(false);
             },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     };
 

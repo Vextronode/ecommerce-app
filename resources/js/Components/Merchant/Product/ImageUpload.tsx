@@ -15,7 +15,7 @@ export default function ImageUpload({
     error,
 }: Props) {
     return (
-        <div className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm h-full flex flex-col">
+        <div className="bg-white rounded-3xl p-6 border border-brand-orange/30 shadow-sm h-full flex flex-col">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex justify-between items-center">
                 <span>Foto Produk</span>
                 <span className="text-xs font-normal text-gray-500">
@@ -23,8 +23,8 @@ export default function ImageUpload({
                 </span>
             </h3>
 
-            <div className="flex-1 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 transition-colors relative group min-h-50">
-                <input
+            <div aria-label="Pilih opsi yang tersedia" className="flex-1 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 transition-colors relative group min-h-50">
+                <input aria-label="Tampilkan rincian lebih lanjut"
                     type="file"
                     accept="image/*"
                     multiple
@@ -34,8 +34,8 @@ export default function ImageUpload({
                 <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
                     <Upload className="w-6 h-6 text-gray-800" />
                 </div>
-                <span className="bg-[#41B9C5] text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4">
-                    Upload Foto
+                <span className="bg-brand-orange hover:bg-brand-orange-hover text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4 transition-colors">
+                    Unggah Foto
                 </span>
                 <h4 className="text-sm font-bold text-gray-800 mb-1">
                     Klik atau drop foto di sini
@@ -60,11 +60,11 @@ export default function ImageUpload({
                                 className="w-full h-full object-cover"
                             />
                             {idx === 0 && (
-                                <div className="absolute bottom-0 left-0 right-0 bg-[#41B9C5] text-white text-[8px] font-bold text-center py-0.5">
-                                    COVER
+                                <div className="absolute bottom-0 left-0 right-0 bg-brand-orange text-white text-[8px] font-bold text-center py-0.5">
+                                    SAMPUL
                                 </div>
                             )}
-                            <button
+                            <button aria-label="Pilih opsi yang tersedia"
                                 type="button"
                                 onClick={() => onRemoveImage(idx)}
                                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20"

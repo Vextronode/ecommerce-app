@@ -16,6 +16,9 @@ class Order extends Model
         'customer_name',
         'customer_phone',
         'shipping_address',
+        'shipping_latitude',
+        'shipping_longitude',
+        'shipping_pin',
         'delivery_method',
         'subtotal',
         'shipping_cost',
@@ -30,9 +33,6 @@ class Order extends Model
         'payment_expiry_time',
         'payment_payload',
         'payment_status',
-        'balance_credited_at',
-        'stock_restored_at',
-        'snap_token',
         'shipping_status',
         'notes',
     ];
@@ -45,6 +45,10 @@ class Order extends Model
         'total_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
+    ];
+
+    protected $hidden = [
+        'payment_payload',
     ];
 
     // Relasi ke tabel order_items
@@ -73,13 +77,13 @@ class Order extends Model
             // Lock this order row for atomic update
             $order = self::where('id', $this->id)->lockForUpdate()->first();
 
-            if (!$order || $order->stock_restored_at !== null) {
+            if (! $order || $order->stock_restored_at !== null) {
                 return false; // Already restored, skip to prevent double restore
             }
 
             foreach ($order->items as $item) {
                 if ($item->variant_name) {
-                    $sku = \App\Models\ProductSku::where('product_id', $item->product_id)
+                    $sku = ProductSku::where('product_id', $item->product_id)
                         ->where('variant_name', $item->variant_name)
                         ->lockForUpdate()
                         ->first();
@@ -88,7 +92,7 @@ class Order extends Model
                     }
                 }
 
-                $product = \App\Models\Product::where('id', $item->product_id)
+                $product = Product::where('id', $item->product_id)
                     ->lockForUpdate()
                     ->first();
                 if ($product) {
@@ -96,7 +100,7 @@ class Order extends Model
                 }
             }
 
-            $order->update(['stock_restored_at' => now()]);
+            $order->forceFill(['stock_restored_at' => now()])->save();
             $this->stock_restored_at = $order->stock_restored_at;
 
             return true;
@@ -111,23 +115,113 @@ class Order extends Model
         return DB::transaction(function () {
             $order = self::where('id', $this->id)->lockForUpdate()->first();
 
-            if (!$order || $order->balance_credited_at !== null || !$order->store_id) {
+            if (! $order || $order->balance_credited_at !== null || ! $order->store_id) {
                 return false; // Already credited or no store, prevent double-crediting
             }
 
             $store = Store::where('id', $order->store_id)->lockForUpdate()->first();
             if ($store) {
-                // Credit net product subtotal (exclude delivery and platform admin fees)
-                $netEarnings = (float) ($order->subtotal ?? ($order->total_amount - $order->shipping_cost));
-                $store->increment('balance', $netEarnings);
+                // Move total amount from pending_balance to available_balance
+                $amount = (float) $order->total_amount;
 
-                Log::info("Credited net earnings Rp {$netEarnings} to store ID {$store->id} for order #{$order->invoice_number}");
+                // Ensure we don't drop pending_balance below 0 due to old data
+                if ($store->pending_balance >= $amount) {
+                    $store->decrement('pending_balance', $amount);
+                } else {
+                    $store->update(['pending_balance' => 0]);
+                }
+
+                $store->increment('available_balance', $amount);
             }
 
-            $order->update(['balance_credited_at' => now()]);
+            $order->forceFill(['balance_credited_at' => now()])->save();
             $this->balance_credited_at = $order->balance_credited_at;
 
             return true;
         });
     }
+
+
+    /**
+     * Mark order as arrived at customer delivery location.
+     */
+    public function markAsArrived(): void
+    {
+        \Illuminate\Support\Facades\Cache::put("order_arrived_{$this->id}", now()->toIso8601String(), 86400 * 7);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'arrived_at')) {
+            $this->update(['arrived_at' => now()]);
+        }
+    }
+
+
+    /**
+     * Check whether courier has arrived at destination.
+     */
+    public function isArrived(): bool
+    {
+        if (!empty($this->arrived_at)) {
+            return true;
+        }
+        return \Illuminate\Support\Facades\Cache::has("order_arrived_{$this->id}");
+    }
+
+    /**
+     * Check if buyer is eligible to complete this order.
+     * Buyer button activates when courier arrives OR after 4 hours have passed.
+     */
+    public function canBuyerComplete(): bool
+    {
+        if ($this->delivery_method !== 'local_delivery') {
+            return $this->shipping_status === 'shipped';
+        }
+
+        if ($this->shipping_status !== 'shipped') {
+            return false;
+        }
+
+        // Active if courier marked arrived OR 4 hours have elapsed since last update
+        if ($this->isArrived()) {
+            return true;
+        }
+
+        $hoursElapsed = $this->updated_at ? $this->updated_at->diffInHours(now()) : 0;
+        return $hoursElapsed >= 4;
+    }
+
+    /**
+     * Automatically complete delivery by system (e.g. after 4 hours timeout like Shopee).
+     */
+    public function autoCompleteDelivery(): bool
+    {
+        if ($this->shipping_status !== 'shipped') {
+            return false;
+        }
+
+        return DB::transaction(function () {
+            $locked = self::where('id', $this->id)->lockForUpdate()->first();
+            if (!$locked || $locked->shipping_status !== 'shipped') {
+                return false;
+            }
+
+            $updateData = ['shipping_status' => 'delivered'];
+            if ($locked->payment_method === 'cod') {
+                $updateData['payment_status'] = 'paid';
+            }
+            $locked->update($updateData);
+
+            if ($locked->payment_status === 'paid' && $locked->payment_method !== 'cod') {
+                $locked->creditStoreBalance();
+            }
+
+            \App\Services\OrderNotificationService::orderDelivered($locked);
+
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($locked))->toOthers();
+            } catch (\Throwable $e) {}
+
+            Log::info("Order #{$locked->invoice_number} auto-completed by system (4-hour timeout).");
+            return true;
+        });
+    }
 }
+

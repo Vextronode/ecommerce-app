@@ -62,7 +62,7 @@ export default function VariantBuilder({ data, setData }: Props) {
                 <button
                     type="button"
                     onClick={addVariant}
-                    className="flex items-center gap-1 bg-[#E0F7FA] text-[#245D56] px-4 py-2 rounded-full text-xs font-bold hover:bg-[#41B9C5] hover:text-white transition-colors"
+                    className="flex items-center gap-1 bg-brand-orange-tint text-brand-orange px-4 py-2 rounded-full text-xs font-bold hover:bg-brand-orange hover:text-white transition-colors"
                 >
                     <Plus className="w-4 h-4" /> Tambah Varian
                 </button>
@@ -76,7 +76,7 @@ export default function VariantBuilder({ data, setData }: Props) {
                                 key={vIndex}
                                 className="bg-gray-50 border border-gray-200 rounded-2xl p-4 relative"
                             >
-                                <button
+                                <button aria-label="Action"
                                     type="button"
                                     onClick={() => removeVariant(vIndex)}
                                     className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
@@ -85,10 +85,10 @@ export default function VariantBuilder({ data, setData }: Props) {
                                 </button>
 
                                 <div className="mb-3 pr-8">
-                                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                    <label htmlFor="field_88" className="block text-xs font-semibold text-gray-700 mb-1">
                                         Nama Tipe Varian
                                     </label>
-                                    <input
+                                    <input aria-label="Input field" id="field_88"
                                         type="text"
                                         placeholder="Contoh: Ukuran, Warna, Potongan..."
                                         value={variant.name}
@@ -98,12 +98,12 @@ export default function VariantBuilder({ data, setData }: Props) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full md:w-1/2 px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm"
+                                        className="w-full md:w-1/2 px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-700 mb-2">
+                                    <label htmlFor="field_106" className="block text-xs font-semibold text-gray-700 mb-2">
                                         Pilihan (Options)
                                     </label>
                                     <div className="flex flex-wrap gap-2 mb-2">
@@ -114,7 +114,7 @@ export default function VariantBuilder({ data, setData }: Props) {
                                                     className="bg-white border border-gray-300 px-3 py-1 rounded-full text-xs font-medium text-gray-700 flex items-center gap-2 shadow-sm"
                                                 >
                                                     {opt}
-                                                    <button
+                                                    <button aria-label="Action"
                                                         type="button"
                                                         onClick={() =>
                                                             removeOption(
@@ -132,7 +132,7 @@ export default function VariantBuilder({ data, setData }: Props) {
                                     </div>
 
                                     <div className="flex gap-2 w-full md:w-1/2">
-                                        <input
+                                        <input aria-label="Input field"
                                             type="text"
                                             placeholder="Contoh: XL, Merah, Fillet..."
                                             value={optionInputs[vIndex] || ""}
@@ -148,7 +148,7 @@ export default function VariantBuilder({ data, setData }: Props) {
                                                     addOption(vIndex);
                                                 }
                                             }}
-                                            className="flex-1 px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm"
+                                            className="flex-1 px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
                                         />
                                         <button
                                             type="button"

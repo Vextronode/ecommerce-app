@@ -53,7 +53,7 @@ export default function PasswordStrengthMeter({ password }: Props) {
             {/* Strength Bar */}
             <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                    className={`h-full transition-all duration-300 ${
+                    className={`h-full transition duration-300 ${
                         strength <= 50
                             ? "bg-rose-500"
                             : strength <= 75

@@ -17,7 +17,7 @@ export default function Guest({ children }: PropsWithChildren) {
             <div className="absolute inset-0 bg-black/10 z-0"></div>
 
             {/* glass container */}
-            <div className="relative z-10 w-full max-w-5xl bg-white/20 backdrop-blur-md border border-white/30 rounded-4xl shadow-2xl p-6 sm:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 transition-all duration-300">
+            <div className="relative z-10 w-full max-w-5xl bg-white/20 backdrop-blur-md border border-white/30 rounded-4xl shadow-2xl p-6 sm:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 transition duration-300">
                 {children}
             </div>
         </div>

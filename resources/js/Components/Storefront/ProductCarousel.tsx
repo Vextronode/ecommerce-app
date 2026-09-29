@@ -39,7 +39,7 @@ export default function ProductCarousel({
                 {/* GRID */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 px-2">
                     {products.map((product, index) => (
-                        <ProductCard key={product.id || index} product={product} />
+                        <ProductCard key={product.id} product={product} />
                     ))}
                 </div>
             </div>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,12 +11,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'status', 'is_password_changed', 'google_id', 'profile_photo_path', 'phone', 'gender', 'dob', 'notification_settings'])]
+#[Fillable(['name', 'email', 'password', 'is_password_changed', 'google_id', 'profile_photo_path', 'phone', 'nik', 'gender', 'dob', 'notification_settings'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory;
+
     use Notifiable;
 
     /**
@@ -47,17 +49,18 @@ class User extends Authenticatable
     {
         return $this->role === 'user';
     }
+
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Address, User>
+     * @return HasMany<Address, User>
      */
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class);
     }
 
-    public function cart()
+    public function carts(): HasMany
     {
-        return $this->hasOne(Cart::class);
+        return $this->hasMany(Cart::class);
     }
 
     public function followingStores()

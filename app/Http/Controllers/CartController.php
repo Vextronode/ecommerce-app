@@ -22,6 +22,7 @@ class CartController extends Controller
             return $cart->product->store_id ?? 0;
         })->map(function ($group) {
             $store = $group->first()->product->store;
+
             return [
                 'id' => $store->id ?? 0,
                 'storeName' => $store->name ?? 'Cibenda Mart',
@@ -39,7 +40,7 @@ class CartController extends Controller
                         'stock' => $matchingSku ? $matchingSku->stock : $cart->product->stock,
                         'qty' => $cart->quantity,
 
-                        'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=200',
+                        'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                         'prepOption' => $cart->preparation_option,
 
                         'sku' => $matchingSku ? [
@@ -53,7 +54,7 @@ class CartController extends Controller
         $cartProductIds = $carts->pluck('product_id')->toArray();
         $cartCategoryIds = $carts->pluck('product.category_id')->filter()->unique()->toArray();
 
-        $recommendations = \App\Models\Product::with(['category', 'store'])
+        $recommendations = Product::with(['category', 'store'])
             ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
                     $q->where('shipping_status', 'delivered');
@@ -79,7 +80,7 @@ class CartController extends Controller
                     'price' => $product->price,
                     'rating' => $product->rating ? (float) $product->rating : 0.0,
                     'sold' => $product->sold ?? 0,
-                    'img' => $product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                    'img' => $product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                 ];
             });
 
@@ -88,6 +89,7 @@ class CartController extends Controller
             'recommendations' => $recommendations,
         ]);
     }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -106,7 +108,7 @@ class CartController extends Controller
 
             $prepOption = $validated['preparation_option'] ?? '';
             $availableStock = $product->stock;
-            if (!empty($prepOption)) {
+            if (! empty($prepOption)) {
                 $matchingSku = $product->skus->where('variant_name', $prepOption)->first();
                 if ($matchingSku) {
                     $availableStock = $matchingSku->stock;
@@ -124,7 +126,7 @@ class CartController extends Controller
 
             if ($newQuantity > $availableStock) {
                 throw ValidationException::withMessages([
-                    'quantity' => "Stok {$product->name}" . ($prepOption ? " ({$prepOption})" : "") . " tidak mencukupi.",
+                    'quantity' => "Stok {$product->name}".($prepOption ? " ({$prepOption})" : '').' tidak mencukupi.',
                 ]);
             }
 
@@ -157,14 +159,14 @@ class CartController extends Controller
 
         $cart->load(['product.skus']);
 
-        if (!$cart->product || !$cart->product->is_active) {
+        if (! $cart->product || ! $cart->product->is_active) {
             throw ValidationException::withMessages([
                 'quantity' => 'Produk tidak tersedia.',
             ]);
         }
 
         $availableStock = $cart->product->stock;
-        if (!empty($cart->preparation_option)) {
+        if (! empty($cart->preparation_option)) {
             $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
             if ($matchingSku) {
                 $availableStock = $matchingSku->stock;

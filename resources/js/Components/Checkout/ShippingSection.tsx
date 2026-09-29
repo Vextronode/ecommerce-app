@@ -4,7 +4,6 @@ import { CheckoutAddress } from "./AddressPickerModal";
 
 interface Props {
     data: any;
-    setData: (field: "name" | "phone" | "address", value: string) => void;
     errors: any;
     selectedAddress?: CheckoutAddress;
     onOpenAddressPicker: () => void;
@@ -12,7 +11,6 @@ interface Props {
 
 export default function ShippingSection({
     data,
-    setData,
     errors,
     selectedAddress,
     onOpenAddressPicker,
@@ -21,24 +19,24 @@ export default function ShippingSection({
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
-                    <MapPin className="w-6 h-6 text-[#245D56]" />
+                    <MapPin className="w-6 h-6 text-[#ED7218]" />
                     <h2 className="text-xl font-bold text-gray-900">
-                        Shipping Details
+                        Rincian Pengiriman
                     </h2>
                 </div>
                 <button
                     type="button"
                     onClick={onOpenAddressPicker}
-                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#245D56] px-4 py-2 text-sm font-bold text-[#245D56] transition hover:bg-[#245D56]/5"
+                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#ED7218] px-4 py-2 text-sm font-bold text-[#ED7218] transition hover:bg-[#ED7218]/5"
                 >
                     <Plus className="h-4 w-4" />
                     Gunakan alamat lain
                 </button>
             </div>
-            {selectedAddress && (
-                <div className="mb-5 rounded-2xl border border-[#245D56]/20 bg-[#245D56]/5 p-4">
+            {selectedAddress ? (
+                <div className="rounded-2xl border border-[#ED7218]/20 bg-[#ED7218]/5 p-4">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#245D56]">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#ED7218]">
                             {selectedAddress.label}
                         </span>
                         {Boolean(selectedAddress.is_primary) && (
@@ -57,58 +55,26 @@ export default function ShippingSection({
                         {selectedAddress.full_address}
                     </p>
                 </div>
+            ) : (
+                <div className="rounded-2xl border border-dashed border-red-300 bg-red-50 p-6 text-center">
+                    <p className="text-sm font-bold text-red-600 mb-2">Belum ada alamat pengiriman terpilih</p>
+                    <p className="text-xs text-red-500 mb-4">Anda wajib menambahkan atau memilih alamat pengiriman dari Buku Alamat agar sistem dapat menghitung ongkos kirim dan fitur Live Tracking berfungsi.</p>
+                    <button
+                        type="button"
+                        onClick={onOpenAddressPicker}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#ED7218] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#ED7218]/30 transition hover:bg-[#d66311]"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Pilih / Tambah Alamat
+                    </button>
+                </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label className="text-xs font-bold text-slate-500 mb-2 block">
-                        Full Name
-                    </label>
-                    <input
-                        type="text"
-                        value={data.name}
-                        onChange={(e) => setData("name", e.target.value)}
-                        className={`w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-[#40E0D0] focus:border-[#40E0D0] text-sm font-medium ${errors.name ? "border-red-500" : ""}`}
-                    />
-                    {errors.name && (
-                        <span className="text-red-500 text-xs mt-1">
-                            {errors.name}
-                        </span>
-                    )}
-                </div>
-                <div>
-                    <label className="text-xs font-bold text-slate-500 mb-2 block">
-                        Phone Number
-                    </label>
-                    <input
-                        type="text"
-                        value={data.phone}
-                        onChange={(e) => setData("phone", e.target.value)}
-                        className={`w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-[#40E0D0] focus:border-[#40E0D0] text-sm font-medium ${errors.phone ? "border-red-500" : ""}`}
-                    />
-                    {errors.phone && (
-                        <span className="text-red-500 text-xs mt-1">
-                            {errors.phone}
-                        </span>
-                    )}
-                </div>
-                <div className="md:col-span-2">
-                    <label className="text-xs font-bold text-slate-500 mb-2 block">
-                        Full Address
-                    </label>
-                    <textarea
-                        rows={3}
-                        value={data.address}
-                        onChange={(e) => setData("address", e.target.value)}
-                        placeholder="Street name, building, house number..."
-                        className={`w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-[#40E0D0] focus:border-[#40E0D0] text-sm font-medium resize-none ${errors.address ? "border-red-500" : ""}`}
-                    ></textarea>
-                    {errors.address && (
-                        <span className="text-red-500 text-xs mt-1">
-                            {errors.address}
-                        </span>
-                    )}
-                </div>
-            </div>
+            
+            {errors.address_id && (
+                <p className="mt-3 text-sm text-red-500 font-medium text-center">
+                    Silakan pilih alamat pengiriman terlebih dahulu.
+                </p>
+            )}
         </section>
     );
 }

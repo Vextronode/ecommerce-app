@@ -70,7 +70,7 @@ class AdminAuthSecurityTest extends TestCase
         ]);
 
         $this->assertGuest();
-        $response->assertSessionHasErrors('name');
+        $response->assertSessionHasErrors('email');
     }
 
     public function test_non_admin_account_cannot_login_through_admin_portal(): void
@@ -97,7 +97,7 @@ class AdminAuthSecurityTest extends TestCase
     {
         $response = $this->get('/cibenda-portal/dashboard');
 
-        $response->assertRedirect('/login');
+        $response->assertRedirect('/cibenda-portal/login');
     }
 
     public function test_regular_user_is_redirected_away_from_admin_dashboard(): void
@@ -123,6 +123,44 @@ class AdminAuthSecurityTest extends TestCase
         $response = $this->actingAs($admin)->get('/cibenda-portal/dashboard');
 
         $response->assertStatus(200);
+    }
+
+    public function test_admin_can_authenticate_with_email_and_password_only(): void
+    {
+        $admin = User::factory()->create([
+            'name' => 'Admin CibendaMart',
+            'email' => 'admin@cibendamart.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'admin@cibendamart.com',
+            'password' => 'password123',
+            'expected_role' => 'admin',
+        ]);
+
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect('/cibenda-portal/dashboard');
+    }
+
+    public function test_admin_can_authenticate_with_username_and_password_only(): void
+    {
+        $admin = User::factory()->create([
+            'name' => 'admincibenda',
+            'email' => 'admin@cibendamart.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'admincibenda',
+            'password' => 'password123',
+            'expected_role' => 'admin',
+        ]);
+
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect('/cibenda-portal/dashboard');
     }
 
     public function test_admin_logout_redirects_back_to_admin_login_portal(): void

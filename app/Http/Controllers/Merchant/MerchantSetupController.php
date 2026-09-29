@@ -44,13 +44,13 @@ class MerchantSetupController extends Controller
             // Update nama toko yang sudah ada
             $store->update([
                 'name' => $request->store_name,
-                'slug' => Str::slug($request->store_name . '-' . $user->id),
+                'slug' => Str::slug($request->store_name.'-'.$user->id),
             ]);
         } else {
             // Buat entitas store baru jika belum ada
             $user->store()->create([
                 'name' => $request->store_name,
-                'slug' => Str::slug($request->store_name . '-' . $user->id),
+                'slug' => Str::slug($request->store_name.'-'.$user->id),
                 'subdistrict' => 'Cibenda',
                 'sid_status' => 'verified',
             ]);

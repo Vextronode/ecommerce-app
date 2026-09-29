@@ -6,9 +6,11 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\MidtransService;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -20,6 +22,47 @@ class CheckoutController extends Controller
     ];
 
     private const ADMIN_FEE = 2000;
+
+    private function haversineDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($dLon / 2) * sin($dLon / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
+    }
+
+    private function calculateShippingCost($store, $addressLat, $addressLon, $method)
+    {
+        if ($method === 'self_pickup') {
+            return 0;
+        }
+
+        if ($method === 'local_delivery') {
+            if (! $store || ! $store->latitude || ! $store->longitude || ! $addressLat || ! $addressLon) {
+                return 15000;
+            }
+
+            $distance = $this->haversineDistance((float) $store->latitude, (float) $store->longitude, (float) $addressLat, (float) $addressLon);
+
+            $baseFee = 5000;
+            if ($distance <= 2) {
+                return $baseFee;
+            } else {
+                $extraDistance = ceil($distance - 2);
+
+                return $baseFee + ($extraDistance * 2000);
+            }
+        }
+
+        return 15000;
+    }
 
     public function index(Request $request)
     {
@@ -44,15 +87,21 @@ class CheckoutController extends Controller
 
         $cartItems = $carts->map(function ($cart) {
             $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
+            $store = $cart->product->store;
 
             return [
                 'id' => $cart->id,
                 'product_id' => $cart->product->id,
                 'name' => $cart->product->name,
-                'location' => $cart->product->store ? $cart->product->store->name . ' - ' . $cart->product->store->address : 'Cibenda Mart',
+                'store_id' => $cart->product->store_id,
+                'store_name' => $store ? $store->name : 'Cibenda Mart',
+                'store_address' => $store ? $store->address : '',
+                'location' => $store ? $store->name.' - '.$store->address : 'Cibenda Mart',
+                'store_lat' => $store ? $store->latitude : null,
+                'store_lon' => $store ? $store->longitude : null,
                 'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
                 'qty' => $cart->quantity,
-                'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&q=80&w=200',
+                'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                 'preparation_option' => $cart->preparation_option,
                 'unit' => $cart->product->unit ?? 'pcs',
             ];
@@ -73,19 +122,24 @@ class CheckoutController extends Controller
             'name' => 'required_without:address_id|string|max:255',
             'phone' => 'required_without:address_id|string|max:20',
             'address' => 'required_without:address_id|string',
-            'delivery_method' => ['required', 'string', 'in:coastal,standard'],
+            'delivery_method' => ['required', 'string', 'in:local_delivery,self_pickup'],
             'payment_method' => ['required', 'string', 'in:va,qris,gopay,cod'],
             'payment_channel' => ['required', 'string', 'in:bca_va,bni_va,bri_va,permata_va,mandiri_bill,qris,gopay,cod'],
         ]);
 
-        if (!empty($validated['address_id'])) {
+        $addressLat = null;
+        $addressLon = null;
+
+        if (! empty($validated['address_id'])) {
             $address = $request->user()->addresses()->findOrFail($validated['address_id']);
             $validated['name'] = $address->recipient_name;
             $validated['phone'] = $address->phone;
             $validated['address'] = $address->full_address;
+            $addressLat = $address->latitude;
+            $addressLon = $address->longitude;
         }
 
-        $orders = DB::transaction(function () use ($validated) {
+        $orders = DB::transaction(function () use ($validated, $addressLat, $addressLon) {
             $carts = Cart::query()
                 ->where('user_id', auth()->id())
                 ->whereIn('id', $validated['cart_ids'])
@@ -108,11 +162,12 @@ class CheckoutController extends Controller
 
             foreach ($cartsByStore as $storeId => $storeCarts) {
                 $subtotal = 0;
+                $store = $storeCarts->first()->product->store;
 
                 foreach ($storeCarts as $cart) {
                     $product = $cart->product()->lockForUpdate()->first();
 
-                    if (!$product || !$product->is_active) {
+                    if (! $product || ! $product->is_active) {
                         throw ValidationException::withMessages([
                             'cart_ids' => "Produk {$cart->product_id} sudah tidak tersedia.",
                         ]);
@@ -132,17 +187,21 @@ class CheckoutController extends Controller
                     $cart->setRelation('product', $product);
                 }
 
-                $deliveryFee = self::DELIVERY_FEES[$validated['delivery_method']];
+                $deliveryFee = $this->calculateShippingCost($store, $addressLat, $addressLon, $validated['delivery_method']);
                 $adminFee = $validated['payment_method'] === 'cod' ? 0 : self::ADMIN_FEE;
                 $totalAmount = $subtotal + $deliveryFee + $adminFee;
 
                 $order = Order::create([
                     'store_id' => $storeId,
                     'user_id' => auth()->id(),
-                    'invoice_number' => 'ORD-' . date('YmdHis') . '-' . strtoupper(substr(uniqid(), -4)),
+                    'invoice_number' => 'ORD-'.date('YmdHis').'-'.strtoupper(Str::random(6)),
                     'customer_name' => $validated['name'],
                     'customer_phone' => $validated['phone'],
                     'shipping_address' => $validated['address'],
+                    'shipping_latitude' => $addressLat,
+                    'shipping_longitude' => $addressLon,
+                    'shipping_pin' => str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+
                     'delivery_method' => $validated['delivery_method'],
                     'subtotal' => $subtotal,
                     'shipping_cost' => $deliveryFee,
@@ -208,11 +267,22 @@ class CheckoutController extends Controller
                     ]);
                 }
             } catch (\Exception $e) {
-                Log::error('Midtrans Core API Charge Error: ' . $e->getMessage());
+                Log::error('Midtrans Core API Charge Error: '.$e->getMessage());
+            }
+        }
+
+        // Trigger automatic order creation notification for buyer & seller
+        foreach ($orders as $order) {
+            OrderNotificationService::orderCreated($order);
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($order));
+            } catch (\Throwable $e) {
+                Log::warning('Order created broadcast error: ' . $e->getMessage());
             }
         }
 
         $firstOrderId = count($orders) > 0 ? $orders[0]->id : null;
+        $allOrderIds = collect($orders)->pluck('id')->implode(',');
 
         if ($validated['payment_method'] !== 'cod' && $firstOrderId) {
             return redirect()->route('payment.show', [
@@ -221,78 +291,115 @@ class CheckoutController extends Controller
         }
 
         return redirect()->route('checkout.success', [
+            'order_ids' => $allOrderIds,
             'order_id' => $firstOrderId,
         ]);
     }
 
     public function success(Request $request, MidtransService $midtransService)
     {
+        $orderIdsParam = $request->query('order_ids');
         $orderId = $request->query('order_id');
-        $order = null;
+        $ordersList = collect([]);
 
-        if ($orderId) {
-            $order = Order::with(['items.product', 'store'])->find($orderId);
+        if ($orderIdsParam) {
+            $ids = array_filter(explode(',', $orderIdsParam));
+            $ordersList = Order::with(['items.product', 'store'])
+                ->where('user_id', auth()->id())
+                ->whereIn('id', $ids)
+                ->get();
+        } elseif ($orderId) {
+            $primaryOrder = Order::with(['items.product', 'store'])
+                ->where('user_id', auth()->id())
+                ->find($orderId);
 
-            if ($order && $order->payment_status === 'pending' && $order->payment_method !== 'cod') {
-                return redirect()->route('payment.show', ['order' => $order->id]);
-            }
-        }
-
-        return Inertia::render('Checkout/Success', [
-            'order' => $order,
-        ]);
-    }
-
-    /**
-     * Real-time payment status check endpoint with multi-order synchronization
-     */
-    public function checkStatus(Request $request, $id, MidtransService $midtransService)
-    {
-        $order = Order::where('id', $id)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
-
-        if ($order->payment_status === 'pending' && $order->payment_method !== 'cod') {
-            $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
-
-            if ($midtransOrderId) {
-                try {
-                    $statusResp = $midtransService->getTransactionStatus($midtransOrderId);
-
-                    if ($statusResp) {
-                        $trxStatus = is_object($statusResp) ? ($statusResp->transaction_status ?? null) : ($statusResp['transaction_status'] ?? null);
-                        $fraudStatus = is_object($statusResp) ? ($statusResp->fraud_status ?? null) : ($statusResp['fraud_status'] ?? null);
-
-                        $siblingOrders = Order::where('parent_transaction_id', $midtransOrderId)
-                            ->orWhere('id', $order->id)
-                            ->get();
-
-                        DB::transaction(function () use ($siblingOrders, $trxStatus, $fraudStatus) {
-                            foreach ($siblingOrders as $sib) {
-                                $lockedSib = Order::where('id', $sib->id)->lockForUpdate()->first();
-                                if (!$lockedSib) continue;
-
-                                if ($trxStatus === 'settlement' || ($trxStatus === 'capture' && $fraudStatus === 'accept')) {
-                                    $lockedSib->update(['payment_status' => 'paid']);
-                                } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
-                                    $lockedSib->update(['payment_status' => 'failed']);
-                                    $lockedSib->restoreStock();
-                                }
-                            }
-                        });
-
-                        $order->refresh();
-                    }
-                } catch (\Exception $e) {
-                    // Ignore API connection exceptions
+            if ($primaryOrder) {
+                if ($primaryOrder->parent_transaction_id) {
+                    $ordersList = Order::with(['items.product', 'store'])
+                        ->where('user_id', auth()->id())
+                        ->where('parent_transaction_id', $primaryOrder->parent_transaction_id)
+                        ->get();
+                } else {
+                    $ordersList = collect([$primaryOrder]);
                 }
             }
         }
 
+        $firstOrder = $ordersList->first();
+
+        if ($firstOrder && $firstOrder->payment_status === 'pending' && $firstOrder->payment_method !== 'cod') {
+            return redirect()->route('payment.show', ['order' => $firstOrder->id]);
+        }
+
+        return Inertia::render('Checkout/Success', [
+            'orders' => $ordersList,
+            'order' => $firstOrder,
+        ]);
+    }
+
+    public function calculateFee(Request $request)
+    {
+        $addressLat = null;
+        $addressLon = null;
+
+        if ($request->has('address_id')) {
+            $address = $request->user()->addresses()->find($request->query('address_id'));
+            if ($address) {
+                $addressLat = $address->latitude;
+                $addressLon = $address->longitude;
+            }
+        }
+
+        $cartIds = $request->query('cart_ids', []);
+        $method = $request->query('delivery_method', 'local_delivery');
+
+        if (empty($cartIds)) {
+            return response()->json([
+                'delivery_fee' => 0,
+                'stores_breakdown' => [],
+            ]);
+        }
+
+        $carts = Cart::with(['product.store'])
+            ->where('user_id', auth()->id())
+            ->whereIn('id', $cartIds)
+            ->get();
+
+        $cartsByStore = $carts->groupBy(function ($cart) {
+            return $cart->product->store_id;
+        });
+
+        $totalDeliveryFee = 0;
+        $storesBreakdown = [];
+
+        foreach ($cartsByStore as $storeId => $storeCarts) {
+            $store = $storeCarts->first()->product->store;
+            $fee = $this->calculateShippingCost($store, $addressLat, $addressLon, $method);
+            $totalDeliveryFee += $fee;
+
+            $distanceKm = null;
+            if ($store && $store->latitude && $store->longitude && $addressLat && $addressLon) {
+                $distanceKm = round($this->haversineDistance(
+                    (float) $store->latitude,
+                    (float) $store->longitude,
+                    (float) $addressLat,
+                    (float) $addressLon
+                ), 1);
+            }
+
+            $storesBreakdown[] = [
+                'store_id' => $storeId,
+                'store_name' => $store ? $store->name : 'Toko Mitra',
+                'store_address' => $store ? $store->address : '',
+                'distance_km' => $distanceKm,
+                'delivery_fee' => $fee,
+                'items_count' => $storeCarts->sum('quantity'),
+            ];
+        }
+
         return response()->json([
-            'order_id' => $order->id,
-            'payment_status' => $order->payment_status,
-            'is_paid' => $order->payment_status === 'paid',
+            'delivery_fee' => $totalDeliveryFee,
+            'stores_breakdown' => $storesBreakdown,
         ]);
     }
 }

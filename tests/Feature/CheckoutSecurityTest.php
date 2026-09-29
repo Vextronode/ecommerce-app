@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Cart;
 use App\Models\Address;
+use App\Models\Cart;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
@@ -221,19 +221,19 @@ class CheckoutSecurityTest extends TestCase
         $merchant = User::factory()->create(['role' => 'pedagang']);
         $store = Store::create([
             'user_id' => $merchant->id,
-            'name' => 'Toko Test ' . Str::random(6),
-            'slug' => 'toko-test-' . Str::random(10),
+            'name' => 'Toko Test '.Str::random(6),
+            'slug' => 'toko-test-'.Str::random(10),
         ]);
         $category = Category::create([
-            'name' => 'Kategori Test ' . Str::random(6),
-            'slug' => 'kategori-test-' . Str::random(10),
+            'name' => 'Kategori Test '.Str::random(6),
+            'slug' => 'kategori-test-'.Str::random(10),
         ]);
 
         return Product::create([
             'store_id' => $store->id,
             'category_id' => $category->id,
-            'name' => 'Produk Test ' . Str::random(6),
-            'slug' => 'produk-test-' . Str::random(10),
+            'name' => 'Produk Test '.Str::random(6),
+            'slug' => 'produk-test-'.Str::random(10),
             'price' => $price,
             'stock' => $stock,
             'is_active' => true,

@@ -26,14 +26,14 @@ export default function ConfirmModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            <button type="button" aria-label="Tutup modal"
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm w-full cursor-default"
                 onClick={onClose}
-            ></div>
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
-                <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            />
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition">
+                <div aria-label="Pilih opsi yang tersedia" className="flex items-center justify-between p-5 border-b border-gray-100">
                     <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-                    <button
+                    <button aria-label="Tampilkan rincian lebih lanjut"
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
                     >
@@ -58,7 +58,7 @@ export default function ConfirmModal({
                         className={`px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-colors ${
                             isDanger
                                 ? "bg-red-500 hover:bg-red-600"
-                                : "bg-[#245D56] hover:bg-[#1a4540]"
+                                : "bg-brand-blue hover:bg-brand-blue-hover"
                         }`}
                     >
                         {confirmText}

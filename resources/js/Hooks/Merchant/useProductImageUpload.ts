@@ -13,7 +13,7 @@ export function useProductImageUpload(
 ) {
     const [images, setImages] = useState<File[]>([]);
     const [deletedImages, setDeletedImages] = useState<number[]>([]);
-    const [previewList, setPreviewList] = useState<PreviewItem[]>(
+    const [previewList, setPreviewList] = useState<PreviewItem[]>(() =>
         initialImages.map((img) => ({
             id: img.id,
             url: img.image_path,
@@ -39,6 +39,7 @@ export function useProductImageUpload(
 
         const newImages = [...images, ...files];
         const newPreviews: PreviewItem[] = files.map((file) => ({
+            // eslint-disable-next-line react-doctor/no-create-object-url-without-revoke
             url: URL.createObjectURL(file),
         }));
 
@@ -105,6 +106,7 @@ export function useProductImageUpload(
                 }
             });
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return {

@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
 import { Image as ImageIcon, Clock } from "lucide-react";
+import { formatRupiah } from "@/utils/formatters";
 
 export interface VariantType {
     name: string;
@@ -15,6 +16,7 @@ interface Props {
     poDays: number | string;
     poHours: number | string;
     processing: boolean;
+    isEdit?: boolean;
 }
 
 export default function ProductPreview({
@@ -25,16 +27,10 @@ export default function ProductPreview({
     poDays,
     poHours,
     processing,
+    isEdit = false,
 }: Props) {
     const mainImage = imagePreviews.length > 0 ? imagePreviews[0] : null;
 
-    const formatRupiah = (angka: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-        }).format(angka);
-    };
 
     // nentuin harga yang nampil di preview
     const getDisplayPrice = () => {
@@ -61,7 +57,7 @@ export default function ProductPreview({
     };
 
     return (
-        <div className="bg-white rounded-3xl p-5 border border-[#41B9C5]/30 shadow-sm flex flex-col items-center h-full relative">
+        <div className="bg-white rounded-3xl p-5 border border-brand-orange/30 shadow-sm flex flex-col items-center h-full relative">
             {/* Badge PO */}
             {isPreorder && (
                 <div className="absolute top-8 left-8 bg-orange-100 text-orange-600 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1 z-10 shadow-sm border border-orange-200">
@@ -92,7 +88,7 @@ export default function ProductPreview({
             </p>
 
             <div className="w-full text-left mb-4 px-2">
-                <p className="text-sm font-extrabold text-gray-800">
+                <p className="text-sm font-extrabold text-brand-orange">
                     {getDisplayPrice()}
                 </p>
             </div>
@@ -134,14 +130,14 @@ export default function ProductPreview({
                     href={route("merchant.products.index")}
                     className="flex-1 py-2 rounded-full border border-gray-300 text-gray-600 text-sm font-bold text-center hover:bg-gray-50 transition-colors"
                 >
-                    Cancel
+                    Batal
                 </Link>
                 <button
                     type="submit"
                     disabled={processing}
-                    className="flex-1 py-2 rounded-full bg-[#41B9C5] hover:bg-[#359a9e] text-white text-sm font-bold text-center transition-colors disabled:opacity-70 shadow-md shadow-[#41B9C5]/30"
+                    className="flex-1 py-2 rounded-full bg-brand-orange hover:bg-brand-orange-hover text-white text-sm font-bold text-center transition-colors disabled:opacity-70 shadow-md shadow-brand-orange/30"
                 >
-                    {processing ? "Menyimpan..." : "Create Product"}
+                    {processing ? "Menyimpan..." : (isEdit ? "Simpan Perubahan" : "Tambah Produk")}
                 </button>
             </div>
         </div>

@@ -130,7 +130,7 @@ export function useReportFilters(initialFilters: ReportFilterState) {
         if (initialFilters.end_date) params.append("end_date", initialFilters.end_date);
 
         const url = `${route("admin.reports.export")}?${params.toString()}`;
-        window.open(url, "_blank");
+        window.open(url, "_blank", "noopener,noreferrer");
         toast.success("Mengunduh laporan produk terlaris...");
     }, [initialFilters]);
 

@@ -15,10 +15,11 @@ class CheckMerchantSetup
 
         $setupRoutes = ['merchant.store.setup', 'merchant.store.store'];
 
-        if (!$user->store || !$user->is_password_changed) {
-            if (!in_array($currentRoute, $setupRoutes)) {
+        if (! $user->store || ! $user->is_password_changed) {
+            if (! in_array($currentRoute, $setupRoutes)) {
                 return redirect()->route('merchant.store.setup');
             }
+
             return $next($request);
         }
 

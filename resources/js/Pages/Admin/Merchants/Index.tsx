@@ -6,6 +6,7 @@ import AdminMerchantTable, {
     MerchantItem,
 } from "@/Components/Admin/Merchants/AdminMerchantTable";
 import MerchantFilterModal from "@/Components/Admin/Merchants/MerchantFilterModal";
+import { formatPaginationLabel } from "@/utils/formatPaginationLabel";
 import {
     Filter,
     Plus,
@@ -42,6 +43,9 @@ interface Props {
         subdistrict?: string;
     };
 }
+const handleResetAllFilters = () => {
+    router.get(route("admin.merchants.index"));
+};
 
 export default function AdminMerchantsIndex({
     merchants,
@@ -50,9 +54,7 @@ export default function AdminMerchantsIndex({
 }: Props) {
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
-    const handleResetAllFilters = () => {
-        router.get(route("admin.merchants.index"));
-    };
+
 
     const hasActiveFilters = Boolean(
         filters.status || filters.sid_status || filters.subdistrict,
@@ -62,11 +64,11 @@ export default function AdminMerchantsIndex({
         <AdminLayout>
             <Head title="Manajemen Pedagang - CibendaMart Admin" />
 
-            <div className="space-y-6">
+            <div className="space-y-6 w-full max-w-full min-w-0 overflow-x-hidden">
                 {/* Header Title & Actions */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-[#004F54] tracking-tight">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
                             Manajemen Pedagang
                         </h1>
                         <p className="text-xs md:text-sm text-gray-400 mt-1 font-medium">
@@ -79,25 +81,25 @@ export default function AdminMerchantsIndex({
                         <button
                             type="button"
                             onClick={() => setIsFilterModalOpen(true)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all cursor-pointer ${hasActiveFilters
-                                ? "bg-[#E6F8F9] text-[#245D56] border-[#41B9C5]"
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-colors cursor-pointer ${hasActiveFilters
+                                ? "bg-orange-50 text-brand-orange border-orange-200"
                                 : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-2xs"
                                 }`}
                         >
-                            <Filter className="w-4 h-4 text-[#245D56]" />
+                            <Filter className="w-4 h-4 text-brand-orange" />
                             <span>Filter</span>
                             {hasActiveFilters && (
-                                <span className="w-2 h-2 rounded-full bg-[#41B9C5]" />
+                                <span className="w-2 h-2 rounded-full bg-brand-orange" />
                             )}
                         </button>
 
                         {/* Create Account Button */}
                         <Link
                             href={route("admin.merchants.create")}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/25 transition-all cursor-pointer"
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover shadow-md shadow-brand-orange/25 transition-colors cursor-pointer"
                         >
                             <Plus className="w-4 h-4" />
-                            <span>Create Account</span>
+                            <span>Tambah Pedagang</span>
                         </Link>
                     </div>
                 </div>
@@ -117,19 +119,19 @@ export default function AdminMerchantsIndex({
                 {merchants.total > 0 && (
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-3">
                         <div className="text-xs text-gray-500 font-medium">
-                            Showing{" "}
+                            Menampilkan{" "}
                             <span className="font-bold text-gray-800">
                                 {merchants.from || 0}
                             </span>{" "}
-                            to{" "}
+                            sampai{" "}
                             <span className="font-bold text-gray-800">
                                 {merchants.to || 0}
                             </span>{" "}
-                            of{" "}
+                            dari{" "}
                             <span className="font-bold text-gray-800">
                                 {merchants.total.toLocaleString()}
                             </span>{" "}
-                            entries
+                            data pedagang
                         </div>
 
                         {/* Pagination Buttons */}
@@ -142,17 +144,17 @@ export default function AdminMerchantsIndex({
                                     if (isPrev) {
                                         return link.url ? (
                                             <Link
-                                                key={index}
+                                                key={link.label}
                                                 href={link.url}
                                                 preserveScroll
                                                 preserveState
-                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all text-xs font-semibold shadow-2xs cursor-pointer"
+                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors text-xs font-semibold shadow-2xs cursor-pointer"
                                             >
                                                 <ChevronLeft className="w-4 h-4" />
                                             </Link>
                                         ) : (
                                             <span
-                                                key={index}
+                                                key={link.label}
                                                 className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 border border-gray-100 text-gray-300 text-xs cursor-not-allowed"
                                             >
                                                 <ChevronLeft className="w-4 h-4" />
@@ -163,17 +165,17 @@ export default function AdminMerchantsIndex({
                                     if (isNext) {
                                         return link.url ? (
                                             <Link
-                                                key={index}
+                                                key={link.label}
                                                 href={link.url}
                                                 preserveScroll
                                                 preserveState
-                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all text-xs font-semibold shadow-2xs cursor-pointer"
+                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors text-xs font-semibold shadow-2xs cursor-pointer"
                                             >
                                                 <ChevronRight className="w-4 h-4" />
                                             </Link>
                                         ) : (
                                             <span
-                                                key={index}
+                                                key={link.label}
                                                 className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 border border-gray-100 text-gray-300 text-xs cursor-not-allowed"
                                             >
                                                 <ChevronRight className="w-4 h-4" />
@@ -183,26 +185,24 @@ export default function AdminMerchantsIndex({
 
                                     return link.url ? (
                                         <Link
-                                            key={index}
+                                            key={link.label}
                                             href={link.url}
                                             preserveScroll
                                             preserveState
-                                            className={`w-9 h-9 flex items-center justify-center rounded-xl text-xs font-bold transition-all ${link.active
-                                                ? "bg-[#41B9C5] text-white shadow-md shadow-[#41B9C5]/30 border border-[#41B9C5]"
+                                            className={`w-9 h-9 flex items-center justify-center rounded-xl text-xs font-bold transition-colors ${link.active
+                                                ? "bg-brand-orange text-white shadow-md shadow-brand-orange/30 border border-brand-orange"
                                                 : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-2xs"
                                                 }`}
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
+                                        >
+                                            {formatPaginationLabel(link.label)}
+                                        </Link>
                                     ) : (
                                         <span
                                             key={index}
                                             className="w-9 h-9 flex items-center justify-center text-xs text-gray-400"
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
+                                        >
+                                            {formatPaginationLabel(link.label)}
+                                        </span>
                                     );
                                 })}
                             </div>

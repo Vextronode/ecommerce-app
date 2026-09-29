@@ -9,7 +9,8 @@ export function useCartSelection(cartData: any[]) {
     const [selectedIds, setSelectedIds] = useState<number[]>(allItemIds);
 
     useEffect(() => {
-        setSelectedIds((prev) => prev.filter((id) => allItemIds.includes(id)));
+        const allItemIdsSet = new Set(allItemIds);
+        setSelectedIds((prev) => prev.filter((id) => allItemIdsSet.has(id)));
     }, [allItemIds]);
 
     const toggleItem = (id: number) => {
@@ -19,14 +20,16 @@ export function useCartSelection(cartData: any[]) {
     };
 
     const toggleStore = (storeId: number, itemIds: number[]) => {
-        const isAllSelected = itemIds.every((id) => selectedIds.includes(id));
+        const selectedIdsSet = new Set(selectedIds);
+        const isAllSelected = itemIds.every((id) => selectedIdsSet.has(id));
         if (isAllSelected) {
+            const itemIdsSet = new Set(itemIds);
             setSelectedIds((prev) =>
-                prev.filter((id) => !itemIds.includes(id)),
+                prev.filter((id) => !itemIdsSet.has(id)),
             );
         } else {
             const newSelections = itemIds.filter(
-                (id) => !selectedIds.includes(id),
+                (id) => !selectedIdsSet.has(id),
             );
             setSelectedIds((prev) => [...prev, ...newSelections]);
         }
@@ -43,14 +46,20 @@ export function useCartSelection(cartData: any[]) {
     const isAllSelected = selectedIds.length === allItemIds.length && allItemIds.length > 0;
 
     const selectedItemsData = useMemo(() => {
-        return cartData
-            .flatMap((store) => store.items)
-            .filter((item: any) => selectedIds.includes(item.id));
+        const selectedIdsSet = new Set(selectedIds);
+        return cartData.reduce((acc, store) => {
+            store.items.forEach((item: any) => {
+                if (selectedIdsSet.has(item.id)) {
+                    acc.push(item);
+                }
+            });
+            return acc;
+        }, []);
     }, [cartData, selectedIds]);
 
     const subtotal = useMemo(() => {
         return selectedItemsData.reduce(
-            (sum, item) => sum + item.price * item.qty,
+            (sum: number, item: any) => sum + item.price * item.qty,
             0,
         );
     }, [selectedItemsData]);

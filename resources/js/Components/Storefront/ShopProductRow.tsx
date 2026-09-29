@@ -73,12 +73,12 @@ export default function ShopProductRow({
                 </div>
 
                 {/* CAROUSEL WRAPPER */}
-                <div className="relative w-full pb-4">
+                <div aria-label="Pilih opsi yang tersedia" className="relative w-full pb-4">
                     {/* PREV BUTTON */}
-                    <button
+                    <button aria-label="Tampilkan rincian lebih lanjut"
                         onClick={prev}
                         disabled={currentPage === 0}
-                        className={`absolute top-1/2 -translate-y-1/2 -left-4 md:-left-6 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg border border-gray-100 z-20 transition-all duration-300 ${currentPage === 0
+                        className={`absolute top-1/2 -translate-y-1/2 -left-4 md:-left-6 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg border border-gray-100 z-20 transition duration-300 ${currentPage === 0
                             ? "opacity-0 pointer-events-none"
                             : "opacity-100 hover:scale-110"
                             }`}
@@ -108,12 +108,12 @@ export default function ShopProductRow({
                     </div>
 
                     {/* NEXT BUTTON */}
-                    <button
+                    <button aria-label="Pilih opsi yang tersedia"
                         onClick={next}
                         disabled={
                             currentPage === totalPages - 1 || totalPages === 0
                         }
-                        className={`absolute top-1/2 -translate-y-1/2 -right-4 md:-right-6 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg border border-gray-100 z-20 transition-all duration-300 ${currentPage === totalPages - 1 || totalPages === 0
+                        className={`absolute top-1/2 -translate-y-1/2 -right-4 md:-right-6 bg-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg border border-gray-100 z-20 transition duration-300 ${currentPage === totalPages - 1 || totalPages === 0
                             ? "opacity-0 pointer-events-none"
                             : "opacity-100 hover:scale-110"
                             }`}

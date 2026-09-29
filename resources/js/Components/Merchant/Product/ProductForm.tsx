@@ -24,7 +24,7 @@ export default function ProductForm({
     isEdit = false,
 }: Props) {
     return (
-        <div className="bg-white rounded-3xl p-6 border border-[#41B9C5]/30 shadow-sm mb-8">
+        <div className="bg-white rounded-3xl p-6 border border-brand-orange/30 shadow-sm mb-8">
             <h3 className="text-xl font-bold text-gray-800 mb-6">
                 {isEdit ? "Edit Informasi Produk" : "Informasi Produk"}
             </h3>

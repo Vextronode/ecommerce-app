@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Cart;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,12 +43,45 @@ class HandleInertiaRequests extends Middleware
                     'gender' => $request->user()->gender,
                     'dob' => $request->user()->dob,
                     'role' => $request->user()->role,
-                    'is_password_changed' => $request->user()->is_password_changed,
                 ] : null,
             ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+            ],
+            'merchant_store' => fn () => ($request->user() && $request->user()->role === 'pedagang')
+                ? ($request->user()->store ? [
+                    'id' => $request->user()->store->id,
+                    'name' => $request->user()->store->name,
+                    'address' => $request->user()->store->address,
+                    'has_address' => ! empty(trim($request->user()->store->address ?? '')),
+                    'has_completed_tour' => (bool) ($request->user()->store->has_completed_tour ?? false),
+                ] : null)
+                : null,
             'cart_count' => $request->user()
-                ? \App\Models\Cart::where('user_id', $request->user()->id)->count()
+                ? Cart::where('user_id', $request->user()->id)->count()
                 : 0,
+            'cart_preview' => fn () => $request->user() ? [
+                'items' => Cart::with(['product.skus'])
+                    ->where('user_id', $request->user()->id)
+                    ->latest()
+                    ->take(4)
+                    ->get()
+                    ->map(function ($cart) {
+                        $matchingSku = $cart->product ? $cart->product->skus->where('variant_name', $cart->preparation_option)->first() : null;
+                        return [
+                            'id' => $cart->id,
+                            'name' => $cart->product->name ?? 'Produk',
+                            'price' => (float) ($matchingSku ? $matchingSku->price : ($cart->product->price ?? 0)),
+                            'quantity' => $cart->quantity,
+                            'variant_name' => $cart->preparation_option,
+                            'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
+                        ];
+                    }),
+                'total_count' => Cart::where('user_id', $request->user()->id)->count(),
+            ] : null,
+            'global_categories' => fn () => Category::select('id', 'name', 'slug')->get(),
         ];
     }
 }

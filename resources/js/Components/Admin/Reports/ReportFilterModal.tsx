@@ -30,6 +30,23 @@ interface Props {
     onReset: () => void;
 }
 
+const periods = [
+    { id: "all", label: "Semua Waktu" },
+    { id: "today", label: "Hari Ini" },
+    { id: "this_week", label: "Minggu Ini" },
+    { id: "this_month", label: "Bulan Ini" },
+    { id: "this_year", label: "Tahun Ini" },
+    { id: "custom", label: "Rentang Kustom" },
+];
+
+const sortOptions = [
+    { id: "sales", label: "Penjualan Terbanyak (Qty)" },
+    { id: "revenue", label: "Pendapatan Tertinggi (Rp)" },
+    { id: "name", label: "Nama Produk (A-Z)" },
+];
+
+const perPageOptions = [5, 10, 25, 50];
+
 export default function ReportFilterModal({
     isOpen,
     onClose,
@@ -54,37 +71,22 @@ export default function ReportFilterModal({
 }: Props) {
     if (!isOpen) return null;
 
-    const periods = [
-        { id: "all", label: "Semua Waktu" },
-        { id: "today", label: "Hari Ini" },
-        { id: "this_week", label: "Minggu Ini" },
-        { id: "this_month", label: "Bulan Ini" },
-        { id: "this_year", label: "Tahun Ini" },
-        { id: "custom", label: "Rentang Kustom" },
-    ];
 
-    const sortOptions = [
-        { id: "sales", label: "Penjualan Terbanyak (Qty)" },
-        { id: "revenue", label: "Pendapatan Tertinggi (Rp)" },
-        { id: "name", label: "Nama Produk (A-Z)" },
-    ];
-
-    const perPageOptions = [5, 10, 25, 50];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
-            <div
-                className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            <button type="button" aria-label="Tutup modal"
+                className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity w-full cursor-default"
                 onClick={onClose}
             />
 
             {/* Modal Box */}
-            <div className="relative bg-white rounded-3xl border border-gray-100 shadow-2xl w-full max-w-lg overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+            <div className="relative bg-white rounded-3xl border border-gray-100 shadow-2xl w-full max-w-lg overflow-hidden z-10 animate-in fade-in zoom-in-95 transition-opacity duration-150">
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-[#E6F8F9] flex items-center justify-center text-[#004F54]">
+                        <div className="w-8 h-8 rounded-xl bg-orange-50 border border-brand-orange/30 flex items-center justify-center text-brand-orange">
                             <Calendar className="w-4 h-4" />
                         </div>
                         <div>
@@ -96,7 +98,7 @@ export default function ReportFilterModal({
                             </p>
                         </div>
                     </div>
-                    <button
+                    <button aria-label="Action"
                         type="button"
                         onClick={onClose}
                         className="w-8 h-8 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
@@ -109,7 +111,7 @@ export default function ReportFilterModal({
                 <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
                     {/* Periode Waktu */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-2">
+                        <label htmlFor="field_112" className="block text-xs font-bold text-gray-700 mb-2">
                             Periode Waktu
                         </label>
                         <div className="grid grid-cols-3 gap-2">
@@ -120,8 +122,8 @@ export default function ReportFilterModal({
                                         key={p.id}
                                         type="button"
                                         onClick={() => setPeriod(p.id)}
-                                        className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all text-center ${isSelected
-                                                ? "bg-[#41B9C5] text-white border-[#41B9C5] shadow-xs"
+                                        className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-colors text-center ${isSelected
+                                                ? "bg-brand-orange text-white border-brand-orange shadow-xs shadow-brand-orange/30"
                                                 : "bg-gray-50/70 border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300"
                                             }`}
                                     >
@@ -135,25 +137,25 @@ export default function ReportFilterModal({
                         {period === "custom" && (
                             <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-100">
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-gray-500 mb-1">
+                                    <label htmlFor="field_138" className="block text-[11px] font-semibold text-gray-500 mb-1">
                                         Dari Tanggal
                                     </label>
-                                    <input
+                                    <input id="field_138"
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-[#41B9C5] focus:outline-none"
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange focus:outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-gray-500 mb-1">
+                                    <label htmlFor="field_149" className="block text-[11px] font-semibold text-gray-500 mb-1">
                                         Sampai Tanggal
                                     </label>
-                                    <input
+                                    <input id="field_149"
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-[#41B9C5] focus:outline-none"
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -164,14 +166,14 @@ export default function ReportFilterModal({
                     <div>
                         <div className="flex items-center gap-1.5 mb-1.5">
                             <Store className="w-3.5 h-3.5 text-gray-400" />
-                            <label className="text-xs font-bold text-gray-700">
+                            <label htmlFor="field_167" className="text-xs font-bold text-gray-700">
                                 Filter Toko / Pedagang
                             </label>
                         </div>
-                        <select
+                        <select id="field_167"
                             value={storeId || ""}
                             onChange={(e) => setStoreId(e.target.value ? Number(e.target.value) : null)}
-                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-[#41B9C5] focus:outline-none"
+                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange focus:outline-none"
                         >
                             <option value="">Semua Toko Mitra</option>
                             {stores.map((s) => (
@@ -186,14 +188,14 @@ export default function ReportFilterModal({
                     <div>
                         <div className="flex items-center gap-1.5 mb-1.5">
                             <Tag className="w-3.5 h-3.5 text-gray-400" />
-                            <label className="text-xs font-bold text-gray-700">
+                            <label htmlFor="field_189" className="text-xs font-bold text-gray-700">
                                 Kategori Produk
                             </label>
                         </div>
-                        <select
+                        <select id="field_189"
                             value={categoryId || ""}
                             onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : null)}
-                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-[#41B9C5] focus:outline-none"
+                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange focus:outline-none"
                         >
                             <option value="">Semua Kategori</option>
                             {categories.map((c) => (
@@ -209,14 +211,14 @@ export default function ReportFilterModal({
                         <div>
                             <div className="flex items-center gap-1.5 mb-1.5">
                                 <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
-                                <label className="text-xs font-bold text-gray-700">
+                                <label htmlFor="field_212" className="text-xs font-bold text-gray-700">
                                     Urutkan Data
                                 </label>
                             </div>
-                            <select
+                            <select id="field_212"
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-[#41B9C5] focus:outline-none"
+                                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange focus:outline-none"
                             >
                                 {sortOptions.map((so) => (
                                     <option key={so.id} value={so.id}>
@@ -229,14 +231,14 @@ export default function ReportFilterModal({
                         <div>
                             <div className="flex items-center gap-1.5 mb-1.5">
                                 <Layers className="w-3.5 h-3.5 text-gray-400" />
-                                <label className="text-xs font-bold text-gray-700">
+                                <label htmlFor="field_232" className="text-xs font-bold text-gray-700">
                                     Jumlah Baris
                                 </label>
                             </div>
-                            <select
+                            <select id="field_232"
                                 value={perPage}
                                 onChange={(e) => setPerPage(Number(e.target.value))}
-                                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-[#41B9C5] focus:outline-none"
+                                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange focus:outline-none"
                             >
                                 {perPageOptions.map((num) => (
                                     <option key={num} value={num}>
@@ -253,7 +255,7 @@ export default function ReportFilterModal({
                     <button
                         type="button"
                         onClick={onReset}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-200/60 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-200/60 transition-colors cursor-pointer"
                     >
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>Reset</span>
@@ -263,14 +265,14 @@ export default function ReportFilterModal({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-200/50 transition-colors"
+                            className="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-200/50 transition-colors cursor-pointer"
                         >
                             Batal
                         </button>
                         <button
                             type="button"
                             onClick={onApply}
-                            className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] hover:bg-[#38a3ae] text-white shadow-md shadow-[#41B9C5]/20 transition-all"
+                            className="px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-orange hover:bg-brand-orange-dark text-white shadow-md shadow-brand-orange/20 transition-colors cursor-pointer"
                         >
                             Terapkan Filter
                         </button>

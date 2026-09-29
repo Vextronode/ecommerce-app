@@ -3,14 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Jenssegers\Agent\Agent;
 
 class ProfileController extends Controller
 {
@@ -19,11 +25,13 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        $sessions = \Illuminate\Support\Facades\DB::table('sessions')
-            ->where('user_id', $request->user()->getAuthIdentifier())
+        $userId = $request->user()->getAuthIdentifier();
+
+        $sessions = DB::table('sessions')
+            ->where('user_id', $userId)
             ->orderBy('last_activity', 'desc')
             ->get()->map(function ($session) use ($request) {
-                $agent = new \Jenssegers\Agent\Agent();
+                $agent = new Agent;
                 $agent->setUserAgent($session->user_agent);
 
                 return (object) [
@@ -35,9 +43,18 @@ class ProfileController extends Controller
                     ],
                     'ip_address' => $session->ip_address,
                     'is_current_device' => $session->id === $request->session()->getId(),
-                    'last_active' => \Carbon\Carbon::createFromTimestamp($session->last_activity)->diffForHumans(),
+                    'last_active' => Carbon::createFromTimestamp($session->last_activity)->diffForHumans(),
                 ];
             });
+
+        $orderCounts = [
+            'unpaid' => Order::where('user_id', $userId)->where('payment_status', 'pending')->where('shipping_status', '!=', 'cancelled')->count(),
+            'processing' => Order::where('user_id', $userId)->where('shipping_status', 'processing')->count(),
+            'shipped' => Order::where('user_id', $userId)->where('shipping_status', 'shipped')->count(),
+            'rating' => OrderItem::whereHas('order', function ($query) use ($userId) {
+                $query->where('user_id', $userId)->where('shipping_status', 'delivered');
+            })->doesntHave('review')->count(),
+        ];
 
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
@@ -45,7 +62,8 @@ class ProfileController extends Controller
             'addresses' => $request->user()->addresses()->orderBy('is_primary', 'desc')->get(),
             'notificationSettings' => $request->user()->notification_settings ?? [],
             'sessions' => $sessions,
-            'isOAuth' => !is_null($request->user()->google_id),
+            'isOAuth' => ! is_null($request->user()->google_id),
+            'orderCounts' => $orderCounts,
         ]);
     }
 
@@ -70,16 +88,17 @@ class ProfileController extends Controller
      */
     public function destroyOtherSessions(Request $request): RedirectResponse
     {
-        \Illuminate\Support\Facades\DB::table('sessions')
+        DB::table('sessions')
             ->where('user_id', $request->user()->getAuthIdentifier())
             ->where('id', '!=', $request->session()->getId())
             ->delete();
 
         return Redirect::route('profile.edit')->with('status', 'Sesion lainnya berhasil dihapus.');
     }
+
     public function destroy(Request $request): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         if (is_null($user->google_id)) {
@@ -120,6 +139,14 @@ class ProfileController extends Controller
             $user->update([
                 'profile_photo_path' => $path,
             ]);
+
+            // Sync with store logo if they have a store
+            if ($user->store) {
+                if ($user->store->logo_path && $user->store->logo_path !== $path) {
+                    Storage::disk('public')->delete($user->store->logo_path);
+                }
+                $user->store->update(['logo_path' => $path]);
+            }
         }
 
         return back();
@@ -133,6 +160,8 @@ class ProfileController extends Controller
             'full_address' => 'required|string',
             'label' => 'required|string|in:Rumah,Kantor',
             'is_primary' => 'boolean',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ]);
 
         if ($request->is_primary) {
@@ -154,6 +183,8 @@ class ProfileController extends Controller
             'full_address' => 'required|string',
             'label' => 'required|string|in:Rumah,Kantor',
             'is_primary' => 'boolean',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ]);
 
         if ($request->is_primary) {

@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
-import { Head } from "@inertiajs/react";
+import React, { useState, useMemo, useEffect } from "react";
+import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
+import { Head, router } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import mainImage from "@/assets/images/kakap.png";
 
@@ -15,6 +16,8 @@ import ProductReviewsCard from "@/Components/Storefront/ProductDetail/ProductRev
 import ProductCarousel from "@/Components/Storefront/ProductCarousel";
 import VariantSelector from "@/Components/Storefront/ProductDetail/VariantSelector";
 import StoreProfileCard from "@/Components/Storefront/ProductDetail/StoreProfileCard";
+import ProductDetailPageSkeleton from "@/Components/Storefront/ProductDetail/ProductDetailPageSkeleton";
+import { useInertiaNetworkLoading } from "@/Hooks/useInertiaNetworkLoading";
 import { GuaranteeItem } from "@/Components/Storefront/ProductDetail/types";
 
 const staticGuarantees: GuaranteeItem[] = [
@@ -47,11 +50,32 @@ interface Props {
 }
 
 export default function ProductDetail({ product, relatedProducts }: Props) {
+    const isNetworkLoading = useInertiaNetworkLoading();
+
+export default function ProductDetail({ product, relatedProducts }: Props) {
     const [quantity, setQuantity] = useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [activeTab, setActiveTab] = useState<"details" | "reviews">(
         "details",
     );
+
+    useEffect(() => {
+        if (!product?.id || typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel("storefront-products");
+        const handleStockUpdate = (e: any) => {
+            if (Number(e.product_id) === Number(product.id)) {
+                router.reload({ only: ["product"] });
+            }
+        };
+
+        channel.listen(".ProductStockUpdated", handleStockUpdate);
+        channel.listen("ProductStockUpdated", handleStockUpdate);
+
+        return () => {
+            window.Echo.leaveChannel("storefront-products");
+        };
+    }, [product?.id]);
 
     const [selectedVariants, setSelectedVariants] = useState<
         Record<string, string>
@@ -78,8 +102,9 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         ? product.variants.every((v: any) => selectedVariants[v.name])
         : true;
 
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const formatNumber = (angka: number) =>
-        new Intl.NumberFormat("id-ID").format(angka);
+        formatNumberId(angka);
 
     const getDisplayPrice = () => {
         if (isAllVariantsSelected && currentSku)
@@ -136,6 +161,15 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         sold: p.sold || 0,
         image: p.image_path || mainImage,
     }));
+
+    if (isNetworkLoading) {
+        return (
+            <StorefrontLayout>
+                <Head title={`${formattedProduct.name} - Cibenda Mart`} />
+                <ProductDetailPageSkeleton />
+            </StorefrontLayout>
+        );
+    }
 
     return (
         <StorefrontLayout>

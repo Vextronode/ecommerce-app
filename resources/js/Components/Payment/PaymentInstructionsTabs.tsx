@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { BookOpen } from "lucide-react";
+import { formatRupiah } from "@/utils/formatters";
 
 interface Props {
     channel?: string;
@@ -28,13 +29,6 @@ export default function PaymentInstructionsTabs({
 }: Props) {
     const [activeTab, setActiveTab] = useState<string>("mbanking");
 
-    const formatRupiah = (amount: number) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-        }).format(amount);
-    };
 
     const getInstructions = (): InstructionCategory[] => {
         if (channel === "bca_va") {

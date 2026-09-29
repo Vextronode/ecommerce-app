@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Merchant;
 
+use App\Events\WithdrawalUpdated;
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessWithdrawalPayout;
 use App\Models\Order;
 use App\Models\Store;
 use App\Models\Withdrawal;
-use App\Services\MidtransIrisService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +21,7 @@ class WithdrawalController extends Controller
         $user = $request->user()->load('store');
         $store = $user->store;
 
-        if (!$store) {
+        if (! $store) {
             return redirect()->route('merchant.store.setup');
         }
 
@@ -41,14 +42,16 @@ class WithdrawalController extends Controller
             'store' => [
                 'id' => $store->id,
                 'name' => $store->name,
-                'balance' => (float) $store->balance,
+                'available_balance' => (float) $store->available_balance,
+                'pending_balance' => (float) $store->pending_balance,
                 'bank_name' => $store->bank_name ?? '',
                 'bank_account_number' => $store->bank_account_number ?? '',
                 'bank_account_holder' => $store->bank_account_holder ?? '',
             ],
             'withdrawals' => $withdrawals,
             'stats' => [
-                'available_balance' => (float) $store->balance,
+                'available_balance' => (float) $store->available_balance,
+                'pending_balance' => (float) $store->pending_balance,
                 'total_withdrawn' => (float) $totalWithdrawn,
                 'total_earnings' => (float) $totalEarnings,
             ],
@@ -70,19 +73,21 @@ class WithdrawalController extends Controller
     }
 
     /**
-     * Store a withdrawal request with strict concurrency locking (Race-Condition & Double-Spending Proof)
+     * Store a withdrawal request with strict concurrency locking and dispatch to async queue worker.
      */
-    public function store(Request $request, MidtransIrisService $irisService)
+    public function store(Request $request)
     {
         $user = $request->user();
         $store = $user->store;
 
-        if (!$store) {
+        if (! $store) {
             return back()->with('error', 'Toko tidak ditemukan.');
         }
 
-        if (!$store->bank_name || !$store->bank_account_number || !$store->bank_account_holder) {
-            return back()->with('error', 'Silakan lengkapi informasi rekening bank terlebih dahulu.');
+        if (! $store->bank_name || ! $store->bank_account_number || ! $store->bank_account_holder) {
+            throw ValidationException::withMessages([
+                'amount' => 'Silakan lengkapi informasi rekening bank terlebih dahulu.',
+            ]);
         }
 
         $validated = $request->validate([
@@ -96,51 +101,61 @@ class WithdrawalController extends Controller
         ]);
 
         $amount = (float) $validated['amount'];
-        $refNo = 'WD-' . date('YmdHis') . '-' . strtoupper(substr(uniqid(), -4));
+        $refNo = 'WD-'.date('YmdHis').'-'.strtoupper(substr(uniqid(), -4));
 
+        // Phase 1: Atomically lock store, check balance, deduct available_balance, and create pending withdrawal
         try {
-            DB::transaction(function () use ($store, $amount, $refNo, $irisService) {
-                // Pessimistic lock on store record to eliminate double spending
+            $withdrawal = DB::transaction(function () use ($store, $amount, $refNo) {
                 $lockedStore = Store::where('id', $store->id)->lockForUpdate()->firstOrFail();
 
-                if ($lockedStore->balance < $amount) {
+                // Prevent race condition & double-spending: reject if a withdrawal is already pending
+                $hasPending = Withdrawal::where('store_id', $lockedStore->id)
+                    ->where('status', 'pending')
+                    ->exists();
+
+                if ($hasPending) {
                     throw ValidationException::withMessages([
-                        'amount' => 'Saldo yang dapat ditarik tidak mencukupi (Tersedia: Rp ' . number_format($lockedStore->balance, 0, ',', '.') . ').',
+                        'amount' => 'Masih ada transaksi penarikan dana yang sedang diproses. Mohon tunggu hingga proses selesai sebelum mengajukan penarikan baru.',
+                    ]);
+                }
+
+                if ($lockedStore->available_balance < $amount) {
+                    throw ValidationException::withMessages([
+                        'amount' => 'Saldo yang dapat ditarik tidak mencukupi (Tersedia: Rp '.number_format($lockedStore->available_balance, 0, ',', '.').').',
                     ]);
                 }
 
                 // Decrement balance atomically inside locked transaction
-                $lockedStore->decrement('balance', $amount);
+                $lockedStore->decrement('available_balance', $amount);
 
-                $withdrawal = Withdrawal::create([
+                return Withdrawal::create([
                     'store_id' => $lockedStore->id,
                     'reference_no' => $refNo,
                     'amount' => $amount,
                     'bank_name' => strtoupper($lockedStore->bank_name),
                     'account_number' => $lockedStore->bank_account_number,
                     'account_holder' => $lockedStore->bank_account_holder,
-                    'status' => 'completed',
-                    'notes' => 'Penarikan Saldo Toko via Midtrans IRIS',
+                    'status' => 'pending',
+                    'notes' => 'Menunggu pemrosesan oleh sistem payout',
                 ]);
-
-                // Call Midtrans IRIS Payout Service
-                $irisResult = $irisService->createPayout([
-                    'beneficiary_name' => $lockedStore->bank_account_holder,
-                    'beneficiary_account' => $lockedStore->bank_account_number,
-                    'beneficiary_bank' => $lockedStore->bank_name,
-                    'amount' => $amount,
-                    'notes' => 'Withdrawal ' . $refNo,
-                ]);
-
-                Log::info("Withdrawal {$refNo} completed for store {$lockedStore->id}, amount: Rp {$amount}", (array) $irisResult);
             });
         } catch (ValidationException $e) {
             throw $e;
-        } catch (\Exception $e) {
-            Log::error("Withdrawal failed for store {$store->id}: " . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan sistem saat memproses penarikan: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("Withdrawal initiation failed for store {$store->id}: ".$e->getMessage());
+
+            throw ValidationException::withMessages([
+                'amount' => 'Gagal memproses permintaan penarikan: '.$e->getMessage(),
+            ]);
         }
 
-        return back()->with('success', 'Penarikan saldo sebesar Rp ' . number_format($amount, 0, ',', '.') . ' berhasil diproses!');
+        // Phase 2: Dispatch payout to background queue worker
+        ProcessWithdrawalPayout::dispatch($withdrawal);
+
+        try {
+            broadcast(new WithdrawalUpdated($withdrawal))->toOthers();
+        } catch (\Throwable $e) {}
+
+        return back()->with('success', 'Permintaan penarikan saldo sebesar Rp '.number_format($amount, 0, ',', '.').' berhasil diajukan dan sedang diproses!');
     }
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { formatRupiah } from "@/utils/formatters";
 import { Image as ImageIcon } from "lucide-react";
 import ProductActions from "./ProductActions";
 
@@ -16,7 +17,7 @@ export default function ProductGrid({ products, getStockIndicator }: Props) {
                     return (
                         <div
                             key={product.id}
-                            className="bg-white border border-[#41B9C5]/20 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
+                            className="bg-white border border-brand-orange/30 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow relative"
                         >
                             <div className="absolute top-2 right-2">
                                 <ProductActions product={product} />
@@ -36,15 +37,11 @@ export default function ProductGrid({ products, getStockIndicator }: Props) {
                                 {product.name}
                             </h3>
                             <p className="text-xs text-gray-500 mb-3 line-clamp-1">
-                                {product.category?.name || "Uncategorized"}
+                                {product.category?.name || "Umum"}
                             </p>
                             <div className="flex items-center justify-between mb-3">
-                                <span className="font-bold text-[#41B9C5] text-sm md:text-base">
-                                    {new Intl.NumberFormat("id-ID", {
-                                        style: "currency",
-                                        currency: "IDR",
-                                        maximumFractionDigits: 0,
-                                    }).format(product.price)}
+                                <span className="font-bold text-brand-orange text-sm md:text-base">
+                                    {formatRupiah(Number(product.price))}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -66,7 +63,7 @@ export default function ProductGrid({ products, getStockIndicator }: Props) {
                     );
                 })
             ) : (
-                <div className="col-span-full py-12 text-center text-gray-500 text-xs md:text-sm bg-white border border-[#41B9C5]/30 rounded-3xl">
+                <div className="col-span-full py-12 text-center text-gray-500 text-xs md:text-sm bg-white border border-brand-orange/30 rounded-3xl">
                     Belum ada produk sesuai filter.
                 </div>
             )}

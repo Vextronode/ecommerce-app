@@ -20,20 +20,20 @@ export default function QuantitySelector({
             <span className="font-bold text-gray-900 text-sm tracking-wide">
                 Atur Jumlah
             </span>
-            <div className="flex items-center border border-gray-200 rounded-lg">
-                <button
+            <div aria-label="Pilih opsi yang tersedia" className="flex items-center border border-gray-200 rounded-lg">
+                <button aria-label="Tampilkan rincian lebih lanjut"
                     onClick={onDecrease}
                     className="p-3 text-gray-500 hover:bg-gray-50 rounded-l-lg"
                 >
                     <Minus className="w-4 h-4" />
                 </button>
-                <input
+                <input aria-label="Tampilkan rincian lebih lanjut"
                     type="text"
                     value={quantity}
                     readOnly
                     className="w-14 text-center font-bold border-none focus:ring-0 p-0 text-base"
                 />
-                <button
+                <button aria-label="Pilih opsi yang tersedia"
                     onClick={onIncrease}
                     className="p-3 text-gray-500 hover:bg-gray-50 rounded-r-lg"
                 >

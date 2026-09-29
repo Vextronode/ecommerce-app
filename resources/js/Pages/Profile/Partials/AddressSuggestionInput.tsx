@@ -53,18 +53,18 @@ export default function AddressSuggestionInput({
 
     return (
         <div className="relative" ref={containerRef}>
-            <label className="text-sm font-bold text-gray-700 mb-2 block">
+            <label htmlFor="field_56" className="text-sm font-bold text-gray-700 mb-2 block">
                 {label}
             </label>
             <div className="relative">
                 {type === "input" ? (
-                    <input
+                    <input id="field_56"
                         type="text"
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
                         required
                         placeholder={placeholder}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#245D56] text-sm bg-slate-50/50"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#ED7218] text-sm bg-slate-50/50"
                     />
                 ) : (
                     <textarea
@@ -73,11 +73,11 @@ export default function AddressSuggestionInput({
                         required
                         rows={2}
                         placeholder={placeholder}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#245D56] text-sm bg-slate-50/50 resize-none"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-[#ED7218] text-sm bg-slate-50/50 resize-none"
                     ></textarea>
                 )}
                 {searchLoading && activeDropdown === dropdownType && (
-                    <Loader2 className="w-4 h-4 animate-spin text-[#245D56] absolute right-4 top-3.5" />
+                    <Loader2 className="w-4 h-4 animate-spin text-[#ED7218] absolute right-4 top-3.5" />
                 )}
             </div>
 

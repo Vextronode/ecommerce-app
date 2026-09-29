@@ -36,7 +36,7 @@ class AuthenticatedSessionController extends Controller
         $isPasswordChanged = $request->user()->is_password_changed;
 
         if ($role === 'pedagang') {
-            if (!$isPasswordChanged) {
+            if (! $isPasswordChanged) {
                 return redirect()->intended(route('merchant.store.setup', absolute: false));
             }
 
@@ -54,12 +54,17 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $adminPrefix = config('admin.prefix', 'cibenda-portal');
-        $isMerchant = $request->input('source') === 'merchant'
+        $user = Auth::user();
+        $userRole = $user?->role;
+
+        $isMerchant = $userRole === 'pedagang'
+            || $request->input('source') === 'merchant'
             || $request->is('pedagang/*')
             || str_contains((string) $request->headers->get('referer'), '/pedagang');
-        $isAdmin = $request->input('source') === 'admin'
-            || $request->is($adminPrefix . '/*')
-            || str_contains((string) $request->headers->get('referer'), '/' . $adminPrefix);
+        $isAdmin = $userRole === 'admin'
+            || $request->input('source') === 'admin'
+            || $request->is($adminPrefix.'/*')
+            || str_contains((string) $request->headers->get('referer'), '/'.$adminPrefix);
 
         $redirectTo = route('login');
         if ($isMerchant) {

@@ -32,7 +32,7 @@ class MerchantController extends Controller
             ->latest('id');
 
         // Search across user name, email, phone, and store attributes
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -47,19 +47,19 @@ class MerchantController extends Controller
         }
 
         // Filter by Account Status (active, warning, suspended, inactive)
-        if (!empty($statusFilter) && in_array($statusFilter, ['active', 'warning', 'suspended', 'inactive'])) {
+        if (! empty($statusFilter) && in_array($statusFilter, ['active', 'warning', 'suspended', 'inactive'])) {
             $query->where('status', $statusFilter);
         }
 
         // Filter by SID / Verification Status (verified, pending, rejected)
-        if (!empty($sidFilter) && in_array($sidFilter, ['verified', 'pending', 'rejected'])) {
+        if (! empty($sidFilter) && in_array($sidFilter, ['verified', 'pending', 'rejected'])) {
             $query->whereHas('store', function ($sq) use ($sidFilter) {
                 $sq->where('sid_status', $sidFilter);
             });
         }
 
         // Filter by Subdistrict if provided
-        if (!empty($subdistrictFilter)) {
+        if (! empty($subdistrictFilter)) {
             $query->whereHas('store', function ($sq) use ($subdistrictFilter) {
                 $sq->where('subdistrict', $subdistrictFilter);
             });
@@ -81,7 +81,7 @@ class MerchantController extends Controller
             $store = $user->store;
             $subdistrict = $store?->subdistrict;
 
-            if (empty($subdistrict) && !empty($store?->address)) {
+            if (empty($subdistrict) && ! empty($store?->address)) {
                 // Heuristic: Extract first district/village mentioned in address if available
                 $parts = explode(',', $store->address);
                 $subdistrict = trim($parts[0] ?? 'Pangandaran');
@@ -93,6 +93,7 @@ class MerchantController extends Controller
                 'id' => $user->id,
                 'store_id' => $store?->id,
                 'name' => $user->name,
+                'nik' => $user->nik ?: '-',
                 'email' => $user->email,
                 'phone' => $user->phone ?: '-',
                 'status' => $user->status ?: 'active',
@@ -109,7 +110,7 @@ class MerchantController extends Controller
                     'sid_status' => $store?->sid_status ?: 'verified',
                     'balance' => (int) ($store?->balance ?? 0),
                 ],
-                'username' => '@' . preg_replace('/-[0-9a-f]{10,}$/i', '', $store?->slug ?: Str::slug($user->name)),
+                'username' => '@'.preg_replace('/-[0-9a-f]{10,}$/i', '', $store?->slug ?: Str::slug($user->name)),
             ];
         });
 
@@ -146,6 +147,7 @@ class MerchantController extends Controller
         $validated = $request->validate([
             'merchant_name' => ['required', 'string', 'min:3', 'max:100'],
             'owner_name' => ['required', 'string', 'min:3', 'max:100'],
+            'nik' => ['required', 'string', 'size:16', 'regex:/^[0-9]{16}$/', 'unique:users,nik'],
             'username' => ['nullable', 'string', 'regex:/^[a-zA-Z0-9_\-\.]+$/', 'min:3', 'max:50'],
             'email' => ['required', 'string', 'email:rfc', 'max:150', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'regex:/^(\+62|62|08)[0-9]{7,13}$/'],
@@ -157,6 +159,10 @@ class MerchantController extends Controller
             'owner_name.required' => 'Nama lengkap pemilik wajib diisi.',
             'owner_name.min' => 'Nama pemilik minimal 3 karakter.',
             'owner_name.max' => 'Nama pemilik maksimal 100 karakter.',
+            'nik.required' => 'Nomor Induk Kependudukan (NIK) pemilik wajib diisi.',
+            'nik.size' => 'NIK harus tepat 16 digit angka.',
+            'nik.regex' => 'NIK hanya boleh berupa 16 digit angka.',
+            'nik.unique' => 'NIK ini sudah terdaftar di sistem.',
             'username.regex' => 'Username hanya boleh mengandung huruf, angka, tanda minus (-), titik (.), atau garis bawah (_).',
             'username.min' => 'Username minimal 3 karakter.',
             'email.required' => 'Alamat email wajib diisi.',
@@ -168,22 +174,24 @@ class MerchantController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
-            $user = User::create([
+            $user = new User([
                 'name' => $validated['owner_name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
+                'nik' => $validated['nik'],
                 'password' => Hash::make($validated['password']),
-                'role' => 'pedagang',
-                'status' => 'active',
                 'is_password_changed' => false,
-                'email_verified_at' => now(),
             ]);
+            $user->role = 'pedagang';
+            $user->status = 'active';
+            $user->email_verified_at = now();
+            $user->save();
 
-            $baseSlug = !empty($validated['username']) ? Str::slug($validated['username']) : Str::slug($validated['merchant_name']);
-            $slug = $baseSlug ?: 'toko-' . $user->id;
+            $baseSlug = ! empty($validated['username']) ? Str::slug($validated['username']) : Str::slug($validated['merchant_name']);
+            $slug = $baseSlug ?: 'toko-'.$user->id;
             $count = 1;
             while (Store::where('slug', $slug)->exists()) {
-                $slug = $baseSlug . '-' . $count++;
+                $slug = $baseSlug.'-'.$count++;
             }
 
             Store::create([
@@ -210,6 +218,7 @@ class MerchantController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
+            'nik' => ['nullable', 'string', 'size:16', 'regex:/^[0-9]{16}$/', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:150', Rule::unique('users')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:25'],
             'password' => ['nullable', 'string', 'min:8'],
@@ -226,14 +235,19 @@ class MerchantController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
-                'status' => $validated['status'],
             ];
 
-            if (!empty($validated['password'])) {
+            if (array_key_exists('nik', $validated)) {
+                $userPayload['nik'] = $validated['nik'];
+            }
+
+            if (! empty($validated['password'])) {
                 $userPayload['password'] = Hash::make($validated['password']);
             }
 
             $user->update($userPayload);
+            $user->status = $validated['status'];
+            $user->save();
 
             $store = $user->store;
             if ($store) {
@@ -249,7 +263,7 @@ class MerchantController extends Controller
                 $slug = $baseSlug;
                 $count = 1;
                 while (Store::where('slug', $slug)->exists()) {
-                    $slug = $baseSlug . '-' . $count++;
+                    $slug = $baseSlug.'-'.$count++;
                 }
 
                 Store::create([
@@ -278,9 +292,11 @@ class MerchantController extends Controller
         ]);
 
         $user = User::where('role', 'pedagang')->findOrFail($id);
-        $user->update(['status' => $validated['status']]);
+        $user->status = $validated['status'];
+        $user->save();
 
         $statusLabel = ucfirst($validated['status']);
+
         return redirect()->back()->with('success', "Status akun berhasil diubah menjadi {$statusLabel}.");
     }
 
@@ -297,6 +313,7 @@ class MerchantController extends Controller
         $store->update(['sid_status' => $validated['sid_status']]);
 
         $label = ucfirst($validated['sid_status']);
+
         return redirect()->back()->with('success', "Status verifikasi toko berhasil diubah menjadi {$label}.");
     }
 

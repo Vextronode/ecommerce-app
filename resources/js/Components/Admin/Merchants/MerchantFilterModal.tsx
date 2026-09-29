@@ -18,13 +18,13 @@ export default function MerchantFilterModal({
     onClose,
     currentFilters,
 }: Props) {
-    if (!isOpen) return null;
-
     const [status, setStatus] = useState(currentFilters.status || "");
     const [sidStatus, setSidStatus] = useState(currentFilters.sid_status || "");
     const [subdistrict, setSubdistrict] = useState(
         currentFilters.subdistrict || "",
     );
+
+    if (!isOpen) return null;
 
     const handleApply = (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,24 +64,24 @@ export default function MerchantFilterModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
-            <div
-                className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            <button type="button" aria-label="Tutup modal"
+                className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity w-full cursor-default"
                 onClick={onClose}
             />
 
             {/* Modal Container */}
-            <div className="relative bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-100 z-10 animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-100 z-10 animate-in fade-in zoom-in-95 transition-opacity duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-[#F0FAFB] border border-[#41B9C5]/30 flex items-center justify-center text-[#245D56]">
+                        <div className="w-8 h-8 rounded-xl bg-orange-50 border border-brand-orange/30 flex items-center justify-center text-brand-orange">
                             <Filter className="w-4 h-4" />
                         </div>
                         <h3 className="text-base font-bold text-gray-900">
                             Filter Pedagang
                         </h3>
                     </div>
-                    <button
+                    <button aria-label="Action"
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition-colors"
                     >
@@ -93,22 +93,22 @@ export default function MerchantFilterModal({
                 <form onSubmit={handleApply} className="space-y-4 py-4">
                     {/* Status Akun */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <label htmlFor="field_96" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                             Status Akun
                         </label>
                         <div className="grid grid-cols-2 gap-2">
                             {[
                                 { label: "Semua Status", value: "" },
-                                { label: "Active", value: "active" },
-                                { label: "Warning", value: "warning" },
-                                { label: "Suspended", value: "suspended" },
+                                { label: "Aktif", value: "active" },
+                                { label: "Peringatan", value: "warning" },
+                                { label: "Ditangguhkan", value: "suspended" },
                             ].map((item) => (
                                 <button
                                     key={item.value}
                                     type="button"
                                     onClick={() => setStatus(item.value)}
-                                    className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${status === item.value
-                                            ? "bg-[#41B9C5] text-white border-[#41B9C5] shadow-xs"
+                                    className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${status === item.value
+                                            ? "bg-brand-orange text-white border-brand-orange shadow-xs"
                                             : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                                         }`}
                                 >
@@ -120,21 +120,21 @@ export default function MerchantFilterModal({
 
                     {/* SID Status */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <label htmlFor="field_123" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                             Status Verifikasi (SID)
                         </label>
                         <div className="grid grid-cols-3 gap-2">
                             {[
                                 { label: "Semua", value: "" },
-                                { label: "Verified", value: "verified" },
-                                { label: "Pending", value: "pending" },
+                                { label: "Terverifikasi", value: "verified" },
+                                { label: "Menunggu", value: "pending" },
                             ].map((item) => (
                                 <button
                                     key={item.value}
                                     type="button"
                                     onClick={() => setSidStatus(item.value)}
-                                    className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${sidStatus === item.value
-                                            ? "bg-[#41B9C5] text-white border-[#41B9C5] shadow-xs"
+                                    className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${sidStatus === item.value
+                                            ? "bg-brand-orange text-white border-brand-orange shadow-xs"
                                             : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                                         }`}
                                 >
@@ -146,13 +146,13 @@ export default function MerchantFilterModal({
 
                     {/* Wilayah / Kecamatan */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                        <label htmlFor="field_149" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                             Wilayah / Kecamatan
                         </label>
-                        <select
+                        <select id="field_149"
                             value={subdistrict}
                             onChange={(e) => setSubdistrict(e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#41B9C5] focus:ring-1 focus:ring-[#41B9C5] transition-all"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-colors"
                         >
                             <option value="">Semua Wilayah</option>
                             <option value="Cibenda">Cibenda</option>
@@ -170,7 +170,7 @@ export default function MerchantFilterModal({
                         <button
                             type="button"
                             onClick={handleReset}
-                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
                         >
                             <RotateCcw className="w-3.5 h-3.5" />
                             Reset
@@ -180,13 +180,13 @@ export default function MerchantFilterModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+                                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
                             >
                                 Batal
                             </button>
                             <button
                                 type="submit"
-                                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#41B9C5] text-white hover:bg-[#38a3ae] shadow-md shadow-[#41B9C5]/20 transition-all cursor-pointer"
+                                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover shadow-md shadow-brand-orange/20 transition-colors cursor-pointer"
                             >
                                 Terapkan Filter
                             </button>

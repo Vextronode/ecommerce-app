@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 export default function StorefrontLayout({ children }: PropsWithChildren) {
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans overflow-x-hidden">
+        <div className="min-h-screen bg-[#F8FAFC] font-sans">
             <Toaster position="top-center" reverseOrder={false} />
             <Navbar />
             <main className="w-full">{children}</main>

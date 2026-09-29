@@ -44,14 +44,14 @@ export default function SkuMatrix({ data, setData }: Props) {
                     <tbody className="divide-y divide-gray-100">
                         {data.skus.map((sku: SkuType, index: number) => (
                             <tr
-                                key={index}
+                                key={sku.variant_name || index}
                                 className="hover:bg-gray-50/50 transition-colors"
                             >
                                 <td className="px-4 py-3 font-medium text-gray-800">
                                     {sku.variant_name}
                                 </td>
                                 <td className="px-4 py-3">
-                                    <input
+                                    <input aria-label="Input field"
                                         type="number"
                                         placeholder="Harga..."
                                         value={sku.price}
@@ -62,12 +62,12 @@ export default function SkuMatrix({ data, setData }: Props) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm"
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
                                         required
                                     />
                                 </td>
                                 <td className="px-4 py-3">
-                                    <input
+                                    <input aria-label="Input field"
                                         type="number"
                                         placeholder="Stok..."
                                         value={sku.stock}
@@ -78,7 +78,7 @@ export default function SkuMatrix({ data, setData }: Props) {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#41B9C5]/50 outline-none text-sm"
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
                                         required
                                     />
                                 </td>

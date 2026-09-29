@@ -35,24 +35,24 @@ export default function AdminMerchantRegistrations({ registrations }: Props) {
                     <button
                         type="button"
                         onClick={() => setPeriod("weekly")}
-                        className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg transition cursor-pointer ${
                             period === "weekly"
                                 ? "bg-white text-gray-900 shadow-sm"
                                 : "text-gray-500 hover:text-gray-800"
                         }`}
                     >
-                        Weekly
+                        Mingguan
                     </button>
                     <button
                         type="button"
                         onClick={() => setPeriod("monthly")}
-                        className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg transition cursor-pointer ${
                             period === "monthly"
                                 ? "bg-white text-gray-900 shadow-sm"
                                 : "text-gray-500 hover:text-gray-800"
                         }`}
                     >
-                        Monthly
+                        Bulanan
                     </button>
                 </div>
             </div>
@@ -75,10 +75,10 @@ export default function AdminMerchantRegistrations({ registrations }: Props) {
                     {items.slice(0, 4).map((item) => (
                         <div
                             key={item.id}
-                            className="flex items-center justify-between p-3 rounded-2xl bg-gray-50/60 hover:bg-[#F0FAFB] border border-gray-100/80 transition-colors"
+                            className="flex items-center justify-between p-3 rounded-2xl bg-gray-50/60 hover:bg-orange-50/40 border border-gray-100/80 transition-colors"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-white border border-[#41B9C5]/30 flex items-center justify-center text-[#245D56] shadow-xs shrink-0">
+                                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-brand-orange/30 flex items-center justify-center text-brand-orange shadow-xs shrink-0">
                                     <Store className="w-5 h-5" />
                                 </div>
                                 <div>
@@ -100,12 +100,12 @@ export default function AdminMerchantRegistrations({ registrations }: Props) {
                                 ) : item.status === "pending" ? (
                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                         <Clock className="w-3 h-3" />
-                                        Pending
+                                        Menunggu
                                     </span>
                                 ) : (
                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                                         <ShieldAlert className="w-3 h-3" />
-                                        Review
+                                        Perlu Review
                                     </span>
                                 )}
                             </div>

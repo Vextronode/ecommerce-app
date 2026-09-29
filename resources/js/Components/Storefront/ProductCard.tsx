@@ -1,7 +1,8 @@
 import React from "react";
-import { Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { Star, ShoppingCart, Store } from "lucide-react";
 import toast from "react-hot-toast";
+import { PageProps } from "@/types";
 
 export interface ProductCardData {
     id: number | string;
@@ -62,6 +63,7 @@ export default function ProductCard({ product }: { product: any }) {
 
     // Format sold count (e.g. 10rb+Terjual, 12 Terjual)
     const soldCount = product.sold ? Number(product.sold) : 0;
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const formatSold = (qty: number) => {
         if (qty >= 10000) {
             return `${Math.floor(qty / 1000)}rb+Terjual`;
@@ -77,11 +79,20 @@ export default function ProductCard({ product }: { product: any }) {
     const image =
         product.image ||
         product.image_path ||
-        "https://images.unsplash.com/photo-1565688534245-05d6b5be184a?auto=format&fit=crop&q=80&w=400";
+        "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400";
+
+    const { auth } = usePage<PageProps>().props;
+    const user = auth?.user;
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (!user) {
+            toast.error("Silakan login terlebih dahulu untuk menambah produk ke keranjang!");
+            router.visit(route("login"));
+            return;
+        }
 
         router.post(
             "/cart",
@@ -104,7 +115,7 @@ export default function ProductCard({ product }: { product: any }) {
     return (
         <Link
             href={route("product.detail", slug)}
-            className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-gray-200 transition-all duration-300 flex flex-col h-full overflow-hidden p-3 sm:p-3.5 group/card cursor-pointer"
+            className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-gray-200 transition duration-300 flex flex-col h-full overflow-hidden p-3 sm:p-3.5 group/card cursor-pointer"
         >
             {/* Product Image Area */}
             <div className="w-full aspect-square rounded-xl bg-[#F8FAFC] overflow-hidden flex items-center justify-center relative mb-3">
@@ -125,7 +136,7 @@ export default function ProductCard({ product }: { product: any }) {
 
                 {/* Product Title */}
                 <h3
-                    className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 leading-snug mb-1 group-hover/card:text-[#004F54] transition-colors"
+                    className="font-bold text-gray-900 text-sm sm:text-base line-clamp-1 leading-snug mb-1 group-hover/card:text-brand-teal-deep transition-colors"
                     title={name}
                 >
                     {name}
@@ -134,8 +145,8 @@ export default function ProductCard({ product }: { product: any }) {
                 {/* Store Name */}
                 {storeName && (
                     <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
-                        <Store className="w-3.5 h-3.5 text-[#215B63] shrink-0" />
-                        <span className="truncate font-medium hover:text-[#215B63] transition-colors">
+                        <Store className="w-3.5 h-3.5 text-brand-teal-deep shrink-0" />
+                        <span className="truncate font-medium hover:text-brand-teal-deep transition-colors">
                             {storeName}
                         </span>
                     </div>
@@ -145,7 +156,7 @@ export default function ProductCard({ product }: { product: any }) {
                 <div className="flex items-center justify-between text-xs sm:text-sm mb-3">
                     {/* Rating */}
                     <div className="flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF7A00] fill-[#FF7A00]" />
+                        <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-orange fill-brand-orange" />
                         <span className="font-semibold text-gray-800 text-xs sm:text-sm">
                             ({ratingDisplay})
                         </span>
@@ -168,7 +179,7 @@ export default function ProductCard({ product }: { product: any }) {
                     <button
                         type="button"
                         onClick={handleAddToCart}
-                        className="p-1 text-[#FF7A00] hover:text-[#E06900] hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                        className="p-1 text-brand-orange hover:text-brand-orange-hover hover:scale-110 active:scale-95 transition cursor-pointer flex items-center justify-center shrink-0"
                         title="Tambah ke Keranjang"
                     >
                         <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
