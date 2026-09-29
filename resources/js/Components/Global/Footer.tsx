@@ -37,8 +37,13 @@ export default function Footer() {
                             Informasi
                         </h4>
                         <ul className="space-y-4">
-                            <li className="text-[15px] text-white/80 hover:text-white transition cursor-pointer">
-                                Tentang Kami
+                            <li>
+                                <Link
+                                    href={route("about")}
+                                    className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
+                                >
+                                    Tentang Kami
+                                </Link>
                             </li>
                             <li className="text-[15px] text-white/80 hover:text-white transition cursor-pointer">
                                 Kebijakan Privasi
@@ -55,8 +60,13 @@ export default function Footer() {
                             Bantuan & Panduan
                         </h4>
                         <ul className="space-y-4">
-                            <li className="text-[15px] text-white/80 hover:text-white transition cursor-pointer">
-                                FAQ
+                            <li>
+                                <Link
+                                    href="/about#contact-cs"
+                                    className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
+                                >
+                                    FAQ
+                                </Link>
                             </li>
                             <li className="text-[15px] text-white/80 hover:text-white transition cursor-pointer">
                                 Cara Berbelanja
@@ -75,15 +85,27 @@ export default function Footer() {
                         <ul className="space-y-4">
                             <li className="flex items-start gap-3 text-[15px] text-white/80">
                                 <MapPin className="w-5 h-5 shrink-0 mt-0.5" />
-                                <span>Jl. Raya Cibenda No. 123, Indonesia</span>
+                                <span>Jl. Raya Cibenda No. 123, Kec. Parigi, Pangandaran</span>
                             </li>
-                            <li className="flex items-center gap-3 text-[15px] text-white/80">
-                                <Mail className="w-5 h-5 shrink-0" />
-                                <span>halo@cibendamart.id</span>
+                            <li>
+                                <a 
+                                    href="mailto:halo@cibendamart.id"
+                                    className="flex items-center gap-3 text-[15px] text-white/80 hover:text-white transition-colors"
+                                >
+                                    <Mail className="w-5 h-5 shrink-0" />
+                                    <span>halo@cibendamart.id</span>
+                                </a>
                             </li>
-                            <li className="flex items-center gap-3 text-[15px] text-[#00AA5B] font-medium mt-2">
-                                <Whatsapp size={22} className="shrink-0" />
-                                <span>0812-3456-7890</span>
+                            <li>
+                                <a 
+                                    href="https://wa.me/6281234567890?text=Halo%20Admin%20CS%20Cibenda%20Mart,%20saya%20ingin%20bertanya..."
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-3 text-[15px] text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                                >
+                                    <Whatsapp size={22} className="shrink-0" />
+                                    <span>0812-3456-7890 (CS WhatsApp)</span>
+                                </a>
                             </li>
                         </ul>
                     </div>
