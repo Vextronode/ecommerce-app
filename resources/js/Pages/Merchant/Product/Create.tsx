@@ -64,7 +64,7 @@ export default function Create({ categories }: Props) {
         <MerchantLayout>
             <Head title="Tambah Produk" />
 
-            <div className="flex justify-between items-center mb-8">
+            <div id="tour-product-create-header" className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-extrabold text-brand-orange">
                         Tambah Produk
@@ -77,7 +77,7 @@ export default function Create({ categories }: Props) {
 
             <form onSubmit={submit}>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <div className="lg:col-span-1">
+                    <div id="tour-product-preview" className="lg:col-span-1">
                         <ProductPreview
                             data={data}
                             imagePreviews={imagePreviews}
@@ -89,7 +89,7 @@ export default function Create({ categories }: Props) {
                         />
                     </div>
 
-                    <div className="lg:col-span-2">
+                    <div id="tour-product-image-upload" className="lg:col-span-2">
                         <ImageUpload
                             onImageChange={handleImageChange}
                             previews={imagePreviews}
@@ -99,12 +99,14 @@ export default function Create({ categories }: Props) {
                     </div>
                 </div>
 
-                <ProductForm
-                    data={data}
-                    setData={setData}
-                    errors={errors}
-                    categories={categories}
-                />
+                <div id="tour-product-form-details">
+                    <ProductForm
+                        data={data}
+                        setData={setData}
+                        errors={errors}
+                        categories={categories}
+                    />
+                </div>
             </form>
         </MerchantLayout>
     );

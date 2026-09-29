@@ -59,7 +59,7 @@ export default function Edit({ product, categories }: any) {
     return (
         <MerchantLayout>
             <Head title={`Edit ${product.name}`} />
-            <div className="flex justify-between items-center mb-8">
+            <div id="tour-product-edit-header" className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-extrabold text-brand-orange">
                         Edit Produk
@@ -68,7 +68,7 @@ export default function Edit({ product, categories }: any) {
             </div>
             <form onSubmit={submit}>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <div className="lg:col-span-1">
+                    <div id="tour-product-preview" className="lg:col-span-1">
                         <ProductPreview
                             data={data}
                             imagePreviews={previewList.map((p) => p.url)}
@@ -80,7 +80,7 @@ export default function Edit({ product, categories }: any) {
                             isEdit={true}
                         />
                     </div>
-                    <div className="lg:col-span-2">
+                    <div id="tour-product-image-upload" className="lg:col-span-2">
                         <ImageUpload
                             onImageChange={handleImageChange}
                             previews={previewList.map((p) => p.url)}
@@ -89,13 +89,15 @@ export default function Edit({ product, categories }: any) {
                         />
                     </div>
                 </div>
-                <ProductForm
-                    data={data}
-                    setData={setData}
-                    errors={errors}
-                    categories={categories}
-                    isEdit={true}
-                />
+                <div id="tour-product-form-details">
+                    <ProductForm
+                        data={data}
+                        setData={setData}
+                        errors={errors}
+                        categories={categories}
+                        isEdit={true}
+                    />
+                </div>
             </form>
         </MerchantLayout>
     );

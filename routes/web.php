@@ -351,6 +351,11 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                     'shipped' => $shipped,
                     'completed' => $completed,
                 ],
+                'storeProfile' => [
+                    'has_address' => ! empty(trim($user->store?->address ?? '')),
+                    'address' => $user->store?->address,
+                    'has_completed_tour' => (bool) ($user->store?->has_completed_tour ?? false),
+                ],
             ]);
         })->name('merchant.dashboard');
 
@@ -366,6 +371,8 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
         Route::get('/customers', [CustomerController::class, 'index'])->name('merchant.customers.index');
         Route::get('/settings', [SettingsController::class, 'index'])->name('merchant.settings.index');
         Route::post('/settings', [SettingsController::class, 'update'])->name('merchant.settings.update');
+        Route::post('/tour/complete', [SettingsController::class, 'completeTour'])->name('merchant.tour.complete');
+        Route::post('/tour/reset', [SettingsController::class, 'resetTour'])->name('merchant.tour.reset');
         Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('merchant.settings.notifications.update');
         Route::delete('/settings/sessions', [SettingsController::class, 'destroyOtherSessions'])->name('merchant.settings.sessions.destroy');
         Route::get('/withdrawals', [WithdrawalController::class, 'index'])->name('merchant.withdrawals.index');

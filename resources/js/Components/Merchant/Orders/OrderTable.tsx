@@ -110,7 +110,7 @@ export default function OrderTable({
             <TableToolbar />
 
             {/* Desktop View */}
-            <div className="hidden lg:block w-full overflow-x-hidden">
+            <div id="tour-orders-batch-handover" className="hidden lg:block w-full overflow-x-hidden">
                 <table className="w-full text-left border-collapse table-auto">
                     <thead>
                         <tr className="border-b border-gray-100 bg-white">

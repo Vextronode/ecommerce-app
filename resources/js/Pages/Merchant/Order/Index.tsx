@@ -45,7 +45,7 @@ export default function OrderManagement({ orders, stats }: any) {
             <Head title="Kelola Pesanan - Cibenda Mart" />
 
             <div className="w-full">
-                <div className="mb-6 md:mb-8">
+                <div id="tour-orders-header" className="mb-6 md:mb-8">
                     <h1 className="text-xl md:text-2xl font-extrabold text-brand-orange">
                         Kelola Pesanan
                     </h1>
@@ -54,9 +54,13 @@ export default function OrderManagement({ orders, stats }: any) {
                     </p>
                 </div>
 
-                <OrderSummaryCard stats={stats} />
+                <div id="tour-orders-summary">
+                    <OrderSummaryCard stats={stats} />
+                </div>
 
-                <OrderTable orders={orders} onOpenAction={handleOpenModal} />
+                <div id="tour-orders-table">
+                    <OrderTable orders={orders} onOpenAction={handleOpenModal} />
+                </div>
             </div>
 
             <UpdateStatusModal

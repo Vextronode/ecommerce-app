@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link, router, usePage } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
 import {
     Plus,
@@ -14,6 +14,7 @@ import ProductTable from "@/Components/Merchant/Product/ProductTable";
 import ProductGrid from "@/Components/Merchant/Product/ProductGrid";
 import Pagination from "@/Components/Merchant/Pagination";
 import ProductGridSkeleton from "@/Components/Global/Skeletons/ProductGridSkeleton";
+import StoreAddressWarningBanner from "@/Components/Merchant/Dashboard/StoreAddressWarningBanner";
 import { useInertiaNetworkLoading } from "@/Hooks/useInertiaNetworkLoading";
 
 const STOCK_RULES = [
@@ -64,6 +65,8 @@ interface Props {
 }
 
 export default function Index({ products, categories, filters }: Props) {
+    const { merchant_store } = usePage().props as any;
+    const hasStoreAddress = Boolean(merchant_store?.has_address);
     const [viewMode, setViewMode] = useState<"list" | "grid">("list");
     const isNetworkLoading = useInertiaNetworkLoading();
 
@@ -96,7 +99,12 @@ export default function Index({ products, categories, filters }: Props) {
         <MerchantLayout>
             <Head title="Kelola Produk" />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
+            {/* Peringatan Wajib Lengkapi Alamat Toko */}
+            {!hasStoreAddress && (
+                <StoreAddressWarningBanner className="mb-6 md:mb-8" />
+            )}
+
+            <div id="tour-product-header" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
                 <div>
                     <h1 className="text-xl md:text-2xl font-extrabold text-brand-orange">
                         Kelola Produk
@@ -106,14 +114,24 @@ export default function Index({ products, categories, filters }: Props) {
                     </p>
                 </div>
                 <Link
-                    href={route("merchant.products.create")}
-                    className="flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-hover text-white px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-semibold transition shadow-md shadow-brand-orange/30 text-xs md:text-sm w-full sm:w-auto justify-center"
+                    id="tour-product-create-btn"
+                    href={hasStoreAddress ? route("merchant.products.create") : route("merchant.settings.index")}
+                    onClick={(e) => {
+                        if (!hasStoreAddress) {
+                            e.preventDefault();
+                            toast.error("Alamat toko wajib diisi terlebih dahulu sebelum dapat mengunggah produk.", {
+                                duration: 4000,
+                            });
+                            router.visit(route("merchant.settings.index"));
+                        }
+                    }}
+                    className="flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-hover text-white px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-semibold transition shadow-md shadow-brand-orange/30 text-xs md:text-sm w-full sm:w-auto justify-center cursor-pointer"
                 >
                     <Plus className="w-4 h-4 md:w-5 md:h-5" /> Tambah Produk
                 </Link>
             </div>
 
-            <div aria-label="Pilih opsi yang tersedia" className="bg-white rounded-2xl border border-brand-orange/30 p-3 md:p-4 mb-4 md:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
+            <div id="tour-product-filters" aria-label="Pilih opsi yang tersedia" className="bg-white rounded-2xl border border-brand-orange/30 p-3 md:p-4 mb-4 md:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
                 <div className="flex flex-wrap gap-2 md:gap-4 w-full sm:w-auto">
                     <select aria-label="Tampilkan rincian lebih lanjut"
                         value={filters?.category || ""}
@@ -175,28 +193,30 @@ export default function Index({ products, categories, filters }: Props) {
                 </div>
             </div>
 
-            {isNetworkLoading ? (
-                viewMode === "list" ? (
+            <div id="tour-product-list">
+                {isNetworkLoading ? (
+                    viewMode === "list" ? (
+                        <ProductTable
+                            products={products.data}
+                            getStockIndicator={getStockIndicator}
+                            isLoading={true}
+                        />
+                    ) : (
+                        <ProductGridSkeleton count={products.data?.length || 6} />
+                    )
+                ) : viewMode === "list" ? (
                     <ProductTable
                         products={products.data}
                         getStockIndicator={getStockIndicator}
-                        isLoading={true}
+                        isLoading={false}
                     />
                 ) : (
-                    <ProductGridSkeleton count={products.data?.length || 6} />
-                )
-            ) : viewMode === "list" ? (
-                <ProductTable
-                    products={products.data}
-                    getStockIndicator={getStockIndicator}
-                    isLoading={false}
-                />
-            ) : (
-                <ProductGrid
-                    products={products.data}
-                    getStockIndicator={getStockIndicator}
-                />
-            )}
+                    <ProductGrid
+                        products={products.data}
+                        getStockIndicator={getStockIndicator}
+                    />
+                )}
+            </div>
             <Pagination data={products} />
         </MerchantLayout>
     );

@@ -19,6 +19,7 @@ export default function EditMerchantModal({
 }: Props) {
     // eslint-disable-next-line react-doctor/prefer-useReducer
     const [name, setName] = useState(merchant?.name || "");
+    const [nik, setNik] = useState(merchant?.nik === "-" ? "" : merchant?.nik || "");
     const [email, setEmail] = useState(merchant?.email || "");
     const [phone, setPhone] = useState(merchant?.phone === "-" ? "" : merchant?.phone || "");
     const [storeName, setStoreName] = useState(merchant?.store?.name || "");
@@ -35,6 +36,7 @@ export default function EditMerchantModal({
     useEffect(() => {
         if (merchant) {
             setName(merchant.name || "");
+            setNik(merchant.nik === "-" ? "" : merchant.nik || "");
             setEmail(merchant.email || "");
             setPhone(merchant.phone === "-" ? "" : merchant.phone || "");
             // eslint-disable-next-line react-doctor/no-derived-state
@@ -58,6 +60,7 @@ export default function EditMerchantModal({
             route("admin.merchants.update", merchant.id),
             {
                 name,
+                nik: nik.trim() ? nik.replace(/[^0-9]/g, "").slice(0, 16) : undefined,
                 email,
                 phone,
                 store_name: storeName,
@@ -131,6 +134,29 @@ export default function EditMerchantModal({
                             />
                         </div>
 
+                        {/* NIK Pemilik */}
+                        <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label htmlFor="field_edit_nik" className="block text-xs font-bold text-gray-700">
+                                    NIK Pemilik (KTP)
+                                </label>
+                                <span className="text-[10px] font-mono text-gray-400">
+                                    {nik ? `${nik.length}/16` : "16 digit"}
+                                </span>
+                            </div>
+                            <input id="field_edit_nik"
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={16}
+                                value={nik}
+                                onChange={(e) => setNik(e.target.value.replace(/[^0-9]/g, "").slice(0, 16))}
+                                placeholder="3218..."
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 font-mono focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Nama Toko */}
                         <div>
                             <label htmlFor="field_131" className="block text-xs font-bold text-gray-700 mb-1.5">
@@ -143,6 +169,26 @@ export default function EditMerchantModal({
                                 onChange={(e) => setStoreName(e.target.value)}
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             />
+                        </div>
+
+                        {/* Wilayah / Kecamatan */}
+                        <div>
+                            <label htmlFor="field_177" className="block text-xs font-bold text-gray-700 mb-1.5">
+                                Wilayah / Kecamatan
+                            </label>
+                            <select id="field_177"
+                                value={subdistrict}
+                                onChange={(e) => setSubdistrict(e.target.value)}
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                            >
+                                <option value="Cibenda">Cibenda</option>
+                                <option value="Parigi">Parigi</option>
+                                <option value="Cijulang">Cijulang</option>
+                                <option value="Pangandaran">Pangandaran</option>
+                                <option value="Sidamulih">Sidamulih</option>
+                                <option value="Kalipucang">Kalipucang</option>
+                                <option value="Padaherang">Padaherang</option>
+                            </select>
                         </div>
                     </div>
 
@@ -176,40 +222,18 @@ export default function EditMerchantModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* Wilayah / Subdistrict */}
-                        <div>
-                            <label htmlFor="field_177" className="block text-xs font-bold text-gray-700 mb-1.5">
-                                Wilayah / Kecamatan
-                            </label>
-                            <select id="field_177"
-                                value={subdistrict}
-                                onChange={(e) => setSubdistrict(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
-                            >
-                                <option value="Cibenda">Cibenda</option>
-                                <option value="Parigi">Parigi</option>
-                                <option value="Cijulang">Cijulang</option>
-                                <option value="Pangandaran">Pangandaran</option>
-                                <option value="Sidamulih">Sidamulih</option>
-                                <option value="Kalipucang">Kalipucang</option>
-                                <option value="Padaherang">Padaherang</option>
-                            </select>
-                        </div>
-
+                    <div>
                         {/* Reset Password */}
-                        <div>
-                            <label htmlFor="field_197" className="block text-xs font-bold text-gray-700 mb-1.5">
-                                Ganti Password
-                            </label>
-                            <input aria-label="Input field" id="field_197"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Kosongkan jika tidak diubah"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
-                            />
-                        </div>
+                        <label htmlFor="field_197" className="block text-xs font-bold text-gray-700 mb-1.5">
+                            Ganti Password
+                        </label>
+                        <input aria-label="Input field" id="field_197"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Kosongkan jika tidak ingin mengubah password"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                        />
                     </div>
 
                     {/* Alamat Lengkap */}

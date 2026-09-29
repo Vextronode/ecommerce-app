@@ -60,7 +60,7 @@ export default function Index({
 
                 <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
                     {/* Tab Navigation */}
-                    <div className="w-full lg:w-52 lg:shrink-0 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
+                    <div id="tour-settings-tabs" className="w-full lg:w-52 lg:shrink-0 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
                         <div className="flex flex-wrap lg:flex-col">
                             {tabItems.map((tab) => {
                                 const isActive = activeTab === tab.id;
