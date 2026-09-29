@@ -293,6 +293,69 @@ export default function Shop({
                 onSetPriceMin={setPriceMin}
                 onSetPriceMax={setPriceMax}
             />
+
+            <HeroSection />
+
+            {searchQuery && (
+                <div className="w-full max-w-350 mx-auto px-4 md:px-8 lg:px-12 mt-8 -mb-4">
+                    <div className="bg-[#E0F7FA] border border-[#41B9C5]/30 rounded-full py-3 px-6 inline-flex items-center gap-4 shadow-sm">
+                        <h2 className="text-base md:text-lg font-bold text-gray-800 m-0">
+                            Hasil pencarian untuk:{" "}
+                            <span className="text-[#245D56]">
+                                "{searchQuery}"
+                            </span>
+                        </h2>
+
+                        <Link
+                            href={route("shop")}
+                            className="bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 p-1.5 rounded-full transition-colors border border-gray-200 shadow-sm flex items-center justify-center"
+                            title="Hapus pencarian"
+                        >
+                            <X
+                                className="w-4 h-4 md:w-5 md:h-5"
+                                strokeWidth={2.5}
+                            />
+                        </Link>
+                    </div>
+                </div>
+            )}
+
+            {!searchQuery && (
+                <CategorySection 
+                    categories={formattedCategories} 
+                    title="Shop by Category"
+                    subtitle="Temukan produk berdasarkan kategori"
+                />
+            )}
+
+            {groupedProducts.length > 0 ? (
+                groupedProducts.map((group, index) => (
+                    <ShopProductRow
+                        key={index}
+                        title={group.category_name}
+                        products={group.products.map((p) =>
+                            formatProduct(p, group.category_name)
+                        )}
+                    />
+                ))
+            ) : (
+                <div className="w-full text-center py-32 flex flex-col items-center">
+                    <Search className="w-16 h-16 text-gray-300 mb-4" />
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                        Produk Tidak Ditemukan
+                    </h3>
+                    <p className="text-gray-500 mb-6">
+                        Waduh bosku, produk yang dicari belum ada di Cibenda
+                        Mart.
+                    </p>
+                    <Link
+                        href={route("shop")}
+                        className="bg-[#245D56] hover:bg-[#1a443f] text-white px-8 py-3 rounded-full font-bold transition shadow-md"
+                    >
+                        Lihat Semua Produk
+                    </Link>
+                </div>
+            )}
         </StorefrontLayout>
     );
 }

@@ -4,6 +4,20 @@ import { Truck, RefreshCw, Leaf, ShieldCheck } from "lucide-react";
 import heroImage from "@/assets/images/hero_veg.webp";
 
 export default function HeroSection() {
+    // state buat nyimpen input user
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // handleSearch buat eksekusi pas tombol "Search" atau tombol "Enter" ditekan
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        // ngarahin user ke halaman shop bawa parameter query-nya
+        if (searchQuery.trim()) {
+            router.get("/shop", { search: searchQuery });
+        } else {
+            router.get("/shop");
+        }
+    };
+
     return (
         <div className="w-full mx-auto px-4 md:px-8 mt-32 md:mt-32 mb-8 md:mb-28 relative">
             {/* Main Banner */}

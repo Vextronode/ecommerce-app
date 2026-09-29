@@ -52,6 +52,7 @@ interface Props {
 export default function ProductDetail({ product, relatedProducts }: Props) {
     const isNetworkLoading = useInertiaNetworkLoading();
 
+export default function ProductDetail({ product, relatedProducts }: Props) {
     const [quantity, setQuantity] = useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [activeTab, setActiveTab] = useState<"details" | "reviews">(

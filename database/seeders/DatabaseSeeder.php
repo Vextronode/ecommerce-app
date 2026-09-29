@@ -4,7 +4,12 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Store;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Order;
+use App\Models\OrderItem;
+use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
