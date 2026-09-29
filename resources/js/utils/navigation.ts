@@ -10,7 +10,7 @@ export const platformNavLinks: NavLinkItem[] = [
     { name: "Semua Produk", href: "/shop" },
     { name: "Mitra Pedagang", href: "/dashboard#merchants" },
     { name: "Lacak Pesanan", href: "/history" },
-    { name: "Tentang Kami", href: "/dashboard#about" },
+    { name: "Tentang Kami", href: "/about" },
 ];
 
 /**

@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
 
 // Public Storefront Browsing (Guest & User)
 Route::middleware(['storefront.user'])->group(function () {
+    Route::get('/about', [\App\Http\Controllers\InfoPageController::class, 'about'])->name('about');
     Route::get('/shop', [ShopController::class, 'index'])->name('shop');
     Route::get('/product/{slug}', [ShopController::class, 'show'])->name('product.detail');
     Route::get('/store/{slug}', [ShopController::class, 'storeDetail'])->name('store.detail');
