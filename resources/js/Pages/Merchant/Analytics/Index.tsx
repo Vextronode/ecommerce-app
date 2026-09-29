@@ -52,7 +52,7 @@ export default function AnalyticsIndex({
             <Head title="Laporan & Analisis - Cibenda Mart" />
 
             <div className="w-full">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-8 gap-4">
+                <div id="tour-analytics-header" className="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-8 gap-4">
                     <div>
                         <h1 className="text-xl md:text-2xl font-extrabold text-brand-orange mb-1">
                             Ikhtisar Analisis
@@ -106,7 +106,7 @@ export default function AnalyticsIndex({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div id="tour-analytics-overview" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
                     <AnalyticsOverviewCard
                         title="Total Pendapatan"
                         value={metrics.total_revenue}
@@ -141,12 +141,12 @@ export default function AnalyticsIndex({
                     />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 md:mb-8">
+                <div id="tour-analytics-revenue-chart" className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 md:mb-8">
                     <RevenueTrendChart data={revenueTrend} years={years} />
                     <TopCategoriesChart data={topCategories} />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
+                <div id="tour-analytics-best-sellers" className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
                     <BestSellingProductsTable products={bestSellingProducts} />
                     <OrdersTrendChart data={ordersTrend} />
                 </div>

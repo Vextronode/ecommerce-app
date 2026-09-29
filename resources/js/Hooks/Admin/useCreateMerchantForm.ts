@@ -4,11 +4,13 @@ import toast from "react-hot-toast";
 
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const PHONE_REGEX = /^(\+62|62|08)[0-9]{7,13}$/;
+export const NIK_REGEX = /^[0-9]{16}$/;
 
 export function useCreateMerchantForm() {
     const { data, setData, post, processing, errors } = useForm({
         merchant_name: "",
         owner_name: "",
+        nik: "",
         username: "",
         email: "",
         phone: "",
@@ -35,6 +37,14 @@ export function useCreateMerchantForm() {
                 errs.owner_name = "Nama lengkap pemilik wajib diisi.";
             } else if (data.owner_name.trim().length < 3) {
                 errs.owner_name = "Nama pemilik minimal 3 karakter.";
+            }
+        }
+
+        if (touched.nik) {
+            if (!data.nik.trim()) {
+                errs.nik = "NIK pemilik toko wajib diisi.";
+            } else if (!NIK_REGEX.test(data.nik.trim())) {
+                errs.nik = "NIK harus terdiri dari 16 digit angka.";
             }
         }
 
@@ -88,6 +98,11 @@ export function useCreateMerchantForm() {
         setData("owner_name", val);
     };
 
+    const handleNikChange = (val: string) => {
+        const sanitized = val.replace(/[^0-9]/g, "").slice(0, 16);
+        setData("nik", sanitized);
+    };
+
     const handleUsernameChange = (val: string) => {
         const sanitized = val.toLowerCase().replace(/[^a-z0-9_\-\.]/g, "");
         setData("username", sanitized);
@@ -139,6 +154,7 @@ export function useCreateMerchantForm() {
         setTouched({
             merchant_name: true,
             owner_name: true,
+            nik: true,
             username: true,
             email: true,
             phone: true,
@@ -152,6 +168,16 @@ export function useCreateMerchantForm() {
 
         if (!data.owner_name.trim()) {
             toast.error("Nama lengkap pemilik wajib diisi.");
+            return;
+        }
+
+        if (!data.nik.trim()) {
+            toast.error("NIK pemilik toko wajib diisi.");
+            return;
+        }
+
+        if (!NIK_REGEX.test(data.nik.trim())) {
+            toast.error("NIK harus terdiri dari 16 digit angka.");
             return;
         }
 
@@ -195,6 +221,7 @@ export function useCreateMerchantForm() {
         setShowPassword,
         handleMerchantNameChange,
         handleOwnerNameChange,
+        handleNikChange,
         handleUsernameChange,
         handlePhoneChange,
         handleGeneratePassword,

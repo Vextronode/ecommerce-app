@@ -106,26 +106,34 @@ export default function Index({ store, withdrawals, stats }: Props) {
                     </p>
                 </div>
 
-                <WithdrawalStats
-                    availableBalance={stats.available_balance}
-                    pendingBalance={stats.pending_balance}
-                    totalWithdrawn={stats.total_withdrawn}
-                    totalEarnings={stats.total_earnings}
-                />
+                <div id="tour-withdrawals-stats">
+                    <WithdrawalStats
+                        availableBalance={stats.available_balance}
+                        pendingBalance={stats.pending_balance}
+                        totalWithdrawn={stats.total_withdrawn}
+                        totalEarnings={stats.total_earnings}
+                    />
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8 items-start">
                     <div className="space-y-4 md:space-y-6">
-                        <WithdrawFormCard
-                            availableBalance={stats.available_balance}
-                            hasBankAccount={hasBankAccount}
-                            onRequestEditBank={handleRequestEditBank}
-                        />
+                        <div id="tour-withdrawals-form">
+                            <WithdrawFormCard
+                                availableBalance={stats.available_balance}
+                                hasBankAccount={hasBankAccount}
+                                onRequestEditBank={handleRequestEditBank}
+                            />
+                        </div>
 
-                        <BankAccountCard store={store} />
+                        <div id="tour-withdrawals-bank">
+                            <BankAccountCard store={store} />
+                        </div>
                     </div>
 
                     <div className="lg:col-span-2 space-y-4 md:space-y-6">
-                        <WithdrawalHistoryTable withdrawals={withdrawals} isLoading={isNetworkLoading} />
+                        <div id="tour-withdrawals-history">
+                            <WithdrawalHistoryTable withdrawals={withdrawals} isLoading={isNetworkLoading} />
+                        </div>
 
                         <div className="bg-white rounded-2xl p-5 md:p-6 border border-brand-orange/20 shadow-sm space-y-5">
                             <div className="flex items-center gap-3">

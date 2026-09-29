@@ -1,5 +1,5 @@
 import React from "react";
-import { UserCircle, Store, MapPin, Save } from "lucide-react";
+import { UserCircle, Store, MapPin, Save, AlertTriangle } from "lucide-react";
 import InputError from "@/Components/InputError";
 import AddressMapSection from "@/Pages/Profile/Partials/AddressMapSection";
 import { useMerchantSettings } from "@/Hooks/Merchant/useMerchantSettings";
@@ -76,8 +76,21 @@ export default function StoreInformationTab({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            {/* Banner Pengingat jika Toko Belum Memiliki Alamat */}
+            {!merchantStore.address && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 flex items-start gap-3.5 text-amber-900 shadow-xs">
+                    <MapPin className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 animate-pulse" />
+                    <div className="text-xs sm:text-sm leading-relaxed">
+                        <span className="font-extrabold text-amber-950 block mb-0.5">
+                            Langkah Wajib: Lengkapi Alamat Fisik Toko
+                        </span>
+                        Sebelum Anda dapat mengunggah dan memposting produk ke katalog, sistem mewajibkan Anda melengkapi alamat fisik toko dan menentukan titik lokasi peta di bawah ini.
+                    </div>
+                </div>
+            )}
+
             {/* Profile Banner & Info */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+            <div id="tour-settings-photo" className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
                 <div
                     role="button"
                     tabIndex={0}
@@ -273,13 +286,24 @@ export default function StoreInformationTab({
                         />
                         <InputError message={errors.support_email} className="mt-1" />
                     </div>
-                    <div>
-                        <label
-                            htmlFor="store_address"
-                            className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5"
-                        >
-                            Alamat Fisik Toko
-                        </label>
+                    <div id="tour-settings-address-field">
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label
+                                htmlFor="store_address"
+                                className="block text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                            >
+                                Alamat Fisik Toko <span className="text-rose-500">*</span>
+                            </label>
+                            {merchantStore.address ? (
+                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    Hanya Dapat Diedit
+                                </span>
+                            ) : (
+                                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 animate-pulse">
+                                    Wajib Diisi
+                                </span>
+                            )}
+                        </div>
                         <div className="relative">
                             <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-orange" />
                             <input
@@ -294,6 +318,18 @@ export default function StoreInformationTab({
                             />
                         </div>
                         <InputError message={errors.store_address} className="mt-1" />
+                        {merchantStore.address && !data.store_address?.trim() ? (
+                            <p className="text-[11px] text-amber-600 font-semibold mt-1 flex items-center gap-1.5">
+                                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                <span>Alamat dikosongkan. Jika disimpan, sistem akan otomatis mengembalikan ke alamat sebelumnya ({merchantStore.address}).</span>
+                            </p>
+                        ) : (
+                            <p className="text-[11px] text-gray-400 mt-1">
+                                {merchantStore.address
+                                    ? "Alamat dapat diperbarui jika berpindah lokasi. Tidak dapat dibiarkan kosong."
+                                    : "Wajib diisi agar kurir desa dapat menjemput pesanan Anda."}
+                            </p>
+                        )}
                     </div>
                 </div>
 

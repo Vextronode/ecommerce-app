@@ -57,8 +57,19 @@ class ProductController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $user = $request->user()->load('store');
+
+        if (! $user->store) {
+            return redirect()->route('merchant.store.setup');
+        }
+
+        if (empty(trim($user->store->address ?? ''))) {
+            return redirect()->route('merchant.settings.index')
+                ->with('warning', 'Alamat toko wajib diisi terlebih dahulu sebelum Anda dapat mengunggah atau membuat produk baru.');
+        }
+
         return Inertia::render('Merchant/Product/Create', [
             'categories' => Category::all(),
         ]);
@@ -66,6 +77,17 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        $user = $request->user()->load('store');
+
+        if (! $user->store) {
+            return redirect()->route('merchant.store.setup');
+        }
+
+        if (empty(trim($user->store->address ?? ''))) {
+            return redirect()->route('merchant.settings.index')
+                ->with('warning', 'Alamat toko wajib diisi terlebih dahulu sebelum Anda dapat mengunggah atau membuat produk baru.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -96,12 +118,6 @@ class ProductController extends Controller
         if ($hasSkus) {
             $basePrice = collect($request->skus)->min('price');
             $totalStock = collect($request->skus)->sum('stock');
-        }
-
-        $user = $request->user()->load('store');
-
-        if (! $user->store) {
-            return redirect()->route('merchant.store.setup');
         }
 
         $product = $user->store->products()->create([

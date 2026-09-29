@@ -93,6 +93,7 @@ class MerchantController extends Controller
                 'id' => $user->id,
                 'store_id' => $store?->id,
                 'name' => $user->name,
+                'nik' => $user->nik ?: '-',
                 'email' => $user->email,
                 'phone' => $user->phone ?: '-',
                 'status' => $user->status ?: 'active',
@@ -146,6 +147,7 @@ class MerchantController extends Controller
         $validated = $request->validate([
             'merchant_name' => ['required', 'string', 'min:3', 'max:100'],
             'owner_name' => ['required', 'string', 'min:3', 'max:100'],
+            'nik' => ['required', 'string', 'size:16', 'regex:/^[0-9]{16}$/', 'unique:users,nik'],
             'username' => ['nullable', 'string', 'regex:/^[a-zA-Z0-9_\-\.]+$/', 'min:3', 'max:50'],
             'email' => ['required', 'string', 'email:rfc', 'max:150', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'regex:/^(\+62|62|08)[0-9]{7,13}$/'],
@@ -157,6 +159,10 @@ class MerchantController extends Controller
             'owner_name.required' => 'Nama lengkap pemilik wajib diisi.',
             'owner_name.min' => 'Nama pemilik minimal 3 karakter.',
             'owner_name.max' => 'Nama pemilik maksimal 100 karakter.',
+            'nik.required' => 'Nomor Induk Kependudukan (NIK) pemilik wajib diisi.',
+            'nik.size' => 'NIK harus tepat 16 digit angka.',
+            'nik.regex' => 'NIK hanya boleh berupa 16 digit angka.',
+            'nik.unique' => 'NIK ini sudah terdaftar di sistem.',
             'username.regex' => 'Username hanya boleh mengandung huruf, angka, tanda minus (-), titik (.), atau garis bawah (_).',
             'username.min' => 'Username minimal 3 karakter.',
             'email.required' => 'Alamat email wajib diisi.',
@@ -172,6 +178,7 @@ class MerchantController extends Controller
                 'name' => $validated['owner_name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
+                'nik' => $validated['nik'],
                 'password' => Hash::make($validated['password']),
                 'is_password_changed' => false,
             ]);
@@ -211,6 +218,7 @@ class MerchantController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
+            'nik' => ['nullable', 'string', 'size:16', 'regex:/^[0-9]{16}$/', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:150', Rule::unique('users')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:25'],
             'password' => ['nullable', 'string', 'min:8'],
@@ -228,6 +236,10 @@ class MerchantController extends Controller
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
             ];
+
+            if (array_key_exists('nik', $validated)) {
+                $userPayload['nik'] = $validated['nik'];
+            }
 
             if (! empty($validated['password'])) {
                 $userPayload['password'] = Hash::make($validated['password']);

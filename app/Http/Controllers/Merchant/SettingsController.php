@@ -156,7 +156,24 @@ class SettingsController extends Controller
         }
         $store->support_email = $request->support_email;
         $store->description = $request->store_description;
-        $store->address = $request->store_address;
+
+        // Logika alamat toko:
+        // 1. Jika ada alamat baru yang dimasukkan, simpan alamat baru tersebut.
+        // 2. Jika toko sudah memiliki alamat sebelumnya namun kolom dikosongkan,
+        //    alamat tidak boleh hilang dan otomatis kembali ke alamat sebelumnya.
+        // 3. Jika belum pernah mengisi alamat dan tetap kosong, alamat tetap null.
+        $existingAddress = $store->address;
+        $submittedAddress = trim($request->store_address ?? '');
+        $addressNotice = null;
+
+        if (! empty($submittedAddress)) {
+            $store->address = $submittedAddress;
+        } elseif (! empty($existingAddress)) {
+            $store->address = $existingAddress;
+            $addressNotice = 'Alamat toko tidak dapat dibiarkan kosong, sehingga tetap menggunakan alamat sebelumnya.';
+        } else {
+            $store->address = null;
+        }
 
         if ($request->filled('latitude') && $request->filled('longitude')) {
             $store->latitude = $request->latitude;
@@ -165,7 +182,45 @@ class SettingsController extends Controller
 
         $store->save();
 
-        return redirect()->back()->with('success', 'Pengaturan profil dan toko berhasil diperbarui.');
+        $successMessage = $addressNotice
+            ? "Pengaturan toko diperbarui. {$addressNotice}"
+            : 'Pengaturan profil dan toko berhasil diperbarui.';
+
+        return redirect()->back()->with('success', $successMessage);
+    }
+
+    /**
+     * Tandai panduan tutorial merchant baru telah diselesaikan.
+     */
+    public function completeTour(Request $request)
+    {
+        $user = $request->user();
+        if ($user && $user->store) {
+            $user->store->update(['has_completed_tour' => true]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Panduan merchant berhasil diselesaikan.',
+        ]);
+    }
+
+    /**
+     * Reset status tutorial & alamat toko (untuk pengujian ulang / fitur ulangi panduan).
+     */
+    public function resetTour(Request $request)
+    {
+        $user = $request->user();
+        if ($user && $user->store) {
+            $updateData = ['has_completed_tour' => false];
+            if ($request->boolean('reset_address')) {
+                $updateData['address'] = null;
+            }
+            $user->store->update($updateData);
+        }
+
+        return redirect()->route('merchant.dashboard')
+            ->with('success', 'Status panduan onboarding berhasil direset untuk pengujian.');
     }
 
     /**

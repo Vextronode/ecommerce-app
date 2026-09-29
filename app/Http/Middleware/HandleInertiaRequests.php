@@ -48,7 +48,17 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
             ],
+            'merchant_store' => fn () => ($request->user() && $request->user()->role === 'pedagang')
+                ? ($request->user()->store ? [
+                    'id' => $request->user()->store->id,
+                    'name' => $request->user()->store->name,
+                    'address' => $request->user()->store->address,
+                    'has_address' => ! empty(trim($request->user()->store->address ?? '')),
+                    'has_completed_tour' => (bool) ($request->user()->store->has_completed_tour ?? false),
+                ] : null)
+                : null,
             'cart_count' => $request->user()
                 ? Cart::where('user_id', $request->user()->id)->count()
                 : 0,

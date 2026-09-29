@@ -15,6 +15,7 @@ export default function CreateMerchantForm() {
         setShowPassword,
         handleMerchantNameChange,
         handleOwnerNameChange,
+        handleNikChange,
         handleUsernameChange,
         handlePhoneChange,
         handleGeneratePassword,
@@ -24,72 +25,38 @@ export default function CreateMerchantForm() {
 
     return (
         <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
-            {/* Store Name */}
-            <div>
-                <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="field_30" className="block text-xs font-semibold text-gray-700">
-                        Nama Toko <span className="text-rose-500">*</span>
-                    </label>
-                    <span className="text-[11px] text-gray-400">
-                        Nama toko atau brand usaha pedagang
-                    </span>
-                </div>
-                <div className="relative">
-                    <input aria-label="Input field" id="field_30"
-                        type="text"
-                        required
-                        value={data.merchant_name}
-                        onChange={(e) =>
-                            handleMerchantNameChange(e.target.value)
-                        }
-                        onBlur={() => handleBlur("merchant_name")}
-                        placeholder="Contoh: Toko Udin Sembako"
-                        className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.merchant_name || fieldErrors.merchant_name
-                            ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
-                            : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
-                            }`}
-                    />
-                </div>
-                {(errors.merchant_name || fieldErrors.merchant_name) && (
-                    <p className="flex items-center gap-1.5 text-rose-500 text-[11px] mt-1.5 font-medium">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                        {errors.merchant_name || fieldErrors.merchant_name}
-                    </p>
-                )}
-            </div>
-
-            {/* Owner Full Name & Store Username */}
+            {/* Store Name & Store Username */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Owner Name */}
+                {/* Store Name */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label htmlFor="field_66" className="block text-xs font-semibold text-gray-700">
-                            Nama Pemilik Toko <span className="text-rose-500">*</span>
+                        <label htmlFor="field_30" className="block text-xs font-semibold text-gray-700">
+                            Nama Toko <span className="text-rose-500">*</span>
                         </label>
                         <span className="text-[11px] text-gray-400">
-                            Nama lengkap penanggung jawab
+                            Brand usaha pedagang
                         </span>
                     </div>
                     <div className="relative">
-                        <input aria-label="Input field" id="field_66"
+                        <input aria-label="Input field" id="field_30"
                             type="text"
                             required
-                            value={data.owner_name}
+                            value={data.merchant_name}
                             onChange={(e) =>
-                                handleOwnerNameChange(e.target.value)
+                                handleMerchantNameChange(e.target.value)
                             }
-                            onBlur={() => handleBlur("owner_name")}
-                            placeholder="Contoh: Udin Sutarman"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.owner_name || fieldErrors.owner_name
+                            onBlur={() => handleBlur("merchant_name")}
+                            placeholder="Contoh: Toko Udin Sembako"
+                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.merchant_name || fieldErrors.merchant_name
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                 }`}
                         />
                     </div>
-                    {(errors.owner_name || fieldErrors.owner_name) && (
+                    {(errors.merchant_name || fieldErrors.merchant_name) && (
                         <p className="flex items-center gap-1.5 text-rose-500 text-[11px] mt-1.5 font-medium">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                            {errors.owner_name || fieldErrors.owner_name}
+                            {errors.merchant_name || fieldErrors.merchant_name}
                         </p>
                     )}
                 </div>
@@ -129,6 +96,83 @@ export default function CreateMerchantForm() {
                     ) : (
                         <p className="text-[11px] text-gray-400 mt-1">
                             Pengenal unik toko (hanya huruf kecil dan angka).
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {/* Owner Full Name & NIK */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Owner Name */}
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <label htmlFor="field_66" className="block text-xs font-semibold text-gray-700">
+                            Nama Pemilik Toko <span className="text-rose-500">*</span>
+                        </label>
+                        <span className="text-[11px] text-gray-400">
+                            Nama lengkap penanggung jawab
+                        </span>
+                    </div>
+                    <div className="relative">
+                        <input aria-label="Input field" id="field_66"
+                            type="text"
+                            required
+                            value={data.owner_name}
+                            onChange={(e) =>
+                                handleOwnerNameChange(e.target.value)
+                            }
+                            onBlur={() => handleBlur("owner_name")}
+                            placeholder="Contoh: Udin Sutarman"
+                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.owner_name || fieldErrors.owner_name
+                                ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
+                                : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                }`}
+                        />
+                    </div>
+                    {(errors.owner_name || fieldErrors.owner_name) && (
+                        <p className="flex items-center gap-1.5 text-rose-500 text-[11px] mt-1.5 font-medium">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            {errors.owner_name || fieldErrors.owner_name}
+                        </p>
+                    )}
+                </div>
+
+                {/* NIK */}
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <label htmlFor="field_nik" className="block text-xs font-semibold text-gray-700">
+                            NIK Pemilik Toko <span className="text-rose-500">*</span>
+                        </label>
+                        <span className="text-[11px] font-mono text-gray-400">
+                            {data.nik ? `${data.nik.length}/16 digit` : "16 digit KTP"}
+                        </span>
+                    </div>
+                    <div className="relative">
+                        <input aria-label="Input field" id="field_nik"
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={16}
+                            required
+                            value={data.nik}
+                            onChange={(e) =>
+                                handleNikChange(e.target.value)
+                            }
+                            onBlur={() => handleBlur("nik")}
+                            placeholder="Contoh: 3218012345670001"
+                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 font-mono placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.nik || fieldErrors.nik
+                                ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
+                                : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                                }`}
+                        />
+                    </div>
+                    {errors.nik || fieldErrors.nik ? (
+                        <p className="flex items-center gap-1.5 text-rose-500 text-[11px] mt-1.5 font-medium">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            {errors.nik || fieldErrors.nik}
+                        </p>
+                    ) : (
+                        <p className="text-[11px] text-gray-400 mt-1">
+                            Nomor Induk Kependudukan sesuai KTP penanggung jawab.
                         </p>
                     )}
                 </div>

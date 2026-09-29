@@ -16,6 +16,7 @@ class Store extends Model
         'logo_path',
         'description',
         'sid_status',
+        'has_completed_tour',
         'support_email',
         'address',
         'latitude',
@@ -26,6 +27,10 @@ class Store extends Model
         'bank_name',
         'bank_account_number',
         'bank_account_holder',
+    ];
+
+    protected $casts = [
+        'has_completed_tour' => 'boolean',
     ];
 
     public function user()

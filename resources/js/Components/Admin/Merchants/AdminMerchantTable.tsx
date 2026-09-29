@@ -18,6 +18,7 @@ export interface MerchantItem {
     id: number;
     store_id?: number;
     name: string;
+    nik?: string;
     email: string;
     phone: string;
     status: "active" | "warning" | "suspended" | "inactive" | string;

@@ -1,22 +1,105 @@
 import React, { ReactNode, useState } from "react";
 import Sidebar from "@/Components/Merchant/Dashboard/Sidebar";
 import NotificationBell from "@/Components/Global/NotificationBell";
-import { Search, Mail, User, Menu } from "lucide-react";
+import { Search, Mail, User, Menu, AlertTriangle } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { router, Link, usePage } from "@inertiajs/react";
+import { MerchantOnboardingTour } from "@/Components/Merchant/Onboarding/MerchantOnboardingTour";
+import { MerchantTourTabKey } from "@/types/tour";
+import {
+    hasViewedMerchantTab,
+    consumeRequestedTour,
+} from "@/utils/merchantTourProgress";
+
+function getTourTabFromUrl(pathname: string): MerchantTourTabKey {
+    if (pathname.includes("/pedagang/products/create")) return "products_create";
+    if (pathname.includes("/pedagang/products/") && pathname.includes("/edit")) return "products_edit";
+    if (pathname.includes("/pedagang/products")) return "products_index";
+    if (pathname.includes("/pedagang/orders")) return "orders";
+    if (pathname.includes("/pedagang/customers")) return "customers";
+    if (pathname.includes("/pedagang/analytics")) return "analytics";
+    if (pathname.includes("/pedagang/settings")) return "settings";
+    if (pathname.includes("/pedagang/withdrawals")) return "withdrawals";
+    return "dashboard";
+}
 
 interface Props {
     children: ReactNode;
 }
 
 export default function MerchantLayout({ children }: Props) {
-    const { auth } = usePage().props as any;
+    const { auth, flash, merchant_store } = usePage().props as any;
     const { url } = usePage();
     const profilePhoto = auth?.user?.profile_photo_path
         ? `/storage/${auth.user.profile_photo_path}`
         : null;
     // state buat ngatur sidebar di mobile
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    // state panduan interaktif per tab
+    const [isTourActive, setIsTourActive] = useState(false);
+    const currentTourTab = getTourTabFromUrl(url.split("?")[0]);
+    const isSettingsPage = currentTourTab === "settings" || url.includes("/pedagang/settings");
+
+    // Auto-trigger tour saat tab dibuka jika diminta secara eksplisit atau belum pernah dilihat
+    React.useEffect(() => {
+        if (isSettingsPage) {
+            setIsTourActive(false);
+            return;
+        }
+
+        const handleOpenTour = () => setIsTourActive(true);
+        window.addEventListener("open-merchant-tour", handleOpenTour);
+
+        // 1. Cek apakah ada permintaan eksplisit untuk membuka tour di tab ini (dari klik "Lanjut ke tab berikutnya")
+        const isExplicitlyRequested = consumeRequestedTour(currentTourTab);
+
+        // 2. Akun lama (has_completed_tour === true):
+        // JANGAN PERNAH auto-trigger! Hanya buka jika ada permintaan eksplisit atau klik tombol "Panduan".
+        if (merchant_store?.has_completed_tour === true) {
+            if (isExplicitlyRequested) {
+                setIsTourActive(true);
+            } else {
+                setIsTourActive(false);
+            }
+            return () => {
+                window.removeEventListener("open-merchant-tour", handleOpenTour);
+            };
+        }
+
+        // 3. Akun baru (has_completed_tour === false):
+        // Auto-trigger HANYA jika tab ini belum pernah dibaca sebelumnya atau diminta eksplisit
+        const alreadyViewed = hasViewedMerchantTab(currentTourTab);
+
+        if (isExplicitlyRequested || !alreadyViewed) {
+            const timer = setTimeout(() => {
+                setIsTourActive(true);
+            }, 300);
+            return () => {
+                clearTimeout(timer);
+                window.removeEventListener("open-merchant-tour", handleOpenTour);
+            };
+        } else {
+            setIsTourActive(false);
+        }
+
+        return () => {
+            window.removeEventListener("open-merchant-tour", handleOpenTour);
+        };
+    }, [url, currentTourTab, isSettingsPage, merchant_store?.has_completed_tour]);
+
+    // Otomatis tampilkan notifikasi toast jika ada session flash
+    React.useEffect(() => {
+        if (flash?.warning) {
+            toast(flash.warning, {
+                icon: <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />,
+                duration: 5000,
+            });
+        } else if (flash?.error) {
+            toast.error(flash.error, { duration: 5000 });
+        } else if (flash?.success) {
+            toast.success(flash.success, { duration: 5000 });
+        }
+    }, [flash]);
 
     const isProductManagement =
         (typeof route === "function" && route().current("merchant.products.index")) ||
@@ -99,7 +182,7 @@ export default function MerchantLayout({ children }: Props) {
                     </div>
 
                     {/* Header Right Section */}
-                    <div aria-label="Pilih opsi yang tersedia" className="flex items-center gap-3 md:gap-6 ml-2 md:ml-4">
+                    <div aria-label="Pilih opsi yang tersedia" className="flex items-center gap-2.5 sm:gap-3 md:gap-5 ml-2 md:ml-4">
                         {/* Active Realtime Notification Bell for Merchant */}
                         <NotificationBell user={auth?.user} />
 
@@ -133,6 +216,17 @@ export default function MerchantLayout({ children }: Props) {
                     {children}
                 </div>
             </main>
+
+            {/* Interactive Spotlight Tour Modal */}
+            {!isSettingsPage && isTourActive && (
+                <MerchantOnboardingTour
+                    tabKey={currentTourTab}
+                    merchantName={auth?.user?.name}
+                    storeName={auth?.user?.store?.name}
+                    onClose={() => setIsTourActive(false)}
+                    markCompletedOnServer={currentTourTab === "withdrawals"}
+                />
+            )}
         </div>
     );
 }

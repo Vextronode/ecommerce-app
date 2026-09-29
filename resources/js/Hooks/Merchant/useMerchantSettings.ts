@@ -68,13 +68,19 @@ export function useMerchantSettings({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Jika toko belum memiliki alamat, ingatkan untuk mengisi alamat
+        if (!merchantStore.address && !data.store_address.trim()) {
+            toast.error("Alamat fisik toko wajib diisi untuk melengkapi profil toko Anda.", {
+                duration: 4000,
+            });
+            return;
+        }
+
         post(route("merchant.settings.update"), {
             preserveScroll: true,
-            onSuccess: () => {
-                toast.success("Pengaturan profil dan toko berhasil disimpan!");
-            },
             onError: () => {
-                toast.error("Gagal menyimpan pengaturan. Periksa formulir.");
+                toast.error("Gagal menyimpan pengaturan. Periksa kembali formulir.");
             },
         });
     };
