@@ -13,13 +13,14 @@ class OrderHistoryController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->query('status', 'all');
+        $rawStatus = $request->query('status', 'all');
+        $allowedStatuses = ['all', 'unpaid', 'pending', 'processing', 'shipped', 'delivered', 'cancelled', 'rating'];
+        $status = is_string($rawStatus) && in_array($rawStatus, $allowedStatuses, true) ? $rawStatus : 'all';
 
         $ratingItems = [];
         $orders = [];
 
         if ($status === 'rating') {
-            // Ambil semua item pesanan dari pesanan yang sudah 'delivered'
             $items = OrderItem::with(['product', 'order.store', 'review'])
                 ->whereHas('order', function ($query) {
                     $query->where('user_id', auth()->id())
@@ -49,20 +50,40 @@ class OrderHistoryController extends Controller
 
             if ($status !== 'all') {
                 if ($status === 'unpaid') {
-                    $query->where('payment_status', 'pending');
+                    $query->where('payment_status', 'pending')
+                        ->where('payment_method', '!=', 'cod')
+                        ->where('shipping_status', '!=', 'cancelled');
+                } elseif ($status === 'pending') {
+                    $query->where('shipping_status', 'pending')
+                        ->where(function ($q) {
+                            $q->where('payment_method', 'cod')
+                                ->orWhere('payment_status', 'paid');
+                        });
                 } elseif ($status === 'cancelled') {
-                    $query->where('shipping_status', 'cancelled');
+                    $query->where(function ($q) {
+                        $q->where('shipping_status', 'cancelled')
+                            ->orWhere('payment_status', 'failed');
+                    });
                 } else {
                     $query->where('shipping_status', $status);
                 }
             }
 
-            $orders = $query->get()->map(function ($order) {
-                // Auto sync payment status from Midtrans if pending and non-COD
-                if ($order->payment_status === 'pending' && $order->payment_method !== 'cod') {
+            $syncedMidtransIds = [];
+
+            $orders = $query->get()->map(function ($order) use (&$syncedMidtransIds) {
+                if (
+                    $order->payment_status === 'pending' &&
+                    $order->payment_method !== 'cod' &&
+                    $order->shipping_status !== 'cancelled' &&
+                    count($syncedMidtransIds) < 5
+                ) {
                     $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
                     if ($midtransOrderId) {
-                        app(PaymentSyncService::class)->syncByMidtransOrderId($midtransOrderId);
+                        if (! in_array($midtransOrderId, $syncedMidtransIds, true)) {
+                            $syncedMidtransIds[] = $midtransOrderId;
+                            app(PaymentSyncService::class)->syncByMidtransOrderId($midtransOrderId);
+                        }
                         $order->refresh();
                     }
                 }
@@ -99,7 +120,7 @@ class OrderHistoryController extends Controller
 
     private function mapStatusToLabel($order)
     {
-        if ($order->shipping_status === 'cancelled') {
+        if ($order->shipping_status === 'cancelled' || $order->payment_status === 'failed') {
             return 'Dibatalkan';
         }
 
@@ -123,10 +144,17 @@ class OrderHistoryController extends Controller
 
     public function show($id)
     {
-        $order = Order::with(['items.product', 'store'])->where('user_id', auth()->id())->findOrFail($id);
+        $order = Order::with(['items.product', 'store.user'])->where('user_id', auth()->id())->findOrFail($id);
 
-        // Shopee-style: Jika pesanan sudah berstatus shipped lebih dari 4 jam, otomatis selesaikan
-        if ($order->shipping_status === 'shipped' && $order->updated_at && $order->updated_at->diffInHours(now()) >= 4) {
+        if ($order->payment_status === 'pending' && $order->payment_method !== 'cod' && $order->shipping_status !== 'cancelled') {
+            $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+            if ($midtransOrderId) {
+                app(PaymentSyncService::class)->syncByMidtransOrderId($midtransOrderId);
+                $order->refresh();
+            }
+        }
+
+        if ($order->shipping_status === 'shipped' && $order->delivery_method === 'local_delivery' && $order->updated_at && $order->updated_at->diffInHours(now()) >= 4) {
             $order->autoCompleteDelivery();
             $order->refresh();
         }
@@ -135,7 +163,7 @@ class OrderHistoryController extends Controller
             'id' => $order->id,
             'invoice_number' => $order->invoice_number,
             'store_name' => $order->store->name ?? 'Toko',
-            'store_phone' => $order->store->user->phone ?? '',
+            'store_phone' => $order->store?->user?->phone ?? '',
             'status' => $this->mapStatusToLabel($order),
             'shipping_status' => $order->shipping_status,
             'payment_status' => $order->payment_status,
@@ -151,7 +179,7 @@ class OrderHistoryController extends Controller
             'shipping_address' => $order->shipping_address,
             'delivery_method' => $order->delivery_method,
             'payment_method' => $order->payment_method,
-            'shipping_pin' => $order->shipping_pin,
+            'shipping_pin' => $order->shipping_status === 'shipped' ? $order->shipping_pin : null,
 
             'items' => $order->items->map(function ($item) {
                 return [
@@ -177,7 +205,9 @@ class OrderHistoryController extends Controller
      */
     public function cancel($id)
     {
-        return DB::transaction(function () use ($id) {
+        $midtransOrderIdToCancel = null;
+
+        $response = DB::transaction(function () use ($id, &$midtransOrderIdToCancel) {
             $order = Order::where('user_id', auth()->id())->lockForUpdate()->findOrFail($id);
 
             // Buyers can only self-cancel if the order is still pending and unpaid
@@ -185,23 +215,48 @@ class OrderHistoryController extends Controller
                 return back()->with('error', 'Pesanan yang sedang dikemas, dikirim, atau telah dibayar tidak dapat dibatalkan langsung. Silakan hubungi penjual.');
             }
 
-            $order->update([
-                'shipping_status' => 'cancelled',
-                'payment_status' => 'failed',
-            ]);
+            $ordersToCancel = collect([$order]);
+            if (! empty($order->parent_transaction_id)) {
+                $ordersToCancel = Order::where('user_id', auth()->id())
+                    ->where('parent_transaction_id', $order->parent_transaction_id)
+                    ->where('shipping_status', 'pending')
+                    ->where('payment_status', '!=', 'paid')
+                    ->lockForUpdate()
+                    ->get();
+            }
 
-            // Thread-safe stock restoration
-            $order->restoreStock();
+            foreach ($ordersToCancel as $targetOrder) {
+                $targetOrder->update([
+                    'shipping_status' => 'cancelled',
+                    'payment_status' => 'failed',
+                ]);
 
-            \App\Services\OrderNotificationService::orderCancelled($order, 'Dibatalkan oleh pembeli');
+                $targetOrder->restoreStock();
+
+                \App\Services\OrderNotificationService::orderCancelled($targetOrder, 'Dibatalkan oleh pembeli');
+
+                try {
+                    broadcast(new \App\Events\OrderStatusUpdated($targetOrder))->toOthers();
+                } catch (\Throwable $e) {}
+            }
+
+            if ($order->payment_method !== 'cod') {
+                $midtransOrderIdToCancel = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+            }
 
             return back()->with('success', 'Pesanan berhasil dibatalkan.');
         });
+
+        if ($midtransOrderIdToCancel) {
+            app(\App\Services\MidtransService::class)->cancelTransaction($midtransOrderIdToCancel);
+        }
+
+        return $response;
     }
 
     /**
      * Complete order and safely credit store balance.
-     * Buyer can complete once courier arrives at destination or after 4 hours have passed.
+     * Buyer can complete non-COD paid orders once courier arrives at destination or after 4 hours have passed.
      */
     public function complete($id)
     {
@@ -212,24 +267,22 @@ class OrderHistoryController extends Controller
                 return back()->with('error', 'Pesanan belum dapat diselesaikan.');
             }
 
-            // Guard: untuk kurir toko, pembeli baru dapat konfirmasi selesai jika kurir sudah tiba
-            // atau jika sudah 4 jam sejak dikirim
-            if ($order->delivery_method === 'local_delivery' && ! $order->canBuyerComplete()) {
+            if (! $order->canBuyerComplete()) {
+                if ($order->payment_method === 'cod') {
+                    return back()->with('error', 'Pesanan COD hanya dapat diselesaikan melalui verifikasi PIN dengan kurir atau konfirmasi pembayaran dari penjual.');
+                }
+
                 return back()->with('error', 'Pesanan belum dapat diselesaikan. Harap tunggu kurir tiba di lokasi pengiriman Anda atau sistem akan menyelesaikan otomatis dalam 4 jam.');
             }
 
-            $updateData = ['shipping_status' => 'delivered'];
-            if ($order->payment_method === 'cod') {
-                $updateData['payment_status'] = 'paid';
-            }
-            $order->update($updateData);
-
-            // Non-COD: kredit balance hanya jika sudah paid via Midtrans
-            if ($order->payment_status === 'paid' && $order->payment_method !== 'cod') {
-                $order->creditStoreBalance();
-            }
+            $order->update(['shipping_status' => 'delivered']);
+            $order->creditStoreBalance();
 
             \App\Services\OrderNotificationService::orderDelivered($order);
+
+            try {
+                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+            } catch (\Throwable $e) {}
 
             return back()->with('success', 'Pesanan berhasil dikonfirmasi selesai.');
         });

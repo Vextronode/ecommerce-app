@@ -8,6 +8,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryTrackerController;
 use App\Http\Controllers\Merchant\AnalyticsController;
+use App\Http\Controllers\Merchant\ChatController as MerchantChatController;
 use App\Http\Controllers\Merchant\CustomerController;
 use App\Http\Controllers\Merchant\MerchantSetupController;
 use App\Http\Controllers\Merchant\OrderController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\Storefront\ChatController as StorefrontChatController;
 use App\Http\Middleware\CheckMerchantSetup;
 use App\Models\Order;
 use App\Models\Product;
@@ -33,7 +35,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['storefront.user'])
     ->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::get('/api/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/api/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
     Route::post('/api/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
@@ -64,7 +66,9 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/checkout', [CheckoutController::class, 'store'])
         ->middleware('throttle:checkout')
         ->name('checkout.store');
-    Route::get('/checkout/calculate-fee', [CheckoutController::class, 'calculateFee'])->name('checkout.calculate-fee');
+    Route::get('/checkout/calculate-fee', [CheckoutController::class, 'calculateFee'])
+        ->middleware('throttle:60,1')
+        ->name('checkout.calculate-fee');
     Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/payment/{order}', [PaymentController::class, 'show'])->name('payment.show');
     Route::get('/payment/{order}/check-status', [PaymentController::class, 'checkStatus'])
@@ -75,20 +79,28 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 
     // Product Rating Routes
     Route::get('/history/rating/{order_item}', [ProductReviewController::class, 'create'])->name('history.rating.create');
-    Route::post('/history/rating/{order_item_id}', [ProductReviewController::class, 'store'])->name('history.rating.store');
+    Route::post('/history/rating/{order_item_id}', [ProductReviewController::class, 'store'])->middleware('throttle:15,1')->name('history.rating.store');
 
-    Route::post('/history/{order}/cancel', [OrderHistoryController::class, 'cancel'])->name('history.cancel');
-    Route::post('/history/{order}/complete', [OrderHistoryController::class, 'complete'])->name('history.complete');
+    Route::post('/history/{order}/cancel', [OrderHistoryController::class, 'cancel'])->middleware('throttle:15,1')->name('history.cancel');
+    Route::post('/history/{order}/complete', [OrderHistoryController::class, 'complete'])->middleware('throttle:15,1')->name('history.complete');
 
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
-    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
-    Route::patch('/cart/{cart}', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
-    Route::post('/store/{store}/follow', [ShopController::class, 'toggleFollow'])->name('store.follow');
-    Route::post('/profile/address', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
-    Route::put('/profile/address/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
-    Route::delete('/profile/address/{id}', [ProfileController::class, 'destroyAddress'])->name('profile.address.destroy');
-    Route::put('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications.update');
+    Route::post('/cart', [CartController::class, 'store'])->middleware('throttle:60,1')->name('cart.store');
+    Route::patch('/cart/{cart}', [CartController::class, 'update'])->middleware('throttle:60,1')->name('cart.update');
+    Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->middleware('throttle:60,1')->name('cart.destroy');
+    Route::post('/store/{store}/follow', [ShopController::class, 'toggleFollow'])->middleware('throttle:store-follow')->name('store.follow');
+    Route::post('/profile/address', [ProfileController::class, 'storeAddress'])->middleware('throttle:20,1')->name('profile.address.store');
+    Route::put('/profile/address/{id}', [ProfileController::class, 'updateAddress'])->middleware('throttle:20,1')->name('profile.address.update');
+    Route::delete('/profile/address/{id}', [ProfileController::class, 'destroyAddress'])->middleware('throttle:20,1')->name('profile.address.destroy');
+    Route::put('/profile/notifications', [ProfileController::class, 'updateNotifications'])->middleware('throttle:20,1')->name('profile.notifications.update');
+
+    Route::prefix('chat')->group(function () {
+        Route::get('/rooms', [StorefrontChatController::class, 'index'])->middleware('throttle:chat-action')->name('chat.rooms');
+        Route::post('/room', [StorefrontChatController::class, 'getOrCreateRoom'])->middleware('throttle:20,1')->name('chat.room.create');
+        Route::get('/rooms/{room}/messages', [StorefrontChatController::class, 'messages'])->middleware('throttle:chat-action')->name('chat.messages');
+        Route::post('/rooms/{room}/send', [StorefrontChatController::class, 'sendMessage'])->middleware('throttle:chat-send')->name('chat.send');
+        Route::post('/rooms/{room}/read', [StorefrontChatController::class, 'markAsRead'])->middleware('throttle:chat-action')->name('chat.read');
+    });
 });
 
 $adminPrefix = config('admin.prefix', 'cibenda-portal');
@@ -130,7 +142,13 @@ if ($adminPrefix !== 'admin') {
 }
 
 Route::get('/auth/google/redirect', [SocialiteController::class, 'redirect'])->name('google.redirect');
-Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])->name('google.callback');
+Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])
+    ->middleware('throttle:30,1')
+    ->name('google.callback');
+Route::get('/auth/google/link-confirm', [SocialiteController::class, 'confirmLink'])->name('google.link.confirm');
+Route::post('/auth/google/link-confirm', [SocialiteController::class, 'linkConfirmed'])
+    ->middleware('throttle:6,1')
+    ->name('google.link.confirmed');
 
 // Delivery Tracker Routes (Publicly accessible with invoice number)
 Route::get('/tracker/{invoice_number}', [DeliveryTrackerController::class, 'show'])->name('tracker.show');
@@ -148,7 +166,8 @@ Route::post('/tracker/{invoice_number}/arrive', [DeliveryTrackerController::clas
     ->name('tracker.arrive')
     ->middleware('throttle:tracker-action');
 Route::post('/tracker/{invoice_number}/complete', [DeliveryTrackerController::class, 'complete'])
-    ->name('tracker.complete');
+    ->name('tracker.complete')
+    ->middleware('throttle:tracker-pin');
 
 // Multi-Order Batch Delivery Tracker Routes
 Route::get('/tracker/batch/{batch_token}/handover', [DeliveryTrackerController::class, 'batchHandover'])
@@ -158,15 +177,17 @@ Route::post('/tracker/batch/{batch_token}/accept', [DeliveryTrackerController::c
     ->name('tracker.acceptBatchHandover')
     ->middleware('throttle:tracker-action');
 Route::get('/tracker/batch/{batch_token}', [DeliveryTrackerController::class, 'showBatch'])
-    ->name('tracker.showBatch');
+    ->name('tracker.showBatch')
+    ->middleware('signed');
 Route::get('/tracker/batch/{batch_token}/location', [DeliveryTrackerController::class, 'getBatchLocation'])
     ->name('tracker.getBatchLocation')
-    ->middleware('throttle:tracker-location');
+    ->middleware(['signed', 'throttle:tracker-location']);
 Route::post('/tracker/batch/{batch_token}/location', [DeliveryTrackerController::class, 'updateBatchLocation'])
     ->name('tracker.updateBatchLocation')
     ->middleware('throttle:tracker-location');
 Route::post('/tracker/batch/{batch_token}/{invoice_number}/complete', [DeliveryTrackerController::class, 'completeBatchStop'])
-    ->name('tracker.completeBatchStop');
+    ->name('tracker.completeBatchStop')
+    ->middleware('throttle:tracker-pin');
 
 // route dashboard pedagang (auth)
 Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::class])
@@ -187,8 +208,9 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
         Route::get('/dashboard', function (Request $request) {
             $user = $request->user()->load('store');
             $storeId = $user->store ? $user->store->id : null;
+            $netAmountExpr = \Illuminate\Support\Facades\DB::raw('CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END');
 
-            $sales = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->sum('total_amount') : 0;
+            $sales = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->sum($netAmountExpr) : 0;
             $ordersCount = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->count() : 0;
             $customersCount = $storeId ? Order::where('store_id', $storeId)->distinct('user_id')->count('user_id') : 0;
             $productsCount = $storeId ? Product::where('store_id', $storeId)->count() : 0;
@@ -198,8 +220,8 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
             $startLastMonth = now()->subMonth()->startOfMonth();
             $endLastMonth = now()->subMonth()->endOfMonth();
 
-            $salesThisMonth = $storeId ? (float) Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->where('created_at', '>=', $startThisMonth)->sum('total_amount') : 0;
-            $salesLastMonth = $storeId ? (float) Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->whereBetween('created_at', [$startLastMonth, $endLastMonth])->sum('total_amount') : 0;
+            $salesThisMonth = $storeId ? (float) Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->where('created_at', '>=', $startThisMonth)->sum($netAmountExpr) : 0;
+            $salesLastMonth = $storeId ? (float) Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->whereBetween('created_at', [$startLastMonth, $endLastMonth])->sum($netAmountExpr) : 0;
 
             $ordersThisMonth = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->where('created_at', '>=', $startThisMonth)->count() : 0;
             $ordersLastMonth = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count() : 0;
@@ -244,13 +266,21 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                     'product_name' => $firstItem ? $firstItem->product_name : 'N/A',
                     'product_image' => $firstItem && $firstItem->product ? $firstItem->product->image_path : null,
                     'date' => $o->created_at->format('d M Y'),
-                    'amount' => 'Rp '.number_format($o->total_amount, 0, ',', '.'),
+                    'amount' => 'Rp '.number_format($o->merchantNetAmount(), 0, ',', '.'),
                     'status' => $statusMap[$o->shipping_status] ?? ucfirst($o->shipping_status),
                 ];
             }) : [];
 
             $topSelling = $storeId ? Product::where('store_id', $storeId)
-                ->withSum('orderItems', 'quantity')
+                ->withSum(['orderItems as order_items_sum_quantity' => function ($q) {
+                    $q->whereHas('order', function ($oq) {
+                        $oq->where('shipping_status', '!=', 'cancelled')
+                            ->where(function ($sub) {
+                                $sub->where('shipping_status', 'delivered')
+                                    ->orWhere('payment_status', 'paid');
+                            });
+                    });
+                }], 'quantity')
                 ->orderBy('order_items_sum_quantity', 'desc')
                 ->take(3)
                 ->get()
@@ -259,7 +289,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                         'name' => $p->name,
                         'category' => $p->category->name ?? 'Umum',
                         'image' => $p->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
-                        'sold' => $p->order_items_sum_quantity ?? 0,
+                        'sold' => (int) ($p->order_items_sum_quantity ?? 0),
                         'price' => 'Rp '.number_format($p->price, 0, ',', '.'),
                         'status' => $p->stock > 0 ? 'Tersedia' : 'Stok Habis',
                         'statusColor' => $p->stock > 0 ? 'text-green-500' : 'text-red-500',
@@ -279,7 +309,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                         return $o->created_at->format('Y-m-d');
                     })
                     ->map(function ($group) {
-                        return (float) $group->sum('total_amount');
+                        return (float) $group->sum(fn ($o) => $o->merchantNetAmount());
                     });
 
                 $days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
@@ -307,7 +337,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                         return $o->created_at->format('Y-m');
                     })
                     ->map(function ($group) {
-                        return (float) $group->sum('total_amount');
+                        return (float) $group->sum(fn ($o) => $o->merchantNetAmount());
                     });
 
                 $monthNames = [
@@ -379,9 +409,14 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
         Route::post('/withdrawals', [WithdrawalController::class, 'store'])
             ->name('merchant.withdrawals.store')
             ->middleware('throttle:withdrawals');
-        Route::put('/withdrawals/bank', [WithdrawalController::class, 'updateBank'])->name('merchant.withdrawals.update-bank');
+        Route::put('/withdrawals/bank', [WithdrawalController::class, 'updateBank'])->middleware('throttle:10,1')->name('merchant.withdrawals.update-bank');
+
+        Route::get('/chat', [MerchantChatController::class, 'index'])->name('merchant.chat.index');
+        Route::get('/chat/{room}/messages', [MerchantChatController::class, 'messages'])->middleware('throttle:chat-action')->name('merchant.chat.messages');
+        Route::post('/chat/{room}/send', [MerchantChatController::class, 'sendMessage'])->middleware('throttle:chat-send')->name('merchant.chat.send');
+        Route::post('/chat/{room}/read', [MerchantChatController::class, 'markAsRead'])->middleware('throttle:chat-action')->name('merchant.chat.read');
     });
 
-Route::post('/api/midtrans/callback', [MidtransCallbackController::class, 'handle'])->name('midtrans.callback');
+Route::post('/api/midtrans/callback', [MidtransCallbackController::class, 'handle'])->middleware('throttle:60,1')->name('midtrans.callback');
 
 require __DIR__.'/auth.php';

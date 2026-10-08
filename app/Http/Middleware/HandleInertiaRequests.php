@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Cart;
 use App\Models\Category;
+use App\Models\ChatMessage;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,22 +30,57 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
+    public function handle(Request $request, \Closure $next)
+    {
+        $response = parent::handle($request, $next);
+
+        if (isset($response->headers)) {
+            $response->headers->set('X-Content-Type-Options', 'nosniff');
+            $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+            $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+            $response->headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(self)');
+        }
+
+        return $response;
+    }
+
     public function share(Request $request): array
     {
+        $user = $request->user();
+
+        if ($user) {
+            $lastSeen = $user->last_seen_at instanceof \Carbon\Carbon
+                ? $user->last_seen_at
+                : ($user->last_seen_at ? \Carbon\Carbon::parse($user->last_seen_at) : null);
+
+            if (!$lastSeen || $lastSeen->lt(now()->subMinutes(2))) {
+                $user->forceFill(['last_seen_at' => now()])->saveQuietly();
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'profile_photo_path' => $request->user()->profile_photo_path,
-                    'phone' => $request->user()->phone,
-                    'gender' => $request->user()->gender,
-                    'dob' => $request->user()->dob,
-                    'role' => $request->user()->role,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'profile_photo_path' => $user->profile_photo_path,
+                    'phone' => $user->phone,
+                    'gender' => $user->gender,
+                    'dob' => $user->dob,
+                    'role' => $user->role,
                 ] : null,
             ],
+            'unread_chats_count' => fn () => $user
+                ? ($user->role === 'pedagang' && $user->store
+                    ? ChatMessage::whereHas('chatRoom', function ($q) use ($user) {
+                        $q->where('store_id', $user->store->id);
+                    })->where('sender_type', 'user')->where('is_read', false)->count()
+                    : ChatMessage::whereHas('chatRoom', function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    })->where('sender_type', 'merchant')->where('is_read', false)->count()
+                ) : 0,
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

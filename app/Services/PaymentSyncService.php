@@ -71,15 +71,33 @@ class PaymentSyncService
             $isPaidStatus = ($transactionStatus === 'settlement' || ($transactionStatus === 'capture' && $fraudStatus === 'accept'));
 
             if ($isPaidStatus) {
-                if ($lockedOrder->payment_status !== 'paid') {
-                    $lockedOrder->update(['payment_status' => 'paid']);
+                if (! in_array($lockedOrder->payment_status, ['paid', 'refunded'], true)) {
+                    $wasCancelled = $lockedOrder->shipping_status === 'cancelled';
+                    $shouldCreditEscrow = $lockedOrder->store_id && $lockedOrder->escrow_credited_at === null;
 
-                    // Safely increment store escrow pending_balance
-                    if ($lockedOrder->store_id) {
+                    $updateFields = ['payment_status' => 'paid'];
+                    if ($wasCancelled) {
+                        $updateFields['shipping_status'] = 'pending';
+                    }
+
+                    // escrow_credited_at ga masuk fillable, jadi set lewat forceFill biar webhook retry idempoten
+                    if ($shouldCreditEscrow) {
+                        $updateFields['escrow_credited_at'] = now();
+                        $lockedOrder->forceFill($updateFields)->save();
+                    } else {
+                        $lockedOrder->update($updateFields);
+                    }
+
+                    if ($wasCancelled && $lockedOrder->stock_restored_at !== null) {
+                        $lockedOrder->deductRestoredStock();
+                    }
+
+                    if ($shouldCreditEscrow) {
                         $store = Store::where('id', $lockedOrder->store_id)->lockForUpdate()->first();
                         if ($store) {
-                            $store->increment('pending_balance', $lockedOrder->total_amount);
-                            Log::info("Escrow Credited: Added Rp {$lockedOrder->total_amount} to pending_balance for Store #{$store->id} (Order #{$lockedOrder->invoice_number})");
+                            $netAmount = $lockedOrder->merchantNetAmount();
+                            $store->increment('pending_balance', $netAmount);
+                            Log::info("Escrow Credited: Added Rp {$netAmount} to pending_balance for Store #{$store->id} (Order #{$lockedOrder->invoice_number})");
                         }
                     }
 
@@ -91,9 +109,38 @@ class PaymentSyncService
                         Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: ' . $e->getMessage());
                     }
                 }
-            } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-                if ($lockedOrder->payment_status !== 'paid') {
-                    $lockedOrder->update(['payment_status' => 'failed']);
+            } elseif (in_array($transactionStatus, ['refund', 'partial_refund'], true)) {
+                if ($lockedOrder->payment_status !== 'refunded') {
+                    $wasPaid = $lockedOrder->payment_status === 'paid';
+                    $isFullRefund = $transactionStatus === 'refund';
+                    $wasDelivered = $lockedOrder->balance_credited_at !== null;
+
+                    $updateFields = ['payment_status' => 'refunded'];
+                    // partial refund ga batalin seluruh order
+                    if ($isFullRefund) {
+                        $updateFields['shipping_status'] = 'cancelled';
+                    }
+                    $lockedOrder->update($updateFields);
+
+                    if ($wasPaid) {
+                        // tarik balik dari escrow kalau belum dipindah, atau dari available kalau udah delivered
+                        if (! $lockedOrder->reversePendingBalance()) {
+                            $lockedOrder->reverseCreditedBalance();
+                        }
+                    }
+
+                    // stok cuma dibalikin kalau full refund & order belum delivered
+                    if ($isFullRefund && ! $wasDelivered) {
+                        $lockedOrder->restoreStock();
+                    }
+                }
+            } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'], true)) {
+                if (! in_array($lockedOrder->payment_status, ['paid', 'refunded', 'failed'], true)) {
+                    $updateFields = ['payment_status' => 'failed'];
+                    if ($lockedOrder->shipping_status === 'pending') {
+                        $updateFields['shipping_status'] = 'cancelled';
+                    }
+                    $lockedOrder->update($updateFields);
                     $lockedOrder->restoreStock();
 
                     OrderNotificationService::orderCancelled($lockedOrder, 'Pembayaran kadaluarsa atau dibatalkan');
@@ -105,7 +152,7 @@ class PaymentSyncService
                     }
                 }
             } elseif ($transactionStatus === 'pending') {
-                if ($lockedOrder->payment_status !== 'paid') {
+                if (! in_array($lockedOrder->payment_status, ['paid', 'refunded', 'failed'], true) && $lockedOrder->shipping_status !== 'cancelled') {
                     $lockedOrder->update(['payment_status' => 'pending']);
                 }
             }

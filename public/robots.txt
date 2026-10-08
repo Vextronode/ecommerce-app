@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Disallow: /tracker/
+Disallow: /pedagang/
+Disallow: /checkout/
+Disallow: /payment/
+Disallow: /history/
+Disallow: /profile/
+Disallow: /cart/
+Disallow: /chat/
+Disallow: /api/

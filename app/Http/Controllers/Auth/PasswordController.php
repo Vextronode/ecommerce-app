@@ -20,9 +20,21 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user = $request->user();
+        $user->forceFill([
             'password' => Hash::make($validated['password']),
-        ]);
+            'remember_token' => \Illuminate\Support\Str::random(60),
+        ])->save();
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+                \Illuminate\Support\Facades\DB::table('sessions')
+                    ->where('user_id', $user->id)
+                    ->where('id', '!=', $request->session()->getId())
+                    ->delete();
+            }
+        } catch (\Throwable $e) {
+        }
 
         return back();
     }

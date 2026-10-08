@@ -37,8 +37,9 @@ export default function Show({ order }: { order: any }) {
 
     const canCancel = order.shipping_status === 'pending';
     const isLocalDelivery = order.delivery_method === 'local_delivery';
-    const canComplete = order.shipping_status === 'shipped' && (order.can_buyer_complete ?? (!isLocalDelivery || order.is_arrived));
-    const isWaitingCourierArrival = order.shipping_status === 'shipped' && isLocalDelivery && !canComplete;
+    const isCod = order.payment_method === 'cod';
+    const canComplete = order.shipping_status === 'shipped' && !isCod && (order.can_buyer_complete ?? (!isLocalDelivery || order.is_arrived));
+    const isWaitingCourierArrival = order.shipping_status === 'shipped' && isLocalDelivery && !isCod && !canComplete;
     const showRatingButton = order.status === 'Selesai' && order.items && order.items.length > 0;
 
 

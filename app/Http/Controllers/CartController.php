@@ -15,6 +15,7 @@ class CartController extends Controller
     {
         $carts = Cart::with(['product.store', 'product.skus'])
             ->where('user_id', auth()->id())
+            ->whereHas('product')
             ->latest()
             ->get();
 
@@ -63,6 +64,12 @@ class CartController extends Controller
             ->withAvg('reviews as rating', 'rating')
             ->where('is_active', true)
             ->where('stock', '>', 0)
+            ->whereHas('store', function ($q) {
+                $q->where('sid_status', 'verified')
+                    ->whereHas('user', function ($uq) {
+                        $uq->whereIn('status', ['active', 'warning']);
+                    });
+            })
             ->whereNotIn('id', $cartProductIds)
             ->when(count($cartCategoryIds) > 0, function ($query) use ($cartCategoryIds) {
                 $query->whereIn('category_id', $cartCategoryIds);
@@ -102,17 +109,36 @@ class CartController extends Controller
             $product = Product::query()
                 ->where('id', $validated['product_id'])
                 ->where('is_active', true)
-                ->with('skus')
+                ->with(['skus', 'store.user'])
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $store = $product->store;
+            if (! $store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
+                throw ValidationException::withMessages([
+                    'product_id' => 'Toko penjual sedang tidak aktif atau belum terverifikasi.',
+                ]);
+            }
+
+            if ((int) $store->user_id === (int) auth()->id()) {
+                throw ValidationException::withMessages([
+                    'product_id' => 'Anda tidak dapat membeli produk dari toko Anda sendiri.',
+                ]);
+            }
+
             $prepOption = $validated['preparation_option'] ?? '';
             $availableStock = $product->stock;
-            if (! empty($prepOption)) {
+
+            if ($product->skus->isNotEmpty()) {
                 $matchingSku = $product->skus->where('variant_name', $prepOption)->first();
-                if ($matchingSku) {
-                    $availableStock = $matchingSku->stock;
+                if (! $matchingSku) {
+                    throw ValidationException::withMessages([
+                        'preparation_option' => 'Silakan pilih varian produk yang valid.',
+                    ]);
                 }
+                $availableStock = $matchingSku->stock;
+            } elseif (! empty($prepOption)) {
+                $prepOption = '';
             }
 
             $cart = Cart::query()
@@ -157,29 +183,39 @@ class CartController extends Controller
 
         $validated = $request->validate(['quantity' => 'required|integer|min:1']);
 
-        $cart->load(['product.skus']);
+        DB::transaction(function () use ($cart, $validated) {
+            $lockedCart = Cart::where('id', $cart->id)->lockForUpdate()->firstOrFail();
+            $product = Product::where('id', $lockedCart->product_id)
+                ->with(['skus', 'store.user'])
+                ->lockForUpdate()
+                ->first();
 
-        if (! $cart->product || ! $cart->product->is_active) {
-            throw ValidationException::withMessages([
-                'quantity' => 'Produk tidak tersedia.',
-            ]);
-        }
+            $store = $product?->store;
+            if (! $product || ! $product->is_active || ! $store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
+                throw ValidationException::withMessages([
+                    'quantity' => 'Produk atau toko tidak tersedia.',
+                ]);
+            }
 
-        $availableStock = $cart->product->stock;
-        if (! empty($cart->preparation_option)) {
-            $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
-            if ($matchingSku) {
+            $availableStock = $product->stock;
+            if ($product->skus->isNotEmpty()) {
+                $matchingSku = $product->skus->where('variant_name', $lockedCart->preparation_option)->first();
+                if (! $matchingSku) {
+                    throw ValidationException::withMessages([
+                        'quantity' => 'Varian produk sudah tidak valid.',
+                    ]);
+                }
                 $availableStock = $matchingSku->stock;
             }
-        }
 
-        if ($validated['quantity'] > $availableStock) {
-            throw ValidationException::withMessages([
-                'quantity' => 'Quantity melebihi stok tersedia.',
-            ]);
-        }
+            if ($validated['quantity'] > $availableStock) {
+                throw ValidationException::withMessages([
+                    'quantity' => 'Quantity melebihi stok tersedia.',
+                ]);
+            }
 
-        $cart->update(['quantity' => $validated['quantity']]);
+            $lockedCart->update(['quantity' => $validated['quantity']]);
+        });
 
         return redirect()->back();
     }

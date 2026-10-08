@@ -42,7 +42,13 @@ messaging.onBackgroundMessage(function(payload) {
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   const actionUrl = event.notification.data?.action_url || '/';
-  const targetUrl = new URL(actionUrl, self.location.origin).href;
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(actionUrl, self.location.origin);
+  } catch (e) {
+    parsedUrl = new URL('/', self.location.origin);
+  }
+  const targetUrl = parsedUrl.origin === self.location.origin ? parsedUrl.href : self.location.origin + '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {

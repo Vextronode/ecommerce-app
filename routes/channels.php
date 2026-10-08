@@ -48,14 +48,35 @@ Broadcast::channel('order-tracking.{invoiceNumber}', function ($user, $invoiceNu
 
 // Batch delivery tracking channel (for BatchTracker & OrderTable)
 Broadcast::channel('batch.{batchToken}', function ($user, $batchToken) {
-    // Allow if user owns any order in this batch, or is the batch's store merchant
+    if (($user->role ?? '') === 'admin') {
+        return true;
+    }
     $userStoreId = $user->store?->id;
+    if (! $userStoreId) {
+        return false;
+    }
+
     return Order::where('delivery_batch_token', $batchToken)
-        ->where(function ($q) use ($user, $userStoreId) {
-            $q->where('user_id', $user->id);
-            if ($userStoreId) {
-                $q->orWhere('store_id', $userStoreId);
-            }
-        })
+        ->where('store_id', $userStoreId)
         ->exists();
 });
+
+Broadcast::channel('chat.room.{roomId}', function ($user, $roomId) {
+    $room = \App\Models\ChatRoom::with('store')->find($roomId);
+    if (!$room) {
+        return false;
+    }
+    $isBuyer = (int) $user->id === (int) $room->user_id;
+    $isMerchant = $room->store && (int) $user->id === (int) $room->store->user_id;
+    return $isBuyer || $isMerchant;
+});
+
+Broadcast::channel('user-chats.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
+Broadcast::channel('store-chats.{storeId}', function ($user, $storeId) {
+    $userStoreId = $user->store?->id;
+    return $userStoreId && (int) $userStoreId === (int) $storeId;
+});
+

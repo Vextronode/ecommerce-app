@@ -14,6 +14,7 @@ import BatchStopCard, { BatchStopData } from "@/Components/Delivery/BatchStopCar
 
 interface Props {
     batchToken: string;
+    locationUrl: string;
     role: string;
     initialDriverPos?: [number, number] | null;
     store: {
@@ -28,6 +29,7 @@ interface Props {
 
 export default function BatchTracker({
     batchToken,
+    locationUrl,
     role,
     initialDriverPos,
     store,
@@ -59,7 +61,7 @@ export default function BatchTracker({
         setIsRefreshing(true);
         setRefreshCounter((prev) => prev + 1);
         try {
-            const res = await fetch(`/tracker/batch/${batchToken}/location`);
+            const res = await fetch(locationUrl);
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.latitude && data.longitude) {
@@ -85,13 +87,12 @@ export default function BatchTracker({
                 }
                 lastBatchGpsSentRef.current = now;
 
-                fetch(`/tracker/batch/${batchToken}/location`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ latitude, longitude }),
-                }).catch(() => {});
+                if (typeof window !== "undefined" && window.axios) {
+                    window.axios.post(`/tracker/batch/${batchToken}/location`, {
+                        latitude,
+                        longitude,
+                    }).catch(() => {});
+                }
             };
 
             if (navigator.geolocation) {
@@ -146,7 +147,7 @@ export default function BatchTracker({
 
             const fetchBatchLocation = async () => {
                 try {
-                    const res = await fetch(`/tracker/batch/${batchToken}/location`);
+                    const res = await fetch(locationUrl);
                     if (!res.ok) return;
                     const data = await res.json();
                     if (data && data.latitude && data.longitude) {
@@ -159,7 +160,7 @@ export default function BatchTracker({
             const interval = setInterval(fetchBatchLocation, 10000);
             return () => clearInterval(interval);
         }
-    }, [isAllDelivered, isDriver, batchToken]);
+    }, [isAllDelivered, isDriver, batchToken, locationUrl]);
 
     const handlePinSubmit = (invoice_number: string, pin: string) => {
         if (!pin || pin.length !== 4) {

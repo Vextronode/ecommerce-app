@@ -25,13 +25,18 @@ class WithdrawalUpdated implements ShouldBroadcastNow
         $withdrawal->loadMissing('store');
         $store = $withdrawal->store;
 
+        $rawAccount = (string) ($withdrawal->account_number ?? '');
+        $maskedAccount = strlen($rawAccount) > 4
+            ? \Illuminate\Support\Str::mask($rawAccount, '*', 0, strlen($rawAccount) - 4)
+            : $rawAccount;
+
         $this->storeId = (int) $withdrawal->store_id;
         $this->withdrawal = [
             'id' => $withdrawal->id,
             'reference_no' => $withdrawal->reference_no,
             'amount' => (float) $withdrawal->amount,
             'bank_name' => $withdrawal->bank_name,
-            'account_number' => $withdrawal->account_number,
+            'account_number' => $maskedAccount,
             'account_holder' => $withdrawal->account_holder,
             'status' => $withdrawal->status,
             'notes' => $withdrawal->notes,
@@ -43,12 +48,15 @@ class WithdrawalUpdated implements ShouldBroadcastNow
         $totalWithdrawn = (float) Withdrawal::where('store_id', $this->storeId)
             ->where('status', 'completed')
             ->sum('amount');
+        $pendingWithdrawals = (float) Withdrawal::where('store_id', $this->storeId)
+            ->where('status', 'pending')
+            ->sum('amount');
 
         $this->stats = [
             'available_balance' => $available,
             'pending_balance' => $pending,
             'total_withdrawn' => $totalWithdrawn,
-            'total_earnings' => $available + $pending + $totalWithdrawn,
+            'total_earnings' => $available + $pending + $totalWithdrawn + $pendingWithdrawals,
         ];
     }
 

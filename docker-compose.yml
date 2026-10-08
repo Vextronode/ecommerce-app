@@ -57,7 +57,7 @@ services:
              php artisan migrate --force &&
              php artisan serve --host=0.0.0.0 --port=8000"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - .env.docker
     environment:
@@ -123,9 +123,9 @@ services:
     build: .
     container_name: cibenda_reverb
     restart: unless-stopped
-    command: php artisan reverb:start --host=0.0.0.0 --port=8080 --debug
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     env_file:
       - .env.docker
     environment:

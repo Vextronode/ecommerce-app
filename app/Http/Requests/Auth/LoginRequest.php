@@ -45,9 +45,11 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         $loginInput = trim((string) $this->input('email'));
-        $targetUser = \App\Models\User::where('email', $loginInput)
-            ->orWhere('name', $loginInput)
-            ->first();
+        $expectedRole = $this->string('expected_role')->toString() ?: 'user';
+
+        $targetUser = \App\Models\User::where('email', $loginInput)->first()
+            ?? \App\Models\User::where('name', $loginInput)->where('role', $expectedRole)->first()
+            ?? \App\Models\User::where('name', $loginInput)->first();
 
         $credentials = [
             'email' => $targetUser ? $targetUser->email : $loginInput,
@@ -93,6 +95,14 @@ class LoginRequest extends FormRequest
             // Generic error message to prevent User Enumeration and Role Disclosure
             throw ValidationException::withMessages([
                 'email' => $msg,
+            ]);
+        }
+
+        if (in_array($authenticatedUser?->status, ['suspended', 'inactive'], true)) {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda sedang ditangguhkan atau dinonaktifkan. Silakan hubungi administrator.',
             ]);
         }
 
@@ -169,6 +179,11 @@ class LoginRequest extends FormRequest
      */
     public function emailThrottleKey(): string
     {
-        return Str::transliterate('login_email_throttle|'.Str::lower($this->string('email')));
+        $loginInput = trim((string) $this->input('email'));
+        $resolvedEmail = \App\Models\User::where('email', $loginInput)->value('email')
+            ?? \App\Models\User::where('name', $loginInput)->value('email')
+            ?? $loginInput;
+
+        return Str::transliterate('login_email_throttle|'.Str::lower((string) $resolvedEmail));
     }
 }

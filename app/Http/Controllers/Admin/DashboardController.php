@@ -38,11 +38,13 @@ class DashboardController extends Controller
 
         // Produk Terjual (Total Qty Sold dari Paid Orders) & Trend
         $totalSold = (int) OrderItem::whereHas('order', function ($q) {
-            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success']);
+            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+                ->where('shipping_status', '!=', 'cancelled');
         })->sum('quantity');
 
         $lastMonthSold = (int) OrderItem::whereHas('order', function ($q) {
             $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+                ->where('shipping_status', '!=', 'cancelled')
                 ->where('created_at', '<', now()->startOfMonth());
         })->sum('quantity');
 
@@ -53,7 +55,7 @@ class DashboardController extends Controller
         // Produk Terlaris (Berdasarkan jumlah terjual aktual dari order yang sukses)
         $topProduct = Product::with(['store', 'category'])
             ->withSum(['orderItems as total_sold' => function ($q) {
-                $q->whereHas('order', fn ($o) => $o->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success']));
+                $q->whereHas('order', fn ($o) => $o->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])->where('shipping_status', '!=', 'cancelled'));
             }], 'quantity')
             ->orderByDesc('total_sold')
             ->first();
@@ -73,17 +75,18 @@ class DashboardController extends Controller
                     'name' => $store->name,
                     'owner_name' => $store->user?->name ?? 'Mitra Pedagang',
                     'date' => $store->created_at ? $store->created_at->diffForHumans() : 'Baru saja',
-                    'status' => 'approved',
+                    'status' => $store->sid_status === 'verified' ? 'approved' : ($store->sid_status ?? 'verified'),
                 ];
             });
 
         // Grafik Product Sales (Data Real Penjualan 3 Minggu Terakhir)
         $chartData = [];
-        $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
         $startDate = now()->startOfWeek()->subWeeks(2);
         $weeklySales = OrderItem::whereHas('order', function ($q) use ($startDate) {
             $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+                ->where('shipping_status', '!=', 'cancelled')
                 ->where('created_at', '>=', $startDate);
         })
             ->selectRaw('DATE(created_at) as date, SUM(quantity) as units')
@@ -91,7 +94,7 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('date');
 
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             $dayName = $days[$i];
             $dateW1 = now()->startOfWeek()->addDays($i)->format('Y-m-d');
             $dateW2 = now()->startOfWeek()->subWeeks(1)->addDays($i)->format('Y-m-d');

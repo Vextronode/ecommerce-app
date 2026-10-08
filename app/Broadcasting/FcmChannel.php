@@ -83,20 +83,15 @@ class FcmChannel
             ];
 
             $response = Http::withToken($accessToken['access_token'])
+                ->timeout(10)
                 ->post("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send", $fcmMessage);
 
             if (!$response->successful()) {
                 $body = $response->json();
                 Log::error('FCM Send Error: ' . $response->body());
 
-                // If token is invalid or unregistered, clean it up from user
                 $errorCode = $body['error']['details'][0]['errorCode'] ?? $body['error']['status'] ?? null;
-                if ($errorCode === 'UNREGISTERED' || $response->status() === 404) {
-                    if (isset($notifiable->fcm_token)) {
-                        $notifiable->update(['fcm_token' => null]);
-                        Log::info("FCM: Removed expired token for user #{$notifiable->id}");
-                    }
-                }
+                $this->bersihkanTokenKadaluarsa($notifiable, $token, $errorCode, $response->status());
             }
         } catch (\Throwable $e) {
             Log::error('FCM Exception: ' . $e->getMessage());
@@ -104,14 +99,51 @@ class FcmChannel
     }
 
     /**
-     * Resolve Firebase Auth config from ENV (raw/base64 JSON) or local file.
+     * buang token kalau fcm bilang token itu sudah tidak terdaftar.
+     *
+     * penghapusan wajib berbasis baris db, bukan objek in-memory. job notifikasi
+     * (PushNotification implements ShouldQueue) bisa pegang snapshot lama selama
+     * fcm balas; kalau user sudah kirim token baru di jendela itu, objek in-memory
+     * masih pegang token lama sehingga perbandingan memori salah dan token baru yang sah
+     * ikut terhapus. conditional update di bawah cuma nge-null-kan saat kolom db masih
+     * token yang dikirim.
+     */
+    protected function bersihkanTokenKadaluarsa($notifiable, string $token, ?string $errorCode, int $status): void
+    {
+        if ($errorCode !== 'UNREGISTERED' && $status !== 404) {
+            return;
+        }
+
+        $adalahModel = $notifiable instanceof \Illuminate\Database\Eloquent\Model;
+
+        if (!$adalahModel || !$notifiable->exists) {
+            return;
+        }
+
+        // conditional update atomik: baris cuma ke-null-kan kalau fcm_token di db masih sama.
+        // pakai newQuery() (hormati global scope/soft deletes), bukan newQueryWithoutScopes().
+        $terhapus = $notifiable->newQuery()
+            ->whereKey($notifiable->getKey())
+            ->where('fcm_token', $token)
+            ->update(['fcm_token' => null]);
+
+        if ($terhapus > 0) {
+            $notifiable->setRawAttributes(
+                array_merge($notifiable->getAttributes(), ['fcm_token' => null]),
+                true
+            );
+            Log::info("FCM: Removed expired token for user #{$notifiable->getKey()}");
+        }
+    }
+
+    /**
+     * Resolve Firebase Auth config from config (raw/base64 JSON) or local file.
      *
      * @return array|string|null
      */
     protected function getAuthConfig()
     {
-        // 1. Check environment variable (Raw JSON)
-        $envJson = env('FIREBASE_CREDENTIALS_JSON');
+        $envJson = config('services.firebase.credentials_json');
         if ($envJson) {
             $decoded = json_decode($envJson, true);
             if (is_array($decoded) && isset($decoded['private_key'])) {
@@ -119,8 +151,7 @@ class FcmChannel
             }
         }
 
-        // 2. Check environment variable (Base64 Encoded JSON)
-        $envBase64 = env('FIREBASE_CREDENTIALS_BASE64');
+        $envBase64 = config('services.firebase.credentials_base64');
         if ($envBase64) {
             $decoded = json_decode(base64_decode($envBase64), true);
             if (is_array($decoded) && isset($decoded['private_key'])) {
@@ -128,13 +159,11 @@ class FcmChannel
             }
         }
 
-        // 3. Check storage/app/firebase-auth.json
         $filePath = storage_path('app/firebase-auth.json');
         if (file_exists($filePath)) {
             return $filePath;
         }
 
-        // 4. Check base path fallback
         $baseFilePath = base_path('firebase-auth.json');
         if (file_exists($baseFilePath)) {
             return $baseFilePath;

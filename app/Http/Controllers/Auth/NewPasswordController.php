@@ -49,7 +49,17 @@ class NewPasswordController extends Controller
                 $user->forceFill([
                     'password' => Hash::make($request->password),
                     'remember_token' => Str::random(60),
+                    'is_password_changed' => true,
                 ])->save();
+
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+                        \Illuminate\Support\Facades\DB::table('sessions')
+                            ->where('user_id', $user->id)
+                            ->delete();
+                    }
+                } catch (\Throwable $e) {
+                }
 
                 event(new PasswordReset($user));
             }

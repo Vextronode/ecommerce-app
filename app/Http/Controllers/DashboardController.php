@@ -13,19 +13,28 @@ class DashboardController extends Controller
     public function index()
     {
         $categories = Category::all();
-        $stores = Store::with('user')->take(4)->get()->map(function ($store) {
-            return [
-                'id' => $store->id,
-                'slug' => $store->slug,
-                'name' => $store->name,
-                'description' => $store->description,
-                'image' => $store->user?->profile_photo_path
-                    ? Storage::url($store->user->profile_photo_path)
-                    : null,
-            ];
-        });
+        $stores = Store::with('user')
+            ->where('sid_status', 'verified')
+            ->whereHas('user', fn ($q) => $q->whereIn('status', ['active', 'warning']))
+            ->take(4)
+            ->get()
+            ->map(function ($store) {
+                return [
+                    'id' => $store->id,
+                    'slug' => $store->slug,
+                    'name' => $store->name,
+                    'description' => $store->description,
+                    'image' => $store->user?->profile_photo_path
+                        ? Storage::url($store->user->profile_photo_path)
+                        : null,
+                ];
+            });
 
         $featuredProducts = Product::with(['store', 'category'])
+            ->whereHas('store', function ($q) {
+                $q->where('sid_status', 'verified')
+                    ->whereHas('user', fn ($u) => $u->whereIn('status', ['active', 'warning']));
+            })
             ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
                     $q->where('shipping_status', 'delivered');

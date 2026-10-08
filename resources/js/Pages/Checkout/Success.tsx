@@ -65,7 +65,7 @@ export default function Success({ orders = [], order }: Props) {
     const isMultiOrder = ordersList.length > 1;
 
     const totalSpent = ordersList.reduce(
-        (sum, ord) => sum + (ord.total_amount || 0),
+        (sum, ord) => sum + (Number(ord.total_amount) || 0),
         0
     );
 

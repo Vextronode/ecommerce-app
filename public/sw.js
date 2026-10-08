@@ -5,11 +5,10 @@
 //       notifications separately — this SW handles caching only.
 // =====================================================================
 
-const CACHE_NAME = 'cibenda-mart-v3';
+const CACHE_NAME = 'cibenda-mart-v4';
 
 // Asset yang di-cache saat install (App Shell)
 const PRECACHE_URLS = [
-    '/',
     '/manifest.json',
     '/manifest-merchant.json',
     '/favicon.png',
@@ -42,9 +41,7 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch: Network-first, fallback ke cache
-// Inertia/API request → selalu network first
-// Static assets (js, css, images) → cache first
+// Fetch: Static assets cache-first; never cache authenticated HTML or Inertia JSON
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
@@ -52,32 +49,29 @@ self.addEventListener('fetch', (event) => {
     // Skip non-GET & cross-origin requests
     if (request.method !== 'GET' || url.origin !== location.origin) return;
 
-    // Skip Inertia/API/auth routes → always network
-    const dynamicPaths = ['/api/', '/auth/', '/login', '/register', '/dashboard'];
+    // Skip Inertia XHR requests & dynamic/authenticated routes → always network, never cache
+    if (request.headers.get('X-Inertia')) return;
+
+    const dynamicPaths = [
+        '/api/', '/auth/', '/login', '/register', '/dashboard',
+        '/pedagang', '/cibenda-portal', '/admin', '/profile',
+        '/checkout', '/payment', '/history', '/cart', '/chat', '/tracker',
+        '/sw.js', '/firebase-messaging-sw.js'
+    ];
     if (dynamicPaths.some((path) => url.pathname.startsWith(path))) return;
 
-    // Static assets: cache-first
+    // Static assets: cache-first (only cache 200 OK responses)
     if (url.pathname.match(/\.(js|css|png|jpg|jpeg|webp|svg|woff2?)$/)) {
         event.respondWith(
             caches.match(request).then((cached) => {
                 return cached || fetch(request).then((response) => {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+                    if (response && response.ok) {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+                    }
                     return response;
                 });
             })
         );
-        return;
     }
-
-    // HTML pages: network-first, fallback ke cache
-    event.respondWith(
-        fetch(request)
-            .then((response) => {
-                const clone = response.clone();
-                caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-                return response;
-            })
-            .catch(() => caches.match(request))
-    );
 });

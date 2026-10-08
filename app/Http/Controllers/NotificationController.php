@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\FcmTokenManager;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class NotificationController extends Controller
 {
@@ -12,7 +12,7 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
-        $notifications = $request->user()->notifications;
+        $notifications = $request->user()->notifications()->latest()->limit(100)->get();
 
         $grouped = [
             'all' => $notifications->values(),
@@ -52,7 +52,7 @@ class NotificationController extends Controller
      */
     public function markAllAsRead(Request $request)
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $request->user()->unreadNotifications()->update(['read_at' => now()]);
         return response()->json(['success' => true]);
     }
 
@@ -79,7 +79,11 @@ class NotificationController extends Controller
     }
 
     /**
-     * Save the FCM token for the authenticated user
+     * simpan fcm token milik user yang login.
+     *
+     * token itu kredensial perangkat, bukan identifier publik. menolak klaim token
+     * yang sudah dimiliki user lain mencegah attacker mematikan push korban (hijack/dos).
+     * perangkat yang sah wajib mengirim ulang token yang sama ke akunnya sendiri.
      */
     public function saveFcmToken(Request $request)
     {
@@ -94,9 +98,15 @@ class NotificationController extends Controller
         ]);
 
         $user = $request->user();
-        $user->fcm_token = $validated['fcm_token'];
-        $user->save();
+        $token = $validated['fcm_token'];
 
-        return response()->json(['success' => true]);
+        // semua logika kepemilikan token ada di FcmTokenManager supaya tidak terpisah
+        // dari jalur logout/handoff dan guard anti-hijack tidak pernah terlewat.
+        $hasil = app(FcmTokenManager::class)->claim($user, $token);
+
+        return response()->json([
+            'success' => $hasil['status'] === FcmTokenManager::SUKSES,
+            'message' => $hasil['message'],
+        ], $hasil['status']);
     }
 }

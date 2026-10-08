@@ -238,7 +238,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
 
                     <div className="mt-10 space-y-6 border-t border-slate-100 pt-8 md:mt-12">
                         {product.store && (
-                            <StoreProfileCard store={product.store} />
+                            <StoreProfileCard store={product.store} product={product} />
                         )}
 
                         <ProductTabs

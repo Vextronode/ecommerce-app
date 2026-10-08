@@ -13,7 +13,7 @@ class ProductStockUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public Product $product;
+    protected Product $product;
     public int $productId;
     public int $storeId;
     public string $name;

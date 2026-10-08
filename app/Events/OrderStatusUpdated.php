@@ -13,7 +13,7 @@ class OrderStatusUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public Order $order;
+    protected Order $order;
     public ?string $status = null;
     public ?string $shippingStatus = null;
 
@@ -22,7 +22,7 @@ class OrderStatusUpdated implements ShouldBroadcastNow
      */
     public function __construct(Order $order)
     {
-        $this->order = $order->loadMissing(['store', 'user', 'items']);
+        $this->order = $order;
         $this->status = $order->status ?? $order->shipping_status ?? 'pending';
         $this->shippingStatus = $order->shipping_status ?? 'pending';
     }
@@ -76,13 +76,13 @@ class OrderStatusUpdated implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'order_id'             => $this->order->id,
-            'invoice_number'       => $this->order->invoice_number,
-            'status'               => $this->status,
-            'shipping_status'      => $this->shippingStatus,
-            'delivery_batch_token' => $this->order->delivery_batch_token,
-            'total_amount'         => $this->order->total_amount,
-            'updated_at'           => $this->order->updated_at?->toIso8601String(),
+            'order_id'        => $this->order->id,
+            'invoice_number'  => $this->order->invoice_number,
+            'status'          => $this->status,
+            'shipping_status' => $this->shippingStatus,
+            'payment_status'  => $this->order->payment_status,
+            'total_amount'    => $this->order->total_amount,
+            'updated_at'      => $this->order->updated_at?->toIso8601String(),
         ];
     }
 }

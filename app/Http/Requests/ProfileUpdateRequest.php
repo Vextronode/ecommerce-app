@@ -14,6 +14,16 @@ class ProfileUpdateRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('name') && is_string($this->name)) {
+            $this->merge(['name' => strip_tags(trim($this->name))]);
+        }
+        if ($this->has('phone') && is_string($this->phone)) {
+            $this->merge(['phone' => strip_tags(trim($this->phone))]);
+        }
+    }
+
     public function rules(): array
     {
         $minimumBirthDate = now()->subYears(13)->toDateString();

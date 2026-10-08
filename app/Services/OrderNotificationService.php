@@ -167,11 +167,16 @@ class OrderNotificationService
             $order->loadMissing(['user', 'store']);
 
             if ($order->user) {
-                $title = 'Kurir Tiba di Lokasi Anda!';
-                $message = "Kurir telah sampai di lokasi alamat pengiriman pesanan #{$order->invoice_number}. Silakan temui kurir.";
-                $actionUrl = route('history.show', $order->id, false);
+                $userSettings = $order->user->notification_settings ?? [];
+                $isAllowed = $userSettings['pesanan_dikirim'] ?? true;
 
-                $order->user->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                if ($isAllowed) {
+                    $title = 'Kurir Tiba di Lokasi Anda!';
+                    $message = "Kurir telah sampai di lokasi alamat pengiriman pesanan #{$order->invoice_number}. Silakan temui kurir.";
+                    $actionUrl = route('history.show', $order->id, false);
+
+                    $order->user->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                }
             }
         } catch (\Throwable $e) {
             Log::error('OrderNotificationService::orderArrived error: ' . $e->getMessage());
@@ -220,20 +225,40 @@ class OrderNotificationService
     }
 
     /**
-     * Notify buyer when order is cancelled.
+     * Notify buyer and store owner when order is cancelled.
      */
     public static function orderCancelled(Order $order, string $reason = ''): void
     {
         try {
-            $order->loadMissing(['user', 'store']);
+            $order->loadMissing(['user', 'store.user']);
+
+            $reasonText = $reason ? " Alasan: {$reason}." : "";
 
             if ($order->user) {
-                $title = 'Pesanan Dibatalkan';
-                $reasonText = $reason ? " Alasan: {$reason}." : "";
-                $message = "Pesanan #{$order->invoice_number} telah dibatalkan.{$reasonText}";
-                $actionUrl = route('history.show', $order->id, false);
+                $userSettings = $order->user->notification_settings ?? [];
+                $isAllowed = $userSettings['pengingat'] ?? true;
 
-                $order->user->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                if ($isAllowed) {
+                    $title = 'Pesanan Dibatalkan';
+                    $message = "Pesanan #{$order->invoice_number} telah dibatalkan.{$reasonText}";
+                    $actionUrl = route('history.show', $order->id, false);
+
+                    $order->user->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                }
+            }
+
+            $storeOwner = $order->store?->user;
+            if ($storeOwner) {
+                $merchantSettings = $storeOwner->notification_settings ?? [];
+                $isAllowed = $merchantSettings['pesanan_baru'] ?? true;
+
+                if ($isAllowed) {
+                    $title = 'Pesanan Dibatalkan';
+                    $message = "Pesanan #{$order->invoice_number} di toko {$order->store->name} telah dibatalkan.{$reasonText}";
+                    $actionUrl = '/pedagang/orders';
+
+                    $storeOwner->notify(new PushNotification($title, $message, 'order', $actionUrl));
+                }
             }
         } catch (\Throwable $e) {
             Log::error('OrderNotificationService::orderCancelled error: ' . $e->getMessage());

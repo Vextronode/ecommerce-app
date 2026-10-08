@@ -101,4 +101,94 @@ class WithdrawalPayoutRetryTest extends TestCase
         $this->assertStringContainsString('Nomor rekening bank tujuan tidak ditemukan', $withdrawal->notes);
         $this->assertEquals(50000, (float) $store->fresh()->available_balance);
     }
+
+    public function test_retry_tidak_kirim_payout_dua_kali_saat_timeout(): void
+    {
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $store = Store::create([
+            'user_id' => $merchant->id,
+            'name' => 'Toko Timeout',
+            'slug' => 'toko-timeout-'.Str::random(6),
+            'bank_name' => 'BCA',
+            'bank_account_number' => '111222333',
+            'bank_account_holder' => 'Timeout Jaya',
+        ]);
+        $store->forceFill(['available_balance' => 0, 'pending_balance' => 0])->save();
+
+        $withdrawal = Withdrawal::create([
+            'store_id' => $store->id,
+            'reference_no' => 'WD-TEST-TIMEOUT',
+            'amount' => 50000,
+            'bank_name' => 'BCA',
+            'account_number' => '111222333',
+            'account_holder' => 'Timeout Jaya',
+            'status' => 'pending',
+            'notes' => 'Menunggu pemrosesan',
+        ]);
+
+        // percobaan pertama timeout setelah kemungkinan payout terkirim
+        $mockIris = $this->createMock(MidtransIrisService::class);
+        $mockIris->expects($this->exactly(1))
+            ->method('createPayout')
+            ->willThrowException(new \RuntimeException('Operation timeout after 60s'));
+
+        $job = new ProcessWithdrawalPayout($withdrawal);
+        $job->attemptsCount = 1;
+        $job->handle($mockIris);
+
+        $withdrawal->refresh();
+        $this->assertEquals('processing', $withdrawal->status);
+        $this->assertNotNull($withdrawal->payout_sent_at);
+        // saldo ga boleh direfund karena payout mungkin udah cair
+        $this->assertEquals(0, (float) $store->fresh()->available_balance);
+
+        // percobaan kedua (retry) harus SKIP, ga boleh nembak gateway lagi
+        $job2 = new ProcessWithdrawalPayout($withdrawal);
+        $job2->attemptsCount = 2;
+        $job2->handle($mockIris);
+
+        $this->assertEquals(0, (float) $store->fresh()->available_balance);
+    }
+
+    public function test_worker_mati_setelah_gateway_call_tidak_refund_saldo(): void
+    {
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $store = Store::create([
+            'user_id' => $merchant->id,
+            'name' => 'Toko Worker Mati',
+            'slug' => 'toko-worker-mati-'.Str::random(6),
+            'bank_name' => 'BCA',
+            'bank_account_number' => '999888777',
+            'bank_account_holder' => 'Worker Mati',
+        ]);
+        $store->forceFill(['available_balance' => 0, 'pending_balance' => 0])->save();
+
+        $withdrawal = Withdrawal::create([
+            'store_id' => $store->id,
+            'reference_no' => 'WD-TEST-WORKER-DEAD',
+            'amount' => 50000,
+            'bank_name' => 'BCA',
+            'account_number' => '999888777',
+            'account_holder' => 'Worker Mati',
+            'status' => 'pending',
+            'notes' => 'Menunggu pemrosesan',
+        ]);
+
+        // simulasi worker udah nembak gateway terus mati sebelum commit sukses
+        $mockIris = $this->createMock(MidtransIrisService::class);
+        $mockIris->method('createPayout')->willThrowException(new \RuntimeException('Operation timeout after 60s'));
+
+        $job = new ProcessWithdrawalPayout($withdrawal);
+        $job->attemptsCount = 1;
+        $job->handle($mockIris);
+
+        // worker dianggap mati, laravel panggil failed()
+        $job->failed(new \RuntimeException('Worker killed by OOM'));
+
+        $withdrawal->refresh();
+        // saldo jangan dibalikin karena payout mungkin udah cair di bank
+        $this->assertEquals(0, (float) $store->fresh()->available_balance);
+        $this->assertEquals('failed', $withdrawal->status);
+        $this->assertStringContainsString('rekonsiliasi manual', $withdrawal->notes);
+    }
 }

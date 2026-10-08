@@ -34,3 +34,9 @@ session.md
 # Agents Customizations
 .agents/session/
 .agents
+.opencode/
+/docs/audit/
+
+# Firebase Service Account Credentials
+*firebase-auth*.json
+firebase-service-account*.json

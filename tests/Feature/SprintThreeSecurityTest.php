@@ -87,6 +87,8 @@ class SprintThreeSecurityTest extends TestCase
         $mockGoogleUser->id = 'google-uid-12345';
         $mockGoogleUser->name = 'Budi Google';
         $mockGoogleUser->email = 'budi_google_test@gmail.com';
+        // fail-closed: provider wajib kirim flag terverifikasi, kalau tidak akan ditolak
+        $mockGoogleUser->user = ['email_verified' => true];
 
         $provider = $this->createMock(\Laravel\Socialite\Two\GoogleProvider::class);
         $provider->method('redirectUrl')->willReturnSelf();

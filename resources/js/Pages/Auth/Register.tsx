@@ -1,11 +1,12 @@
 // import libraries
 import { useEffect, FormEventHandler } from "react";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
 
 // import components
 import FormInput from "@/Components/FormInput";
 import PrimaryButton from "@/Components/PrimaryButton";
 import GoogleIcon from "@/Components/Icons/GoogleIcon";
+import AuthErrorBanner from "@/Components/AuthErrorBanner";
 import AuthLayout from "@/Layouts/AuthLayout";
 
 const Register = () => {
@@ -15,6 +16,11 @@ const Register = () => {
         password: "",
         password_confirmation: "",
     });
+
+    // error redirect socialite masuk lewat prop halaman, bukan errors useForm
+    const { errors: pageErrors } = usePage().props;
+    // banner cuma tampil kalau useForm belum punya error email, biar tidak dobel
+    const bannerMessage = errors.email ? undefined : pageErrors?.email;
 
     useEffect(() => {
         return () => reset("password", "password_confirmation");
@@ -37,6 +43,7 @@ const Register = () => {
 
             <form onSubmit={submit} className="flex flex-col grow h-full">
                 <div className="space-y-4 grow">
+                    <AuthErrorBanner message={bannerMessage} />
                     <FormInput
                         label="Fullname"
                         id="name"

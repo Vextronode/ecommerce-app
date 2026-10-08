@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -107,8 +108,8 @@ class MerchantController extends Controller
                     'description' => $store?->description,
                     'address' => $store?->address ?: '-',
                     'subdistrict' => $subdistrict,
-                    'sid_status' => $store?->sid_status ?: 'verified',
-                    'balance' => (int) ($store?->balance ?? 0),
+                    'sid_status' => $store?->sid_status ?? 'verified',
+                    'balance' => (int) ($store?->available_balance ?? 0),
                 ],
                 'username' => '@'.preg_replace('/-[0-9a-f]{10,}$/i', '', $store?->slug ?: Str::slug($user->name)),
             ];
@@ -175,7 +176,7 @@ class MerchantController extends Controller
 
         DB::transaction(function () use ($validated) {
             $user = new User([
-                'name' => $validated['owner_name'],
+                'name' => strip_tags(trim($validated['owner_name'])),
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
                 'nik' => $validated['nik'],
@@ -194,16 +195,16 @@ class MerchantController extends Controller
                 $slug = $baseSlug.'-'.$count++;
             }
 
-            Store::create([
+            $store = Store::create([
                 'user_id' => $user->id,
-                'name' => $validated['merchant_name'],
+                'name' => strip_tags(trim($validated['merchant_name'])),
                 'slug' => $slug,
                 'description' => null,
                 'subdistrict' => 'Cibenda',
                 'address' => null,
                 'support_email' => $validated['email'],
-                'sid_status' => 'verified',
             ]);
+            $store->forceFill(['sid_status' => 'verified'])->save();
         });
 
         return redirect()->route('admin.merchants.index')->with('success', 'Akun pedagang berhasil dibuat.');
@@ -232,9 +233,9 @@ class MerchantController extends Controller
 
         DB::transaction(function () use ($user, $validated) {
             $userPayload = [
-                'name' => $validated['name'],
+                'name' => strip_tags(trim($validated['name'])),
                 'email' => $validated['email'],
-                'phone' => $validated['phone'] ?? null,
+                'phone' => isset($validated['phone']) ? strip_tags(trim($validated['phone'])) : null,
             ];
 
             if (array_key_exists('nik', $validated)) {
@@ -247,35 +248,43 @@ class MerchantController extends Controller
 
             $user->update($userPayload);
             $user->status = $validated['status'];
+            if (in_array($validated['status'], ['suspended', 'inactive'], true)) {
+                $user->setRememberToken(Str::random(60));
+                $user->forceFill(['fcm_token' => null]);
+            }
             $user->save();
+
+            if (in_array($validated['status'], ['suspended', 'inactive'], true)) {
+                DB::table('sessions')->where('user_id', $user->id)->delete();
+            }
 
             $store = $user->store;
             if ($store) {
                 $store->update([
-                    'name' => $validated['store_name'],
-                    'description' => $validated['description'] ?? null,
-                    'subdistrict' => $validated['subdistrict'] ?? 'Cibenda',
-                    'address' => $validated['address'] ?? null,
-                    'sid_status' => $validated['sid_status'],
+                    'name' => strip_tags(trim($validated['store_name'])),
+                    'description' => isset($validated['description']) ? strip_tags(trim($validated['description'])) : null,
+                    'subdistrict' => isset($validated['subdistrict']) ? strip_tags(trim($validated['subdistrict'])) : 'Cibenda',
+                    'address' => isset($validated['address']) ? strip_tags(trim($validated['address'])) : null,
                 ]);
+                $store->forceFill(['sid_status' => $validated['sid_status']])->save();
             } else {
-                $baseSlug = Str::slug($validated['store_name']);
+                $baseSlug = Str::slug($validated['store_name']) ?: 'toko-'.$user->id;
                 $slug = $baseSlug;
                 $count = 1;
                 while (Store::where('slug', $slug)->exists()) {
                     $slug = $baseSlug.'-'.$count++;
                 }
 
-                Store::create([
+                $store = Store::create([
                     'user_id' => $user->id,
-                    'name' => $validated['store_name'],
+                    'name' => strip_tags(trim($validated['store_name'])),
                     'slug' => $slug,
-                    'description' => $validated['description'] ?? null,
-                    'subdistrict' => $validated['subdistrict'] ?? 'Cibenda',
-                    'address' => $validated['address'] ?? null,
+                    'description' => isset($validated['description']) ? strip_tags(trim($validated['description'])) : null,
+                    'subdistrict' => isset($validated['subdistrict']) ? strip_tags(trim($validated['subdistrict'])) : 'Cibenda',
+                    'address' => isset($validated['address']) ? strip_tags(trim($validated['address'])) : null,
                     'support_email' => $validated['email'],
-                    'sid_status' => $validated['sid_status'],
                 ]);
+                $store->forceFill(['sid_status' => $validated['sid_status']])->save();
             }
         });
 
@@ -293,7 +302,15 @@ class MerchantController extends Controller
 
         $user = User::where('role', 'pedagang')->findOrFail($id);
         $user->status = $validated['status'];
+        if (in_array($validated['status'], ['suspended', 'inactive'], true)) {
+            $user->setRememberToken(Str::random(60));
+            $user->forceFill(['fcm_token' => null]);
+        }
         $user->save();
+
+        if (in_array($validated['status'], ['suspended', 'inactive'], true)) {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        }
 
         $statusLabel = ucfirst($validated['status']);
 
@@ -309,8 +326,14 @@ class MerchantController extends Controller
             'sid_status' => ['required', 'string', 'in:verified,pending,rejected'],
         ]);
 
-        $store = Store::findOrFail($id);
-        $store->update(['sid_status' => $validated['sid_status']]);
+        $user = User::where('role', 'pedagang')->findOrFail($id);
+        $store = $user->store;
+
+        if (! $store) {
+            abort(404);
+        }
+
+        $store->forceFill(['sid_status' => $validated['sid_status']])->save();
 
         $label = ucfirst($validated['sid_status']);
 
@@ -322,11 +345,26 @@ class MerchantController extends Controller
      */
     public function destroy(int $id): RedirectResponse
     {
-        $user = User::where('role', 'pedagang')->findOrFail($id);
+        $user = User::where('role', 'pedagang')->with('store')->findOrFail($id);
+        $store = $user->store;
 
-        DB::transaction(function () use ($user) {
-            if ($user->store) {
-                $user->store->delete();
+        if ($store) {
+            $hasActiveOrders = Order::where('store_id', $store->id)
+                ->whereIn('shipping_status', ['pending', 'processing', 'shipped'])
+                ->exists();
+
+            $hasRemainingBalance = ((float) $store->available_balance > 0) || ((float) $store->pending_balance > 0);
+            $hasPendingWithdrawals = $store->withdrawals()->where('status', 'pending')->exists();
+
+            if ($hasActiveOrders || $hasRemainingBalance || $hasPendingWithdrawals) {
+                return redirect()->back()->with('error', 'Tidak dapat menghapus pedagang yang masih memiliki pesanan aktif, saldo mengendap, atau penarikan dana yang sedang diproses. Gunakan fitur Suspend sebagai gantinya.');
+            }
+        }
+
+        DB::transaction(function () use ($user, $store) {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            if ($store) {
+                $store->delete();
             }
             $user->delete();
         });

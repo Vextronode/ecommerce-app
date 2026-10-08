@@ -50,7 +50,7 @@ class CheckoutSecurityTest extends TestCase
             'name' => 'Attacker',
             'phone' => '08123456789',
             'address' => 'Jl. Uji',
-            'delivery_method' => 'coastal',
+            'delivery_method' => 'self_pickup',
             'payment_method' => 'va',
             'payment_channel' => 'bca_va',
         ]);
@@ -76,7 +76,7 @@ class CheckoutSecurityTest extends TestCase
             'name' => 'Pembeli',
             'phone' => '08123456789',
             'address' => 'Jl. Aman',
-            'delivery_method' => 'standard',
+            'delivery_method' => 'self_pickup',
             'payment_method' => 'va',
             'payment_channel' => 'bca_va',
             'total_amount' => 1,
@@ -85,7 +85,8 @@ class CheckoutSecurityTest extends TestCase
         $order = Order::where('user_id', $user->id)->first();
         $this->assertNotNull($order);
         $response->assertRedirect(route('payment.show', ['order' => $order->id]));
-        $this->assertEquals(37000, (int) $order->total_amount);
+        // total dihitung server: 2 x 10000 + admin fee 2000, self_pickup gratis ongkir
+        $this->assertEquals(22000, (int) $order->total_amount);
     }
 
     public function test_checkout_rejects_quantity_above_stock(): void
@@ -104,7 +105,7 @@ class CheckoutSecurityTest extends TestCase
             'name' => 'Pembeli',
             'phone' => '08123456789',
             'address' => 'Jl. Aman',
-            'delivery_method' => 'standard',
+            'delivery_method' => 'self_pickup',
             'payment_method' => 'va',
             'payment_channel' => 'bca_va',
         ]);
@@ -127,6 +128,8 @@ class CheckoutSecurityTest extends TestCase
             'recipient_name' => 'Pembeli Aman',
             'phone' => '+6281234567890',
             'full_address' => 'Jl. Aman No. 1, Pangandaran',
+            'latitude' => -7.6800,
+            'longitude' => 108.6500,
         ]);
         $product = $this->makeProduct(price: 10000, stock: 5);
         $cart = Cart::create([
@@ -139,7 +142,7 @@ class CheckoutSecurityTest extends TestCase
         $response = $this->actingAs($user)->post(route('checkout.store'), [
             'cart_ids' => [$cart->id],
             'address_id' => $address->id,
-            'delivery_method' => 'standard',
+            'delivery_method' => 'local_delivery',
             'payment_method' => 'va',
             'payment_channel' => 'bca_va',
         ]);
@@ -166,6 +169,8 @@ class CheckoutSecurityTest extends TestCase
             'recipient_name' => 'Korban',
             'phone' => '+6281111111111',
             'full_address' => 'Alamat Rahasia Korban',
+            'latitude' => -7.6800,
+            'longitude' => 108.6500,
         ]);
         $product = $this->makeProduct(price: 10000, stock: 5);
         $cart = Cart::create([
@@ -178,7 +183,7 @@ class CheckoutSecurityTest extends TestCase
         $response = $this->actingAs($attacker)->post(route('checkout.store'), [
             'cart_ids' => [$cart->id],
             'address_id' => $victimAddress->id,
-            'delivery_method' => 'standard',
+            'delivery_method' => 'local_delivery',
             'payment_method' => 'va',
             'payment_channel' => 'bca_va',
         ]);

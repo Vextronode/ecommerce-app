@@ -158,13 +158,25 @@ class ReportController extends Controller
                 'Total Pendapatan (Rp)',
             ]);
 
+            $sanitizeCsvCell = function (?string $val): string {
+                $str = (string) ($val ?? '');
+                $trimmed = ltrim($str, " \t\r\n");
+                if ($trimmed !== '' && in_array($trimmed[0], ['=', '+', '-', '@'], true)) {
+                    return "'" . $str;
+                }
+                if ($str !== '' && in_array($str[0], ["\t", "\r", "\n"], true)) {
+                    return "'" . $str;
+                }
+                return $str;
+            };
+
             foreach ($products as $index => $product) {
                 fputcsv($handle, [
                     $index + 1,
-                    $product->name,
-                    $product->category?->name ?? 'Umum',
-                    $product->store?->name ?? '-',
-                    $product->store?->slug ? '@'.$product->store->slug : '-',
+                    $sanitizeCsvCell($product->name),
+                    $sanitizeCsvCell($product->category?->name ?? 'Umum'),
+                    $sanitizeCsvCell($product->store?->name ?? '-'),
+                    $sanitizeCsvCell($product->store?->slug ? 'toko/' . $product->store->slug : '-'),
                     (int) $product->price,
                     (int) $product->stock,
                     (int) $product->total_sales,
@@ -189,6 +201,7 @@ class ReportController extends Controller
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->whereIn('orders.payment_status', ['paid', 'settlement', 'capture', 'success', 'delivered'])
+            ->where('orders.shipping_status', '!=', 'cancelled')
             ->when($startDate, fn ($q) => $q->where('orders.created_at', '>=', $startDate))
             ->when($endDate, fn ($q) => $q->where('orders.created_at', '<=', $endDate))
             ->when($storeId, fn ($q) => $q->where('products.store_id', $storeId))
@@ -278,10 +291,18 @@ class ReportController extends Controller
                 break;
             case 'custom':
                 if ($customStart) {
-                    $startDate = Carbon::parse($customStart)->startOfDay();
+                    try {
+                        $startDate = Carbon::parse($customStart)->startOfDay();
+                    } catch (\Throwable $e) {
+                        $startDate = null;
+                    }
                 }
                 if ($customEnd) {
-                    $endDate = Carbon::parse($customEnd)->endOfDay();
+                    try {
+                        $endDate = Carbon::parse($customEnd)->endOfDay();
+                    } catch (\Throwable $e) {
+                        $endDate = null;
+                    }
                 }
                 break;
             case 'all':
@@ -301,6 +322,7 @@ class ReportController extends Controller
     {
         $orderItemQuery = OrderItem::whereHas('order', function ($q) use ($startDate, $endDate, $storeId) {
             $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success', 'delivered'])
+                ->where('shipping_status', '!=', 'cancelled')
                 ->when($startDate, fn ($sub) => $sub->where('orders.created_at', '>=', $startDate))
                 ->when($endDate, fn ($sub) => $sub->where('orders.created_at', '<=', $endDate))
                 ->when($storeId, fn ($sub) => $sub->where('orders.store_id', $storeId));

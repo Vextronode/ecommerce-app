@@ -48,7 +48,7 @@ class ProfileController extends Controller
             });
 
         $orderCounts = [
-            'unpaid' => Order::where('user_id', $userId)->where('payment_status', 'pending')->where('shipping_status', '!=', 'cancelled')->count(),
+            'unpaid' => Order::where('user_id', $userId)->where('payment_status', 'pending')->where('payment_method', '!=', 'cod')->where('shipping_status', '!=', 'cancelled')->count(),
             'processing' => Order::where('user_id', $userId)->where('shipping_status', 'processing')->count(),
             'shipped' => Order::where('user_id', $userId)->where('shipping_status', 'shipped')->count(),
             'rating' => OrderItem::whereHas('order', function ($query) use ($userId) {
@@ -88,10 +88,15 @@ class ProfileController extends Controller
      */
     public function destroyOtherSessions(Request $request): RedirectResponse
     {
+        $user = $request->user();
+
         DB::table('sessions')
-            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->where('user_id', $user->getAuthIdentifier())
             ->where('id', '!=', $request->session()->getId())
             ->delete();
+
+        $user->setRememberToken(\Illuminate\Support\Str::random(60));
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'Sesion lainnya berhasil dihapus.');
     }
@@ -101,10 +106,37 @@ class ProfileController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        if ($user->role !== 'user' || $user->store()->exists()) {
+            return back()->withErrors([
+                'password' => 'Akun pedagang atau pengurus tidak dapat dihapus secara mandiri.',
+            ]);
+        }
+
+        $hasActiveOrders = Order::where('user_id', $user->id)
+            ->whereIn('shipping_status', ['pending', 'processing', 'shipped'])
+            ->exists();
+
+        if ($hasActiveOrders) {
+            return back()->withErrors([
+                'password' => 'Akun tidak dapat dihapus selama masih ada pesanan yang sedang berlangsung.',
+            ]);
+        }
+
         if (is_null($user->google_id)) {
             $request->validate([
                 'password' => ['required', 'current_password'],
             ]);
+        }
+
+        if ($user->profile_photo_path) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+                DB::table('sessions')->where('user_id', $user->id)->delete();
+            }
+        } catch (\Throwable $e) {
         }
 
         Auth::logout();
@@ -129,7 +161,6 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($request->hasFile('photo')) {
-            // clear storage untuk foto lama biar storage ga full
             if ($user->profile_photo_path) {
                 Storage::disk('public')->delete($user->profile_photo_path);
             }
@@ -140,7 +171,6 @@ class ProfileController extends Controller
                 'profile_photo_path' => $path,
             ]);
 
-            // Sync with store logo if they have a store
             if ($user->store) {
                 if ($user->store->logo_path && $user->store->logo_path !== $path) {
                     Storage::disk('public')->delete($user->store->logo_path);
@@ -154,17 +184,28 @@ class ProfileController extends Controller
 
     public function storeAddress(Request $request)
     {
+        if ($request->user()->addresses()->count() >= 20) {
+            return back()->with('error', 'Maksimal 20 alamat tersimpan per akun.');
+        }
+
         $validated = $request->validate([
             'recipient_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
-            'full_address' => 'required|string',
+            'full_address' => 'required|string|max:1000',
             'label' => 'required|string|in:Rumah,Kantor',
             'is_primary' => 'boolean',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ]);
 
-        if ($request->is_primary) {
+        $validated['recipient_name'] = strip_tags(trim($validated['recipient_name']));
+        $validated['phone'] = strip_tags(trim($validated['phone']));
+        $validated['full_address'] = strip_tags(trim($validated['full_address']));
+
+        $hasExistingAddresses = $request->user()->addresses()->exists();
+        if (! $hasExistingAddresses) {
+            $validated['is_primary'] = true;
+        } elseif (! empty($validated['is_primary'])) {
             $request->user()->addresses()->update(['is_primary' => false]);
         }
 
@@ -180,12 +221,16 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'recipient_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
-            'full_address' => 'required|string',
+            'full_address' => 'required|string|max:1000',
             'label' => 'required|string|in:Rumah,Kantor',
             'is_primary' => 'boolean',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ]);
+
+        $validated['recipient_name'] = strip_tags(trim($validated['recipient_name']));
+        $validated['phone'] = strip_tags(trim($validated['phone']));
+        $validated['full_address'] = strip_tags(trim($validated['full_address']));
 
         if ($request->is_primary) {
             $request->user()->addresses()->update(['is_primary' => false]);
@@ -199,7 +244,15 @@ class ProfileController extends Controller
     public function destroyAddress(Request $request, $id)
     {
         $address = $request->user()->addresses()->findOrFail($id);
+        $wasPrimary = (bool) $address->is_primary;
         $address->delete();
+
+        if ($wasPrimary) {
+            $nextAddress = $request->user()->addresses()->latest('id')->first();
+            if ($nextAddress) {
+                $nextAddress->update(['is_primary' => true]);
+            }
+        }
 
         return back();
     }
@@ -215,8 +268,10 @@ class ProfileController extends Controller
             'pengingat' => 'sometimes|boolean',
         ]);
 
-        $request->user()->update([
-            'notification_settings' => $validated,
+        $user = $request->user();
+        $current = $user->notification_settings ?? [];
+        $user->update([
+            'notification_settings' => array_merge($current, $validated),
         ]);
 
         return back();

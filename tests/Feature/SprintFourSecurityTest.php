@@ -38,7 +38,6 @@ class SprintFourSecurityTest extends TestCase
             'customer_name' => 'Budi Santoso',
             'customer_phone' => '081234567890',
             'shipping_address' => 'Jl. Pantai Barat No. 12',
-            'shipping_pin' => '1234',
             'delivery_method' => 'local_delivery',
             'subtotal' => 100000,
             'shipping_cost' => 10000,
@@ -47,6 +46,9 @@ class SprintFourSecurityTest extends TestCase
             'payment_status' => 'pending',
             'shipping_status' => 'shipped',
         ]);
+
+        // shipping_pin ga masuk fillable, jadi set lewat forceFill biar mass-assignment tetap diproteksi
+        $order->forceFill(['shipping_pin' => '1234'])->save();
 
         // Courier enters PIN to complete delivery
         $response = $this->withSession(["driver_authorized_{$order->invoice_number}" => true])
@@ -89,7 +91,6 @@ class SprintFourSecurityTest extends TestCase
             'customer_name' => 'Siti Nurhaliza',
             'customer_phone' => '081298765432',
             'shipping_address' => 'Jl. Pantai Timur No. 5',
-            'shipping_pin' => '5678',
             'delivery_method' => 'local_delivery',
             'subtotal' => 100000,
             'shipping_cost' => 10000,
@@ -98,6 +99,11 @@ class SprintFourSecurityTest extends TestCase
             'payment_status' => 'paid',
             'shipping_status' => 'shipped',
         ]);
+
+        // shipping_pin ga masuk fillable, jadi set lewat forceFill biar mass-assignment tetap diproteksi.
+        // escrow_credited_at juga di-set di sini sebagai simulasi webhook settlement midtrans yang
+        // di production selalu nge-credit escrow (pending_balance) sebelum order boleh delivered.
+        $order->forceFill(['shipping_pin' => '5678', 'escrow_credited_at' => now()])->save();
 
         // Courier enters PIN to complete delivery
         $response = $this->withSession(["driver_authorized_{$order->invoice_number}" => true])
@@ -139,7 +145,6 @@ class SprintFourSecurityTest extends TestCase
             'customer_name' => 'Target Customer',
             'customer_phone' => '081200001111',
             'shipping_address' => 'Jl. Merdeka No. 1',
-            'shipping_pin' => '4321',
             'delivery_method' => 'local_delivery',
             'subtotal' => 50000,
             'shipping_cost' => 5000,
@@ -148,6 +153,9 @@ class SprintFourSecurityTest extends TestCase
             'payment_status' => 'pending',
             'shipping_status' => 'shipped',
         ]);
+
+        // shipping_pin ga masuk fillable, jadi set lewat forceFill biar mass-assignment tetap diproteksi
+        $order->forceFill(['shipping_pin' => '4321'])->save();
 
         RateLimiter::clear('pin_verify_' . $order->invoice_number);
 
@@ -204,7 +212,6 @@ class SprintFourSecurityTest extends TestCase
             'customer_name' => 'Rahasia Buyer',
             'customer_phone' => '081233334444',
             'shipping_address' => 'Jl. Pelabuhan No. 9',
-            'shipping_pin' => '1122',
             'delivery_method' => 'local_delivery',
             'subtotal' => 50000,
             'shipping_cost' => 5000,
@@ -233,5 +240,95 @@ class SprintFourSecurityTest extends TestCase
                 ->etc()
             )
         );
+    }
+
+    /**
+     * Test #R3-04: creditStoreBalance menolak COD mentah-mentah (available_balance ga berubah).
+     */
+    public function test_cod_order_credit_store_balance_is_rejected_and_balance_untouched(): void
+    {
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $store = Store::create([
+            'user_id' => $merchant->id,
+            'name' => 'Toko COD',
+            'slug' => 'toko-cod-'.Str::random(6),
+        ]);
+        // pending_balance ga fillable (dilindungi mass-assignment), set lewat forceFill
+        $store->forceFill(['available_balance' => 0, 'pending_balance' => 115000])->save();
+
+        $buyer = User::factory()->create(['role' => 'user']);
+        $order = Order::create([
+            'store_id' => $store->id,
+            'user_id' => $buyer->id,
+            'invoice_number' => 'ORD-COD-REJECT-'.Str::random(6),
+            'customer_name' => 'Budi Cod',
+            'customer_phone' => '081234567890',
+            'shipping_address' => 'Jl. Pantai Barat No. 1',
+            'delivery_method' => 'local_delivery',
+            'subtotal' => 100000,
+            'shipping_cost' => 15000,
+            'total_amount' => 117000,
+            'payment_method' => 'cod',
+            'payment_channel' => 'cod',
+            'payment_status' => 'paid',
+            'shipping_status' => 'delivered',
+        ]);
+
+        // walau escrow_credited_at keisi (data lama/aneh), order COD tetap ga boleh narik saldo
+        $order->forceFill(['escrow_credited_at' => now()])->save();
+
+        $this->assertFalse($order->creditStoreBalance());
+
+        $store->refresh();
+        $this->assertEquals(0, (float) $store->available_balance);
+        $this->assertEquals(115000, (float) $store->pending_balance);
+        $this->assertNull($order->fresh()->balance_credited_at);
+    }
+
+    /**
+     * Test #R3-05: order online dengan escrow_credited_at terisi + pending_balance cukup
+     * berhasil mindahin dana pending -> available.
+     */
+    public function test_online_order_with_escrow_credited_moves_pending_to_available(): void
+    {
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $store = Store::create([
+            'user_id' => $merchant->id,
+            'name' => 'Toko Online',
+            'slug' => 'toko-online-'.Str::random(6),
+        ]);
+        // pending_balance ga fillable (dilindungi mass-assignment), set lewat forceFill
+        $store->forceFill(['available_balance' => 0, 'pending_balance' => 115000])->save();
+
+        $buyer = User::factory()->create(['role' => 'user']);
+        $order = Order::create([
+            'store_id' => $store->id,
+            'user_id' => $buyer->id,
+            'invoice_number' => 'ORD-VA-ESCROW-'.Str::random(6),
+            'customer_name' => 'Siti Online',
+            'customer_phone' => '081298765432',
+            'shipping_address' => 'Jl. Pantai Timur No. 9',
+            'delivery_method' => 'local_delivery',
+            'subtotal' => 100000,
+            'shipping_cost' => 15000,
+            'total_amount' => 117000,
+            'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
+            'payment_status' => 'paid',
+            'shipping_status' => 'delivered',
+        ]);
+        $order->forceFill(['escrow_credited_at' => now()])->save();
+
+        // merchantNetAmount = subtotal + shipping = 115.000
+        $this->assertTrue($order->creditStoreBalance());
+
+        $store->refresh();
+        $this->assertEquals(115000, (float) $store->available_balance);
+        $this->assertEquals(0, (float) $store->pending_balance);
+        $this->assertNotNull($order->fresh()->balance_credited_at);
+
+        // percobaan kedua harus gagal dan saldo ga nambah lagi (idempoten)
+        $this->assertFalse($order->creditStoreBalance());
+        $this->assertEquals(115000, (float) $store->fresh()->available_balance);
     }
 }

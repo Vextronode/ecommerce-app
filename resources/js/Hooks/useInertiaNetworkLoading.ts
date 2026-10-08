@@ -1,16 +1,26 @@
 import { useState, useEffect } from "react";
 import { router } from "@inertiajs/react";
 
-/**
- * Hook to track real network connection status for Inertia visits and requests.
- * Fully driven by Inertia router lifecycle events (start -> finish).
- * No fake setTimeout or sleep delays; reflects genuine user connection speed.
- */
 export function useInertiaNetworkLoading() {
     const [isNetworkLoading, setIsNetworkLoading] = useState(false);
 
     useEffect(() => {
-        const removeStartListener = router.on("start", () => {
+        const removeStartListener = router.on("start", (event: any) => {
+            const targetUrl = event?.detail?.visit?.url;
+            if (targetUrl && typeof window !== "undefined") {
+                const targetPath = (
+                    typeof targetUrl === "string"
+                        ? new URL(targetUrl, window.location.origin).pathname
+                        : targetUrl.pathname
+                ).replace(/\/$/, "");
+
+                const currentPath = window.location.pathname.replace(/\/$/, "");
+
+                if (targetPath !== currentPath) {
+                    return;
+                }
+            }
+
             setIsNetworkLoading(true);
         });
 

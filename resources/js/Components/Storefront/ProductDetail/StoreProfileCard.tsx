@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, ChevronRight } from 'lucide-react';
+import { Store, ChevronRight, MessageSquare } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import StoreAvatar from '@/Components/Global/StoreAvatar';
 
@@ -15,9 +15,10 @@ interface StoreProfileProps {
         created_at: string;
         slug: string;
     };
+    product?: any;
 }
 
-export default function StoreProfileCard({ store }: StoreProfileProps) {
+export default function StoreProfileCard({ store, product }: StoreProfileProps) {
     // Format joined date — menggunakan hitungan hari agar konsisten dengan backend
     const getJoinedText = (dateString: string) => {
         const date = new Date(dateString);
@@ -65,13 +66,44 @@ export default function StoreProfileCard({ store }: StoreProfileProps) {
                 <div className="flex flex-col">
                     <h3 className="text-lg font-bold text-gray-900">{store.name}</h3>
                     <p className="text-sm text-gray-500 mb-3">{store.description || "Toko Kelontong"}</p>
-                    <Link
-                        href={route('store.detail', store.slug)}
-                        className="inline-flex items-center justify-center gap-1.5 border border-brand-cyan text-brand-cyan text-xs font-medium px-4 py-1.5 rounded bg-brand-cyan-soft hover:bg-brand-cyan hover:text-white transition-colors w-fit"
-                    >
-                        <Store className="w-3.5 h-3.5" />
-                        Kunjungin Toko
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                            href={route('store.detail', store.slug)}
+                            className="inline-flex items-center justify-center gap-1.5 border border-brand-cyan text-brand-cyan text-xs font-medium px-4 py-1.5 rounded bg-brand-cyan-soft hover:bg-brand-cyan hover:text-white transition-colors w-fit"
+                        >
+                            <Store className="w-3.5 h-3.5" />
+                            Kunjungi Toko
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                window.dispatchEvent(
+                                    new CustomEvent("open-storefront-chat", {
+                                        detail: {
+                                            storeId: store.id,
+                                            product: product
+                                                ? {
+                                                      id: product.id,
+                                                      name: product.name,
+                                                      slug: product.slug,
+                                                      price: product.price,
+                                                      image_path:
+                                                          product.image_path ||
+                                                          (product.images?.[0]?.image_path
+                                                              ? `/storage/${product.images[0].image_path}`
+                                                              : null),
+                                                  }
+                                                : null,
+                                        },
+                                    })
+                                );
+                            }}
+                            className="inline-flex items-center justify-center gap-1.5 border border-brand-orange text-brand-orange text-xs font-semibold px-4 py-1.5 rounded bg-orange-50 hover:bg-brand-orange hover:text-white transition-colors cursor-pointer w-fit"
+                        >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            Chat Penjual
+                        </button>
+                    </div>
                 </div>
             </div>
 
