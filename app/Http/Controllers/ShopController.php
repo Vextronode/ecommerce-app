@@ -194,9 +194,10 @@ class ShopController extends Controller
     public function show($slug)
     {
         $product = Product::with([
-            'store.user' => function ($query) {
+            'store' => function ($query) {
                 $query->withCount(['products', 'followers'])->withAvg('reviews', 'rating');
             },
+            'store.user',
             'category',
             'images',
             'variants.options',
