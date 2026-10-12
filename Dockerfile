@@ -69,12 +69,8 @@ RUN composer run-script post-autoload-dump
 # Build asset React/Vite (cuma dijalankan setelah kode baru di-copy)
 RUN npm run build
 
-# Generate app key (wajib kalau fresh deploy)
-RUN php artisan key:generate --force
-
-# Optimize Laravel: cache config, routes, views
-RUN php artisan config:cache \
-    && php artisan route:cache \
+# Cache view & routes untuk performance (config runtime di-handle via .env.docker)
+RUN php artisan route:cache \
     && php artisan view:cache
 
 # Set permission folder storage & cache supaya Laravel bisa nulis file
