@@ -38,8 +38,8 @@ return [
             'options' => [
                 'host' => env('REVERB_SERVER_HOST', (env('REVERB_HOST') === '0.0.0.0' ? 'reverb_cibenda' : env('REVERB_HOST', '127.0.0.1'))),
                 'port' => (int) env('REVERB_SERVER_PORT', env('REVERB_PORT', 8080)),
-                'scheme' => env('REVERB_SCHEME', 'http'),
-                'useTLS' => env('REVERB_SCHEME', 'http') === 'https',
+                'scheme' => env('REVERB_SERVER_SCHEME', 'http'),
+                'useTLS' => env('REVERB_SERVER_SCHEME', 'http') === 'https',
             ],
             'client_options' => [
                 'timeout' => 5,
