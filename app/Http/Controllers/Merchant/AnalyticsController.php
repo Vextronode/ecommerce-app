@@ -107,7 +107,10 @@ class AnalyticsController extends Controller
         $ratingGrowth = ($prevRating > 0 && $currRating > 0) ? round((($currRating - $prevRating) / $prevRating) * 100, 1) : 0.0;
 
         // Revenue Trend (portabel lintas basis data: filter pakai rentang tanggal,
-        // tidak lagi memakai fungsi YEAR()/MONTH() yang hanya jalan di MySQL)
+        // tidak lagi memakai fungsi YEAR()/MONTH() yang hanya jalan di MySQL).
+        // jumlah per bulan dihitung di PHP dari row mentah, bukan lewat SUM() SQL
+        // tanpa GROUP BY, sebab MySQL strict (ONLY_FULL_GROUP_BY) menolak campuran
+        // agregat dengan kolom non-agregat (error 1140 / SQLSTATE 42000).
         $years = [$currentYear - 2, $currentYear - 1, $currentYear];
 
         $revenueByMonth = [];
@@ -115,16 +118,19 @@ class AnalyticsController extends Controller
             $yearStart = "{$year}-01-01 00:00:00";
             $yearEnd = "{$year}-12-31 23:59:59";
 
-            $monthly = Order::where('store_id', $store->id)
+            $monthlyRows = Order::where('store_id', $store->id)
                 ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
                 ->where('shipping_status', '!=', 'cancelled')
                 ->whereBetween('created_at', [$yearStart, $yearEnd])
-                ->selectRaw('SUM(CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END) as revenue, created_at')
-                ->get()
-                ->groupBy(fn ($row) => (int) \Illuminate\Support\Carbon::parse($row->created_at)->format('n'));
+                ->get(['created_at', 'subtotal', 'shipping_cost', 'total_amount']);
 
-            foreach ($monthly as $monthNumber => $rows) {
-                $revenueByMonth[$year][(int) $monthNumber] = (int) $rows->sum('revenue');
+            foreach ($monthlyRows as $row) {
+                $monthNumber = (int) Carbon::parse($row->created_at)->format('n');
+                $net = $row->subtotal > 0
+                    ? (float) $row->subtotal + (float) $row->shipping_cost
+                    : (float) $row->total_amount;
+
+                $revenueByMonth[$year][$monthNumber] = ($revenueByMonth[$year][$monthNumber] ?? 0) + $net;
             }
         }
 
@@ -134,7 +140,7 @@ class AnalyticsController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $monthData = ['name' => $months[$i - 1]];
             foreach ($years as $year) {
-                $monthData[(string) $year] = $revenueByMonth[$year][$i] ?? 0;
+                $monthData[(string) $year] = (int) ($revenueByMonth[$year][$i] ?? 0);
             }
             $revenueTrend[] = $monthData;
         }
