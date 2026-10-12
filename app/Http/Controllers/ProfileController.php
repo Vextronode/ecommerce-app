@@ -165,7 +165,7 @@ class ProfileController extends Controller
                 Storage::disk('public')->delete($user->profile_photo_path);
             }
 
-            $path = $request->file('photo')->store('profile-photos', 'public');
+            [$path] = app(\App\Services\ChatMediaProcessor::class)->store($request->file('photo'), 'profile-photos', 'public');
 
             $user->update([
                 'profile_photo_path' => $path,

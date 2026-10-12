@@ -25,6 +25,10 @@ class ChatController extends Controller
             abort(403, 'Anda belum memiliki toko yang terdaftar.');
         }
 
+        if ($store->sid_status !== 'verified' || in_array($user->status, ['suspended', 'inactive'], true)) {
+            abort(403, 'Toko Anda sedang tidak aktif.');
+        }
+
         $requestedRoomId = $request->query('room_id') ? (int) $request->query('room_id') : null;
         $initialRoomId = null;
 
@@ -90,6 +94,10 @@ class ChatController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        if ($store->sid_status !== 'verified' || in_array($user->status, ['suspended', 'inactive'], true)) {
+            return response()->json(['message' => 'Toko ini sedang tidak aktif.'], 403);
+        }
+
         ChatMessage::where('chat_room_id', $room->id)
             ->where('sender_type', 'user')
             ->where('is_read', false)
@@ -152,6 +160,10 @@ class ChatController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        if ($store->sid_status !== 'verified' || in_array($user->status, ['suspended', 'inactive'], true)) {
+            return response()->json(['message' => 'Toko ini sedang tidak aktif.'], 403);
+        }
+
         ChatMessage::where('chat_room_id', $room->id)
             ->where('sender_type', 'user')
             ->where('is_read', false)
@@ -177,6 +189,10 @@ class ChatController extends Controller
 
         if (!$store || (int) $room->store_id !== (int) $store->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if ($store->sid_status !== 'verified' || in_array($user->status, ['suspended', 'inactive'], true)) {
+            return response()->json(['message' => 'Toko ini sedang tidak aktif.'], 422);
         }
 
         $request->validate([

@@ -165,7 +165,7 @@ class SettingsController extends Controller
                 Storage::disk('public')->delete($store->logo_path);
             }
 
-            $path = $request->file('photo')->store('profile-photos', 'public');
+            [$path] = app(\App\Services\ChatMediaProcessor::class)->store($request->file('photo'), 'profile-photos', 'public');
             $user->profile_photo_path = $path;
             $store->logo_path = $path;
         }

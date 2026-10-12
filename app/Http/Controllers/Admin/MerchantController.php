@@ -354,9 +354,14 @@ class MerchantController extends Controller
                 ->exists();
 
             $hasRemainingBalance = ((float) $store->available_balance > 0) || ((float) $store->pending_balance > 0);
-            $hasPendingWithdrawals = $store->withdrawals()->where('status', 'pending')->exists();
+            $hasActiveWithdrawals = $store->withdrawals()
+                ->where(function ($query) {
+                    $query->whereIn('status', ['pending', 'processing'])
+                        ->orWhere('needs_reconciliation', true);
+                })
+                ->exists();
 
-            if ($hasActiveOrders || $hasRemainingBalance || $hasPendingWithdrawals) {
+            if ($hasActiveOrders || $hasRemainingBalance || $hasActiveWithdrawals) {
                 return redirect()->back()->with('error', 'Tidak dapat menghapus pedagang yang masih memiliki pesanan aktif, saldo mengendap, atau penarikan dana yang sedang diproses. Gunakan fitur Suspend sebagai gantinya.');
             }
         }

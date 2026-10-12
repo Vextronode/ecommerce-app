@@ -197,10 +197,12 @@ class ReportController extends Controller
     private function buildBestSellingQuery(?Carbon $startDate, ?Carbon $endDate, string $search, $storeId, $categoryId, string $sortBy)
     {
         // Aggregate sales per product (only sales > 0 from paid orders)
+        // 'delivered' dihapus dari daftar payment_status: itu nilai shipping_status,
+        // bukan payment_status, sehingga dulu salah kategori.
         $productSales = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->whereIn('orders.payment_status', ['paid', 'settlement', 'capture', 'success', 'delivered'])
+            ->whereIn('orders.payment_status', ['paid', 'settlement', 'capture', 'success'])
             ->where('orders.shipping_status', '!=', 'cancelled')
             ->when($startDate, fn ($q) => $q->where('orders.created_at', '>=', $startDate))
             ->when($endDate, fn ($q) => $q->where('orders.created_at', '<=', $endDate))

@@ -121,22 +121,29 @@ export function useCreateMerchantForm() {
         const lowers = "abcdefghijkmnpqrstuvwxyz";
         const numbers = "23456789";
         const specials = "!@#$%^&*";
-
-        let gen = "";
-        gen += uppers.charAt(Math.floor(Math.random() * uppers.length));
-        gen += lowers.charAt(Math.floor(Math.random() * lowers.length));
-        gen += numbers.charAt(Math.floor(Math.random() * numbers.length));
-        gen += specials.charAt(Math.floor(Math.random() * specials.length));
-
         const all = uppers + lowers + numbers + specials;
+
+        // sumber acak kriptografis; Math.random() tidak aman untuk kata sandi.
+        const randomIndex = (max: number) => {
+            const buffer = new Uint32Array(1);
+            window.crypto.getRandomValues(buffer);
+            return buffer[0] % max;
+        };
+
+        const pick = (chars: string) => chars.charAt(randomIndex(chars.length));
+
+        let gen = pick(uppers) + pick(lowers) + pick(numbers) + pick(specials);
         for (let i = 0; i < 8; i++) {
-            gen += all.charAt(Math.floor(Math.random() * all.length));
+            gen += pick(all);
         }
 
-        gen = gen
-            .split("")
-            .sort(() => 0.5 - Math.random())
-            .join("");
+        // Fisher-Yates shuffle: acak tanpa bias distribusi seperti sort(() => 0.5 - Math.random())
+        const chars = gen.split("");
+        for (let i = chars.length - 1; i > 0; i--) {
+            const j = randomIndex(i + 1);
+            [chars[i], chars[j]] = [chars[j], chars[i]];
+        }
+        gen = chars.join("");
 
         setData("password", gen);
         setShowPassword(true);

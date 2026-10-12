@@ -106,16 +106,27 @@ class AnalyticsController extends Controller
         }
         $ratingGrowth = ($prevRating > 0 && $currRating > 0) ? round((($currRating - $prevRating) / $prevRating) * 100, 1) : 0.0;
 
-        // Revenue Trend
+        // Revenue Trend (portabel lintas basis data: filter pakai rentang tanggal,
+        // tidak lagi memakai fungsi YEAR()/MONTH() yang hanya jalan di MySQL)
         $years = [$currentYear - 2, $currentYear - 1, $currentYear];
 
-        $revenueDataRaw = Order::where('store_id', $store->id)
-            ->where('payment_status', 'paid')
-            ->where('shipping_status', '!=', 'cancelled')
-            ->whereIn(DB::raw('YEAR(created_at)'), $years)
-            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END) as revenue')
-            ->groupBy('year', 'month')
-            ->get();
+        $revenueByMonth = [];
+        foreach ($years as $year) {
+            $yearStart = "{$year}-01-01 00:00:00";
+            $yearEnd = "{$year}-12-31 23:59:59";
+
+            $monthly = Order::where('store_id', $store->id)
+                ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+                ->where('shipping_status', '!=', 'cancelled')
+                ->whereBetween('created_at', [$yearStart, $yearEnd])
+                ->selectRaw('SUM(CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END) as revenue, created_at')
+                ->get()
+                ->groupBy(fn ($row) => (int) \Illuminate\Support\Carbon::parse($row->created_at)->format('n'));
+
+            foreach ($monthly as $monthNumber => $rows) {
+                $revenueByMonth[$year][(int) $monthNumber] = (int) $rows->sum('revenue');
+            }
+        }
 
         $revenueTrend = [];
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -123,8 +134,7 @@ class AnalyticsController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $monthData = ['name' => $months[$i - 1]];
             foreach ($years as $year) {
-                $revenue = $revenueDataRaw->where('year', $year)->where('month', $i)->first();
-                $monthData[(string) $year] = $revenue ? (int) $revenue->revenue : 0;
+                $monthData[(string) $year] = $revenueByMonth[$year][$i] ?? 0;
             }
             $revenueTrend[] = $monthData;
         }
@@ -134,7 +144,7 @@ class AnalyticsController extends Controller
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')
             ->where('orders.store_id', $store->id)
-            ->where('orders.payment_status', 'paid')
+            ->whereIn('orders.payment_status', ['paid', 'settlement', 'capture', 'success'])
             ->where('orders.shipping_status', '!=', 'cancelled');
 
         if ($startDate) {
@@ -159,22 +169,33 @@ class AnalyticsController extends Controller
             ];
         });
 
-        // Orders Trend
-        $ordersTrendRaw = Order::where('store_id', $store->id)
-            ->whereYear('created_at', $currentYear)
-            ->selectRaw("MONTH(created_at) as month, 
-                         SUM(CASE WHEN shipping_status = 'delivered' OR (payment_status = 'paid' AND shipping_status != 'cancelled') THEN 1 ELSE 0 END) as completed,
-                         SUM(CASE WHEN shipping_status = 'cancelled' OR payment_status IN ('failed', 'refunded') THEN 1 ELSE 0 END) as canceled")
-            ->groupBy('month')
-            ->get();
+        // Orders Trend (portabel: filter pakai rentang tanggal tahun berjalan,
+        // agregasi per bulan dihitung dari data terfilter agar aman di semua driver)
+        $ordersTrendRows = Order::where('store_id', $store->id)
+            ->whereBetween('created_at', ["{$currentYear}-01-01 00:00:00", "{$currentYear}-12-31 23:59:59"])
+            ->get(['created_at', 'shipping_status', 'payment_status']);
+
+        $ordersTrendByMonth = [];
+        foreach ($ordersTrendRows as $row) {
+            $monthNumber = (int) \Illuminate\Support\Carbon::parse($row->created_at)->format('n');
+            $ordersTrendByMonth[$monthNumber] ??= ['completed' => 0, 'canceled' => 0];
+
+            $isCanceled = $row->shipping_status === 'cancelled' || in_array($row->payment_status, ['failed', 'refunded'], true);
+            $isCompleted = $row->shipping_status === 'delivered' || (in_array($row->payment_status, ['paid', 'settlement', 'capture', 'success'], true) && $row->shipping_status !== 'cancelled');
+
+            if ($isCanceled) {
+                $ordersTrendByMonth[$monthNumber]['canceled']++;
+            } elseif ($isCompleted) {
+                $ordersTrendByMonth[$monthNumber]['completed']++;
+            }
+        }
 
         $ordersTrend = [];
         for ($i = 1; $i <= 12; $i++) {
-            $data = $ordersTrendRaw->where('month', $i)->first();
             $ordersTrend[] = [
                 'name' => $months[$i - 1],
-                'Completed' => $data ? (int) $data->completed : 0,
-                'Canceled' => $data ? (int) $data->canceled : 0,
+                'Completed' => $ordersTrendByMonth[$i]['completed'] ?? 0,
+                'Canceled' => $ordersTrendByMonth[$i]['canceled'] ?? 0,
             ];
         }
 
@@ -182,7 +203,7 @@ class AnalyticsController extends Controller
         $bestSellingQuery = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->where('orders.store_id', $store->id)
-            ->where('orders.payment_status', 'paid')
+            ->whereIn('orders.payment_status', ['paid', 'settlement', 'capture', 'success'])
             ->where('orders.shipping_status', '!=', 'cancelled');
 
         if ($startDate) {

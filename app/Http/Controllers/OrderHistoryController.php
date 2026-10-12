@@ -154,10 +154,10 @@ class OrderHistoryController extends Controller
             }
         }
 
-        if ($order->shipping_status === 'shipped' && $order->delivery_method === 'local_delivery' && $order->updated_at && $order->updated_at->diffInHours(now()) >= 4) {
-            $order->autoCompleteDelivery();
-            $order->refresh();
-        }
+        // penyelesaian pesanan otomatis tidak lagi dijalankan di request GET.
+        // memicu mutasi state/escrow saat halaman dibuka rawan efek samping
+        // (prefetch, crawler, refresh ganda). sekarang murni tugas penjadwal
+        // auto-complete-shipped-orders di routes/console.php tiap 15 menit.
 
         $orderData = [
             'id' => $order->id,

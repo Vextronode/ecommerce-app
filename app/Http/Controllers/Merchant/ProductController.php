@@ -138,7 +138,7 @@ class ProductController extends Controller
 
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $index => $file) {
-                    $path = $file->store('products', 'public');
+                    [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'products', 'public');
                     $url = '/storage/'.$path;
 
                     if ($index === 0) {
@@ -284,7 +284,7 @@ class ProductController extends Controller
 
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $file) {
-                    $path = $file->store('products', 'public');
+                    [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'products', 'public');
                     $url = '/storage/'.$path;
                     $product->images()->create(['image_path' => $url]);
                 }

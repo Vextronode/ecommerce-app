@@ -133,7 +133,7 @@ class ProductReviewController extends Controller
 
             $imagePaths = [];
             foreach ($files as $file) {
-                $path = $file->store('reviews', 'public');
+                [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'reviews', 'public');
                 $imagePaths[] = '/storage/'.$path;
             }
         }

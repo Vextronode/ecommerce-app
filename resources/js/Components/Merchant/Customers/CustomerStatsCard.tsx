@@ -46,7 +46,9 @@ export default function CustomerStatsCard({ title, value, growth, type, chartDat
         const usableHeight = maxY - minY;
 
         const points = chartData.map((val, idx) => {
-            const x = (idx / (n - 1)) * width;
+            // saat data hanya 1 titik, idx/(n-1) = 0/0 = NaN dan path SVG rusak.
+            // kalau titiknya tunggal, letakkan di tengah sebagai gantinya.
+            const x = n > 1 ? (idx / (n - 1)) * width : width / 2;
             const y = maxY - (val / max) * usableHeight;
             return { x, y };
         });
