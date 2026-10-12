@@ -10,7 +10,9 @@ const firebaseConfig = {
     appId: "1:584045016651:web:d9f61f4b892d2c547e7fce"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps || !firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
 const messaging = firebase.messaging();
 
@@ -32,7 +34,8 @@ messaging.onBackgroundMessage(function(payload) {
     sound: self.location.origin + '/sounds/notification.mp3',
     vibrate: [200, 100, 200, 100, 200],
     tag: notifTag,
-    renotify: false,
+    renotify: true,
+    requireInteraction: true,
     data: payload.data || {}
   };
 

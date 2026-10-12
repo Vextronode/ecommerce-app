@@ -7,10 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use App\Models\ChatRoom;
 use App\Models\Product;
+use App\Notifications\PushNotification;
 use App\Services\ChatMediaProcessor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -207,7 +209,7 @@ class ChatController extends Controller
                 'file',
                 'mimes:jpg,jpeg,png,webp,gif,mp4,mov',
                 'mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime',
-                'max:10240',
+                'max:20480',
             ],
         ]);
 
@@ -235,7 +237,12 @@ class ChatController extends Controller
 
         if ($request->hasFile('media')) {
             $file = $request->file('media');
-            [$mediaPath, $mediaType] = app(ChatMediaProcessor::class)->store($file);
+            try {
+                [$mediaPath, $mediaType] = app(ChatMediaProcessor::class)->store($file);
+            } catch (\Throwable $e) {
+                Log::error('Merchant chat media upload failed: ' . $e->getMessage());
+                return response()->json(['message' => 'Gagal memproses lampiran media: ' . $e->getMessage()], 422);
+            }
         }
 
         $chatMessage = ChatMessage::create([
@@ -254,7 +261,25 @@ class ChatController extends Controller
         try {
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('NewChatMessageEvent broadcast error: ' . $e->getMessage());
+            Log::warning('NewChatMessageEvent broadcast error: ' . $e->getMessage());
+        }
+
+        // Push notification ke pembeli jika sedang offline / di luar livechat
+        try {
+            $buyerUser = $room->user;
+            if ($buyerUser && (int) $buyerUser->id !== (int) $user->id) {
+                $preview = $chatMessage->message
+                    ?: ($chatMessage->media_type === 'video' ? '[Mengirim Video]' : ($chatMessage->media_path ? '[Mengirim Foto]' : 'Pesan baru'));
+                $storeName = $store->name ?? 'Toko';
+                $buyerUser->notify(new PushNotification(
+                    "Pesan dari {$storeName}",
+                    $preview,
+                    'chat',
+                    "/chat"
+                ));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Chat push notification to buyer error: ' . $e->getMessage());
         }
 
         $formattedMessage = [

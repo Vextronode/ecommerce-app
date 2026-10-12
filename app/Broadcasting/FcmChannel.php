@@ -79,7 +79,7 @@ class FcmChannel
             ];
 
             $fcmMessage = [
-                'message' => array_merge($baseConfig, $payload),
+                'message' => array_replace_recursive($baseConfig, $payload),
             ];
 
             $response = Http::withToken($accessToken['access_token'])

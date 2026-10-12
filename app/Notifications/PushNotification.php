@@ -62,8 +62,15 @@ class PushNotification extends Notification implements ShouldQueue
     {
         $isMerchant = in_array($notifiable->role ?? '', ['pedagang', 'merchant'], true) || str_contains($this->actionUrl ?? '', '/pedagang');
         $icon = $isMerchant ? '/icons/icon-merchant-192.png' : '/icons/icon-192.png';
+        $fullIconUrl = url($icon);
+        $fullActionUrl = url($this->actionUrl ?? '/');
+        $notifTag = (string) ($this->id ?? ($this->title . ':' . $this->message));
 
         return [
+            'notification' => [
+                'title' => $this->title,
+                'body' => $this->message,
+            ],
             'data' => [
                 'id' => (string) ($this->id ?? ''),
                 'title' => $this->title,
@@ -72,7 +79,41 @@ class PushNotification extends Notification implements ShouldQueue
                 'action_url' => $this->actionUrl ?? '',
                 'is_merchant' => $isMerchant ? 'true' : 'false',
                 'icon' => $icon,
-            ]
+            ],
+            'android' => [
+                'priority' => 'high',
+                'notification' => [
+                    'title' => $this->title,
+                    'body' => $this->message,
+                    'icon' => 'stock_ticker_update',
+                    'color' => '#f97316',
+                    'default_sound' => true,
+                    'default_vibrate_timings' => true,
+                    'notification_priority' => 'PRIORITY_MAX',
+                ],
+            ],
+            'webpush' => [
+                'headers' => [
+                    'Urgency' => 'high',
+                    'TTL' => '86400',
+                ],
+                'notification' => [
+                    'title' => $this->title,
+                    'body' => $this->message,
+                    'icon' => $fullIconUrl,
+                    'badge' => $fullIconUrl,
+                    'tag' => $notifTag,
+                    'renotify' => true,
+                    'requireInteraction' => true,
+                    'vibrate' => [200, 100, 200, 100, 200],
+                    'data' => [
+                        'action_url' => $this->actionUrl ?? '/',
+                    ],
+                ],
+                'fcm_options' => [
+                    'link' => $fullActionUrl,
+                ],
+            ],
         ];
     }
 }

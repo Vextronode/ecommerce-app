@@ -8,10 +8,12 @@ use App\Models\ChatMessage;
 use App\Models\ChatRoom;
 use App\Models\Product;
 use App\Models\Store;
+use App\Notifications\PushNotification;
 use App\Services\ChatMediaProcessor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
@@ -233,7 +235,12 @@ class ChatController extends Controller
 
         if ($request->hasFile('media')) {
             $file = $request->file('media');
-            [$mediaPath, $mediaType] = app(ChatMediaProcessor::class)->store($file);
+            try {
+                [$mediaPath, $mediaType] = app(ChatMediaProcessor::class)->store($file);
+            } catch (\Throwable $e) {
+                Log::error('Chat media upload failed: ' . $e->getMessage());
+                return response()->json(['message' => 'Gagal memproses gambar lampiran: ' . $e->getMessage()], 422);
+            }
         }
 
         $chatMessage = ChatMessage::create([
@@ -252,7 +259,25 @@ class ChatController extends Controller
         try {
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('NewChatMessageEvent broadcast error: ' . $e->getMessage());
+            Log::warning('NewChatMessageEvent broadcast error: ' . $e->getMessage());
+        }
+
+        // Push notification ke pedagang jika sedang offline / di luar livechat
+        try {
+            $sellerUser = $room->store?->user;
+            if ($sellerUser && (int) $sellerUser->id !== (int) $userId) {
+                $preview = $chatMessage->message
+                    ?: ($chatMessage->media_type === 'video' ? '[Mengirim Video]' : ($chatMessage->media_path ? '[Mengirim Foto]' : 'Pesan baru'));
+                $senderName = Auth::user()?->name ?? 'Pelanggan';
+                $sellerUser->notify(new PushNotification(
+                    "Pesan dari {$senderName}",
+                    $preview,
+                    'chat',
+                    "/pedagang/chat?room={$room->id}"
+                ));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Chat push notification to seller error: ' . $e->getMessage());
         }
 
         $formattedMessage = [

@@ -1,11 +1,15 @@
 // =====================================================================
 // PWA Service Worker - Cibenda Mart
-// Handles offline caching & network-first strategy
-// NOTE: Firebase Messaging SW (firebase-messaging-sw.js) handles push
-//       notifications separately — this SW handles caching only.
+// Handles offline caching, network-first strategy, and Firebase Push Messaging
 // =====================================================================
 
-const CACHE_NAME = 'cibenda-mart-v4';
+try {
+    importScripts('/firebase-messaging-sw.js');
+} catch (e) {
+    console.warn('[sw.js] Failed to import firebase-messaging-sw.js:', e);
+}
+
+const CACHE_NAME = 'cibenda-mart-v5';
 
 // Asset yang di-cache saat install (App Shell)
 const PRECACHE_URLS = [

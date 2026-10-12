@@ -277,11 +277,11 @@ export function useNotifications(user: any) {
         if (!user) return;
 
         const unsubscribe = onMessageListener((payload: any) => {
-            if (payload?.data) {
-                const notifTitle = payload.data.title || "Notifikasi Baru";
-                const notifMsg = payload.data.message || "";
-                const actionUrl = payload.data.action_url;
-                const notifId = String(payload.data.id || `${notifTitle}:${notifMsg}`);
+            if (payload?.notification || payload?.data) {
+                const notifTitle = payload.notification?.title || payload.data?.title || "Notifikasi Baru";
+                const notifMsg = payload.notification?.body || payload.data?.message || "";
+                const actionUrl = payload.data?.action_url || payload.webpush?.data?.action_url;
+                const notifId = String(payload.data?.id || `${notifTitle}:${notifMsg}`);
 
                 if (!recentlyNotifiedRef.current.has(notifId)) {
                     recentlyNotifiedRef.current.add(notifId);

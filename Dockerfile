@@ -12,14 +12,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install dependencies sistem yang dibutuhkan PHP (--no-install-recommends mencegah install paket sampah desktop)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl zip unzip \
-    libpng-dev libonig-dev libxml2-dev \
+    libpng-dev libjpeg62-turbo-dev libwebp-dev libfreetype6-dev \
+    libonig-dev libxml2-dev \
     libzip-dev \
     ca-certificates \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install ekstensi PHP yang dibutuhkan Laravel
 # pcntl = dibutuhin Queue Worker biar bisa gracefully shutdown
-RUN docker-php-ext-install \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install \
     pdo_mysql \
     mbstring \
     exif \
@@ -27,6 +29,9 @@ RUN docker-php-ext-install \
     bcmath \
     gd \
     zip
+
+# Konfigurasi upload limit & resource PHP untuk file gambar/video chat
+RUN echo "upload_max_filesize = 25M\npost_max_size = 30M\nmemory_limit = 256M\nmax_execution_time = 120" > /usr/local/etc/php/conf.d/uploads.ini
 
 # Install Composer dari image resminya
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

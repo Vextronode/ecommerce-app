@@ -41,8 +41,18 @@ export const requestForToken = async (): Promise<string | null> => {
         const messagingInstance = await getMessagingInstance();
         if (!messagingInstance) return null;
 
+        let swRegistration: ServiceWorkerRegistration | undefined;
+        if ("serviceWorker" in navigator) {
+            try {
+                swRegistration = await navigator.serviceWorker.ready;
+            } catch (swErr) {
+                console.warn("Failed to get SW registration for FCM:", swErr);
+            }
+        }
+
         const currentToken = await getToken(messagingInstance, {
-            vapidKey: "BBTHc5XWQ43VPS1V1GW7gb9gGa02JNQBRZwDiC4-9huOdYIhqYm1NzCyW8f9gL4cVZatL-HWRvPrC666Ul0ZGCw"
+            vapidKey: "BBTHc5XWQ43VPS1V1GW7gb9gGa02JNQBRZwDiC4-9huOdYIhqYm1NzCyW8f9gL4cVZatL-HWRvPrC666Ul0ZGCw",
+            serviceWorkerRegistration: swRegistration,
         });
 
         return currentToken ?? null;
