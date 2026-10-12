@@ -153,6 +153,11 @@ class DeliveryTrackerController extends Controller
             abort(403, 'Pesanan non-COD belum dibayar sehingga belum dapat diserahkan ke kurir.');
         }
 
+        // Guard stok: order tanpa stok ga boleh diserahkan ke kurir
+        if (! $order->canFulfillStock()) {
+            abort(422, 'Stok produk untuk pesanan ini tidak mencukupi sehingga tidak dapat diserahkan ke kurir.');
+        }
+
         // Update status to shipped if currently processing or pending
         if (in_array($order->shipping_status, ['pending', 'processing'])) {
             $updateData = ['shipping_status' => 'shipped'];
@@ -307,6 +312,13 @@ class DeliveryTrackerController extends Controller
 
             foreach ($orders as $order) {
                 if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid') {
+                    continue;
+                }
+
+                // skip order tanpa stok, biar ga diserahkan ke kurir dalam kondisi oversell
+                if (! $order->canFulfillStock()) {
+                    Log::warning("Batch handover: Order #{$order->invoice_number} dilewati karena stok tidak mencukupi.");
+
                     continue;
                 }
 

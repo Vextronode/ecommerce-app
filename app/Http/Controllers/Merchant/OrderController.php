@@ -200,6 +200,11 @@ class OrderController extends Controller
                 return redirect()->route('merchant.orders.index')->with('error', 'Pesanan non-COD belum dibayar oleh pembeli.');
             }
 
+            // Guard stok: order yang stoknya sudah habis ga boleh diproses atau dikirim
+            if (in_array($newStatus, ['processing', 'shipped']) && ! $order->canFulfillStock()) {
+                return redirect()->route('merchant.orders.index')->with('error', 'Stok produk untuk pesanan ini tidak mencukupi. Hubungi admin untuk rekonsiliasi.');
+            }
+
             $updateData = ['shipping_status' => $newStatus];
 
             if ($newStatus === 'shipped') {

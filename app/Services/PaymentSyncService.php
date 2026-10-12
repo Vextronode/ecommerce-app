@@ -75,8 +75,14 @@ class PaymentSyncService
                     $wasCancelled = $lockedOrder->shipping_status === 'cancelled';
                     $shouldCreditEscrow = $lockedOrder->store_id && $lockedOrder->escrow_credited_at === null;
 
+                    // kalau order pernah dibatalin, jangan revive diam-diam tanpa cek stok.
+                    // stok bisa udah kepake pembeli lain, jadi revive cuma boleh kalau stok semua item masih cukup.
+                    $canRevive = ! $wasCancelled
+                        || $lockedOrder->stock_restored_at === null
+                        || $lockedOrder->hasSufficientStockForReactivation();
+
                     $updateFields = ['payment_status' => 'paid'];
-                    if ($wasCancelled) {
+                    if ($wasCancelled && $canRevive) {
                         $updateFields['shipping_status'] = 'pending';
                     }
 
@@ -88,8 +94,26 @@ class PaymentSyncService
                         $lockedOrder->update($updateFields);
                     }
 
-                    if ($wasCancelled && $lockedOrder->stock_restored_at !== null) {
-                        $lockedOrder->deductRestoredStock();
+                    if ($wasCancelled && $canRevive && $lockedOrder->stock_restored_at !== null) {
+                        // deductRestoredStock all or nothing; kalau gagal, jangan tinggalin order aktif tanpa stok
+                        if (! $lockedOrder->deductRestoredStock()) {
+                            $canRevive = false;
+                        }
+                    }
+
+                    // stok ga cukup: uang tetap dicatat masuk + escrow tetap dikredit biar refund jalan,
+                    // tapi order tetap cancelled dan ditandai butuh rekonsiliasi admin/merchant.
+                    if ($wasCancelled && ! $canRevive) {
+                        $lockedOrder->forceFill([
+                            'shipping_status' => 'cancelled',
+                            'payment_payload' => array_merge($lockedOrder->payment_payload ?? [], [
+                                'needs_reconciliation' => true,
+                                'reconciliation_reason' => 'stok tidak mencukupi saat revive order cancelled',
+                                'reconciliation_flagged_at' => now()->toIso8601String(),
+                            ]),
+                        ])->save();
+
+                        Log::warning("Order #{$lockedOrder->invoice_number} dibayar setelah cancel tapi stok tidak mencukupi; ditandai needs_reconciliation, tidak di-revive.");
                     }
 
                     if ($shouldCreditEscrow) {

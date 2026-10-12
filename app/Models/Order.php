@@ -120,14 +120,25 @@ class Order extends Model
                 return false;
             }
 
+            $order->loadMissing('items');
+
+            // guard stok dulu sebelum sentuh apapun, biar ga silent-clamp jadi 0 sambil order tetap jalan
+            if (! $order->hasSufficientStockForReactivation()) {
+                Log::warning("Order #{$order->invoice_number} deductRestoredStock ditolak: stok tidak mencukupi untuk reactivation.");
+
+                return false;
+            }
+
             foreach ($order->items as $item) {
+                // selaras dengan kontrak checkout yang men-decrement sku dan master sekaligus,
+                // jadi revive harus menarik balik dari dua-duanya biar stok tidak menggelembung.
                 if ($item->variant_name) {
                     $sku = ProductSku::where('product_id', $item->product_id)
                         ->where('variant_name', $item->variant_name)
                         ->lockForUpdate()
                         ->first();
                     if ($sku) {
-                        $sku->decrement('stock', min($sku->stock, $item->quantity));
+                        $sku->decrement('stock', $item->quantity);
                     }
                 }
 
@@ -135,7 +146,7 @@ class Order extends Model
                     ->lockForUpdate()
                     ->first();
                 if ($product) {
-                    $product->decrement('stock', min($product->stock, $item->quantity));
+                    $product->decrement('stock', $item->quantity);
                 }
             }
 
@@ -144,6 +155,81 @@ class Order extends Model
 
             return true;
         });
+    }
+
+    /**
+     * cek apakah seluruh item order masih punya stok fisik yang cukup untuk diaktifkan kembali.
+     * dipakai sebelum revive order cancelled biar ga jadi oversell.
+     * pemanggil wajib sudah memegang row lock order ini supaya cek stok ga race.
+     */
+    public function hasSufficientStockForReactivation(): bool
+    {
+        $this->loadMissing('items');
+
+        foreach ($this->items as $item) {
+            // kontrak checkout men-decrement sku dan master sekaligus saat item bervarian,
+            // jadi revive juga wajib memastikan dua-duanya cukup biar ga oversell.
+            if ($item->variant_name) {
+                $sku = ProductSku::where('product_id', $item->product_id)
+                    ->where('variant_name', $item->variant_name)
+                    ->lockForUpdate()
+                    ->first();
+
+                // sku hilang tapi order butuh varian tetap dianggap ga cukup
+                if (! $sku || $sku->stock < $item->quantity) {
+                    return false;
+                }
+            }
+
+            $product = Product::where('id', $item->product_id)
+                ->lockForUpdate()
+                ->first();
+
+            // produk udah kehapus atau stok master kurang dari quantity => ga cukup
+            if (! $product || $product->stock < $item->quantity) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * cek apakah order yang berstatus aktif masih punya stok fisik untuk dipenuhi.
+     * dipakai sebagai guard hilir di merchant/kurir biar order tanpa stok ga bisa lanjut dikirim.
+     * order yang stoknya udah diambil balik (stock_restored_at terisi) dianggap belum pegang stok.
+     */
+    public function canFulfillStock(): bool
+    {
+        if ($this->stock_restored_at !== null) {
+            return false;
+        }
+
+        $this->loadMissing('items');
+
+        foreach ($this->items as $item) {
+            // cek sku dulu bila item pakai varian. checkout men-decrement sku dan master
+            // sekaligus, jadi dua-duanya wajib dicek biar order tanpa stok ga bisa dikirim.
+            if ($item->variant_name) {
+                $sku = ProductSku::where('product_id', $item->product_id)
+                    ->where('variant_name', $item->variant_name)
+                    ->first();
+
+                // sku-nya hilang padahal order butuh varian itu => anggap belum bisa dipenuhi
+                if (! $sku || $sku->stock < $item->quantity) {
+                    return false;
+                }
+            }
+
+            // cek master produk berlaku untuk item bervarian maupun non-varian,
+            // karena produk non-varian juga di-decrement saat checkout.
+            $produk = Product::where('id', $item->product_id)->first();
+            if (! $produk || $produk->stock < $item->quantity) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
