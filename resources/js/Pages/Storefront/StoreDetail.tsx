@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Search } from 'lucide-react';
-import Navbar from '@/Components/Global/Navbar';
-import Footer from '@/Components/Global/Footer';
+import StorefrontLayout from '@/Layouts/StorefrontLayout';
 import StoreHeader from '@/Components/Storefront/StoreDetail/StoreHeader';
 import StoreFilters from '@/Components/Storefront/StoreDetail/StoreFilters';
 import ShopProductRow from '@/Components/Storefront/ShopProductRow';
@@ -11,6 +10,7 @@ import ProductGridSkeleton from '@/Components/Global/Skeletons/ProductGridSkelet
 import StoreDetailPageSkeleton from '@/Components/Storefront/StoreDetail/StoreDetailPageSkeleton';
 import { useInertiaNetworkLoading } from '@/Hooks/useInertiaNetworkLoading';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 import { PageProps } from '@/types';
 
 interface Props {
@@ -38,7 +38,7 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
         setIsFollowing(initialIsFollowing);
     }, [initialIsFollowing]);
 
-    const handleFollow = () => {
+    const handleFollow = async () => {
         if (!user) {
             toast.error("Silakan login terlebih dahulu untuk mengikuti toko!");
             router.visit(route("login"));
@@ -46,28 +46,21 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
         }
 
         setIsLoadingFollow(true);
-        router.post(
-            route('store.follow', store.id),
-            {},
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    const nextState = !isFollowing;
-                    setIsFollowing(nextState);
-                    setIsLoadingFollow(false);
-                    if (nextState) {
-                        toast.success(`Berhasil mengikuti toko ${store.name}!`);
-                    } else {
-                        toast(`Berhenti mengikuti toko ${store.name}.`);
-                    }
-                },
-                onError: () => {
-                    setIsLoadingFollow(false);
-                    toast.error("Gagal memperbarui status follow toko.");
-                },
+        try {
+            const res = await axios.post(route('store.follow', store.id));
+            const nextState = Boolean(res.data?.isFollowing);
+            setIsFollowing(nextState);
+            if (nextState) {
+                toast.success(`Berhasil mengikuti toko ${store.name}!`);
+            } else {
+                toast(`Berhenti mengikuti toko ${store.name}.`);
             }
-        );
+        } catch (err) {
+            console.error("Gagal memperbarui follow:", err);
+            toast.error("Gagal memperbarui status follow toko.");
+        } finally {
+            setIsLoadingFollow(false);
+        }
     };
     const [currentTab, setCurrentTab] = useState(filters.tab || 'beranda');
     const [currentFilter, setCurrentFilter] = useState(filters.filter || 'populer');
@@ -131,25 +124,10 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
         });
     };
 
-
-
-    if (isNetworkLoading) {
-        return (
-            <div className="min-h-screen bg-[#F8FAFC]">
-                <Head title={`${store?.name || "Memuat Toko"} - Cibenda Mart`} />
-                <Navbar />
-                <StoreDetailPageSkeleton />
-                <Footer />
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-[#F8FAFC]">
+        <StorefrontLayout>
             <Head title={`${store.name} - Cibenda Mart`} />
-            <Navbar />
-
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-32 space-y-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-32 space-y-6">
 
                 <StoreHeader
                     store={store}
@@ -290,9 +268,7 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
                         )}
                     </div>
                 </div>
-            </main>
-
-            <Footer />
-        </div>
+            </div>
+        </StorefrontLayout>
     );
 }

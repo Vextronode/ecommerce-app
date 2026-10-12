@@ -74,8 +74,22 @@ export default function DeliveryOrderSummary({ order }: DeliveryOrderSummaryProp
                 
                 <div className="mt-4 bg-[#ED7218]/5 p-3 rounded-xl border border-[#ED7218]/20 flex justify-between items-center text-xs">
                     <span className="font-medium text-gray-600">Metode Pembayaran</span>
-                    <span className={`font-bold uppercase tracking-wide ${order.payment_status === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        {order.payment_method === 'cod' ? 'Bayar di Tempat (COD)' : 'Transfer (Lunas)'}
+                    <span
+                        className={`font-bold uppercase tracking-wide ${
+                            order.payment_status === 'paid'
+                                ? 'text-emerald-600'
+                                : order.payment_status === 'refunded'
+                                ? 'text-slate-500'
+                                : 'text-amber-600'
+                        }`}
+                    >
+                        {order.payment_method === 'cod'
+                            ? 'Bayar di Tempat (COD)'
+                            : order.payment_status === 'refunded'
+                            ? 'Dana Dikembalikan'
+                            : order.payment_status === 'paid'
+                            ? 'Transfer (Lunas)'
+                            : 'Transfer (Belum Bayar)'}
                     </span>
                 </div>
             </div>

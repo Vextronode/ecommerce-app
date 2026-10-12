@@ -2,32 +2,38 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+#[Fillable([
+    'user_id',
+    'name',
+    'slug',
+    'logo_path',
+    'description',
+    'has_completed_tour',
+    'support_email',
+    'address',
+    'latitude',
+    'longitude',
+    'subdistrict',
+    'bank_name',
+    'bank_account_number',
+    'bank_account_holder',
+])]
+#[Hidden([
+    'available_balance',
+    'pending_balance',
+    'bank_name',
+    'bank_account_number',
+    'bank_account_holder',
+    'has_completed_tour',
+])]
 class Store extends Model
 {
     use HasFactory;
-
-    protected $fillable = [
-        'user_id',
-        'name',
-        'slug',
-        'logo_path',
-        'description',
-        'sid_status',
-        'has_completed_tour',
-        'support_email',
-        'address',
-        'latitude',
-        'longitude',
-        'subdistrict',
-        'available_balance',
-        'pending_balance',
-        'bank_name',
-        'bank_account_number',
-        'bank_account_holder',
-    ];
 
     protected $casts = [
         'has_completed_tour' => 'boolean',

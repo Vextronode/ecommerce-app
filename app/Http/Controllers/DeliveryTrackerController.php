@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -31,25 +32,16 @@ class DeliveryTrackerController extends Controller
         }
 
         // Determine role & authorization:
-        $isDriver = session("driver_authorized_{$invoice_number}") === true;
+        $isDriver = session("driver_authorized_{$invoice_number}") === true
+            || (! empty($order->delivery_batch_token) && session("driver_authorized_batch_{$order->delivery_batch_token}") === true);
         $isBuyer = auth()->check() && (int) auth()->id() === (int) $order->user_id;
         $isMerchant = auth()->check() && (int) auth()->user()->store?->id === (int) $order->store_id;
-        $canViewFullPII = $isDriver || $isBuyer || $isMerchant;
+
+        if (! $isDriver && ! $isBuyer && ! $isMerchant) {
+            abort(403, 'Anda tidak memiliki akses untuk melacak pesanan ini.');
+        }
 
         $role = $isDriver ? 'driver' : 'user';
-
-        // PII Masking: If unauthenticated/unauthorized public viewer, obscure customer phone and address
-        $displayCustomerName = $canViewFullPII
-            ? $order->customer_name
-            : (strlen($order->customer_name) > 3 ? Str::mask($order->customer_name, '*', 2, -1) : $order->customer_name);
-
-        $displayPhone = $canViewFullPII
-            ? $order->customer_phone
-            : ($order->customer_phone ? Str::mask($order->customer_phone, '*', 4, -3) : null);
-
-        $displayAddress = $canViewFullPII
-            ? $order->shipping_address
-            : ($order->shipping_address ? preg_replace('/^([^,]+,[^,]+),?.*/', '$1, [Alamat Disamarkan]', $order->shipping_address) : '');
 
         $cachedLoc = Cache::get("driver_loc_{$invoice_number}");
 
@@ -60,9 +52,9 @@ class DeliveryTrackerController extends Controller
                 'invoice_number' => $order->invoice_number,
                 'status' => $order->shipping_status,
                 'is_arrived' => $order->isArrived(),
-                'customer_name' => $displayCustomerName,
-                'customer_phone' => $displayPhone,
-                'shipping_address' => $displayAddress,
+                'customer_name' => $order->customer_name,
+                'customer_phone' => $order->customer_phone,
+                'shipping_address' => $order->shipping_address,
                 'shipping_latitude' => $order->shipping_latitude,
                 'shipping_longitude' => $order->shipping_longitude,
                 'driver_latitude' => $cachedLoc['latitude'] ?? null,
@@ -157,14 +149,28 @@ class DeliveryTrackerController extends Controller
 
         $order = Order::where('invoice_number', $invoice_number)->firstOrFail();
 
+        if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid') {
+            abort(403, 'Pesanan non-COD belum dibayar sehingga belum dapat diserahkan ke kurir.');
+        }
+
+        // Guard stok: order tanpa stok ga boleh diserahkan ke kurir
+        if (! $order->canFulfillStock()) {
+            abort(422, 'Stok produk untuk pesanan ini tidak mencukupi sehingga tidak dapat diserahkan ke kurir.');
+        }
+
         // Update status to shipped if currently processing or pending
         if (in_array($order->shipping_status, ['pending', 'processing'])) {
             $updateData = ['shipping_status' => 'shipped'];
+            $newPin = null;
             if (empty($order->shipping_pin)) {
-                $updateData['shipping_pin'] = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+                $newPin = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
             }
 
             $order->update($updateData);
+            if ($newPin !== null) {
+                // shipping_pin ga masuk fillable, set lewat forceFill
+                $order->forceFill(['shipping_pin' => $newPin])->save();
+            }
 
             OrderNotificationService::orderShipped($order);
             try {
@@ -305,16 +311,33 @@ class DeliveryTrackerController extends Controller
             }
 
             foreach ($orders as $order) {
+                if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid') {
+                    continue;
+                }
+
+                // skip order tanpa stok, biar ga diserahkan ke kurir dalam kondisi oversell
+                if (! $order->canFulfillStock()) {
+                    Log::warning("Batch handover: Order #{$order->invoice_number} dilewati karena stok tidak mencukupi.");
+
+                    continue;
+                }
+
                 if (in_array($order->shipping_status, ['pending', 'processing'])) {
                     $updateData = [
                         'shipping_status' => 'shipped',
-                        'delivery_batch_token' => $batch_token,
                     ];
+                    $newPin = null;
                     if (empty($order->shipping_pin)) {
-                        $updateData['shipping_pin'] = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+                        $newPin = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
                     }
 
-                    $order->update($updateData);
+                    if ($newPin !== null) {
+                        $updateData['shipping_pin'] = $newPin;
+                    }
+
+                    $order->forceFill(array_merge($updateData, [
+                        'delivery_batch_token' => $batch_token,
+                    ]))->save();
 
                     // Notify each buyer individually
                     OrderNotificationService::orderShipped($order);
@@ -332,7 +355,7 @@ class DeliveryTrackerController extends Controller
             // Authorize batch session
             session(["driver_authorized_batch_{$batch_token}" => true]);
 
-            return redirect()->route('tracker.showBatch', ['batch_token' => $batch_token]);
+            return redirect()->to(URL::signedRoute('tracker.showBatch', ['batch_token' => $batch_token], now()->addHours(24)));
         });
     }
 
@@ -362,12 +385,19 @@ class DeliveryTrackerController extends Controller
 
         // Determine role: Only genuine authorized batch driver session is driver
         $isBatchDriver = session("driver_authorized_batch_{$batch_token}") === true;
+        $isStoreMerchant = auth()->check() && $store && (int) auth()->user()->store?->id === (int) $store->id;
+        $isBatchBuyer = auth()->check() && $orders->contains(fn ($o) => (int) $o->user_id === (int) auth()->id());
+
+        if (! $isBatchDriver && ! $isStoreMerchant && ! $isBatchBuyer) {
+            abort(403, 'Anda tidak memiliki akses ke halaman pelacakan gabungan ini.');
+        }
+
         $role = $isBatchDriver ? 'driver' : 'user';
 
         $cachedBatchLoc = Cache::get("driver_loc_batch_{$batch_token}");
 
         // Optimize multi-stop route sequence (Nearest-Neighbor TSP from driver/store origin)
-        $rawStops = $orders->map(function ($order) use ($storeLat, $storeLon, $isBatchDriver) {
+        $rawStops = $orders->map(function ($order) use ($storeLat, $storeLon, $isBatchDriver, $isStoreMerchant) {
             $distKm = $this->calculateHaversineDistance(
                 $storeLat,
                 $storeLon,
@@ -376,7 +406,7 @@ class DeliveryTrackerController extends Controller
             );
 
             $isOwnOrder = auth()->check() && (int) auth()->id() === (int) $order->user_id;
-            $canViewFullPII = $isBatchDriver || $isOwnOrder;
+            $canViewFullPII = $isBatchDriver || $isStoreMerchant || $isOwnOrder;
 
             $displayCustomerName = $canViewFullPII
                 ? $order->customer_name
@@ -392,7 +422,8 @@ class DeliveryTrackerController extends Controller
 
             return [
                 'id' => $order->id,
-                'invoice_number' => $order->invoice_number,
+                '_can_view_pii' => $canViewFullPII,
+                'invoice_number' => $canViewFullPII ? $order->invoice_number : Str::mask($order->invoice_number, '*', 4, -3),
                 'shipping_status' => $order->shipping_status,
                 'customer_name' => $displayCustomerName,
                 'customer_phone' => $displayPhone,
@@ -400,18 +431,18 @@ class DeliveryTrackerController extends Controller
                 'shipping_latitude' => $order->shipping_latitude,
                 'shipping_longitude' => $order->shipping_longitude,
                 'distance_km' => $distKm,
-                'subtotal' => $order->subtotal,
-                'shipping_cost' => $order->shipping_cost,
-                'total_amount' => $order->total_amount,
+                'subtotal' => $canViewFullPII ? $order->subtotal : 0,
+                'shipping_cost' => $canViewFullPII ? $order->shipping_cost : 0,
+                'total_amount' => $canViewFullPII ? $order->total_amount : 0,
                 'payment_method' => $order->payment_method,
                 'payment_status' => $order->payment_status,
-                'items' => $order->items->map(function ($item) {
+                'items' => $canViewFullPII ? $order->items->map(function ($item) {
                     return [
                         'name' => $item->product_name,
                         'qty' => $item->quantity,
                         'price' => $item->price,
                     ];
-                }),
+                }) : [],
             ];
         })->values()->all();
 
@@ -421,13 +452,22 @@ class DeliveryTrackerController extends Controller
 
         foreach ($stops as $index => &$stop) {
             $stop['stop_number'] = $index + 1;
+            if (empty($stop['_can_view_pii'])) {
+                $stop['shipping_latitude'] = null;
+                $stop['shipping_longitude'] = null;
+            }
+            unset($stop['_can_view_pii']);
         }
+        unset($stop);
 
-        $googleMapsUrl = $this->buildGoogleMapsMultiStopUrl($storeLat, $storeLon, $stops) ?? '#';
+        $googleMapsUrl = ($isBatchDriver || $isStoreMerchant)
+            ? ($this->buildGoogleMapsMultiStopUrl($storeLat, $storeLon, $stops) ?? '#')
+            : '#';
 
         return Inertia::render('Delivery/BatchTracker', [
             'role' => $role,
             'batchToken' => $batch_token,
+            'locationUrl' => URL::signedRoute('tracker.getBatchLocation', ['batch_token' => $batch_token], now()->addHours(12)),
             'initialDriverPos' => ($cachedBatchLoc && isset($cachedBatchLoc['latitude'], $cachedBatchLoc['longitude']))
                 ? [(float) $cachedBatchLoc['latitude'], (float) $cachedBatchLoc['longitude']]
                 : null,
@@ -457,16 +497,30 @@ class DeliveryTrackerController extends Controller
 
         // Security / Rate Limiting: Max 5 attempts per invoice (locked across all IPs) to prevent PIN brute force
         $throttleKey = 'pin_verify_' . $invoice_number;
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-            $minutes = ceil($seconds / 60);
-            $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
-            $errMsg = "Terlalu banyak percobaan PIN salah. Akses diblokir selama {$timeText}. Silakan coba lagi nanti.";
-            return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
-        }
 
-        return DB::transaction(function () use ($request, $invoice_number, $throttleKey) {
-            $order = Order::where('invoice_number', $invoice_number)->lockForUpdate()->firstOrFail();
+        $batchData = Cache::get("delivery_batch_{$batch_token}");
+        $batchOrderIds = $batchData['order_ids'] ?? [];
+
+        return DB::transaction(function () use ($request, $batch_token, $batchOrderIds, $invoice_number, $throttleKey) {
+            $order = Order::where('invoice_number', $invoice_number)
+                ->where(function ($q) use ($batch_token, $batchOrderIds) {
+                    $q->where('delivery_batch_token', $batch_token);
+                    if (! empty($batchOrderIds)) {
+                        $q->orWhereIn('id', $batchOrderIds);
+                    }
+                })
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // cek attempt di dalam transaksi (setelah row lock) — anti race condition brute force
+            if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+                $seconds = RateLimiter::availableIn($throttleKey);
+                $minutes = ceil($seconds / 60);
+                $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
+                $errMsg = "Terlalu banyak percobaan PIN salah. Akses diblokir selama {$timeText}. Silakan coba lagi nanti.";
+
+                return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
+            }
 
             if ($order->shipping_status === 'delivered') {
                 return back()->with('success', 'Pesanan ini sudah selesai diantar.');
@@ -476,7 +530,7 @@ class DeliveryTrackerController extends Controller
                 return back()->with('error', 'Pesanan belum dalam status pengiriman.');
             }
 
-            if ($order->shipping_pin !== $request->pin) {
+            if (empty($order->shipping_pin) || ! hash_equals((string) $order->shipping_pin, (string) $request->pin)) {
                 RateLimiter::hit($throttleKey, 300);
                 $retriesLeft = RateLimiter::retriesLeft($throttleKey, 5);
                 if ($retriesLeft > 0) {
@@ -531,13 +585,13 @@ class DeliveryTrackerController extends Controller
         }
 
         $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ]);
 
         $locData = [
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'latitude' => (float) $request->latitude,
+            'longitude' => (float) $request->longitude,
             'updated_at' => now()->toIso8601String(),
         ];
 
@@ -545,11 +599,11 @@ class DeliveryTrackerController extends Controller
 
         // Also sync location to each individual invoice in the batch for single-order tracking
         $batchData = Cache::get("delivery_batch_{$batch_token}");
-        $invoices = $batchData['invoices'] ?? [];
+        $invoices = $batchData['invoices'] ?? Order::where('delivery_batch_token', $batch_token)->pluck('invoice_number')->all();
         foreach ($invoices as $inv) {
             Cache::put("driver_loc_{$inv}", [
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude,
+                'latitude' => (float) $request->latitude,
+                'longitude' => (float) $request->longitude,
             ], 86400);
         }
 
@@ -560,6 +614,15 @@ class DeliveryTrackerController extends Controller
                 (float) $request->latitude,
                 (float) $request->longitude
             ))->toOthers();
+
+            foreach ($invoices as $inv) {
+                broadcast(new \App\Events\DriverLocationBroadcasted(
+                    null,
+                    $inv,
+                    (float) $request->latitude,
+                    (float) $request->longitude
+                ))->toOthers();
+            }
         } catch (\Throwable $e) {
             Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
         }
@@ -572,6 +635,27 @@ class DeliveryTrackerController extends Controller
      */
     public function getBatchLocation($batch_token)
     {
+        $isBatchDriver = session("driver_authorized_batch_{$batch_token}") === true;
+        if (! $isBatchDriver) {
+            if (! auth()->check()) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+            $user = auth()->user();
+            $userStoreId = $user->store?->id;
+            $hasAccess = Order::where('delivery_batch_token', $batch_token)
+                ->where(function ($q) use ($user, $userStoreId) {
+                    $q->where('user_id', $user->id);
+                    if ($userStoreId) {
+                        $q->orWhere('store_id', $userStoreId);
+                    }
+                })
+                ->exists();
+
+            if (! $hasAccess) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+        }
+
         $loc = Cache::get("driver_loc_batch_{$batch_token}");
 
         return response()->json($loc ?: null);
@@ -592,22 +676,26 @@ class DeliveryTrackerController extends Controller
 
         // Security / Rate Limiting: Max 5 attempts per invoice (locked across all IPs) to prevent PIN brute force
         $throttleKey = 'pin_verify_' . $invoice_number;
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-            $minutes = ceil($seconds / 60);
-            $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
-            $errMsg = "Terlalu banyak percobaan PIN salah. Akses diblokir selama {$timeText}. Silakan coba lagi nanti.";
-            return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
-        }
 
         return DB::transaction(function () use ($request, $invoice_number, $throttleKey) {
             $order = Order::where('invoice_number', $invoice_number)->lockForUpdate()->firstOrFail();
+
+            // cek attempt di dalam transaksi (setelah row lock) biar request paralel tidak
+            // semua lolos cek sebelum sempat saling menghitung — anti race condition brute force
+            if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+                $seconds = RateLimiter::availableIn($throttleKey);
+                $minutes = ceil($seconds / 60);
+                $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
+                $errMsg = "Terlalu banyak percobaan PIN salah. Akses diblokir selama {$timeText}. Silakan coba lagi nanti.";
+
+                return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
+            }
 
             if ($order->shipping_status !== 'shipped') {
                 return back()->with('error', 'Status pesanan tidak valid untuk diselesaikan.');
             }
 
-            if ($order->shipping_pin !== $request->pin) {
+            if (empty($order->shipping_pin) || ! hash_equals((string) $order->shipping_pin, (string) $request->pin)) {
                 RateLimiter::hit($throttleKey, 300);
                 $retriesLeft = RateLimiter::retriesLeft($throttleKey, 5);
                 if ($retriesLeft > 0) {
@@ -691,13 +779,13 @@ class DeliveryTrackerController extends Controller
         }
 
         $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ]);
 
         Cache::put("driver_loc_{$invoice_number}", [
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'latitude' => (float) $request->latitude,
+            'longitude' => (float) $request->longitude,
         ], 86400);
 
         try {
@@ -719,6 +807,17 @@ class DeliveryTrackerController extends Controller
      */
     public function getLocation($invoice_number)
     {
+        $order = Order::where('invoice_number', $invoice_number)->firstOrFail();
+
+        $isDriver = session("driver_authorized_{$invoice_number}") === true
+            || (! empty($order->delivery_batch_token) && session("driver_authorized_batch_{$order->delivery_batch_token}") === true);
+        $isBuyer = auth()->check() && (int) auth()->id() === (int) $order->user_id;
+        $isMerchant = auth()->check() && (int) auth()->user()->store?->id === (int) $order->store_id;
+
+        if (! $isDriver && ! $isBuyer && ! $isMerchant) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $loc = Cache::get("driver_loc_{$invoice_number}");
 
         return response()->json($loc ?: null);

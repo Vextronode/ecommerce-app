@@ -103,10 +103,10 @@ class ProductController extends Controller
             'variants.*.options.*' => 'required|string|max:100',
             'skus' => 'nullable|array|max:100',
             'skus.*.variant_name' => 'required|string|max:100',
-            'skus.*.price' => 'required|numeric|min:0|max:1000000000',
+            'skus.*.price' => 'required|numeric|min:100|max:1000000000',
             'skus.*.stock' => 'required|integer|min:0|max:1000000',
-            'price' => 'nullable|numeric|min:0|max:1000000000',
-            'stock' => 'nullable|integer|min:0|max:1000000',
+            'price' => 'required_without:skus|nullable|numeric|min:100|max:1000000000',
+            'stock' => 'required_without:skus|nullable|integer|min:0|max:1000000',
             'unit' => 'nullable|string|max:20',
         ]);
 
@@ -120,54 +120,63 @@ class ProductController extends Controller
             $totalStock = collect($request->skus)->sum('stock');
         }
 
-        $product = $user->store->products()->create([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $basePrice,
-            'slug' => Str::slug($request->name).'-'.uniqid(),
-            'unit' => $request->unit,
-            'stock' => $totalStock,
-            'is_active' => true,
-            'is_preorder' => $request->is_preorder ?? false,
-            'po_days' => $request->po_days ?? 0,
-            'po_hours' => $request->po_hours ?? 0,
-        ]);
+        $product = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user, $hasSkus, $basePrice, $totalStock) {
+            $cleanName = strip_tags(trim($request->name));
+            $product = $user->store->products()->create([
+                'category_id' => $request->category_id,
+                'name' => $cleanName,
+                'description' => $request->description ? strip_tags(trim($request->description)) : null,
+                'price' => $basePrice,
+                'slug' => Str::slug($cleanName).'-'.uniqid(),
+                'unit' => $request->unit ? strip_tags(trim($request->unit)) : null,
+                'stock' => $totalStock,
+                'is_active' => true,
+                'is_preorder' => $request->is_preorder ?? false,
+                'po_days' => $request->po_days ?? 0,
+                'po_hours' => $request->po_hours ?? 0,
+            ]);
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $index => $file) {
-                $path = $file->store('products', 'public');
-                $url = '/storage/'.$path;
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $index => $file) {
+                    [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'products', 'public');
+                    $url = '/storage/'.$path;
 
-                if ($index === 0) {
-                    $product->update(['image_path' => $url]);
+                    if ($index === 0) {
+                        $product->update(['image_path' => $url]);
+                    }
+                    $product->images()->create(['image_path' => $url]);
                 }
-                $product->images()->create(['image_path' => $url]);
             }
-        }
 
-        if ($request->has('variants') && is_array($request->variants)) {
-            foreach ($request->variants as $variantData) {
-                if (! empty($variantData['name'])) {
-                    $variant = $product->variants()->create(['name' => $variantData['name']]);
-                    if (! empty($variantData['options'])) {
-                        foreach ($variantData['options'] as $optionName) {
-                            $variant->options()->create(['name' => $optionName]);
+            if ($request->has('variants') && is_array($request->variants)) {
+                foreach ($request->variants as $variantData) {
+                    $variantName = strip_tags(trim((string) ($variantData['name'] ?? '')));
+                    if ($variantName !== '') {
+                        $variant = $product->variants()->create(['name' => $variantName]);
+                        if (! empty($variantData['options'])) {
+                            foreach ($variantData['options'] as $optionName) {
+                                $cleanOpt = strip_tags(trim((string) $optionName));
+                                if ($cleanOpt !== '') {
+                                    $variant->options()->create(['name' => $cleanOpt]);
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if ($hasSkus) {
-            foreach ($request->skus as $sku) {
-                $product->skus()->create([
-                    'variant_name' => $sku['variant_name'],
-                    'price' => $sku['price'],
-                    'stock' => $sku['stock'],
-                ]);
+            if ($hasSkus) {
+                foreach ($request->skus as $sku) {
+                    $product->skus()->create([
+                        'variant_name' => strip_tags(trim((string) $sku['variant_name'])),
+                        'price' => $sku['price'],
+                        'stock' => $sku['stock'],
+                    ]);
+                }
             }
-        }
+
+            return $product;
+        });
 
         try {
             broadcast(new \App\Events\ProductStockUpdated($product, 'created'))->toOthers();
@@ -175,17 +184,18 @@ class ProductController extends Controller
             \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
         }
 
-        // Notify all store followers about the new product
         try {
-            $followers = $user->store->followers()->get();
-            foreach ($followers as $follower) {
-                $follower->notify(new \App\Notifications\PushNotification(
-                    title: '✨ Produk Baru dari ' . $user->store->name,
-                    message: $user->store->name . ' baru saja menambahkan produk baru: "' . $product->name . '". Yuk cek sekarang!',
-                    type: 'promo',
-                    actionUrl: route('product.detail', $product->slug)
-                ));
-            }
+            // chunk biar toko populer tidak menarik ribuan follower sekaligus ke memori
+            $user->store->followers()->chunkById(500, function ($followers) use ($user, $product) {
+                foreach ($followers as $follower) {
+                    $follower->notify(new \App\Notifications\PushNotification(
+                        title: '✨ Produk Baru dari ' . $user->store->name,
+                        message: $user->store->name . ' baru saja menambahkan produk baru: "' . $product->name . '". Yuk cek sekarang!',
+                        type: 'promo',
+                        actionUrl: route('product.detail', $product->slug)
+                    ));
+                }
+            });
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Follower notification error: ' . $e->getMessage());
         }
@@ -230,10 +240,10 @@ class ProductController extends Controller
             'variants.*.options.*' => 'required|string|max:100',
             'skus' => 'nullable|array|max:100',
             'skus.*.variant_name' => 'required|string|max:100',
-            'skus.*.price' => 'required|numeric|min:0|max:1000000000',
+            'skus.*.price' => 'required|numeric|min:100|max:1000000000',
             'skus.*.stock' => 'required|integer|min:0|max:1000000',
-            'price' => 'nullable|numeric|min:0|max:1000000000',
-            'stock' => 'nullable|integer|min:0|max:1000000',
+            'price' => 'required_without:skus|nullable|numeric|min:100|max:1000000000',
+            'stock' => 'required_without:skus|nullable|integer|min:0|max:1000000',
             'unit' => 'nullable|string|max:20',
         ]);
 
@@ -247,62 +257,80 @@ class ProductController extends Controller
             $totalStock = collect($request->skus)->sum('stock');
         }
 
-        $product->update([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'slug' => Str::slug($request->name.'-'.uniqid()),
-            'description' => $request->description,
-            'price' => $basePrice,
-            'stock' => $totalStock,
-            'is_preorder' => $request->is_preorder ?? false,
-            'po_days' => $request->po_days ?? 0,
-            'po_hours' => $request->po_hours ?? 0,
-            'unit' => $request->unit,
-        ]);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $product, $hasSkus, $basePrice, $totalStock) {
+            $cleanName = strip_tags(trim($request->name));
+            $newSlug = $cleanName !== $product->name
+                ? Str::slug($cleanName.'-'.uniqid())
+                : $product->slug;
 
-        if ($request->has('deleted_images')) {
-            $imagesToDelete = $product->images()->whereIn('id', $request->deleted_images)->get();
-            foreach ($imagesToDelete as $img) {
-                $this->safeDeleteStoredFile($img->image_path);
-                $img->delete();
+            $product->update([
+                'category_id' => $request->category_id,
+                'name' => $cleanName,
+                'slug' => $newSlug,
+                'description' => $request->description ? strip_tags(trim($request->description)) : null,
+                'price' => $basePrice,
+                'stock' => $totalStock,
+                'is_preorder' => $request->is_preorder ?? false,
+                'po_days' => $request->po_days ?? 0,
+                'po_hours' => $request->po_hours ?? 0,
+                'unit' => $request->unit ? strip_tags(trim($request->unit)) : null,
+            ]);
+
+            if ($request->has('deleted_images')) {
+                $imagesToDelete = $product->images()->whereIn('id', $request->deleted_images)->get();
+                foreach ($imagesToDelete as $img) {
+                    $this->safeDeleteStoredFile($img->image_path);
+                    $img->delete();
+                }
             }
-        }
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
-                $path = $file->store('products', 'public');
-                $url = '/storage/'.$path;
-                $product->images()->create(['image_path' => $url]);
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'products', 'public');
+                    $url = '/storage/'.$path;
+                    $product->images()->create(['image_path' => $url]);
+                }
             }
-        }
 
-        $firstImage = $product->images()->first();
-        $product->update(['image_path' => $firstImage ? $firstImage->image_path : null]);
+            $firstImage = $product->images()->first();
+            $product->update(['image_path' => $firstImage ? $firstImage->image_path : null]);
 
-        $product->variants()->delete();
-        if ($request->has('variants') && is_array($request->variants)) {
-            foreach ($request->variants as $variantData) {
-                if (! empty($variantData['name'])) {
-                    $variant = $product->variants()->create(['name' => $variantData['name']]);
-                    if (! empty($variantData['options'])) {
-                        foreach ($variantData['options'] as $optionName) {
-                            $variant->options()->create(['name' => $optionName]);
+            $product->variants()->delete();
+            if ($request->has('variants') && is_array($request->variants)) {
+                foreach ($request->variants as $variantData) {
+                    $variantName = strip_tags(trim((string) ($variantData['name'] ?? '')));
+                    if ($variantName !== '') {
+                        $variant = $product->variants()->create(['name' => $variantName]);
+                        if (! empty($variantData['options'])) {
+                            foreach ($variantData['options'] as $optionName) {
+                                $cleanOpt = strip_tags(trim((string) $optionName));
+                                if ($cleanOpt !== '') {
+                                    $variant->options()->create(['name' => $cleanOpt]);
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
 
-        $product->skus()->delete();
-        if ($hasSkus) {
-            foreach ($request->skus as $sku) {
-                $product->skus()->create([
-                    'variant_name' => $sku['variant_name'],
-                    'price' => $sku['price'],
-                    'stock' => $sku['stock'],
-                ]);
+            if ($hasSkus) {
+                $keptVariantNames = [];
+                foreach ($request->skus as $sku) {
+                    $cleanVariantName = strip_tags(trim((string) $sku['variant_name']));
+                    $keptVariantNames[] = $cleanVariantName;
+                    $product->skus()->updateOrCreate(
+                        ['variant_name' => $cleanVariantName],
+                        [
+                            'price' => $sku['price'],
+                            'stock' => $sku['stock'],
+                        ]
+                    );
+                }
+                $product->skus()->whereNotIn('variant_name', $keptVariantNames)->delete();
+            } else {
+                $product->skus()->delete();
             }
-        }
+        });
 
         try {
             broadcast(new \App\Events\ProductStockUpdated($product, 'updated'))->toOthers();
@@ -317,6 +345,16 @@ class ProductController extends Controller
     {
         if ($product->store_id !== auth()->user()->store?->id) {
             abort(403, 'Unauthorized action.');
+        }
+
+        $hasActiveOrders = $product->orderItems()
+            ->whereHas('order', function ($q) {
+                $q->whereIn('shipping_status', ['pending', 'processing', 'shipped']);
+            })
+            ->exists();
+
+        if ($hasActiveOrders) {
+            return redirect()->back()->with('error', 'Produk tidak dapat dihapus karena masih terdapat pesanan yang sedang berjalan.');
         }
 
         if ($product->image_path) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Head, Link, router, usePage } from "@inertiajs/react";
-import Navbar from "@/Components/Global/Navbar";
+import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import { Store, Star } from "lucide-react";
 import RatingItemCard, { RatingItemType } from "@/Components/History/RatingItemCard";
 import OrderItemCard, { OrderType } from "@/Components/History/OrderItemCard";
@@ -32,7 +32,6 @@ export default function Index({
     const { navigateTab } = useOrderHistoryActions();
     const isNetworkLoading = useInertiaNetworkLoading();
 
-    // Real-Time WebSocket Order Status Synchronization for Buyer's History Tab
     useEffect(() => {
         if (typeof window === "undefined" || !window.Echo) return;
 
@@ -40,7 +39,6 @@ export default function Index({
             router.reload({ only: ["orders", "ratingItems"] });
         };
 
-        // private channel — auth required
         let userChan: any = null;
         if (userId) {
             userChan = window.Echo.private(`user-orders.${userId}`);
@@ -55,14 +53,11 @@ export default function Index({
         };
     }, [userId]);
 
-
-
     return (
-        <div className="min-h-screen bg-[#F8FAFC]">
+        <StorefrontLayout>
             <Head title="Riwayat Pesanan" />
-            <Navbar />
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 pt-32">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-32">
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Sidebar / Tabs Bar */}
                     <div className="w-full md:w-64 shrink-0">
@@ -146,7 +141,7 @@ export default function Index({
                         ) : null}
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </StorefrontLayout>
     );
 }

@@ -41,13 +41,15 @@ class PaymentController extends Controller
             }
         }
 
-        // Build structured payment info
         $deeplinkUrl = null;
         if (! empty($order->payment_payload['actions']) && is_array($order->payment_payload['actions'])) {
             foreach ($order->payment_payload['actions'] as $action) {
                 $act = (array) $action;
-                if (in_array($act['name'] ?? '', ['deeplink-redirect', 'mobile-deeplink-redirect'])) {
-                    $deeplinkUrl = $act['url'] ?? null;
+                if (in_array($act['name'] ?? '', ['deeplink-redirect', 'mobile-deeplink-redirect'], true)) {
+                    $candidateUrl = (string) ($act['url'] ?? '');
+                    if (preg_match('/^(https?:\/\/|gojek:\/\/|shopeeid:\/\/)/i', $candidateUrl)) {
+                        $deeplinkUrl = $candidateUrl;
+                    }
                     break;
                 }
             }

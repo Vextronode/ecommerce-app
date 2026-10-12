@@ -44,7 +44,8 @@ class OrderController extends Controller
             ->withQueryString();
 
         $orders->getCollection()->transform(function ($order) {
-            if ($order->delivery_method === 'local_delivery' && in_array($order->shipping_status, ['processing', 'pending'])) {
+            $isEligibleForHandover = $order->payment_method === 'cod' || $order->payment_status === 'paid';
+            if ($order->delivery_method === 'local_delivery' && $isEligibleForHandover && in_array($order->shipping_status, ['processing', 'pending'])) {
                 $order->handover_url = URL::signedRoute(
                     'tracker.handover',
                     ['invoice_number' => $order->invoice_number],
@@ -52,9 +53,10 @@ class OrderController extends Controller
                 );
             }
 
-            // Defense-in-depth: Strip raw payment gateway tokens and internal financial audit timestamps
+            // Defense-in-depth: Strip raw payment gateway tokens, delivery PIN, and internal financial audit timestamps
             $order->makeHidden([
                 'payment_payload',
+                'shipping_pin',
                 'va_number',
                 'bill_key',
                 'biller_code',
@@ -71,8 +73,18 @@ class OrderController extends Controller
         });
 
         $totalOrders = Order::where('store_id', $store->id)->where('shipping_status', 'delivered')->count();
-        $pendingShipping = Order::where('store_id', $store->id)->where('shipping_status', 'pending')->count();
-        $pendingPayment = Order::where('store_id', $store->id)->where('payment_status', 'pending')->count();
+        $pendingShipping = Order::where('store_id', $store->id)
+            ->whereIn('shipping_status', ['pending', 'processing'])
+            ->where(function ($q) {
+                $q->where('payment_method', 'cod')
+                    ->orWhere('payment_status', 'paid');
+            })
+            ->count();
+        $pendingPayment = Order::where('store_id', $store->id)
+            ->where('payment_status', 'pending')
+            ->where('payment_method', '!=', 'cod')
+            ->where('shipping_status', '!=', 'cancelled')
+            ->count();
 
         return Inertia::render('Merchant/Order/Index', [
             'orders' => $orders,
@@ -105,11 +117,15 @@ class OrderController extends Controller
 
         $orderIds = $request->order_ids;
 
-        // Security / IDOR Guard: Ensure ALL requested orders belong to this merchant's store
+        // Security / IDOR Guard: Ensure ALL requested orders belong to this merchant's store and are paid (or COD)
         $orders = Order::whereIn('id', $orderIds)
             ->where('store_id', $store->id)
             ->where('delivery_method', 'local_delivery')
             ->whereIn('shipping_status', ['processing', 'pending'])
+            ->where(function ($q) {
+                $q->where('payment_method', 'cod')
+                    ->orWhere('payment_status', 'paid');
+            })
             ->get();
 
         if ($orders->count() < 2) {
@@ -160,7 +176,10 @@ class OrderController extends Controller
 
         $store = $request->user()->store;
 
-        return DB::transaction(function () use ($request, $id, $store) {
+        $midtransOrderIdToCancel = null;
+        $midtransOrderIdToRefund = null;
+
+        $response = DB::transaction(function () use ($request, $id, $store, &$midtransOrderIdToCancel, &$midtransOrderIdToRefund) {
             $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
 
             if ($order->store_id !== $store->id) {
@@ -173,25 +192,64 @@ class OrderController extends Controller
 
             $newStatus = $request->shipping_status;
 
+            if ($order->shipping_status === 'shipped' && in_array($newStatus, ['pending', 'processing'], true)) {
+                return redirect()->route('merchant.orders.index')->with('error', 'Pesanan yang sedang dikirim tidak dapat dikembalikan ke status sebelumnya.');
+            }
+
+            // order non-COD yang sudah dibayar & sedang dikirim tidak boleh dibatalkan sepihak;
+            // barang sudah di jalan, jadi refund harus lewat alur pengembalian/rekonsiliasi admin
+            if ($newStatus === 'cancelled' && $order->shipping_status === 'shipped' && $order->payment_method !== 'cod' && $order->payment_status === 'paid') {
+                return redirect()->route('merchant.orders.index')->with('error', 'Pesanan yang sudah dikirim tidak dapat dibatalkan langsung. Ajukan pengembalian dana lewat admin.');
+            }
+
             // Security Guard: Non-COD orders must be paid before being processed or shipped
             if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid' && in_array($newStatus, ['processing', 'shipped'])) {
                 return redirect()->route('merchant.orders.index')->with('error', 'Pesanan non-COD belum dibayar oleh pembeli.');
             }
 
+            // Guard stok: order yang stoknya sudah habis ga boleh diproses atau dikirim
+            if (in_array($newStatus, ['processing', 'shipped']) && ! $order->canFulfillStock()) {
+                return redirect()->route('merchant.orders.index')->with('error', 'Stok produk untuk pesanan ini tidak mencukupi. Hubungi admin untuk rekonsiliasi.');
+            }
+
             $updateData = ['shipping_status' => $newStatus];
 
             if ($newStatus === 'shipped') {
+                $newPin = null;
                 if (empty($order->shipping_pin)) {
-                    $updateData['shipping_pin'] = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+                    $newPin = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
                 }
                 $order->update($updateData);
+                if ($newPin !== null) {
+                    // shipping_pin ga masuk fillable, set lewat forceFill
+                    $order->forceFill(['shipping_pin' => $newPin])->save();
+                }
                 OrderNotificationService::orderShipped($order);
             } elseif ($newStatus === 'cancelled') {
+                $wasPaidNonCod = $order->payment_status === 'paid' && $order->payment_method !== 'cod';
+                $wasUnpaidNonCod = $order->payment_status !== 'paid' && $order->payment_method !== 'cod';
                 $updateData['payment_status'] = $order->payment_status === 'paid' ? 'refunded' : 'failed';
                 $order->update($updateData);
+                if ($wasPaidNonCod) {
+                    // dana sudah masuk gateway; tarik escrow lokal lalu minta refund riil ke gateway
+                    $order->reversePendingBalance();
+                    $midtransOrderIdToRefund = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+                }
                 // Idempotent stock restoration
                 $order->restoreStock();
                 OrderNotificationService::orderCancelled($order, 'Dibatalkan oleh penjual');
+
+                if ($wasUnpaidNonCod) {
+                    $hasActiveSiblings = ! empty($order->parent_transaction_id)
+                        && Order::where('parent_transaction_id', $order->parent_transaction_id)
+                            ->where('id', '!=', $order->id)
+                            ->where('shipping_status', '!=', 'cancelled')
+                            ->exists();
+
+                    if (! $hasActiveSiblings) {
+                        $midtransOrderIdToCancel = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+                    }
+                }
             } elseif ($newStatus === 'processing') {
                 $order->update($updateData);
                 OrderNotificationService::orderProcessing($order);
@@ -207,5 +265,33 @@ class OrderController extends Controller
 
             return redirect()->route('merchant.orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
         });
+
+        $midtrans = app(\App\Services\MidtransService::class);
+
+        if ($midtransOrderIdToCancel) {
+            $midtrans->cancelTransaction($midtransOrderIdToCancel);
+        }
+
+        if ($midtransOrderIdToRefund) {
+            // panggilan network di luar transaksi & lock, sama seperti pola cancel.
+            // bila gateway tidak menjawab, jangan diamkan: tandai order butuh rekonsiliasi.
+            $refundResult = $midtrans->refundTransaction($midtransOrderIdToRefund);
+
+            if ($refundResult === null) {
+                $order = Order::find($id);
+
+                if ($order) {
+                    $payload = $order->payment_payload ?? [];
+                    $payload['needs_reconciliation'] = true;
+                    $order->forceFill(['payment_payload' => $payload])->save();
+                }
+
+                Log::warning('Refund gateway gagal untuk order #'.$id.' (midtrans id: '.$midtransOrderIdToRefund.'). Ditandai needs_reconciliation.');
+
+                return redirect()->route('merchant.orders.index')->with('error', 'Pesanan dibatalkan, tapi pengembalian dana ke gateway belum terkonfirmasi. Admin akan menindaklanjuti rekonsiliasi.');
+            }
+        }
+
+        return $response;
     }
 }

@@ -18,10 +18,11 @@ export function useMerchantBankAccount({ store }: UseMerchantBankAccountOptions)
         !store.bank_name || !store.bank_account_number || !store.bank_account_holder,
     );
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, reset } = useForm({
         bank_name: store.bank_name || "bca",
         bank_account_number: store.bank_account_number || "",
         bank_account_holder: store.bank_account_holder || "",
+        password: "",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -30,6 +31,7 @@ export function useMerchantBankAccount({ store }: UseMerchantBankAccountOptions)
             preserveScroll: true,
             onSuccess: () => {
                 toast.success("Informasi rekening bank berhasil diperbarui!");
+                reset("password");
                 setIsEditing(false);
             },
             onError: () => {

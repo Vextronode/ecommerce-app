@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\FcmTokenManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +32,13 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
+
+        // kalau perangkat yang login mengirim fcm_token yang masih nyangkut di akun lama
+        // yang sudah tidak aktif, pindahkan kepemilikannya supaya device sah tetap bisa push.
+        $token = $request->input('fcm_token');
+        if (is_string($token) && $token !== '') {
+            app(FcmTokenManager::class)->handoffJikaPemilikLamaTidakAktif($request->user(), $token);
+        }
 
         $role = $request->user()->role;
         $isPasswordChanged = $request->user()->is_password_changed;
@@ -71,6 +79,10 @@ class AuthenticatedSessionController extends Controller
             $redirectTo = route('merchant.login.view');
         } elseif ($isAdmin && Route::has('admin.login.view')) {
             $redirectTo = route('admin.login.view');
+        }
+
+        if ($user) {
+            app(FcmTokenManager::class)->clear($user);
         }
 
         Auth::guard('web')->logout();

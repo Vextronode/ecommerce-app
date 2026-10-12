@@ -31,7 +31,7 @@ class MidtransService
     ): array {
         $transactionId = count($orders) === 1
             ? $orders[0]->invoice_number
-            : 'TRX-'.date('YmdHis').'-'.strtoupper(substr(uniqid(), -4));
+            : 'TRX-'.date('YmdHis').'-'.strtoupper(\Illuminate\Support\Str::random(6));
 
         $itemDetails = $this->buildItemDetails($orders);
         $grossAmount = array_sum(array_map(fn ($item) => $item['price'] * $item['quantity'], $itemDetails));
@@ -54,12 +54,18 @@ class MidtransService
 
         Log::info("Midtrans Core API Charge Request for {$transactionId}", [
             'channel' => $paymentChannel,
-            'payload' => $fullPayload,
+            'gross_amount' => (int) $grossAmount,
+            'items_count' => count($itemDetails),
         ]);
 
         $response = CoreApi::charge($fullPayload);
+        $respArr = (array) $response;
 
-        Log::info("Midtrans Core API Charge Response for {$transactionId}", (array) $response);
+        Log::info("Midtrans Core API Charge Response for {$transactionId}", [
+            'status_code' => $respArr['status_code'] ?? null,
+            'transaction_status' => $respArr['transaction_status'] ?? null,
+            'payment_type' => $respArr['payment_type'] ?? null,
+        ]);
 
         return $this->parseChargeResponse($response, $paymentChannel);
     }
@@ -255,15 +261,19 @@ class MidtransService
      */
     public function verifySignatureKey(array $notificationData): bool
     {
-        $orderId = $notificationData['order_id'] ?? '';
-        $statusCode = $notificationData['status_code'] ?? '';
-        $grossAmount = $notificationData['gross_amount'] ?? '';
-        $serverKey = config('services.midtrans.server_key');
+        $orderId = (string) ($notificationData['order_id'] ?? '');
+        $statusCode = (string) ($notificationData['status_code'] ?? '');
+        $grossAmount = (string) ($notificationData['gross_amount'] ?? '');
+        $serverKey = (string) config('services.midtrans.server_key', '');
+        $inputSignature = (string) ($notificationData['signature_key'] ?? '');
 
-        $inputSignature = $notificationData['signature_key'] ?? '';
+        if ($serverKey === '' || $inputSignature === '' || $orderId === '') {
+            return false;
+        }
+
         $calculatedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
 
-        return $inputSignature === $calculatedSignature;
+        return hash_equals($calculatedSignature, $inputSignature);
     }
 
     /**
@@ -289,6 +299,28 @@ class MidtransService
             return Transaction::cancel($orderId);
         } catch (\Exception $e) {
             Log::warning("Midtrans cancelTransaction error for {$orderId}: ".$e->getMessage());
+
+            return null;
+        }
+    }
+
+    /**
+     * buat pengembalian dana ke pembeli lewat gateway.
+     * dipakai saat merchant membatalkan order non-COD yang sudah dibayar, supaya
+     * status internal 'refunded' selalu diikuti dana riil yang benar-benar kembali.
+     * kembalikan null bila gateway tidak menjawab supaya pemanggil bisa menandai
+     * order butuh rekonsiliasi daripada menipu buku keuangan.
+     */
+    public function refundTransaction(string $orderId, ?float $amount = null, string $reason = 'Pembatalan pesanan oleh penjual')
+    {
+        $params = $amount !== null
+            ? ['refund_key' => 'REFUND-'.$orderId.'-'.now()->timestamp, 'amount' => (int) round($amount), 'reason' => $reason]
+            : ['refund_key' => 'REFUND-'.$orderId.'-'.now()->timestamp, 'reason' => $reason];
+
+        try {
+            return Transaction::refund($orderId, $params);
+        } catch (\Exception $e) {
+            Log::warning("Midtrans refundTransaction error for {$orderId}: ".$e->getMessage());
 
             return null;
         }

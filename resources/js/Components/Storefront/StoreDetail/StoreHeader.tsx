@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Share2, Star, Check, UserCheck, UserPlus } from 'lucide-react';
+import { Share2, Star, Check, UserCheck, UserPlus, MessageSquare, Loader2 } from 'lucide-react';
 import StoreAvatar from '@/Components/Global/StoreAvatar';
 import toast from 'react-hot-toast';
 
@@ -46,6 +46,17 @@ export default function StoreHeader({ store, isFollowing, onFollow, isLoadingFol
         }
     };
 
+    const handleChat = () => {
+        window.dispatchEvent(
+            new CustomEvent("open-storefront-chat", {
+                detail: {
+                    storeId: store.id,
+                    product: null,
+                },
+            })
+        );
+    };
+
     return (
         <div className="bg-white rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-sm border border-gray-100 relative overflow-hidden">
             <div
@@ -69,17 +80,22 @@ export default function StoreHeader({ store, isFollowing, onFollow, isLoadingFol
                     <p className="text-gray-500 text-sm md:text-base">
                         {store.address || "Kab. Pangandaran"}
                     </p>
-                    <div className="flex items-center gap-3 pt-2 justify-center md:justify-start">
+                    <div className="flex flex-wrap items-center gap-3 pt-2 justify-center md:justify-start">
                         <button
                             onClick={onFollow}
                             disabled={isLoadingFollow}
-                            className={`px-6 py-2.5 rounded-2xl font-bold text-sm transition shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+                            className={`px-6 py-2.5 rounded-2xl font-bold text-sm transition shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 ${
                                 isFollowing
                                     ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
                                     : "bg-brand-orange text-white hover:bg-brand-orange-hover"
                             }`}
                         >
-                            {isFollowing ? (
+                            {isLoadingFollow ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin text-inherit" />
+                                    <span>Memproses...</span>
+                                </>
+                            ) : isFollowing ? (
                                 <>
                                     <UserCheck className="w-4 h-4 text-emerald-600" />
                                     <span>Mengikuti</span>
@@ -91,6 +107,16 @@ export default function StoreHeader({ store, isFollowing, onFollow, isLoadingFol
                                 </>
                             )}
                         </button>
+
+                        <button
+                            type="button"
+                            onClick={handleChat}
+                            className="px-5 py-2.5 rounded-2xl font-bold text-sm transition shadow-sm flex items-center justify-center gap-2 cursor-pointer border border-brand-orange text-brand-orange bg-orange-50/60 hover:bg-brand-orange hover:text-white"
+                        >
+                            <MessageSquare className="w-4 h-4" />
+                            <span>Chat Penjual</span>
+                        </button>
+
                         <button 
                             onClick={handleShare}
                             title="Bagikan link toko ini"

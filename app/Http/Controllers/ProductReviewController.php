@@ -133,12 +133,19 @@ class ProductReviewController extends Controller
 
             $imagePaths = [];
             foreach ($files as $file) {
-                $path = $file->store('reviews', 'public');
+                [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'reviews', 'public');
                 $imagePaths[] = '/storage/'.$path;
             }
         }
 
-        $sanitizedComment = isset($validated['comment']) ? strip_tags(trim($validated['comment'])) : null;
+        if (! $orderItem->product_id && ! $orderItem->review) {
+            return redirect()->route('history.index', ['status' => 'rating'])
+                ->with('error', 'Produk pada pesanan ini sudah dihapus oleh penjual sehingga tidak dapat diulas.');
+        }
+
+        $sanitizedComment = isset($validated['comment'])
+            ? trim((string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $validated['comment']))
+            : null;
 
         $reviewData = [
             'rating' => $validated['rating'],
@@ -161,7 +168,13 @@ class ProductReviewController extends Controller
             $reviewData['store_id'] = $orderItem->order->store_id;
             $reviewData['product_id'] = $orderItem->product_id;
             $reviewData['order_item_id'] = $orderItem->id;
-            ProductReview::create($reviewData);
+
+            // updateOrCreate + unique order_item_id: request paralel atau retry
+            // tidak akan bikin ulasan dobel, yang kedua otomatis meng-update baris pertama.
+            ProductReview::updateOrCreate(
+                ['order_item_id' => $orderItem->id],
+                $reviewData
+            );
 
             // Notify Store Owner
             try {

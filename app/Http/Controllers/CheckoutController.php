@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Services\MidtransService;
 use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
@@ -115,35 +116,89 @@ class CheckoutController extends Controller
 
     public function store(Request $request, MidtransService $midtransService)
     {
+        foreach (['name', 'phone', 'address'] as $field) {
+            if ($request->has($field) && is_string($request->input($field))) {
+                $cleaned = strip_tags(trim($request->input($field)));
+                $request->merge([$field => $cleaned !== '' ? $cleaned : null]);
+            }
+        }
+
         $validated = $request->validate([
             'cart_ids' => ['required', 'array', 'min:1'],
             'cart_ids.*' => ['integer', 'distinct'],
-            'address_id' => ['nullable', 'integer'],
-            'name' => 'required_without:address_id|string|max:255',
-            'phone' => 'required_without:address_id|string|max:20',
-            'address' => 'required_without:address_id|string',
+            'address_id' => ['nullable', 'integer', 'required_if:delivery_method,local_delivery'],
+            'name' => ['required_without:address_id', 'nullable', 'string', 'max:255'],
+            'phone' => ['required_without:address_id', 'nullable', 'string', 'max:20'],
+            'address' => ['required_without:address_id', 'nullable', 'string', 'max:1000'],
             'delivery_method' => ['required', 'string', 'in:local_delivery,self_pickup'],
             'payment_method' => ['required', 'string', 'in:va,qris,gopay,cod'],
             'payment_channel' => ['required', 'string', 'in:bca_va,bni_va,bri_va,permata_va,mandiri_bill,qris,gopay,cod'],
         ]);
+
+        $allowedChannelsByMethod = [
+            'va' => ['bca_va', 'bni_va', 'bri_va', 'permata_va', 'mandiri_bill'],
+            'qris' => ['qris'],
+            'gopay' => ['gopay'],
+            'cod' => ['cod'],
+        ];
+
+        if (! in_array($validated['payment_channel'], $allowedChannelsByMethod[$validated['payment_method']] ?? [], true)) {
+            throw ValidationException::withMessages([
+                'payment_channel' => 'Saluran pembayaran tidak sesuai dengan metode pembayaran yang dipilih.',
+            ]);
+        }
 
         $addressLat = null;
         $addressLon = null;
 
         if (! empty($validated['address_id'])) {
             $address = $request->user()->addresses()->findOrFail($validated['address_id']);
-            $validated['name'] = $address->recipient_name;
-            $validated['phone'] = $address->phone;
-            $validated['address'] = $address->full_address;
+            $validated['name'] = strip_tags(trim((string) $address->recipient_name));
+            $validated['phone'] = strip_tags(trim((string) $address->phone));
+            $validated['address'] = strip_tags(trim((string) $address->full_address));
             $addressLat = $address->latitude;
             $addressLon = $address->longitude;
+
+            if ($validated['delivery_method'] === 'local_delivery' && ($addressLat === null || $addressLon === null)) {
+                throw ValidationException::withMessages([
+                    'address_id' => 'Alamat pengiriman harus memiliki titik koordinat peta untuk kurir lokal.',
+                ]);
+            }
+        } else {
+            $validated['name'] = strip_tags(trim((string) ($validated['name'] ?? '')));
+            $validated['phone'] = strip_tags(trim((string) ($validated['phone'] ?? '')));
+            $validated['address'] = strip_tags(trim((string) ($validated['address'] ?? '')));
         }
 
         $orders = DB::transaction(function () use ($validated, $addressLat, $addressLon) {
+            // urutan penguncian kanonik: product (urut id) dulu, baru cart.
+            // daftar cart dibaca tanpa lock lebih dulu hanya untuk tahu product mana
+            // yang harus dikunci, lalu cart baru dikunci setelah product.
+            $cartRows = Cart::query()
+                ->where('user_id', auth()->id())
+                ->whereIn('id', $validated['cart_ids'])
+                ->get(['id', 'product_id']);
+
+            if ($cartRows->count() !== count($validated['cart_ids'])) {
+                throw ValidationException::withMessages([
+                    'cart_ids' => 'Ada item keranjang yang tidak valid.',
+                ]);
+            }
+
+            $productIds = $cartRows->pluck('product_id')->unique()->sort()->values()->all();
+
+            $lockedProducts = Product::query()
+                ->whereIn('id', $productIds)
+                ->with('skus')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
             $carts = Cart::query()
                 ->where('user_id', auth()->id())
                 ->whereIn('id', $validated['cart_ids'])
-                ->with(['product.skus', 'product.store'])
+                ->with(['product.store.user'])
                 ->lockForUpdate()
                 ->get();
 
@@ -159,13 +214,26 @@ class CheckoutController extends Controller
             });
 
             $createdOrders = [];
+            $adminFeeApplied = false;
 
             foreach ($cartsByStore as $storeId => $storeCarts) {
                 $subtotal = 0;
                 $store = $storeCarts->first()->product->store;
 
+                if (! $store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
+                    throw ValidationException::withMessages([
+                        'cart_ids' => 'Toko penjual sedang tidak aktif atau tidak dapat menerima pesanan saat ini.',
+                    ]);
+                }
+
+                if ((int) $store->user_id === (int) auth()->id()) {
+                    throw ValidationException::withMessages([
+                        'cart_ids' => 'Anda tidak dapat membeli produk dari toko Anda sendiri.',
+                    ]);
+                }
+
                 foreach ($storeCarts as $cart) {
-                    $product = $cart->product()->lockForUpdate()->first();
+                    $product = $lockedProducts->get($cart->product_id);
 
                     if (! $product || ! $product->is_active) {
                         throw ValidationException::withMessages([
@@ -174,6 +242,12 @@ class CheckoutController extends Controller
                     }
 
                     $matchingSku = $product->skus->where('variant_name', $cart->preparation_option)->first();
+                    if ($product->skus->isNotEmpty() && ! $matchingSku) {
+                        throw ValidationException::withMessages([
+                            'cart_ids' => "Varian untuk {$product->name} sudah tidak valid. Silakan pilih ulang di keranjang.",
+                        ]);
+                    }
+
                     $availableStock = $matchingSku ? $matchingSku->stock : $product->stock;
                     $itemPrice = $matchingSku ? $matchingSku->price : $product->price;
 
@@ -184,11 +258,13 @@ class CheckoutController extends Controller
                     }
 
                     $subtotal += $itemPrice * $cart->quantity;
+                    // pakai instance product yang sudah dikunci, bukan relasi lazy
                     $cart->setRelation('product', $product);
                 }
 
                 $deliveryFee = $this->calculateShippingCost($store, $addressLat, $addressLon, $validated['delivery_method']);
-                $adminFee = $validated['payment_method'] === 'cod' ? 0 : self::ADMIN_FEE;
+                $adminFee = ($validated['payment_method'] === 'cod' || $adminFeeApplied) ? 0 : self::ADMIN_FEE;
+                $adminFeeApplied = true;
                 $totalAmount = $subtotal + $deliveryFee + $adminFee;
 
                 $order = Order::create([
@@ -200,8 +276,6 @@ class CheckoutController extends Controller
                     'shipping_address' => $validated['address'],
                     'shipping_latitude' => $addressLat,
                     'shipping_longitude' => $addressLon,
-                    'shipping_pin' => str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
-
                     'delivery_method' => $validated['delivery_method'],
                     'subtotal' => $subtotal,
                     'shipping_cost' => $deliveryFee,
@@ -211,6 +285,11 @@ class CheckoutController extends Controller
                     'payment_status' => 'pending',
                     'shipping_status' => 'pending',
                 ]);
+
+                // shipping_pin ga masuk fillable, jadi set lewat forceFill biar ga bisa diisi mass-assign dari luar
+                $order->forceFill([
+                    'shipping_pin' => str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+                ])->save();
 
                 foreach ($storeCarts as $cart) {
                     $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
@@ -254,6 +333,7 @@ class CheckoutController extends Controller
                 $parentTrxId = $chargeResult['order_id'] ?? null;
 
                 foreach ($orders as $order) {
+                    // payment_payload ga masuk fillable, set terpisah via forceFill biar aman
                     $order->update([
                         'parent_transaction_id' => $parentTrxId,
                         'payment_type' => $chargeResult['payment_type'],
@@ -263,11 +343,28 @@ class CheckoutController extends Controller
                         'biller_code' => $chargeResult['biller_code'],
                         'qr_code_url' => $chargeResult['qr_code_url'],
                         'payment_expiry_time' => $chargeResult['expiry_time'],
-                        'payment_payload' => $chargeResult['raw_payload'],
                     ]);
+                    $order->forceFill([
+                        'payment_payload' => $chargeResult['raw_payload'],
+                    ])->save();
                 }
             } catch (\Exception $e) {
                 Log::error('Midtrans Core API Charge Error: '.$e->getMessage());
+
+                DB::transaction(function () use ($orders) {
+                    foreach ($orders as $order) {
+                        $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
+                        if ($lockedOrder && $lockedOrder->shipping_status !== 'cancelled') {
+                            $lockedOrder->update([
+                                'payment_status' => 'failed',
+                                'shipping_status' => 'cancelled',
+                            ]);
+                            $lockedOrder->restoreStock();
+                        }
+                    }
+                });
+
+                return redirect()->route('cart')->with('error', 'Gagal memproses pembayaran dengan gerbang pembayaran. Stok telah dikembalikan, silakan coba lagi.');
             }
         }
 
@@ -298,17 +395,19 @@ class CheckoutController extends Controller
 
     public function success(Request $request, MidtransService $midtransService)
     {
-        $orderIdsParam = $request->query('order_ids');
-        $orderId = $request->query('order_id');
+        $orderIdsParam = is_string($request->query('order_ids')) ? $request->query('order_ids') : '';
+        $orderId = is_scalar($request->query('order_id')) ? $request->query('order_id') : null;
         $ordersList = collect([]);
 
-        if ($orderIdsParam) {
-            $ids = array_filter(explode(',', $orderIdsParam));
-            $ordersList = Order::with(['items.product', 'store'])
-                ->where('user_id', auth()->id())
-                ->whereIn('id', $ids)
-                ->get();
-        } elseif ($orderId) {
+        if ($orderIdsParam !== '') {
+            $ids = array_filter(explode(',', $orderIdsParam), fn ($id) => ctype_digit((string) $id));
+            if (! empty($ids)) {
+                $ordersList = Order::with(['items.product', 'store'])
+                    ->where('user_id', auth()->id())
+                    ->whereIn('id', $ids)
+                    ->get();
+            }
+        } elseif ($orderId && ctype_digit((string) $orderId)) {
             $primaryOrder = Order::with(['items.product', 'store'])
                 ->where('user_id', auth()->id())
                 ->find($orderId);
@@ -325,15 +424,58 @@ class CheckoutController extends Controller
             }
         }
 
-        $firstOrder = $ordersList->first();
-
-        if ($firstOrder && $firstOrder->payment_status === 'pending' && $firstOrder->payment_method !== 'cod') {
-            return redirect()->route('payment.show', ['order' => $firstOrder->id]);
+        if ($ordersList->isEmpty()) {
+            return redirect()->route('history.index');
         }
 
+        $unpaidOrder = $ordersList->first(function ($ord) {
+            return $ord->payment_status === 'pending' && $ord->payment_method !== 'cod' && $ord->shipping_status !== 'cancelled';
+        });
+
+        if ($unpaidOrder) {
+            return redirect()->route('payment.show', ['order' => $unpaidOrder->id]);
+        }
+
+        $formattedOrders = $ordersList->map(function (Order $ord) {
+            return [
+                'id' => $ord->id,
+                'invoice_number' => $ord->invoice_number,
+                'customer_name' => $ord->customer_name,
+                'customer_phone' => $ord->customer_phone,
+                'shipping_address' => $ord->shipping_address,
+                'delivery_method' => $ord->delivery_method,
+                'shipping_status' => $ord->shipping_status,
+                'payment_method' => $ord->payment_method,
+                'payment_channel' => $ord->payment_channel,
+                'payment_status' => $ord->payment_status,
+                'subtotal' => (float) $ord->subtotal,
+                'shipping_cost' => (float) $ord->shipping_cost,
+                'total_amount' => (float) $ord->total_amount,
+                'created_at' => $ord->created_at?->toISOString(),
+                'store' => $ord->store ? [
+                    'id' => $ord->store->id,
+                    'name' => $ord->store->name,
+                    'address' => $ord->store->address,
+                ] : null,
+                'items' => $ord->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_name' => $item->product_name,
+                        'quantity' => $item->quantity,
+                        'price' => (float) $item->price,
+                        'unit' => $item->unit,
+                        'variant_name' => $item->variant_name,
+                        'product' => $item->product ? [
+                            'image_path' => $item->product->image_path,
+                        ] : null,
+                    ];
+                })->values(),
+            ];
+        })->values();
+
         return Inertia::render('Checkout/Success', [
-            'orders' => $ordersList,
-            'order' => $firstOrder,
+            'orders' => $formattedOrders,
+            'order' => $formattedOrders->first(),
         ]);
     }
 
@@ -342,7 +484,7 @@ class CheckoutController extends Controller
         $addressLat = null;
         $addressLon = null;
 
-        if ($request->has('address_id')) {
+        if ($request->has('address_id') && is_scalar($request->query('address_id'))) {
             $address = $request->user()->addresses()->find($request->query('address_id'));
             if ($address) {
                 $addressLat = $address->latitude;
@@ -350,8 +492,8 @@ class CheckoutController extends Controller
             }
         }
 
-        $cartIds = $request->query('cart_ids', []);
-        $method = $request->query('delivery_method', 'local_delivery');
+        $cartIds = array_filter((array) $request->query('cart_ids', []), fn ($id) => is_scalar($id) && ctype_digit((string) $id));
+        $method = is_string($request->query('delivery_method')) ? $request->query('delivery_method') : 'local_delivery';
 
         if (empty($cartIds)) {
             return response()->json([

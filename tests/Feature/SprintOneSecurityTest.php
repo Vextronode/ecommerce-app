@@ -97,12 +97,13 @@ class SprintOneSecurityTest extends TestCase
     }
 
     /**
-     * Test #S2-03: Public tracker masks customer PII for unauthenticated spectators.
+     * Test #S2-03: Tracker menolak pengunjung anonim dan user yang bukan pihak pesanan.
      */
-    public function test_public_tracker_masks_customer_pii_for_unauthorized_spectator(): void
+    public function test_tracker_denies_anonymous_and_unrelated_users(): void
     {
         $buyer = User::factory()->create(['role' => 'user']);
         $merchant = User::factory()->create(['role' => 'pedagang']);
+        $stranger = User::factory()->create(['role' => 'user']);
         $store = Store::create([
             'user_id' => $merchant->id,
             'name' => 'Toko Seafood',
@@ -125,19 +126,19 @@ class SprintOneSecurityTest extends TestCase
             'shipping_status' => 'shipped',
         ]);
 
-        // Unauthenticated visitor
-        $response = $this->get(route('tracker.show', ['invoice_number' => $order->invoice_number]));
-        $response->assertOk();
+        // pengunjung anonim ditolak
+        $this->get(route('tracker.show', ['invoice_number' => $order->invoice_number]))
+            ->assertStatus(403);
 
-        $page = $response->viewData('page');
-        $orderData = $page['props']['order'];
+        // user login yang bukan pembeli/penjual/kurir juga ditolak
+        $this->actingAs($stranger)
+            ->get(route('tracker.show', ['invoice_number' => $order->invoice_number]))
+            ->assertStatus(403);
 
-        // Phone must be masked
-        $this->assertNotEquals('081234567890', $orderData['customer_phone']);
-        $this->assertStringContainsString('*', $orderData['customer_phone']);
-
-        // Address must have masked indicator
-        $this->assertStringContainsString('[Alamat Disamarkan]', $orderData['shipping_address']);
+        // pembeli asli boleh lihat pii miliknya sendiri
+        $this->actingAs($buyer)
+            ->get(route('tracker.show', ['invoice_number' => $order->invoice_number]))
+            ->assertOk();
     }
 
     /**

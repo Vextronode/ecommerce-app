@@ -104,6 +104,28 @@ export default function BankAccountCard({ store }: BankAccountCardProps) {
                         )}
                     </div>
 
+                    <div>
+                        <label htmlFor="field_bank_password" className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-1.5">
+                            Konfirmasi Password
+                        </label>
+                        <input
+                            aria-label="Password akun"
+                            id="field_bank_password"
+                            type="password"
+                            autoComplete="current-password"
+                            placeholder="Masukkan password akun kamu"
+                            value={data.password}
+                            onChange={(e) => setData("password", e.target.value)}
+                            className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-orange focus:ring-1 focus:ring-brand-orange text-xs font-bold text-gray-800 transition"
+                        />
+                        {errors.password && (
+                            <p className="text-xs text-rose-500 mt-1">{errors.password}</p>
+                        )}
+                        <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                            Demi keamanan, mengubah rekening wajib konfirmasi password akun.
+                        </p>
+                    </div>
+
                     <div className="flex gap-2 pt-2">
                         <button
                             type="submit"

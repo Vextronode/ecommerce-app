@@ -20,7 +20,7 @@ export default function TableSkeleton({
                         key={`th-${i}`}
                         className="h-3.5 bg-gray-200/90 rounded-md"
                         style={{
-                            width: i === 0 ? "20%" : i === 1 ? "30%" : `${Math.max(10, Math.floor(50 / (columns - 2)))}%`,
+                            width: i === 0 ? "20%" : i === 1 ? "30%" : `${Math.max(10, Math.floor(50 / (columns > 2 ? columns - 2 : 1)))}%`,
                         }}
                     />
                 ))}
@@ -40,7 +40,7 @@ export default function TableSkeleton({
                                             ? `${15 + (r % 3) * 3}%`
                                             : c === 1
                                             ? `${25 + (r % 2) * 5}%`
-                                            : `${Math.max(8, Math.floor(45 / (columns - 2)))}%`,
+                                            : `${Math.max(8, Math.floor(45 / (columns > 2 ? columns - 2 : 1)))}%`,
                                 }}
                             />
                         ))}

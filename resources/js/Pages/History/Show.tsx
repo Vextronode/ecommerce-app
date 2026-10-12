@@ -37,8 +37,9 @@ export default function Show({ order }: { order: any }) {
 
     const canCancel = order.shipping_status === 'pending';
     const isLocalDelivery = order.delivery_method === 'local_delivery';
-    const canComplete = order.shipping_status === 'shipped' && (order.can_buyer_complete ?? (!isLocalDelivery || order.is_arrived));
-    const isWaitingCourierArrival = order.shipping_status === 'shipped' && isLocalDelivery && !canComplete;
+    const isCod = order.payment_method === 'cod';
+    const canComplete = order.shipping_status === 'shipped' && !isCod && (order.can_buyer_complete ?? (!isLocalDelivery || order.is_arrived));
+    const isWaitingCourierArrival = order.shipping_status === 'shipped' && isLocalDelivery && !isCod && !canComplete;
     const showRatingButton = order.status === 'Selesai' && order.items && order.items.length > 0;
 
 
@@ -109,8 +110,16 @@ export default function Show({ order }: { order: any }) {
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
                                     Status:{" "}
-                                    <span className="font-semibold text-gray-900 capitalize">
-                                        {order.payment_status === 'pending' ? 'Belum Bayar' : order.payment_status === 'paid' ? 'Sudah Bayar / Lunas' : order.payment_status}
+                                    <span className="font-semibold text-gray-900">
+                                        {order.payment_status === 'pending'
+                                            ? 'Belum Bayar'
+                                            : order.payment_status === 'paid'
+                                            ? 'Sudah Bayar / Lunas'
+                                            : order.payment_status === 'refunded'
+                                            ? 'Dana Dikembalikan'
+                                            : order.payment_status === 'failed'
+                                            ? 'Pembayaran Gagal'
+                                            : 'Menunggu Konfirmasi'}
                                     </span>
                                 </p>
                                 

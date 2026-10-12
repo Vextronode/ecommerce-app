@@ -97,8 +97,14 @@ export default function OrderMobileCard({
         firstProduct?.product?.image_path || firstProduct?.product?.images?.[0]?.image_path
     );
 
-    const isPaid = order.payment_status === "paid";
-    const paymentLabel = isPaid ? "Sudah Bayar" : "Menunggu Bayar";
+    const paymentMap: Record<string, { label: string; badge: string }> = {
+        paid: { label: "Sudah Bayar", badge: "bg-teal-50 text-teal-700 border-teal-200" },
+        refunded: { label: "Dana Dikembalikan", badge: "bg-slate-100 text-slate-600 border-slate-200" },
+    };
+    const currentPayment = paymentMap[order.payment_status] || {
+        label: "Menunggu Bayar",
+        badge: "bg-amber-50 text-amber-700 border-amber-200",
+    };
 
     const shippingMap: Record<string, { label: string; badge: string; icon: any }> = {
         shipped: { label: "Dikirim", badge: "bg-blue-50 text-blue-700 border-blue-200", icon: Truck },
@@ -165,13 +171,9 @@ export default function OrderMobileCard({
                         <span>{currentShipping.label}</span>
                     </span>
                     <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                            isPaid
-                                ? "bg-teal-50 text-teal-700 border-teal-200"
-                                : "bg-amber-50 text-amber-700 border-amber-200"
-                        }`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${currentPayment.badge}`}
                     >
-                        {paymentLabel}
+                        {currentPayment.label}
                     </span>
                 </div>
             </div>

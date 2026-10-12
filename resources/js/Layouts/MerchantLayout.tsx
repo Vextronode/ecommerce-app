@@ -1,15 +1,23 @@
 import React, { ReactNode, useState } from "react";
 import Sidebar from "@/Components/Merchant/Dashboard/Sidebar";
 import NotificationBell from "@/Components/Global/NotificationBell";
-import { Search, Mail, User, Menu, AlertTriangle } from "lucide-react";
+import { Search, Mail, User, Menu, AlertTriangle, MessageSquare } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { router, Link, usePage } from "@inertiajs/react";
+import echoInstance from "@/echo";
 import { MerchantOnboardingTour } from "@/Components/Merchant/Onboarding/MerchantOnboardingTour";
 import { MerchantTourTabKey } from "@/types/tour";
 import {
     hasViewedMerchantTab,
     consumeRequestedTour,
 } from "@/utils/merchantTourProgress";
+
+import {
+    initAudioUnlock,
+    requestNotificationPermission,
+    notifyIncomingChatMessage,
+} from "@/utils/soundAndNotification";
+import { ChatMessageItem } from "@/types/chat";
 
 function getTourTabFromUrl(pathname: string): MerchantTourTabKey {
     if (pathname.includes("/pedagang/products/create")) return "products_create";
@@ -28,17 +36,67 @@ interface Props {
 }
 
 export default function MerchantLayout({ children }: Props) {
-    const { auth, flash, merchant_store } = usePage().props as any;
+    const { auth, flash, merchant_store, unread_chats_count } = usePage().props as any;
     const { url } = usePage();
     const profilePhoto = auth?.user?.profile_photo_path
         ? `/storage/${auth.user.profile_photo_path}`
         : null;
-    // state buat ngatur sidebar di mobile
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-    // state panduan interaktif per tab
     const [isTourActive, setIsTourActive] = useState(false);
     const currentTourTab = getTourTabFromUrl(url.split("?")[0]);
     const isSettingsPage = currentTourTab === "settings" || url.includes("/pedagang/settings");
+
+    const [unreadChats, setUnreadChats] = useState<number>(unread_chats_count || 0);
+
+    React.useEffect(() => {
+        initAudioUnlock();
+        requestNotificationPermission();
+    }, []);
+
+    React.useEffect(() => {
+        setUnreadChats(unread_chats_count || 0);
+    }, [unread_chats_count]);
+
+    React.useEffect(() => {
+        const handleUpdateUnread = (e: any) => {
+            if (typeof e.detail === "number") {
+                setUnreadChats(e.detail);
+            }
+        };
+
+        const handlePopstate = () => {
+            router.reload({ only: ["unread_chats_count"] });
+        };
+
+        window.addEventListener("update-unread-chat-count", handleUpdateUnread);
+        window.addEventListener("popstate", handlePopstate);
+
+        return () => {
+            window.removeEventListener("update-unread-chat-count", handleUpdateUnread);
+            window.removeEventListener("popstate", handlePopstate);
+        };
+    }, []);
+
+    React.useEffect(() => {
+        if (!merchant_store?.id || typeof window === "undefined") return;
+
+        const channel = echoInstance.private(`store-chats.${merchant_store.id}`);
+        channel.listen(".NewChatMessage", (e: ChatMessageItem) => {
+            if (!url.startsWith("/pedagang/chat")) {
+                setUnreadChats((prev) => prev + 1);
+                notifyIncomingChatMessage(e, {
+                    isViewingThisRoom: false,
+                    onOpenChat: () => {
+                        router.visit(route("merchant.chat.index", { room_id: e.chat_room_id }));
+                    },
+                });
+            }
+        });
+
+        return () => {
+            channel.stopListening(".NewChatMessage");
+        };
+    }, [merchant_store?.id, url]);
 
     // Auto-trigger tour saat tab dibuka jika diminta secara eksplisit atau belum pernah dilihat
     React.useEffect(() => {
@@ -186,17 +244,18 @@ export default function MerchantLayout({ children }: Props) {
                         {/* Active Realtime Notification Bell for Merchant */}
                         <NotificationBell user={auth?.user} />
 
-                        <button
-                            aria-label="Tampilkan rincian lebih lanjut"
-                            onClick={() =>
-                                toast("Fitur Pesan segera hadir!", {
-                                    icon: <Mail />,
-                                })
-                            }
-                            className="text-gray-400 hover:text-brand-orange transition-colors hidden sm:block"
+                        <Link
+                            href={route("merchant.chat.index")}
+                            aria-label="Pusat Pesan Obrolan Pelanggan"
+                            className="p-1.5 md:p-2 text-gray-600 hover:text-gray-900 transition-colors relative flex items-center"
                         >
-                            <Mail className="w-5 h-5" />
-                        </button>
+                            <MessageSquare className="w-5 h-5" />
+                            {unreadChats > 0 && (
+                                <span className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-brand-orange text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                                    {unreadChats > 99 ? "99+" : unreadChats}
+                                </span>
+                            )}
+                        </Link>
 
                         <Link
                             href={route("merchant.settings.index")}

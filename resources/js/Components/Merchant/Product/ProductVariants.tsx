@@ -2,18 +2,23 @@ import React, { useEffect } from "react";
 import VariantBuilder from "./VariantBuilder";
 import SkuMatrix from "./SkuMatrix";
 
+const MAX_SKU_COMBINATIONS = 100;
+
 interface Props {
     data: any;
     setData: (key: string, value: any) => void;
 }
 
 export default function ProductVariants({ data, setData }: Props) {
+    const [overflow, setOverflow] = React.useState(false);
+
     useEffect(() => {
         const validVariants = (data.variants || []).filter(
             (v: any) => v.name.trim() !== "" && v.options.length > 0,
         );
 
         if (validVariants.length === 0) {
+            setOverflow(false);
             if (data.skus && data.skus.length > 0) setData("skus", []);
             return;
         }
@@ -33,6 +38,16 @@ export default function ProductVariants({ data, setData }: Props) {
         };
 
         const combinations = getCombinations(optionsArrays);
+
+        // batas jumlah kombinasi disamakan dengan validasi backend (skus: max:100).
+        // kalau lebih, jangan bentuk SKU sebagian (bikin data setengah jadi) —
+        // tampilkan peringatan supaya pedagang mengurangi varian dulu.
+        if (combinations.length > MAX_SKU_COMBINATIONS) {
+            setOverflow(true);
+            if (data.skus && data.skus.length > 0) setData("skus", []);
+            return;
+        }
+        setOverflow(false);
 
         // bentuk jadi format SkuType
         const newSkusTemplate = combinations.map((combo) => ({
@@ -69,6 +84,16 @@ export default function ProductVariants({ data, setData }: Props) {
     return (
         <div className="mb-8 border-b border-gray-100 pb-8 mt-8">
             <VariantBuilder data={data} setData={setData} />
+
+            {overflow && (
+                <div
+                    role="alert"
+                    className="mt-4 rounded-2xl border border-brand-danger bg-brand-danger-tint px-4 py-3 text-sm text-brand-danger-dark"
+                >
+                    Kombinasi varian terlalu banyak (lebih dari {MAX_SKU_COMBINATIONS}). Kurangi jumlah pilihan di tiap varian sebelum menyimpan produk.
+                </div>
+            )}
+
             <SkuMatrix data={data} setData={setData} />
         </div>
     );

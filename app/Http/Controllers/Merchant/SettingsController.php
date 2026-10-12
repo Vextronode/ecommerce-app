@@ -111,6 +111,24 @@ class SettingsController extends Controller
         $user = User::find(Auth::id());
         $store = Store::where('user_id', $user->id)->firstOrFail();
 
+        foreach (['name', 'store_name'] as $field) {
+            if ($request->has($field) && is_string($request->input($field))) {
+                $request->merge([$field => strip_tags(trim($request->input($field)))]);
+            }
+        }
+
+        if ($request->filled('username')) {
+            $slug = Str::slug((string) $request->username);
+            if ($slug === '') {
+                return back()->withErrors([
+                    'username' => 'Username / URL slug toko minimal 3 karakter huruf atau angka.',
+                ])->withInput();
+            }
+            $request->merge([
+                'username' => $slug,
+            ]);
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
@@ -118,22 +136,26 @@ class SettingsController extends Controller
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
 
             'store_name' => ['required', 'string', 'max:255', Rule::unique('stores', 'name')->ignore($store->id)],
-            'username' => ['nullable', 'string', 'max:100', Rule::unique('stores', 'slug')->ignore($store->id)],
+            'username' => ['nullable', 'string', 'min:3', 'max:100', Rule::unique('stores', 'slug')->ignore($store->id)],
             'support_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
-            'store_description' => ['nullable', 'string'],
-            'store_address' => ['nullable', 'string'],
-            'latitude' => ['nullable', 'numeric'],
-            'longitude' => ['nullable', 'numeric'],
+            'store_description' => ['nullable', 'string', 'max:2000'],
+            'store_address' => ['nullable', 'string', 'max:1000'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ], [
             'name.required' => 'Nama lengkap pemilik wajib diisi.',
             'store_name.required' => 'Nama toko wajib diisi.',
             'store_name.unique' => 'Nama toko sudah digunakan toko lain.',
+            'username.min' => 'Username / URL slug toko minimal 3 karakter.',
             'username.unique' => 'Username / URL slug toko sudah digunakan toko lain.',
         ]);
 
-        $user->name = $request->name;
+        $user->name = strip_tags(trim($request->name));
         $user->email = $request->email;
-        $user->phone = $request->phone;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+        $user->phone = $request->phone ? strip_tags(trim($request->phone)) : null;
 
         if ($request->hasFile('photo')) {
             if ($user->profile_photo_path) {
@@ -143,27 +165,22 @@ class SettingsController extends Controller
                 Storage::disk('public')->delete($store->logo_path);
             }
 
-            $path = $request->file('photo')->store('profile-photos', 'public');
+            [$path] = app(\App\Services\ChatMediaProcessor::class)->store($request->file('photo'), 'profile-photos', 'public');
             $user->profile_photo_path = $path;
             $store->logo_path = $path;
         }
 
         $user->save();
 
-        $store->name = $request->store_name;
+        $store->name = strip_tags(trim($request->store_name));
         if (! empty($request->username)) {
-            $store->slug = Str::slug($request->username);
+            $store->slug = $request->username;
         }
         $store->support_email = $request->support_email;
-        $store->description = $request->store_description;
+        $store->description = $request->store_description ? strip_tags(trim($request->store_description)) : null;
 
-        // Logika alamat toko:
-        // 1. Jika ada alamat baru yang dimasukkan, simpan alamat baru tersebut.
-        // 2. Jika toko sudah memiliki alamat sebelumnya namun kolom dikosongkan,
-        //    alamat tidak boleh hilang dan otomatis kembali ke alamat sebelumnya.
-        // 3. Jika belum pernah mengisi alamat dan tetap kosong, alamat tetap null.
         $existingAddress = $store->address;
-        $submittedAddress = trim($request->store_address ?? '');
+        $submittedAddress = strip_tags(trim($request->store_address ?? ''));
         $addressNotice = null;
 
         if (! empty($submittedAddress)) {
@@ -206,21 +223,17 @@ class SettingsController extends Controller
     }
 
     /**
-     * Reset status tutorial & alamat toko (untuk pengujian ulang / fitur ulangi panduan).
+     * Reset status tutorial merchant (untuk fitur ulangi panduan).
      */
     public function resetTour(Request $request)
     {
         $user = $request->user();
         if ($user && $user->store) {
-            $updateData = ['has_completed_tour' => false];
-            if ($request->boolean('reset_address')) {
-                $updateData['address'] = null;
-            }
-            $user->store->update($updateData);
+            $user->store->update(['has_completed_tour' => false]);
         }
 
         return redirect()->route('merchant.dashboard')
-            ->with('success', 'Status panduan onboarding berhasil direset untuk pengujian.');
+            ->with('success', 'Status panduan onboarding berhasil direset.');
     }
 
     /**
@@ -275,6 +288,9 @@ class SettingsController extends Controller
         } catch (\Throwable $e) {
             // Ignore
         }
+
+        $user->setRememberToken(Str::random(60));
+        $user->save();
 
         if ($request->filled('password')) {
             try {

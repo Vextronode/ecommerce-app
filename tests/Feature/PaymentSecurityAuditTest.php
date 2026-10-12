@@ -33,12 +33,11 @@ class PaymentSecurityAuditTest extends TestCase
             'user_id' => $merchant->id,
             'name' => 'Toko Nelayan',
             'slug' => 'toko-nelayan-'.Str::random(6),
-            'available_balance' => 50000,
-            'pending_balance' => 0,
             'bank_name' => 'BCA',
             'bank_account_number' => '1234567890',
             'bank_account_holder' => 'Nelayan Jaya',
         ]);
+        $store->forceFill(['available_balance' => 50000, 'pending_balance' => 0])->save();
 
         // Mock Iris service
         $mockIris = $this->createMock(MidtransIrisService::class);
@@ -65,8 +64,8 @@ class PaymentSecurityAuditTest extends TestCase
             'user_id' => $merchant->id,
             'name' => 'Toko Segar',
             'slug' => 'toko-segar-'.Str::random(6),
-            'balance' => 0,
         ]);
+        $store->forceFill(['pending_balance' => 115000, 'available_balance' => 0])->save();
 
         $buyer = User::factory()->create(['role' => 'user']);
         $order = Order::create([
@@ -76,26 +75,30 @@ class PaymentSecurityAuditTest extends TestCase
             'customer_name' => 'Buyer',
             'customer_phone' => '08123456789',
             'shipping_address' => 'Pangandaran',
-            'delivery_method' => 'standard',
+            'delivery_method' => 'self_pickup',
             'subtotal' => 100000,
             'shipping_cost' => 15000,
             'total_amount' => 117000, // 100k + 15k ongkir + 2k admin fee
-            'payment_method' => 'cod',
-            'payment_channel' => 'cod',
-            'payment_status' => 'pending',
+            'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
+            'payment_status' => 'paid',
             'shipping_status' => 'shipped',
         ]);
 
-        // First completion credits subtotal (Rp 100.000)
+        // simulasi webhook settlement: escrow udah pernah dicredit, jadi creditStoreBalance boleh mindahin dana.
+        // escrow_credited_at ga masuk fillable, set lewat forceFill seperti di PaymentSyncService.
+        $order->forceFill(['escrow_credited_at' => now()])->save();
+
+        // credit pertama mindahin subtotal + ongkir (115.000) dari pending ke available
         $creditedFirst = $order->creditStoreBalance();
         $this->assertTrue($creditedFirst);
-        $this->assertEquals(100000, $store->fresh()->balance);
+        $this->assertEquals(115000, (float) $store->fresh()->available_balance);
         $this->assertNotNull($order->fresh()->balance_credited_at);
 
-        // Second attempt to credit MUST return false and NOT increase balance again
+        // percobaan kedua harus gagal dan saldo tidak nambah lagi
         $creditedSecond = $order->creditStoreBalance();
         $this->assertFalse($creditedSecond);
-        $this->assertEquals(100000, $store->fresh()->balance); // Balance remains 100000, not 200000!
+        $this->assertEquals(115000, (float) $store->fresh()->available_balance);
     }
 
     /**
@@ -327,8 +330,8 @@ class PaymentSecurityAuditTest extends TestCase
             'user_id' => $merchant->id,
             'name' => 'Toko Nelayan Jujur',
             'slug' => 'toko-nelayan-jujur',
-            'balance' => 0,
         ]);
+        $store->forceFill(['available_balance' => 0, 'pending_balance' => 0])->save();
 
         $buyer = User::factory()->create(['role' => 'user']);
         $order = Order::create([
@@ -338,7 +341,7 @@ class PaymentSecurityAuditTest extends TestCase
             'customer_name' => 'Buyer',
             'customer_phone' => '08123456789',
             'shipping_address' => 'Pangandaran',
-            'delivery_method' => 'standard',
+            'delivery_method' => 'self_pickup',
             'subtotal' => 10000000, // Rp 10.000.000 fake order
             'shipping_cost' => 15000,
             'total_amount' => 10017000,
@@ -348,15 +351,15 @@ class PaymentSecurityAuditTest extends TestCase
             'shipping_status' => 'pending',
         ]);
 
-        // Attempt to move status directly to delivered while unpaid
+        // coba majuin ke shipped walau belum dibayar, harus ditolak
         $response = $this->actingAs($merchant)->put(route('merchant.orders.update-status', ['id' => $order->id]), [
-            'shipping_status' => 'delivered',
+            'shipping_status' => 'shipped',
         ]);
 
         $response->assertSessionHas('error');
         $this->assertEquals('pending', $order->fresh()->shipping_status);
         $this->assertEquals('pending', $order->fresh()->payment_status);
-        $this->assertEquals(0, $store->fresh()->balance); // Balance remains 0!
+        $this->assertEquals(0, (float) $store->fresh()->available_balance); // saldo tetap 0
     }
 
     /**
@@ -369,6 +372,7 @@ class PaymentSecurityAuditTest extends TestCase
             'user_id' => $merchant->id,
             'name' => 'Toko Ikan Hias',
             'slug' => 'toko-ikan-hias',
+            'address' => 'Jl. Pantai Indah No. 5, Pangandaran',
         ]);
         $category = Category::create([
             'name' => 'Ikan Hias',
@@ -568,7 +572,8 @@ class PaymentSecurityAuditTest extends TestCase
             'shipping_status' => 'processing',
         ]);
 
-        $serverKey = config('services.midtrans.server_key', 'dummy_server_key');
+        $serverKey = 'test_midtrans_server_key_audit';
+        config(['services.midtrans.server_key' => $serverKey]);
         $rawSignature = 'ORD-ALREADY-PAID200110000.00'.$serverKey;
         $signatureKey = hash('sha512', $rawSignature);
 
@@ -632,7 +637,7 @@ class PaymentSecurityAuditTest extends TestCase
             'name' => 'Budi',
             'phone' => '08123456789',
             'address' => 'Jl. Pantai No. 5',
-            'delivery_method' => 'standard',
+            'delivery_method' => 'self_pickup',
             'payment_method' => 'cod',
             'payment_channel' => 'cod',
         ]);
@@ -647,5 +652,134 @@ class PaymentSecurityAuditTest extends TestCase
 
         $this->assertEquals(10, $sku->fresh()->stock);
         $this->assertEquals(10, $product->fresh()->stock);
+    }
+
+    /**
+     * Test Escrow Idempotency: webhook settlement berkali-kali cuma nambah pending_balance sekali
+     */
+    public function test_settlement_credits_escrow_only_once(): void
+    {
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $store = Store::create([
+            'user_id' => $merchant->id,
+            'name' => 'Toko Escrow',
+            'slug' => 'toko-escrow-'.Str::random(6),
+        ]);
+        $store->forceFill(['pending_balance' => 0, 'available_balance' => 0])->save();
+
+        $buyer = User::factory()->create(['role' => 'user']);
+        $order = Order::create([
+            'store_id' => $store->id,
+            'user_id' => $buyer->id,
+            'invoice_number' => 'ORD-ESCROW-001',
+            'customer_name' => 'Buyer',
+            'customer_phone' => '08123456789',
+            'shipping_address' => 'Pangandaran',
+            'delivery_method' => 'self_pickup',
+            'subtotal' => 100000,
+            'shipping_cost' => 15000,
+            'total_amount' => 117000,
+            'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
+            'payment_status' => 'pending',
+            'shipping_status' => 'processing',
+        ]);
+
+        $sync = app(\App\Services\PaymentSyncService::class);
+
+        // webhook settlement pertama -> pending_balance naik sekali
+        $sync->applyPaymentStatus($order->id, 'settlement');
+        $this->assertEquals(115000, (float) $store->fresh()->pending_balance);
+        $this->assertNotNull($order->fresh()->escrow_credited_at);
+
+        // webhook settlement kedua (midtrans retry) -> ga boleh nambah lagi
+        $sync->applyPaymentStatus($order->id, 'settlement');
+        $this->assertEquals(115000, (float) $store->fresh()->pending_balance);
+
+        // cek ulang lewat jalur syncByMidtransOrderId (idempoten juga)
+        $sync->applyPaymentStatus($order->id, 'settlement');
+        $this->assertEquals(115000, (float) $store->fresh()->pending_balance);
+    }
+
+    /**
+     * Test Escrow Guard: reverse cuma jalan kalau escrow memang pernah dicredit
+     */
+    public function test_reverse_pending_balance_noop_kalau_belum_pernah_escrow(): void
+    {
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $store = Store::create([
+            'user_id' => $merchant->id,
+            'name' => 'Toko Cod',
+            'slug' => 'toko-cod-'.Str::random(6),
+        ]);
+        // simulasikan ada escrow order lain di toko yang sama
+        $store->forceFill(['pending_balance' => 200000, 'available_balance' => 0])->save();
+
+        $buyer = User::factory()->create(['role' => 'user']);
+        $order = Order::create([
+            'store_id' => $store->id,
+            'user_id' => $buyer->id,
+            'invoice_number' => 'ORD-COD-NOESCROW',
+            'customer_name' => 'Buyer',
+            'customer_phone' => '08123456789',
+            'shipping_address' => 'Pangandaran',
+            'delivery_method' => 'self_pickup',
+            'subtotal' => 100000,
+            'shipping_cost' => 15000,
+            'total_amount' => 117000,
+            'payment_method' => 'cod',
+            'payment_channel' => 'cod',
+            'payment_status' => 'pending',
+            'shipping_status' => 'cancelled',
+        ]);
+
+        // order ini belum pernah di-escrow, reverse harus no-op & ga ngerusak saldo toko
+        $result = $order->reversePendingBalance();
+        $this->assertFalse($result);
+        $this->assertEquals(200000, (float) $store->fresh()->pending_balance);
+    }
+
+    /**
+     * Test Refund Post-Delivery: refund order yang udah delivered harus narik available_balance
+     */
+    public function test_refund_setelah_delivered_narik_available_balance(): void
+    {
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $store = Store::create([
+            'user_id' => $merchant->id,
+            'name' => 'Toko Delivered',
+            'slug' => 'toko-delivered-'.Str::random(6),
+        ]);
+        // simulasikan order udah delivered & saldo udah masuk available
+        $store->forceFill(['pending_balance' => 0, 'available_balance' => 115000])->save();
+
+        $buyer = User::factory()->create(['role' => 'user']);
+        $order = Order::create([
+            'store_id' => $store->id,
+            'user_id' => $buyer->id,
+            'invoice_number' => 'ORD-DELIVERED-REFUND',
+            'customer_name' => 'Buyer',
+            'customer_phone' => '08123456789',
+            'shipping_address' => 'Pangandaran',
+            'delivery_method' => 'self_pickup',
+            'subtotal' => 100000,
+            'shipping_cost' => 15000,
+            'total_amount' => 117000,
+            'payment_method' => 'va',
+            'payment_channel' => 'bca_va',
+            'payment_status' => 'paid',
+            'shipping_status' => 'delivered',
+        ]);
+        $order->forceFill(['escrow_credited_at' => now(), 'balance_credited_at' => now()])->save();
+
+        // reverse escrow harus no-op karena saldo udah pindah ke available
+        $this->assertFalse($order->reversePendingBalance());
+        // reverse credited harus narik dari available
+        $this->assertTrue($order->reverseCreditedBalance());
+        $this->assertEquals(0, (float) $store->fresh()->available_balance);
+
+        // percobaan kedua harus gagal (udah ditarik)
+        $this->assertFalse($order->reverseCreditedBalance());
+        $this->assertEquals(0, (float) $store->fresh()->available_balance);
     }
 }

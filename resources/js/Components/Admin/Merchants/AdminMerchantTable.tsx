@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import EditMerchantModal from "./EditMerchantModal";
 import DeleteMerchantModal from "./DeleteMerchantModal";
+import AdminMerchantActionDropdown from "./AdminMerchantActionDropdown";
 import { useMerchantTableActions } from "@/Hooks/Admin/useMerchantTableActions";
 
 export interface MerchantItem {
@@ -336,94 +337,14 @@ export default function AdminMerchantTable({ merchants, onResetFilter }: Props) 
                                         </td>
 
                                         {/* AKSI */}
-                                        <td className="py-4 px-6 text-right whitespace-nowrap relative">
-                                            <div aria-label="Pilih opsi yang tersedia" className="relative inline-block text-left">
-                                                <button aria-label="Tampilkan rincian lebih lanjut"
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        toggleDropdown(merchant.id);
-                                                    }}
-                                                    className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                                                >
-                                                    <MoreVertical className="w-4 h-4" />
-                                                </button>
-
-                                                {/* Dropdown Menu */}
-                                                {activeDropdown === merchant.id && (
-                                                    <div
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        className="absolute right-0 top-full mt-1 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-30 animate-in fade-in zoom-in-95 transition-opacity duration-150"
-                                                    >
-                                                        {/* Edit Merchant */}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setActiveDropdown(null);
-                                                                setSelectedForEdit(merchant);
-                                                            }}
-                                                            className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors text-left"
-                                                        >
-                                                            <Edit2 className="w-3.5 h-3.5 text-brand-orange" />
-                                                            Edit Data Pedagang
-                                                        </button>
-
-                                                        {/* Quick Verify */}
-                                                        {merchant.store?.id && sidStatus !== "verified" && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    handleQuickVerification(merchant.store?.id, "verified")
-                                                                }
-                                                                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 transition-colors text-left"
-                                                            >
-                                                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                                                Verifikasi Toko (SID)
-                                                            </button>
-                                                        )}
-
-                                                        {/* Quick Suspend / Activate */}
-                                                        {status !== "active" ? (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    handleQuickStatus(merchant.id, "active")
-                                                                }
-                                                                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 transition-colors text-left"
-                                                            >
-                                                                <ShieldCheck className="w-3.5 h-3.5" />
-                                                                Aktifkan Akun
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    handleQuickStatus(merchant.id, "suspended")
-                                                                }
-                                                                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-amber-600 hover:bg-amber-50 transition-colors text-left"
-                                                            >
-                                                                <Ban className="w-3.5 h-3.5" />
-                                                                Suspend Akun
-                                                            </button>
-                                                        )}
-
-                                                        <div className="my-1 border-t border-gray-100" />
-
-                                                        {/* Delete Merchant */}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setActiveDropdown(null);
-                                                                setSelectedForDelete(merchant);
-                                                            }}
-                                                            className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors text-left"
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                            Hapus Akun
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
+                                        <td className="py-4 px-6 text-right whitespace-nowrap">
+                                            <AdminMerchantActionDropdown
+                                                merchant={merchant}
+                                                onEdit={setSelectedForEdit}
+                                                onDelete={setSelectedForDelete}
+                                                onQuickStatus={handleQuickStatus}
+                                                onQuickVerification={handleQuickVerification}
+                                            />
                                         </td>
                                     </tr>
                                 );

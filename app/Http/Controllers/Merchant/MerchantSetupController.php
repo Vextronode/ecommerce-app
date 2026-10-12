@@ -16,6 +16,10 @@ class MerchantSetupController extends Controller
         $user = $request->user();
         $store = $user->store;
 
+        if ($request->has('store_name') && is_string($request->store_name)) {
+            $request->merge(['store_name' => strip_tags(trim($request->store_name))]);
+        }
+
         // Validasi input dari form setup store
         $request->validate([
             'store_name' => [
@@ -34,26 +38,32 @@ class MerchantSetupController extends Controller
             'password.confirmed' => 'Konfirmasi password tidak sesuai.',
         ]);
 
-        // Update password user dan ganti status "is_password_changed" jadi true
         $user->forceFill([
             'password' => Hash::make($request->password),
+            'remember_token' => Str::random(60),
             'is_password_changed' => true,
         ])->save();
 
+        $baseSlug = Str::slug($request->store_name) ?: 'toko-'.$user->id;
+        $slug = $baseSlug.'-'.$user->id;
+        $count = 1;
+        while (\App\Models\Store::where('slug', $slug)->when($store, fn ($q) => $q->where('id', '!=', $store->id))->exists()) {
+            $slug = $baseSlug.'-'.$user->id.'-'.$count++;
+        }
+
         if ($store) {
-            // Update nama toko yang sudah ada
             $store->update([
                 'name' => $request->store_name,
-                'slug' => Str::slug($request->store_name.'-'.$user->id),
+                'slug' => $slug,
             ]);
         } else {
-            // Buat entitas store baru jika belum ada
-            $user->store()->create([
+            $store = $user->store()->create([
                 'name' => $request->store_name,
-                'slug' => Str::slug($request->store_name.'-'.$user->id),
+                'slug' => $slug,
                 'subdistrict' => 'Cibenda',
-                'sid_status' => 'verified',
             ]);
+            // store dari pedagang udah lolos verifikasi sid sebelum akun dibuat admin, jadi langsung verified
+            $store->forceFill(['sid_status' => 'verified'])->save();
         }
 
         return redirect()->route('merchant.dashboard')->with('success', 'Profil toko dan password berhasil diperbarui.');

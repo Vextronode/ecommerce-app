@@ -22,13 +22,13 @@ class MerchantFirstLoginFlowTest extends TestCase
             'is_password_changed' => false,
         ]);
 
-        Store::create([
+        $store = Store::create([
             'user_id' => $user->id,
             'name' => 'Toko Sembako Berkah',
             'slug' => 'toko-sembako-berkah',
             'subdistrict' => 'Cibenda',
-            'sid_status' => 'verified',
         ]);
+        $store->forceFill(['sid_status' => 'verified'])->save();
 
         // Login sebagai pedagang
         $response = $this->post('/login', [
@@ -63,8 +63,8 @@ class MerchantFirstLoginFlowTest extends TestCase
             'name' => 'Toko Sembako Berkah',
             'slug' => 'toko-sembako-berkah',
             'subdistrict' => 'Cibenda',
-            'sid_status' => 'verified',
         ]);
+        $store->forceFill(['sid_status' => 'verified'])->save();
 
         // Submit form setup store
         $response = $this->actingAs($user)->post('/pedagang/setup-store', [

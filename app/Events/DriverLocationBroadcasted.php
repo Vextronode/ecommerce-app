@@ -2,8 +2,8 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -43,18 +43,18 @@ class DriverLocationBroadcasted implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, \Illuminate\Broadcasting\PrivateChannel>
      */
     public function broadcastOn(): array
     {
         $channels = [];
 
         if (!empty($this->batchToken)) {
-            $channels[] = new Channel('batch.' . $this->batchToken);
+            $channels[] = new PrivateChannel('batch.' . $this->batchToken);
         }
 
         if (!empty($this->invoiceNumber)) {
-            $channels[] = new Channel('order-tracking.' . $this->invoiceNumber);
+            $channels[] = new PrivateChannel('order-tracking.' . $this->invoiceNumber);
         }
 
         return $channels;

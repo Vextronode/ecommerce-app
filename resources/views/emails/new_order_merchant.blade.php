@@ -216,8 +216,8 @@
                         <span class="info-value">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
                     </div>
                     <div class="info-row" style="font-size: 16px; margin-top: 10px; color: #14433D;">
-                        <span><strong>Total Pesanan:</strong></span>
-                        <span style="font-weight: 900; color: #14433D;">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
+                        <span><strong>Total Pendapatan Toko:</strong></span>
+                        <span style="font-weight: 900; color: #14433D;">Rp {{ number_format($order->merchantNetAmount(), 0, ',', '.') }}</span>
                     </div>
                 </div>
 

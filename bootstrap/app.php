@@ -21,11 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Trust all proxies (Cloudflare Tunnel, Nginx, etc.)
-        // Wajib agar signed URL & HTTPS detection bekerja dengan benar
-        $middleware->trustProxies(at: '*');
         // Restrict trusted proxies to Cloudflare IP ranges & local Docker gateways in production to prevent IP spoofing
-        if (env('APP_ENV') !== 'local' && env('APP_ENV') !== 'testing') {
+        $appEnv = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'production';
+        if (! in_array($appEnv, ['local', 'testing'], true)) {
             $middleware->trustProxies(at: [
                 '173.245.48.0/20',
                 '103.21.244.0/22',
@@ -67,8 +65,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/midtrans/callback',
             'midtrans/callback',
-            'tracker/*/location',
-            'tracker/batch/*/location',
         ]);
 
         $middleware->alias([
@@ -111,9 +107,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($status === 429 && $request->header('X-Inertia')) {
                 $retryAfter = $e->getHeaders()['Retry-After'] ?? null;
-                $throttleMsg = $retryAfter
-                    ? "Terlalu banyak permintaan penarikan. Mohon tunggu {$retryAfter} detik lagi sebelum mencoba kembali."
-                    : 'Terlalu banyak permintaan dalam waktu singkat. Mohon tunggu beberapa detik.';
+                $isWithdrawal = $request->is('pedagang/withdrawals*');
+                $throttleMsg = $isWithdrawal
+                    ? ($retryAfter
+                        ? "Terlalu banyak permintaan penarikan. Mohon tunggu {$retryAfter} detik lagi sebelum mencoba kembali."
+                        : 'Terlalu banyak permintaan penarikan dalam waktu singkat. Mohon tunggu beberapa detik.')
+                    : ($retryAfter
+                        ? "Terlalu banyak permintaan. Mohon tunggu {$retryAfter} detik lagi sebelum mencoba kembali."
+                        : 'Terlalu banyak permintaan dalam waktu singkat. Mohon tunggu beberapa detik.');
                 return redirect()->back()
                     ->with('error', $throttleMsg)
                     ->withErrors(['amount' => $throttleMsg, 'error' => $throttleMsg]);

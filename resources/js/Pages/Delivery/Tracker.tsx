@@ -121,14 +121,12 @@ export default function Tracker({ order, role }: Props) {
                 }
                 lastGpsSentRef.current = now;
 
-                // Send to backend (CSRF-exempt route)
-                fetch(`/tracker/${order.invoice_number}/location`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ latitude, longitude }),
-                }).catch(() => {});
+                if (typeof window !== 'undefined' && window.axios) {
+                    window.axios.post(`/tracker/${order.invoice_number}/location`, {
+                        latitude,
+                        longitude,
+                    }).catch(() => {});
+                }
             };
 
             if (navigator.geolocation) {

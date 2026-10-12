@@ -20,16 +20,21 @@ class CustomerController extends Controller
             return redirect()->route('merchant.store.setup');
         }
 
-        $statusFilter = $request->query('status', 'All Status');
+        $statusFilter = is_string($request->query('status')) ? $request->query('status') : 'All Status';
+        $netAmountExpr = \Illuminate\Support\Facades\DB::raw('CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END');
 
         // Total Customers Metric
-        $totalCustomers = Order::where('store_id', $storeId)->distinct('user_id')->count('user_id');
+        $totalCustomers = Order::where('store_id', $storeId)
+            ->where('shipping_status', '!=', 'cancelled')
+            ->distinct('user_id')
+            ->count('user_id');
 
         // Total Customers Last Month Metric
         $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
         $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
 
         $totalCustomersLastMonth = Order::where('store_id', $storeId)
+            ->where('shipping_status', '!=', 'cancelled')
             ->where('created_at', '<', Carbon::now()->startOfMonth())
             ->distinct('user_id')
             ->count('user_id');
@@ -40,6 +45,7 @@ class CustomerController extends Controller
 
         // New Customers This Month Metric
         $newCustomersThisMonth = Order::where('store_id', $storeId)
+            ->where('shipping_status', '!=', 'cancelled')
             ->select('user_id')
             ->groupBy('user_id')
             ->havingRaw('MIN(created_at) >= ?', [Carbon::now()->startOfMonth()])
@@ -48,6 +54,7 @@ class CustomerController extends Controller
 
         // New Customers Last Month Metric
         $newCustomersLastMonth = Order::where('store_id', $storeId)
+            ->where('shipping_status', '!=', 'cancelled')
             ->select('user_id')
             ->groupBy('user_id')
             ->havingRaw('MIN(created_at) >= ? AND MIN(created_at) <= ?', [$lastMonthStart, $lastMonthEnd])
@@ -72,6 +79,7 @@ class CustomerController extends Controller
         $chartData = [];
         foreach ($weekIntervals as $interval) {
             $chartData[] = Order::where('store_id', $storeId)
+                ->where('shipping_status', '!=', 'cancelled')
                 ->where('created_at', '<=', $interval[1])
                 ->distinct('user_id')
                 ->count('user_id');
@@ -79,22 +87,31 @@ class CustomerController extends Controller
 
         // Fetch Customers List
         $query = User::whereHas('orders', function ($query) use ($storeId) {
-            $query->where('store_id', $storeId);
+            $query->where('store_id', $storeId)
+                ->where('shipping_status', '!=', 'cancelled');
         })
             ->withCount(['orders as store_orders_count' => function ($query) use ($storeId) {
-                $query->where('store_id', $storeId);
+                $query->where('store_id', $storeId)
+                    ->where('shipping_status', '!=', 'cancelled');
             }])
             ->withSum(['orders as store_total_spent' => function ($query) use ($storeId) {
-                $query->where('store_id', $storeId);
-            }], 'total_amount')
+                $query->where('store_id', $storeId)
+                    ->where('shipping_status', '!=', 'cancelled')
+                    ->where(function ($sub) {
+                        $sub->where('shipping_status', 'delivered')
+                            ->orWhere('payment_status', 'paid');
+                    });
+            }], $netAmountExpr)
             ->addSelect([
                 'join_date' => Order::selectRaw('MIN(created_at)')
                     ->whereColumn('user_id', 'users.id')
                     ->where('store_id', $storeId)
+                    ->where('shipping_status', '!=', 'cancelled')
                     ->limit(1),
                 'latest_phone' => Order::select('customer_phone')
                     ->whereColumn('user_id', 'users.id')
                     ->where('store_id', $storeId)
+                    ->where('shipping_status', '!=', 'cancelled')
                     ->orderByDesc('created_at')
                     ->limit(1),
             ]);
@@ -106,6 +123,7 @@ class CustomerController extends Controller
                 $q->select('user_id')
                     ->from('orders')
                     ->where('store_id', $storeId)
+                    ->where('shipping_status', '!=', 'cancelled')
                     ->groupBy('user_id')
                     ->havingRaw('MIN(created_at) >= ?', [$thirtyDaysAgo]);
             });
@@ -115,6 +133,7 @@ class CustomerController extends Controller
                 $q->select('user_id')
                     ->from('orders')
                     ->where('store_id', $storeId)
+                    ->where('shipping_status', '!=', 'cancelled')
                     ->groupBy('user_id')
                     ->havingRaw('MIN(created_at) < ?', [$thirtyDaysAgo]);
             });
@@ -132,7 +151,7 @@ class CustomerController extends Controller
                 'avatar' => $user->profile_photo_path ? asset('storage/'.$user->profile_photo_path) : null,
                 'phone' => $user->latest_phone ?? '-',
                 'orders_count' => $user->store_orders_count,
-                'total_spent' => $user->store_total_spent ?? 0,
+                'total_spent' => (float) ($user->store_total_spent ?? 0),
                 'join_date' => $joinDate->locale('id')->translatedFormat('d M Y'),
                 'status' => $isNew ? 'New' : 'Active',
             ];

@@ -45,9 +45,18 @@ return [
         'merchant_id' => env('MIDTRANS_MERCHANT_ID'),
         'client_key' => env('MIDTRANS_CLIENT_KEY'),
         'server_key' => env('MIDTRANS_SERVER_KEY'),
+        'iris_api_key' => env('MIDTRANS_IRIS_API_KEY', ''),
+        'iris_mock' => env('MIDTRANS_IRIS_MOCK', true),
+        'iris_payout_path' => env('MIDTRANS_IRIS_PAYOUT_PATH', '/payouts'),
+        'iris_payout_status_path' => env('MIDTRANS_IRIS_PAYOUT_STATUS_PATH', '/payouts/{reference_no}'),
         'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
         'is_sanitized' => env('MIDTRANS_IS_SANITIZED', true),
         'is_3ds' => env('MIDTRANS_IS_3DS', true),
+    ],
+
+    'firebase' => [
+        'credentials_json' => env('FIREBASE_CREDENTIALS_JSON'),
+        'credentials_base64' => env('FIREBASE_CREDENTIALS_BASE64'),
     ],
 
 ];

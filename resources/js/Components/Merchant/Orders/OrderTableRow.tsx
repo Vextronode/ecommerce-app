@@ -85,8 +85,15 @@ export default function OrderTableRow({
     const firstProduct = order.items?.[0];
     const otherProductsCount = (order.items?.length || 0) - 1;
 
-    const isPaid = order.payment_status === "paid";
-    const paymentLabel = isPaid ? "Sudah Bayar" : "Menunggu";
+    const paymentMap: Record<string, { label: string; badge: string; dot: string }> = {
+        paid: { label: "Sudah Bayar", badge: "bg-teal-50 text-teal-700", dot: "bg-teal-500" },
+        refunded: { label: "Dana Dikembalikan", badge: "bg-slate-100 text-slate-600", dot: "bg-slate-400" },
+    };
+    const currentPayment = paymentMap[order.payment_status] || {
+        label: "Menunggu",
+        badge: "bg-orange-50 text-brand-orange",
+        dot: "bg-brand-orange",
+    };
 
     const shippingMap: Record<string, { label: string; badge: string; icon: any }> = {
         shipped: { label: "Dikirim", badge: "bg-blue-50 text-blue-600 border-blue-200", icon: Truck },
@@ -240,18 +247,12 @@ export default function OrderTableRow({
                 </td>
                 <td className="py-4 px-4 whitespace-nowrap">
                     <div
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                            isPaid
-                                ? "bg-teal-50 text-teal-700"
-                                : "bg-orange-50 text-brand-orange"
-                        }`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${currentPayment.badge}`}
                     >
                         <div
-                            className={`w-1.5 h-1.5 rounded-full ${
-                                isPaid ? "bg-teal-500" : "bg-brand-orange"
-                            }`}
+                            className={`w-1.5 h-1.5 rounded-full ${currentPayment.dot}`}
                         />
-                        {paymentLabel}
+                        {currentPayment.label}
                     </div>
                 </td>
                 <td className="py-4 px-4 whitespace-nowrap">

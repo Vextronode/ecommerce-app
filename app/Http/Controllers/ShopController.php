@@ -3,16 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductReview;
 use App\Models\Store;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ShopController extends Controller
 {
+    // cap jumlah produk yang boleh ditarik ke memori untuk sort/filter in-memory.
+    private const MAX_CATALOG_ROWS = 500;
+
     public function index(Request $request)
     {
-        $query = Product::with(['store', 'category'])
+        $query = Product::with(['store.user', 'category'])
             ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
                     $q->where('shipping_status', 'delivered');
@@ -20,7 +26,13 @@ class ShopController extends Controller
             }], 'quantity')
             ->withAvg('reviews as rating', 'rating')
             ->where('is_active', true)
-            ->where('stock', '>', 0);
+            ->where('stock', '>', 0)
+            ->whereHas('store', function ($q) {
+                $q->where('sid_status', 'verified')
+                    ->whereHas('user', function ($uq) {
+                        $uq->whereIn('status', ['active', 'warning']);
+                    });
+            });
 
         // Category filter
         if ($request->filled('category') && $request->category !== 'all') {
@@ -48,31 +60,50 @@ class ShopController extends Controller
                     });
             });
 
-            // Find related stores (either store name matches OR it sells a matching product)
             $relatedStores = Store::withCount(['products', 'followers'])
-                ->where('name', 'like', "%{$search}%")
-                ->orWhereHas('products', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
+                ->with('user')
+                ->where('sid_status', 'verified')
+                ->whereHas('user', function ($uq) {
+                    $uq->whereIn('status', ['active', 'warning']);
+                })
+                ->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhereHas('products', function ($pq) use ($search) {
+                            $pq->where('is_active', true)->where('name', 'like', "%{$search}%");
+                        });
                 })
                 ->get();
-                
+
+            // agregasi statistik semua toko dalam dua query agregat, bukan satu query per toko.
+            // query pertama menjumlahkan unit terjual lewat order_items (by store_id),
+            // query kedua mengambil rata-rata rating lewat product_reviews.
+            $storeIds = $relatedStores->pluck('id');
+
+            $soldPerStore = OrderItem::query()
+                ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                ->whereIn('orders.store_id', $storeIds)
+                ->where('orders.shipping_status', 'delivered')
+                ->groupBy('orders.store_id')
+                ->selectRaw('orders.store_id as store_id, SUM(order_items.quantity) as sold')
+                ->pluck('sold', 'store_id');
+
+            $ratingPerStore = ProductReview::query()
+                ->join('products', 'products.id', '=', 'product_reviews.product_id')
+                ->whereIn('products.store_id', $storeIds)
+                ->groupBy('products.store_id')
+                ->selectRaw('products.store_id as store_id, AVG(product_reviews.rating) as rating')
+                ->pluck('rating', 'store_id');
+
             foreach ($relatedStores as $store) {
-                $storeStats = Product::where('store_id', $store->id)
-                    ->withAvg('reviews as rating', 'rating')
-                    ->withSum(['orderItems as sold' => function ($query) {
-                        $query->whereHas('order', function ($q) {
-                            $q->where('shipping_status', 'delivered');
-                        });
-                    }], 'quantity')
-                    ->get();
-                    
-                $store->average_rating = $storeStats->avg('rating') ? number_format($storeStats->avg('rating'), 1) : "0.0";
-                $store->total_sold = $storeStats->sum('sold') ?? 0;
-                
+                $averageRating = (float) ($ratingPerStore[$store->id] ?? 0.0);
+
+                $store->average_rating = $averageRating > 0 ? number_format($averageRating, 1) : '0.0';
+                $store->total_sold = (int) ($soldPerStore[$store->id] ?? 0);
+
                 $randomNoise = mt_rand(1, 1000) / 1000;
-                $store->score = ((float)$store->average_rating * 20) + $store->total_sold + $randomNoise;
+                $store->score = ($averageRating * 20) + $store->total_sold + $randomNoise;
             }
-            
+
             $relatedStores = $relatedStores->sortByDesc('score')->take(3)->values();
         }
 
@@ -86,11 +117,35 @@ class ShopController extends Controller
             $sort = 'default';
         }
 
-        if ($sort === 'newest') {
-            $query->latest();
+        // urutkan di level query kalau bisa, supaya cap 500 mengambil "500 teratas
+        // sesuai urutan yang diminta", bukan 500 baris pertama by id. tanpa ini,
+        // produk di luar 500 hilang diam-diam saat sort harga/rating.
+        // sort default pakai noise deterministik harian yang tidak bisa di SQL -> in-memory.
+        $orderDiterapkanDiQuery = true;
+
+        if ($extraSort === 'price_asc') {
+            $query->when($sort === 'popular', fn ($q) => $q->orderByDesc('sold'))
+                ->orderBy('price', 'asc');
+        } elseif ($extraSort === 'price_desc') {
+            $query->when($sort === 'popular', fn ($q) => $q->orderByDesc('sold'))
+                ->orderBy('price', 'desc');
+        } elseif ($extraSort === 'top_rated') {
+            $query->when($sort === 'popular', fn ($q) => $q->orderByDesc('sold'))
+                ->orderByDesc('rating');
+        } elseif ($sort === 'newest') {
+            $query->orderByDesc('created_at');
+        } elseif ($sort === 'popular') {
+            $query->orderByDesc('sold');
+        } else {
+            $orderDiterapkanDiQuery = false;
         }
 
-        $products = $query->get();
+        // tie-breaker deterministik saat nilai sort sama
+        if ($orderDiterapkanDiQuery) {
+            $query->orderByDesc('id');
+        }
+
+        $products = $query->limit(self::MAX_CATALOG_ROWS)->get();
 
         // Rating filter in memory if specified
         if ($request->filled('min_rating') && is_numeric($request->min_rating)) {
@@ -100,54 +155,26 @@ class ShopController extends Controller
             })->values();
         }
 
-        // Apply Primary Sorting
-        if ($sort === 'popular') {
-            $products = $products->sortByDesc(fn ($p) => ($p->sold ?? 0))->values();
-        } elseif ($sort === 'newest') {
-            $products = $products->sortByDesc(fn ($p) => $p->created_at)->values();
-        } elseif ($sort === 'default') {
-            mt_srand((int) date('Ymd'));
-            $products = $products->map(function ($product) {
-                $noise = mt_rand(1, 1000) / 1000;
+        // sort default (noise deterministik harian) tetap dihitung di memori
+        if ($sort === 'default' && $extraSort === '') {
+            $dailySeed = date('Ymd');
+            $products = $products->map(function ($product) use ($dailySeed) {
+                $noise = ((abs(crc32($product->id.'-'.$dailySeed)) % 1000) + 1) / 1000;
                 $product->score = (($product->rating ?? 0) * 20) + ($product->sold ?? 0) + $noise;
                 return $product;
             })->sortByDesc('score')->values();
-            mt_srand();
-        }
-
-        // Combine with Extra Sort (Price / Rating)
-        if ($extraSort === 'price_asc') {
-            if ($sort === 'popular') {
-                $products = $products->sort(function ($a, $b) {
-                    $soldDiff = ($b->sold ?? 0) <=> ($a->sold ?? 0);
-                    return $soldDiff !== 0 ? $soldDiff : ((float)$a->price <=> (float)$b->price);
-                })->values();
-            } else {
-                $products = $products->sortBy(fn ($p) => (float) $p->price)->values();
-            }
-        } elseif ($extraSort === 'price_desc') {
-            if ($sort === 'popular') {
-                $products = $products->sort(function ($a, $b) {
-                    $soldDiff = ($b->sold ?? 0) <=> ($a->sold ?? 0);
-                    return $soldDiff !== 0 ? $soldDiff : ((float)$b->price <=> (float)$a->price);
-                })->values();
-            } else {
-                $products = $products->sortByDesc(fn ($p) => (float) $p->price)->values();
-            }
-        } elseif ($extraSort === 'top_rated') {
-            if ($sort === 'popular') {
-                $products = $products->sort(function ($a, $b) {
-                    $ratingDiff = ($b->rating ?? 0) <=> ($a->rating ?? 0);
-                    return $ratingDiff !== 0 ? $ratingDiff : (($b->sold ?? 0) <=> ($a->sold ?? 0));
-                })->values();
-            } else {
-                $products = $products->sortByDesc(fn ($p) => (float) ($p->rating ?? 0))->values();
-            }
         }
 
         // Fetch categories with active product count
         $categories = Category::withCount(['products' => function ($q) {
-            $q->where('is_active', true)->where('stock', '>', 0);
+            $q->where('is_active', true)
+                ->where('stock', '>', 0)
+                ->whereHas('store', function ($sq) {
+                    $sq->where('sid_status', 'verified')
+                        ->whereHas('user', function ($uq) {
+                            $uq->whereIn('status', ['active', 'warning']);
+                        });
+                });
         }])->get();
 
         return Inertia::render('Storefront/Shop', [
@@ -170,6 +197,7 @@ class ShopController extends Controller
             'store' => function ($query) {
                 $query->withCount(['products', 'followers'])->withAvg('reviews', 'rating');
             },
+            'store.user',
             'category',
             'images',
             'variants.options',
@@ -183,9 +211,24 @@ class ShopController extends Controller
                 });
             }], 'quantity')
             ->withAvg('reviews as rating', 'rating')
-            ->where('slug', $slug)->firstOrFail();
+            ->where('is_active', true)
+            ->where('slug', $slug)
+            ->whereHas('store', function ($q) {
+                $q->where('sid_status', 'verified')
+                    ->whereHas('user', function ($uq) {
+                        $uq->whereIn('status', ['active', 'warning']);
+                    });
+            })
+            ->firstOrFail();
 
-        $relatedProducts = Product::with(['store', 'category'])
+        $product->reviews->each(function ($review) {
+            if ($review->is_anonymous) {
+                $review->setRelation('user', null);
+                $review->makeHidden(['user_id']);
+            }
+        });
+
+        $relatedProducts = Product::with(['store.user', 'category'])
             ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
                     $q->where('shipping_status', 'delivered');
@@ -196,6 +239,12 @@ class ShopController extends Controller
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
             ->where('stock', '>', 0)
+            ->whereHas('store', function ($q) {
+                $q->where('sid_status', 'verified')
+                    ->whereHas('user', function ($uq) {
+                        $uq->whereIn('status', ['active', 'warning']);
+                    });
+            })
             ->latest()
             ->take(5)
             ->get();
@@ -210,11 +259,14 @@ class ShopController extends Controller
     {
         $store = Store::withCount(['followers', 'products'])
             ->where('slug', $slug)
+            ->where('sid_status', 'verified')
+            ->whereHas('user', function ($uq) {
+                $uq->whereIn('status', ['active', 'warning']);
+            })
             ->firstOrFail();
 
         // Calculate store rating and sold count across all its products
         $storeStats = Product::where('store_id', $store->id)
-            ->withAvg('reviews as rating', 'rating')
             ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
                     $q->where('shipping_status', 'delivered');
@@ -222,7 +274,7 @@ class ShopController extends Controller
             }], 'quantity')
             ->get();
 
-        $averageRating = $storeStats->avg('rating');
+        $averageRating = $store->reviews()->avg('rating');
         $totalSold = $storeStats->sum('sold');
 
         // Append to store object
@@ -367,9 +419,29 @@ class ShopController extends Controller
             return redirect()->route('login');
         }
 
-        $user->followingStores()->toggle($store->id);
-        $isFollowing = $store->followers()->where('user_id', $user->id)->exists();
-        $followersCount = $store->followers()->count();
+        $store->loadMissing('user');
+        if ($store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
+            abort(404);
+        }
+
+        if ((int) $store->user_id === (int) $user->id) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'message' => 'Anda tidak dapat mengikuti toko Anda sendiri.',
+                ], 422);
+            }
+
+            return back()->with('error', 'Anda tidak dapat mengikuti toko Anda sendiri.');
+        }
+
+        [$isFollowing, $followersCount] = DB::transaction(function () use ($user, $store) {
+            Store::where('id', $store->id)->lockForUpdate()->first();
+            $user->followingStores()->toggle($store->id);
+            $following = $store->followers()->where('user_id', $user->id)->exists();
+            $count = $store->followers()->count();
+
+            return [$following, $count];
+        });
 
         if (request()->wantsJson()) {
             return response()->json([

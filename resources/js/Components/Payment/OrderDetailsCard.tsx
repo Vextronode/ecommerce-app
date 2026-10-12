@@ -110,9 +110,9 @@ export default function OrderDetailsCard({
                     {order.items && order.items.length > 0 ? (
                         order.items.map((item, idx) => {
                             const imgUrl = item.product?.image_path
-                                ? (item.product.image_path.startsWith("http")
+                                ? (item.product.image_path.startsWith("http") || item.product.image_path.startsWith("/storage/")
                                     ? item.product.image_path
-                                    : `/storage/${item.product.image_path}`)
+                                    : `/storage/${item.product.image_path.replace(/^\/+/, "")}`)
                                 : null;
 
                             return (
@@ -170,6 +170,18 @@ export default function OrderDetailsCard({
                             {formatRupiah(Number(order.shipping_cost || 0))}
                         </span>
                     </div>
+                    {Number(order.total_amount) > Number(order.subtotal || 0) + Number(order.shipping_cost || 0) && (
+                        <div className="flex justify-between">
+                            <span>Biaya Layanan</span>
+                            <span className="font-semibold text-slate-800">
+                                {formatRupiah(
+                                    Number(order.total_amount) -
+                                        Number(order.subtotal || 0) -
+                                        Number(order.shipping_cost || 0)
+                                )}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 

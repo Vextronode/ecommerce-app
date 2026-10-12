@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Force HTTPS saat di production (behind Cloudflare Tunnel)
         // Cloudflare handle HTTPS di luar, Laravel perlu tau ini biar semua URL-nya benar
-        if (env('APP_ENV') !== 'local') {
+        if (! in_array(config('app.env'), ['local', 'testing'], true)) {
             URL::forceScheme('https');
         }
 
@@ -70,6 +70,22 @@ class AppServiceProvider extends ServiceProvider
         // Dedicated Rate Limiter for FCM Token Sync
         RateLimiter::for('fcm-token', function (Request $request) {
             return Limit::perMinutes(5, 10)->by('fcm_token|'.($request->user()?->id ?: $request->ip()));
+        });
+
+        RateLimiter::for('chat-send', function (Request $request) {
+            return Limit::perMinute(30)->by('chat_send|'.($request->user()?->id ?: $request->ip()));
+        });
+
+        RateLimiter::for('chat-action', function (Request $request) {
+            return Limit::perMinute(60)->by('chat_act|'.($request->user()?->id ?: $request->ip()));
+        });
+
+        RateLimiter::for('store-follow', function (Request $request) {
+            return Limit::perMinute(20)->by('store_follow|'.($request->user()?->id ?: $request->ip()));
+        });
+
+        RateLimiter::for('tracker-pin', function (Request $request) {
+            return Limit::perMinutes(15, 5)->by('tracker_pin|'.$request->ip().'|'.$request->route('invoice_number'));
         });
     }
 }

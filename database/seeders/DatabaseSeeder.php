@@ -4,12 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\User;
-use App\Models\Store;
-use App\Models\Category;
-use App\Models\Product;
-use App\Models\Order;
-use App\Models\OrderItem;
-use Illuminate\Support\Str;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -19,9 +14,31 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * seed basis data aplikasi.
+     *
+     * urutan penting: kategori dasar dan admin dulu (selalu ada), lalu pedagang
+     * beserta katalog produknya. pengendalian lewat env:
+     * SEED_SKIP_MERCHANTS=true melewati data demo pedagang.
+     * SEED_SKIP_PHOTOS=true melewati unduhan foto produk.
      */
     public function run(): void
+    {
+        $this->seedCategories();
+        $this->seedAdmin();
+
+        // opsi custom tidak tersedia di signature db:seed, jadi pengendalian
+        // lewat env agar tetap kompatibel tanpa mengubah command inti.
+        if ((bool) env('SEED_SKIP_MERCHANTS', false)) {
+            $this->command?->warn('data pedagang & katalog dilewati (SEED_SKIP_MERCHANTS).');
+
+            return;
+        }
+
+        $this->call(MerchantSeeder::class);
+        $this->call(CatalogSeeder::class);
+    }
+
+    private function seedCategories(): void
     {
         $categories = [
             'Seafood',
@@ -39,7 +56,10 @@ class DatabaseSeeder extends Seeder
                 ['slug' => Str::slug($category)]
             );
         }
+    }
 
+    private function seedAdmin(): void
+    {
         User::updateOrCreate(
             ['email' => 'admin@cibendamart.com'],
             [

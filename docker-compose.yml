@@ -53,11 +53,12 @@ services:
     restart: unless-stopped
     # storage:link dijalankan setiap startup biar symlink tetap valid meski volume di-mount ulang
     command: >-
-      sh -c "php artisan storage:link --force &&
+      sh -c "php artisan config:clear &&
+             php artisan storage:link --force &&
              php artisan migrate --force &&
              php artisan serve --host=0.0.0.0 --port=8000"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - .env.docker
     environment:
@@ -67,9 +68,7 @@ services:
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=${DB_PASSWORD}
       - REVERB_SERVER_HOST=reverb_cibenda
-      - REVERB_HOST=reverb_cibenda
-      - REVERB_PORT=8080
-      - REVERB_SCHEME=http
+      - REVERB_SERVER_PORT=8080
       - REDIS_HOST=redis_cibenda
       - REDIS_CLIENT=predis
       - REDIS_PORT=6379
@@ -90,7 +89,7 @@ services:
     container_name: cibenda_queue
     restart: unless-stopped
     # Queue worker: proses 1 job per batch, retry 3x, sleep 3 detik
-    command: php artisan queue:work --tries=3 --sleep=3 --timeout=90
+    command: sh -c "php artisan config:clear && php artisan queue:work --tries=3 --sleep=3 --timeout=90"
     env_file:
       - .env.docker
     environment:
@@ -100,9 +99,7 @@ services:
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=${DB_PASSWORD}
       - REVERB_SERVER_HOST=reverb_cibenda
-      - REVERB_HOST=reverb_cibenda
-      - REVERB_PORT=8080
-      - REVERB_SCHEME=http
+      - REVERB_SERVER_PORT=8080
       - REDIS_HOST=redis_cibenda
       - REDIS_CLIENT=predis
       - REDIS_PORT=6379
@@ -123,9 +120,9 @@ services:
     build: .
     container_name: cibenda_reverb
     restart: unless-stopped
-    command: php artisan reverb:start --host=0.0.0.0 --port=8080 --debug
+    command: sh -c "php artisan config:clear && php artisan reverb:start --host=0.0.0.0 --port=8080"
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     env_file:
       - .env.docker
     environment:
@@ -134,12 +131,13 @@ services:
       - DB_DATABASE=cibenda_mart
       - DB_USERNAME=cibenda_user
       - DB_PASSWORD=${DB_PASSWORD}
-      - REVERB_SERVER_HOST=reverb_cibenda
-      - REVERB_HOST=reverb_cibenda
-      - REVERB_PORT=8080
-      - REVERB_SCHEME=http
+      - REDIS_HOST=redis_cibenda
+      - REDIS_CLIENT=predis
+      - REDIS_PORT=6379
     depends_on:
       db_cibenda:
+        condition: service_healthy
+      redis_cibenda:
         condition: service_healthy
       app_cibenda:
         condition: service_started
