@@ -226,11 +226,16 @@ export function useNotifications(user: any) {
                             const notifTitle = latest.data.title || "Notifikasi Baru";
                             const notifMsg = latest.data.message || "";
                             const actionUrl = latest.data.action_url;
-                            const notifId = String(latest.id || `${notifTitle}:${notifMsg}`);
+                            const notifSignature = `${notifTitle}:${notifMsg}`;
+                            const notifId = String(latest.id || notifSignature);
 
-                            if (!recentlyNotifiedRef.current.has(notifId)) {
+                            if (!recentlyNotifiedRef.current.has(notifId) && !recentlyNotifiedRef.current.has(notifSignature)) {
                                 recentlyNotifiedRef.current.add(notifId);
-                                setTimeout(() => recentlyNotifiedRef.current.delete(notifId), 15000);
+                                recentlyNotifiedRef.current.add(notifSignature);
+                                setTimeout(() => {
+                                    recentlyNotifiedRef.current.delete(notifId);
+                                    recentlyNotifiedRef.current.delete(notifSignature);
+                                }, 20000);
 
                                 playNotificationSound();
                                 triggerBellAnimation();
@@ -281,11 +286,16 @@ export function useNotifications(user: any) {
                 const notifTitle = payload.notification?.title || payload.data?.title || "Notifikasi Baru";
                 const notifMsg = payload.notification?.body || payload.data?.message || "";
                 const actionUrl = payload.data?.action_url || payload.webpush?.data?.action_url;
-                const notifId = String(payload.data?.id || `${notifTitle}:${notifMsg}`);
+                const notifSignature = `${notifTitle}:${notifMsg}`;
+                const notifId = String(payload.data?.id || notifSignature);
 
-                if (!recentlyNotifiedRef.current.has(notifId)) {
+                if (!recentlyNotifiedRef.current.has(notifId) && !recentlyNotifiedRef.current.has(notifSignature)) {
                     recentlyNotifiedRef.current.add(notifId);
-                    setTimeout(() => recentlyNotifiedRef.current.delete(notifId), 15000);
+                    recentlyNotifiedRef.current.add(notifSignature);
+                    setTimeout(() => {
+                        recentlyNotifiedRef.current.delete(notifId);
+                        recentlyNotifiedRef.current.delete(notifSignature);
+                    }, 20000);
 
                     playNotificationSound();
                     triggerBellAnimation();

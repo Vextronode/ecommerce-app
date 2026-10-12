@@ -18,8 +18,15 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
+
+  // Jika payload sudah memiliki objek notification / webpush,
+  // browser (Chrome/Edge/Android) sudah otomatis menampilkannya di level OS.
+  // Jangan panggil showNotification lagi agar tidak muncul ganda (2 kali).
+  if (payload.notification) {
+    return;
+  }
   
-  const notificationTitle = payload.notification?.title || payload.data?.title || 'Notifikasi Baru';
+  const notificationTitle = payload.data?.title || 'Notifikasi Baru';
   
   const isMerchant = payload.data?.is_merchant === 'true' || (payload.data?.action_url && payload.data.action_url.includes('/pedagang'));
   const defaultIcon = isMerchant ? '/icons/icon-merchant-192.png' : '/icons/icon-192.png';
@@ -28,7 +35,7 @@ messaging.onBackgroundMessage(function(payload) {
   const notifTag = payload.data?.id || (notificationTitle + ':' + (payload.data?.message || ''));
 
   const notificationOptions = {
-    body: payload.notification?.body || payload.data?.message || 'Anda mendapatkan notifikasi baru dari CibendaMart.',
+    body: payload.data?.message || 'Anda mendapatkan notifikasi baru dari CibendaMart.',
     icon: self.location.origin + customIcon,
     badge: self.location.origin + customIcon,
     sound: self.location.origin + '/sounds/notification.mp3',
@@ -39,7 +46,13 @@ messaging.onBackgroundMessage(function(payload) {
     data: payload.data || {}
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.getNotifications({ tag: notifTag }).then(function(existingNotifs) {
+    if (existingNotifs && existingNotifs.length > 0) {
+      console.log('[firebase-messaging-sw.js] Notification already exists with tag, skipping duplicate:', notifTag);
+      return;
+    }
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+  });
 });
 
 self.addEventListener('notificationclick', function(event) {

@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use App\Broadcasting\FcmChannel;
+use Illuminate\Support\Str;
 
 class PushNotification extends Notification implements ShouldQueue
 {
@@ -21,6 +22,7 @@ class PushNotification extends Notification implements ShouldQueue
      */
     public function __construct($title, $message, $type = 'promo', $actionUrl = null)
     {
+        $this->id = (string) Str::uuid();
         $this->title = $title;
         $this->message = $message;
         $this->type = $type;
