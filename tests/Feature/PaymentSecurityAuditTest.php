@@ -572,7 +572,8 @@ class PaymentSecurityAuditTest extends TestCase
             'shipping_status' => 'processing',
         ]);
 
-        $serverKey = config('services.midtrans.server_key', 'dummy_server_key');
+        $serverKey = 'test_midtrans_server_key_audit';
+        config(['services.midtrans.server_key' => $serverKey]);
         $rawSignature = 'ORD-ALREADY-PAID200110000.00'.$serverKey;
         $signatureKey = hash('sha512', $rawSignature);
 
