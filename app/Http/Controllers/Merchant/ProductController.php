@@ -185,15 +185,17 @@ class ProductController extends Controller
         }
 
         try {
-            $followers = $user->store->followers()->get();
-            foreach ($followers as $follower) {
-                $follower->notify(new \App\Notifications\PushNotification(
-                    title: '✨ Produk Baru dari ' . $user->store->name,
-                    message: $user->store->name . ' baru saja menambahkan produk baru: "' . $product->name . '". Yuk cek sekarang!',
-                    type: 'promo',
-                    actionUrl: route('product.detail', $product->slug)
-                ));
-            }
+            // chunk biar toko populer tidak menarik ribuan follower sekaligus ke memori
+            $user->store->followers()->chunkById(500, function ($followers) use ($user, $product) {
+                foreach ($followers as $follower) {
+                    $follower->notify(new \App\Notifications\PushNotification(
+                        title: '✨ Produk Baru dari ' . $user->store->name,
+                        message: $user->store->name . ' baru saja menambahkan produk baru: "' . $product->name . '". Yuk cek sekarang!',
+                        type: 'promo',
+                        actionUrl: route('product.detail', $product->slug)
+                    ));
+                }
+            });
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Follower notification error: ' . $e->getMessage());
         }

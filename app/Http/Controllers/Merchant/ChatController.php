@@ -56,6 +56,10 @@ class ChatController extends Controller
 
         $rooms = ChatRoom::where('store_id', $store->id)
             ->with(['user', 'latestMessage.product'])
+            // hitung unread sekali lewat subquery, bukan satu count() per room
+            ->withCount(['messages as unread_count' => function ($query) use ($user) {
+                $query->where('is_read', false)->where('sender_id', '!=', $user->id);
+            }])
             ->orderByDesc('last_message_at')
             ->get()
             ->map(function ($room) use ($user) {
@@ -74,7 +78,7 @@ class ChatController extends Controller
                         'created_at' => $room->latestMessage->created_at->diffForHumans(),
                         'sender_type' => $room->latestMessage->sender_type,
                     ] : null,
-                    'unread_count' => $room->unreadCountForUser($user->id),
+                    'unread_count' => (int) $room->unread_count,
                     'last_message_at' => $room->last_message_at?->toISOString(),
                 ];
             });

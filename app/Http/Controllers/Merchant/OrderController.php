@@ -177,8 +177,9 @@ class OrderController extends Controller
         $store = $request->user()->store;
 
         $midtransOrderIdToCancel = null;
+        $midtransOrderIdToRefund = null;
 
-        $response = DB::transaction(function () use ($request, $id, $store, &$midtransOrderIdToCancel) {
+        $response = DB::transaction(function () use ($request, $id, $store, &$midtransOrderIdToCancel, &$midtransOrderIdToRefund) {
             $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
 
             if ($order->store_id !== $store->id) {
@@ -193,6 +194,12 @@ class OrderController extends Controller
 
             if ($order->shipping_status === 'shipped' && in_array($newStatus, ['pending', 'processing'], true)) {
                 return redirect()->route('merchant.orders.index')->with('error', 'Pesanan yang sedang dikirim tidak dapat dikembalikan ke status sebelumnya.');
+            }
+
+            // order non-COD yang sudah dibayar & sedang dikirim tidak boleh dibatalkan sepihak;
+            // barang sudah di jalan, jadi refund harus lewat alur pengembalian/rekonsiliasi admin
+            if ($newStatus === 'cancelled' && $order->shipping_status === 'shipped' && $order->payment_method !== 'cod' && $order->payment_status === 'paid') {
+                return redirect()->route('merchant.orders.index')->with('error', 'Pesanan yang sudah dikirim tidak dapat dibatalkan langsung. Ajukan pengembalian dana lewat admin.');
             }
 
             // Security Guard: Non-COD orders must be paid before being processed or shipped
@@ -224,7 +231,9 @@ class OrderController extends Controller
                 $updateData['payment_status'] = $order->payment_status === 'paid' ? 'refunded' : 'failed';
                 $order->update($updateData);
                 if ($wasPaidNonCod) {
+                    // dana sudah masuk gateway; tarik escrow lokal lalu minta refund riil ke gateway
                     $order->reversePendingBalance();
+                    $midtransOrderIdToRefund = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
                 }
                 // Idempotent stock restoration
                 $order->restoreStock();
@@ -257,8 +266,30 @@ class OrderController extends Controller
             return redirect()->route('merchant.orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
         });
 
+        $midtrans = app(\App\Services\MidtransService::class);
+
         if ($midtransOrderIdToCancel) {
-            app(\App\Services\MidtransService::class)->cancelTransaction($midtransOrderIdToCancel);
+            $midtrans->cancelTransaction($midtransOrderIdToCancel);
+        }
+
+        if ($midtransOrderIdToRefund) {
+            // panggilan network di luar transaksi & lock, sama seperti pola cancel.
+            // bila gateway tidak menjawab, jangan diamkan: tandai order butuh rekonsiliasi.
+            $refundResult = $midtrans->refundTransaction($midtransOrderIdToRefund);
+
+            if ($refundResult === null) {
+                $order = Order::find($id);
+
+                if ($order) {
+                    $payload = $order->payment_payload ?? [];
+                    $payload['needs_reconciliation'] = true;
+                    $order->forceFill(['payment_payload' => $payload])->save();
+                }
+
+                Log::warning('Refund gateway gagal untuk order #'.$id.' (midtrans id: '.$midtransOrderIdToRefund.'). Ditandai needs_reconciliation.');
+
+                return redirect()->route('merchant.orders.index')->with('error', 'Pesanan dibatalkan, tapi pengembalian dana ke gateway belum terkonfirmasi. Admin akan menindaklanjuti rekonsiliasi.');
+            }
         }
 
         return $response;

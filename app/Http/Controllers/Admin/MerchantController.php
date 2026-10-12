@@ -29,7 +29,7 @@ class MerchantController extends Controller
 
         // Query base: only users with role pedagang
         $query = User::where('role', 'pedagang')
-            ->with(['store'])
+            ->with(['store.user'])
             ->latest('id');
 
         // Search across user name, email, phone, and store attributes

@@ -18,6 +18,9 @@ class WithdrawalController extends Controller
 {
     private const BANK_CHANGE_COOLDOWN_MINUTES = 30;
 
+    // batas baris riwayat penarikan yang dikirim ke halaman index
+    private const MAX_HISTORY_ROWS = 200;
+
     public function index(Request $request)
     {
         $user = $request->user()->load('store');
@@ -33,8 +36,11 @@ class WithdrawalController extends Controller
 
         $totalEarnings = (float) $store->available_balance + (float) $store->pending_balance + $totalWithdrawn;
 
+        // batasi riwayat agar payload tidak membengkak untuk toko dengan ribuan penarikan.
+        // table di frontend memfilter & menghitung dari daftar ini, jadi tetap dikirim sebagai array.
         $withdrawals = Withdrawal::where('store_id', $store->id)
             ->latest()
+            ->limit(self::MAX_HISTORY_ROWS)
             ->get();
 
         return Inertia::render('Merchant/Withdrawals/Index', [

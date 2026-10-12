@@ -33,7 +33,7 @@ class ReconcileWithdrawals extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
 
-        $withdrawals = Withdrawal::where(function ($q) {
+        $stuckQuery = fn () => Withdrawal::where(function ($q) {
             $q->where(function ($q2) {
                 // yang nyangkut di processing dengan payout_sent_at terisi
                 $q2->where('status', 'processing')->whereNotNull('payout_sent_at');
@@ -41,23 +41,23 @@ class ReconcileWithdrawals extends Command
                 // yang udah ditandai failed tapi payout mungkin terkirim, harus dicek juga biar ga nyangkut selamanya
                 $q2->where('status', 'failed')->where('needs_reconciliation', true);
             });
-        })
-            ->orderBy('id')
-            ->get();
+        })->orderBy('id');
 
-        if ($withdrawals->isEmpty()) {
+        // hindari count() penuh sebelum loop; cukup cek keberadaan, hitung di dalam loop
+        if (! $stuckQuery()->exists()) {
             $this->info('Ga ada withdrawal yang nyangkut processing. Aman.');
 
             return self::SUCCESS;
         }
 
-        $this->info("Ketemu {$withdrawals->count()} withdrawal nyangkut processing. Mulai rekonsiliasi...");
+        $this->info('Mulai rekonsiliasi withdrawal nyangkut processing...');
 
         $completed = 0;
         $failed = 0;
         $skipped = 0;
 
-        foreach ($withdrawals as $withdrawal) {
+        // lazyById biar baris diproses bertahap, bukan dimuat semua ke memori sekaligus
+        foreach ($stuckQuery()->lazyById() as $withdrawal) {
             try {
                 $result = $irisService->getPayoutStatus($withdrawal->reference_no);
             } catch (Throwable $e) {

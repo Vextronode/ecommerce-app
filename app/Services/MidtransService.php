@@ -303,4 +303,26 @@ class MidtransService
             return null;
         }
     }
+
+    /**
+     * buat pengembalian dana ke pembeli lewat gateway.
+     * dipakai saat merchant membatalkan order non-COD yang sudah dibayar, supaya
+     * status internal 'refunded' selalu diikuti dana riil yang benar-benar kembali.
+     * kembalikan null bila gateway tidak menjawab supaya pemanggil bisa menandai
+     * order butuh rekonsiliasi daripada menipu buku keuangan.
+     */
+    public function refundTransaction(string $orderId, ?float $amount = null, string $reason = 'Pembatalan pesanan oleh penjual')
+    {
+        $params = $amount !== null
+            ? ['refund_key' => 'REFUND-'.$orderId.'-'.now()->timestamp, 'amount' => (int) round($amount), 'reason' => $reason]
+            : ['refund_key' => 'REFUND-'.$orderId.'-'.now()->timestamp, 'reason' => $reason];
+
+        try {
+            return Transaction::refund($orderId, $params);
+        } catch (\Exception $e) {
+            Log::warning("Midtrans refundTransaction error for {$orderId}: ".$e->getMessage());
+
+            return null;
+        }
+    }
 }

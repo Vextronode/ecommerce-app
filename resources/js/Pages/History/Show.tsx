@@ -110,8 +110,16 @@ export default function Show({ order }: { order: any }) {
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
                                     Status:{" "}
-                                    <span className="font-semibold text-gray-900 capitalize">
-                                        {order.payment_status === 'pending' ? 'Belum Bayar' : order.payment_status === 'paid' ? 'Sudah Bayar / Lunas' : order.payment_status}
+                                    <span className="font-semibold text-gray-900">
+                                        {order.payment_status === 'pending'
+                                            ? 'Belum Bayar'
+                                            : order.payment_status === 'paid'
+                                            ? 'Sudah Bayar / Lunas'
+                                            : order.payment_status === 'refunded'
+                                            ? 'Dana Dikembalikan'
+                                            : order.payment_status === 'failed'
+                                            ? 'Pembayaran Gagal'
+                                            : 'Menunggu Konfirmasi'}
                                     </span>
                                 </p>
                                 

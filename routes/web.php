@@ -300,17 +300,16 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
             $monthlyChartData = [];
             if ($storeId) {
                 // Weekly Data
+                // ambil hanya dua kolom yang dibutuhkan (bukan seluruh model) supaya hemat memori,
+                // lalu kelompokkan di php. format tanggal di SQL tidak portabel lintas driver.
                 $startDate = now()->startOfWeek()->subWeeks(2);
                 $weeklyOrders = Order::where('store_id', $storeId)
                     ->where('shipping_status', 'delivered')
                     ->where('created_at', '>=', $startDate)
+                    ->selectRaw('created_at, CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END as net_amount')
                     ->get()
-                    ->groupBy(function ($o) {
-                        return $o->created_at->format('Y-m-d');
-                    })
-                    ->map(function ($group) {
-                        return (float) $group->sum(fn ($o) => $o->merchantNetAmount());
-                    });
+                    ->groupBy(fn ($row) => \Illuminate\Support\Carbon::parse($row->created_at)->format('Y-m-d'))
+                    ->map(fn ($rows) => (float) $rows->sum('net_amount'));
 
                 $days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
                 for ($i = 0; $i < 7; $i++) {
@@ -329,16 +328,15 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                 }
 
                 // Monthly Data
+                // ambil hanya dua kolom yang dibutuhkan (bukan seluruh model) supaya hemat memori,
+                // lalu kelompokkan di php. format tanggal di SQL tidak portabel lintas driver.
                 $monthlyOrders = Order::where('store_id', $storeId)
                     ->where('shipping_status', 'delivered')
                     ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+                    ->selectRaw('created_at, CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END as net_amount')
                     ->get()
-                    ->groupBy(function ($o) {
-                        return $o->created_at->format('Y-m');
-                    })
-                    ->map(function ($group) {
-                        return (float) $group->sum(fn ($o) => $o->merchantNetAmount());
-                    });
+                    ->groupBy(fn ($row) => \Illuminate\Support\Carbon::parse($row->created_at)->format('Y-m'))
+                    ->map(fn ($rows) => (float) $rows->sum('net_amount'));
 
                 $monthNames = [
                     1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',

@@ -32,7 +32,7 @@ return new class extends Migration
 
             // Status Pembayaran & Pengiriman (Dipisah biar manajemen status di Dashboard lebih gampang)
             $table->string('payment_method')->default('COD');
-            $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
+            $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
             $table->enum('shipping_status', ['pending', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
 
             $table->text('notes')->nullable();

@@ -14,7 +14,7 @@ Artisan::command('inspire', function () {
     \Illuminate\Support\Facades\DB::table('notifications')
         ->where('created_at', '<', now()->subDays(60))
         ->delete();
-})->daily()->name('prune-old-notifications');
+})->daily()->name('prune-old-notifications')->withoutOverlapping()->onOneServer();
 
 // Auto-Complete: Selesaikan pesanan kurir lokal non-COD yang sudah dibayar & dikirim > 4 jam jika belum dikonfirmasi (Shopee-style)
 \Illuminate\Support\Facades\Schedule::call(function () {
@@ -28,7 +28,7 @@ Artisan::command('inspire', function () {
                 $order->autoCompleteDelivery();
             }
         });
-})->everyFifteenMinutes()->name('auto-complete-shipped-orders');
+})->everyFifteenMinutes()->name('auto-complete-shipped-orders')->withoutOverlapping()->onOneServer();
 
 // Rekonsiliasi: cek withdrawal nyangkut processing ke Midtrans IRIS & benerin statusnya otomatis
 \Illuminate\Support\Facades\Schedule::command('withdrawals:reconcile')

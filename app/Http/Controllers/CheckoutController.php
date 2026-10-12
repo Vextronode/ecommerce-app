@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Services\MidtransService;
 use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
@@ -170,10 +171,34 @@ class CheckoutController extends Controller
         }
 
         $orders = DB::transaction(function () use ($validated, $addressLat, $addressLon) {
+            // urutan penguncian kanonik: product (urut id) dulu, baru cart.
+            // daftar cart dibaca tanpa lock lebih dulu hanya untuk tahu product mana
+            // yang harus dikunci, lalu cart baru dikunci setelah product.
+            $cartRows = Cart::query()
+                ->where('user_id', auth()->id())
+                ->whereIn('id', $validated['cart_ids'])
+                ->get(['id', 'product_id']);
+
+            if ($cartRows->count() !== count($validated['cart_ids'])) {
+                throw ValidationException::withMessages([
+                    'cart_ids' => 'Ada item keranjang yang tidak valid.',
+                ]);
+            }
+
+            $productIds = $cartRows->pluck('product_id')->unique()->sort()->values()->all();
+
+            $lockedProducts = Product::query()
+                ->whereIn('id', $productIds)
+                ->with('skus')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
             $carts = Cart::query()
                 ->where('user_id', auth()->id())
                 ->whereIn('id', $validated['cart_ids'])
-                ->with(['product.skus', 'product.store.user'])
+                ->with(['product.store.user'])
                 ->lockForUpdate()
                 ->get();
 
@@ -208,7 +233,7 @@ class CheckoutController extends Controller
                 }
 
                 foreach ($storeCarts as $cart) {
-                    $product = $cart->product()->with('skus')->lockForUpdate()->first();
+                    $product = $lockedProducts->get($cart->product_id);
 
                     if (! $product || ! $product->is_active) {
                         throw ValidationException::withMessages([
@@ -233,6 +258,7 @@ class CheckoutController extends Controller
                     }
 
                     $subtotal += $itemPrice * $cart->quantity;
+                    // pakai instance product yang sudah dikunci, bukan relasi lazy
                     $cart->setRelation('product', $product);
                 }
 

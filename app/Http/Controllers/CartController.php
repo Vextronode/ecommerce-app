@@ -184,11 +184,13 @@ class CartController extends Controller
         $validated = $request->validate(['quantity' => 'required|integer|min:1']);
 
         DB::transaction(function () use ($cart, $validated) {
-            $lockedCart = Cart::where('id', $cart->id)->lockForUpdate()->firstOrFail();
-            $product = Product::where('id', $lockedCart->product_id)
+            // urutan penguncian product dulu baru cart, konsisten dengan store() dan checkout.
+            $product = Product::where('id', $cart->product_id)
                 ->with(['skus', 'store.user'])
                 ->lockForUpdate()
                 ->first();
+
+            $lockedCart = Cart::where('id', $cart->id)->lockForUpdate()->firstOrFail();
 
             $store = $product?->store;
             if (! $product || ! $product->is_active || ! $store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {

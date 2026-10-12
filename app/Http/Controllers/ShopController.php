@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductReview;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +18,7 @@ class ShopController extends Controller
 
     public function index(Request $request)
     {
-        $query = Product::with(['store', 'category'])
+        $query = Product::with(['store.user', 'category'])
             ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
                     $q->where('shipping_status', 'delivered');
@@ -59,6 +61,7 @@ class ShopController extends Controller
             });
 
             $relatedStores = Store::withCount(['products', 'followers'])
+                ->with('user')
                 ->where('sid_status', 'verified')
                 ->whereHas('user', function ($uq) {
                     $uq->whereIn('status', ['active', 'warning']);
@@ -70,24 +73,37 @@ class ShopController extends Controller
                         });
                 })
                 ->get();
-                
+
+            // agregasi statistik semua toko dalam dua query agregat, bukan satu query per toko.
+            // query pertama menjumlahkan unit terjual lewat order_items (by store_id),
+            // query kedua mengambil rata-rata rating lewat product_reviews.
+            $storeIds = $relatedStores->pluck('id');
+
+            $soldPerStore = OrderItem::query()
+                ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                ->whereIn('orders.store_id', $storeIds)
+                ->where('orders.shipping_status', 'delivered')
+                ->groupBy('orders.store_id')
+                ->selectRaw('orders.store_id as store_id, SUM(order_items.quantity) as sold')
+                ->pluck('sold', 'store_id');
+
+            $ratingPerStore = ProductReview::query()
+                ->join('products', 'products.id', '=', 'product_reviews.product_id')
+                ->whereIn('products.store_id', $storeIds)
+                ->groupBy('products.store_id')
+                ->selectRaw('products.store_id as store_id, AVG(product_reviews.rating) as rating')
+                ->pluck('rating', 'store_id');
+
             foreach ($relatedStores as $store) {
-                $storeStats = Product::where('store_id', $store->id)
-                    ->withAvg('reviews as rating', 'rating')
-                    ->withSum(['orderItems as sold' => function ($query) {
-                        $query->whereHas('order', function ($q) {
-                            $q->where('shipping_status', 'delivered');
-                        });
-                    }], 'quantity')
-                    ->get();
-                    
-                $store->average_rating = $storeStats->avg('rating') ? number_format($storeStats->avg('rating'), 1) : "0.0";
-                $store->total_sold = $storeStats->sum('sold') ?? 0;
-                
+                $averageRating = (float) ($ratingPerStore[$store->id] ?? 0.0);
+
+                $store->average_rating = $averageRating > 0 ? number_format($averageRating, 1) : '0.0';
+                $store->total_sold = (int) ($soldPerStore[$store->id] ?? 0);
+
                 $randomNoise = mt_rand(1, 1000) / 1000;
-                $store->score = ((float)$store->average_rating * 20) + $store->total_sold + $randomNoise;
+                $store->score = ($averageRating * 20) + $store->total_sold + $randomNoise;
             }
-            
+
             $relatedStores = $relatedStores->sortByDesc('score')->take(3)->values();
         }
 
@@ -178,7 +194,7 @@ class ShopController extends Controller
     public function show($slug)
     {
         $product = Product::with([
-            'store' => function ($query) {
+            'store.user' => function ($query) {
                 $query->withCount(['products', 'followers'])->withAvg('reviews', 'rating');
             },
             'category',
@@ -211,7 +227,7 @@ class ShopController extends Controller
             }
         });
 
-        $relatedProducts = Product::with(['store', 'category'])
+        $relatedProducts = Product::with(['store.user', 'category'])
             ->withSum(['orderItems as sold' => function ($query) {
                 $query->whereHas('order', function ($q) {
                     $q->where('shipping_status', 'delivered');

@@ -136,9 +136,11 @@ class ReportController extends Controller
         [$startDate, $endDate] = $this->resolveDateRange($period, $request->input('start_date'), $request->input('end_date'));
 
         $query = $this->buildBestSellingQuery($startDate, $endDate, $search, $storeId, $categoryId, $sortBy);
-        $products = $query->get();
 
         $filename = 'Laporan-Produk-Unggulan-Terlaris-'.now()->format('Ymd-His').'.csv';
+
+        // muat sekali di luar closure supaya query tidak jalan dua kali saat stream
+        $products = $query->get();
 
         return response()->streamDownload(function () use ($products) {
             $handle = fopen('php://output', 'w');
@@ -170,9 +172,13 @@ class ReportController extends Controller
                 return $str;
             };
 
-            foreach ($products as $index => $product) {
+            $rank = 0;
+            // dataset export = produk teratas per toko (bounded & kecil), jadi muat sekali
+            // dengan eager load terjaga supaya urutan sortir tetap dan tidak N+1.
+            foreach ($products as $product) {
+                $rank++;
                 fputcsv($handle, [
-                    $index + 1,
+                    $rank,
                     $sanitizeCsvCell($product->name),
                     $sanitizeCsvCell($product->category?->name ?? 'Umum'),
                     $sanitizeCsvCell($product->store?->name ?? '-'),

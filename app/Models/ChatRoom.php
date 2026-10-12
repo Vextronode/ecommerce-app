@@ -44,12 +44,4 @@ class ChatRoom extends Model
     {
         return $this->hasOne(ChatMessage::class)->latestOfMany();
     }
-
-    public function unreadCountForUser(int $userId): int
-    {
-        return $this->messages()
-            ->where('is_read', false)
-            ->where('sender_id', '!=', $userId)
-            ->count();
-    }
 }

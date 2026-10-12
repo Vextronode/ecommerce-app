@@ -11,6 +11,8 @@ use Inertia\Inertia;
 
 class OrderHistoryController extends Controller
 {
+    // batas baris riwayat yang dikirim ke halaman riwayat pembeli
+    private const MAX_HISTORY_ROWS = 200;
     public function index(Request $request)
     {
         $rawStatus = $request->query('status', 'all');
@@ -27,6 +29,7 @@ class OrderHistoryController extends Controller
                         ->where('shipping_status', 'delivered');
                 })
                 ->latest()
+                ->limit(self::MAX_HISTORY_ROWS)
                 ->get();
 
             $ratingItems = $items->map(function ($item) {
@@ -71,7 +74,9 @@ class OrderHistoryController extends Controller
 
             $syncedMidtransIds = [];
 
-            $orders = $query->get()->map(function ($order) use (&$syncedMidtransIds) {
+            // batasi daftar agar payload tidak membengkak untuk pembeli dengan ratusan order.
+            // sinkronisasi midtrans tetap dijalankan untuk 5 order teratas, jadi perilakunya tidak berubah.
+            $orders = $query->limit(self::MAX_HISTORY_ROWS)->get()->map(function ($order) use (&$syncedMidtransIds) {
                 if (
                     $order->payment_status === 'pending' &&
                     $order->payment_method !== 'cod' &&
@@ -120,6 +125,10 @@ class OrderHistoryController extends Controller
 
     private function mapStatusToLabel($order)
     {
+        if ($order->payment_status === 'refunded') {
+            return 'Dana Dikembalikan';
+        }
+
         if ($order->shipping_status === 'cancelled' || $order->payment_status === 'failed') {
             return 'Dibatalkan';
         }

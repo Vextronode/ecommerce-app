@@ -95,7 +95,8 @@ class HandleInertiaRequests extends Middleware
                     'has_completed_tour' => (bool) ($request->user()->store->has_completed_tour ?? false),
                 ] : null)
                 : null,
-            'cart_count' => $request->user()
+            // lazy supaya query count tidak jalan di setiap request halaman apa pun
+            'cart_count' => fn () => $request->user()
                 ? Cart::where('user_id', $request->user()->id)->count()
                 : 0,
             'cart_preview' => fn () => $request->user() ? [

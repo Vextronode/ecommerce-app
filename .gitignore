@@ -40,3 +40,7 @@ session.md
 # Firebase Service Account Credentials
 *firebase-auth*.json
 firebase-service-account*.json
+
+# residu database sqlite scratch yang dibuat artisan saat salah target (db kerja pakai mysql)
+/cibenda_mart
+/database/database.sqlite
