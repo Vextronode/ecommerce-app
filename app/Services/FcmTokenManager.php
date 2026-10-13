@@ -53,11 +53,8 @@ class FcmTokenManager
     // null-kan token milik user ini saja. dipakai saat logout/suspend akun.
     public function clear(User $user): void
     {
-        if ($user->fcm_token === null) {
-            return;
-        }
-
-        $user->forceFill(['fcm_token' => null])->saveQuietly();
+        User::whereKey($user->id)->update(['fcm_token' => null]);
+        $user->fcm_token = null;
     }
 
     // saat satu session perangkat dihapus (logout device lain), token hanya boleh

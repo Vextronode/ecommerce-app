@@ -43,6 +43,8 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::post('/api/notifications/fcm-token', [\App\Http\Controllers\NotificationController::class, 'saveFcmToken'])
         ->middleware('throttle:fcm-token')
         ->name('notifications.saveFcmToken');
+    Route::post('/api/notifications/fcm-token/clear', [\App\Http\Controllers\NotificationController::class, 'clearFcmToken'])
+        ->name('notifications.clearFcmToken');
     Route::post('/api/notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::delete('/api/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
@@ -93,6 +95,14 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::put('/profile/address/{id}', [ProfileController::class, 'updateAddress'])->middleware('throttle:20,1')->name('profile.address.update');
     Route::delete('/profile/address/{id}', [ProfileController::class, 'destroyAddress'])->middleware('throttle:20,1')->name('profile.address.destroy');
     Route::put('/profile/notifications', [ProfileController::class, 'updateNotifications'])->middleware('throttle:20,1')->name('profile.notifications.update');
+
+    Route::get('/chat', function (\Illuminate\Http\Request $request) {
+        $roomId = $request->query('room_id') ?: $request->query('room');
+        if ($roomId) {
+            return redirect()->route('home', ['open_chat' => $roomId]);
+        }
+        return redirect()->route('home', ['open_chat' => '1']);
+    })->name('chat.index');
 
     Route::prefix('chat')->group(function () {
         Route::get('/rooms', [StorefrontChatController::class, 'index'])->middleware('throttle:chat-action')->name('chat.rooms');

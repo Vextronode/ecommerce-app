@@ -31,7 +31,8 @@ class ChatController extends Controller
             abort(403, 'Toko Anda sedang tidak aktif.');
         }
 
-        $requestedRoomId = $request->query('room_id') ? (int) $request->query('room_id') : null;
+        $queryRoom = $request->query('room_id') ?: $request->query('room');
+        $requestedRoomId = $queryRoom ? (int) $queryRoom : null;
         $initialRoomId = null;
 
         if ($requestedRoomId) {
@@ -275,7 +276,7 @@ class ChatController extends Controller
                     "Pesan dari {$storeName}",
                     $preview,
                     'chat',
-                    "/chat"
+                    "/chat?room={$room->id}"
                 ));
             }
         } catch (\Throwable $e) {

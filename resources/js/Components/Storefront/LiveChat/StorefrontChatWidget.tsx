@@ -41,6 +41,34 @@ export default function StorefrontChatWidget() {
         }
     }, [user]);
 
+    useEffect(() => {
+        if (!user || typeof window === "undefined") return;
+        const params = new URLSearchParams(window.location.search);
+        const chatParam = params.get("open_chat");
+        if (chatParam) {
+            setIsOpen(true);
+            axios
+                .get("/chat/rooms")
+                .then((res) => {
+                    const fetchedRooms: BuyerChatRoomItem[] = res.data.rooms || [];
+                    setRooms(fetchedRooms);
+                    if (chatParam !== "1") {
+                        const target = fetchedRooms.find((r) => String(r.id) === String(chatParam));
+                        if (target) {
+                            setActiveRoom(target);
+                        }
+                    }
+                })
+                .catch(console.error);
+
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("open_chat");
+                window.history.replaceState({}, document.title, url.toString());
+            } catch {}
+        }
+    }, [user]);
+
     const fetchRooms = async () => {
         if (!user) return;
         setIsLoadingRooms(true);

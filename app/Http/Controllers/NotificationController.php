@@ -109,4 +109,17 @@ class NotificationController extends Controller
             'message' => $hasil['message'],
         ], $hasil['status']);
     }
+
+    public function clearFcmToken(Request $request)
+    {
+        $user = $request->user();
+        if ($user) {
+            app(FcmTokenManager::class)->clear($user);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'FCM token berhasil dihapus',
+        ]);
+    }
 }
