@@ -19,6 +19,9 @@ export default function MerchantChatIndex({ initialRooms, initialRoomId }: Props
     const [rooms, setRooms] = useState<MerchantChatRoomItem[]>(initialRooms || []);
     const [selectedRoomId, setSelectedRoomId] = useState<number | null>(() => {
         if (initialRoomId) return initialRoomId;
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+            return null;
+        }
         return initialRooms && initialRooms.length > 0 ? initialRooms[0].id : null;
     });
     const [searchQuery, setSearchQuery] = useState("");
@@ -245,7 +248,7 @@ export default function MerchantChatIndex({ initialRooms, initialRoomId }: Props
         <MerchantLayout>
             <Head title="Chat Pelanggan - Pedagang Cibenda" />
 
-            <div className="flex flex-col h-[calc(100vh-11.5rem)] min-h-[480px] bg-white rounded-3xl border border-brand-orange/30 overflow-hidden shadow-sm">
+            <div className="flex flex-col h-[calc(100dvh-8rem)] md:h-[calc(100vh-11.5rem)] min-h-[460px] bg-white rounded-2xl md:rounded-3xl border border-brand-orange/30 overflow-hidden shadow-sm">
                 <div className="flex flex-1 h-full overflow-hidden">
                     <MerchantChatSidebar
                         rooms={rooms}
