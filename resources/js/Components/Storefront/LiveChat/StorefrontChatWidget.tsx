@@ -180,8 +180,26 @@ export default function StorefrontChatWidget() {
             );
         });
 
+        channel.listen(".NegotiationUpdated", (e: any) => {
+            setMessages((prev) =>
+                prev.map((m) => {
+                    if (m.negotiation_id === e.id || m.negotiation?.id === e.id) {
+                        return {
+                            ...m,
+                            negotiation: {
+                                ...m.negotiation,
+                                ...e,
+                            },
+                        };
+                    }
+                    return m;
+                })
+            );
+        });
+
         return () => {
             channel.stopListening(".NewChatMessage");
+            channel.stopListening(".NegotiationUpdated");
         };
     }, [activeRoom?.id]);
 
@@ -432,6 +450,26 @@ export default function StorefrontChatWidget() {
                         onInputChange={setInputMessage}
                         onSendMessage={handleSendMessage}
                         onDismissPendingProduct={() => setPendingProduct(null)}
+                        onNegotiationSuccess={(negotiation) => {
+                            setPendingProduct(null);
+                            fetchRooms();
+                        }}
+                        onNegotiationUpdated={(updated) => {
+                            setMessages((prev) =>
+                                prev.map((m) => {
+                                    if (m.negotiation_id === updated.id || m.negotiation?.id === updated.id) {
+                                        return {
+                                            ...m,
+                                            negotiation: {
+                                                ...m.negotiation,
+                                                ...updated,
+                                            },
+                                        };
+                                    }
+                                    return m;
+                                })
+                            );
+                        }}
                     />
                 ) : (
                     <StorefrontChatRoomsList

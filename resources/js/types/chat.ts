@@ -25,6 +25,31 @@ export interface ProductAttachment {
     image_path?: string;
 }
 
+export interface NegotiationItem {
+    id: number;
+    chat_room_id: number;
+    status: "pending" | "accepted" | "rejected" | "countered" | "expired" | "purchased";
+    original_price: number;
+    offered_price: number;
+    counter_price?: number | null;
+    quantity: number;
+    po_days?: number | null;
+    note?: string | null;
+    last_action_by: "user" | "merchant";
+    expires_at?: string | null;
+    is_expired?: boolean;
+    agreed_price: number;
+    purchased_at?: string | null;
+    product?: {
+        id: number;
+        name: string;
+        slug: string;
+        image_path?: string;
+        unit?: string;
+    } | null;
+    variant_name?: string | null;
+}
+
 export interface ChatMessageItem {
     id: number;
     chat_room_id: number;
@@ -32,6 +57,9 @@ export interface ChatMessageItem {
     sender_name?: string;
     sender_avatar?: string | null;
     sender_type: "user" | "merchant";
+    message_type?: "text" | "negotiation";
+    negotiation_id?: number | null;
+    negotiation?: NegotiationItem | null;
     message: string;
     product?: ProductAttachment | null;
     media_path?: string | null;

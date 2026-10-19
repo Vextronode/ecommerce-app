@@ -14,8 +14,10 @@ class ChatMessage extends Model
         'chat_room_id',
         'sender_id',
         'sender_type',
+        'message_type',
         'message',
         'product_id',
+        'negotiation_id',
         'media_path',
         'media_type',
         'is_read',
@@ -48,5 +50,10 @@ class ChatMessage extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function negotiation(): BelongsTo
+    {
+        return $this->belongsTo(ChatNegotiation::class, 'negotiation_id');
     }
 }

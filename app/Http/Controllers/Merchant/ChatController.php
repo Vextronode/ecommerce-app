@@ -118,18 +118,53 @@ class ChatController extends Controller
         })->where('sender_type', 'user')->where('is_read', false)->count();
 
         $messages = $room->messages()
-            ->with(['product:id,name,slug,price,image_path'])
+            ->with([
+                'product:id,name,slug,price,image_path',
+                'negotiation.product:id,name,slug,price,image_path,unit',
+                'negotiation.sku:id,product_id,variant_name,price,stock',
+            ])
             ->orderBy('id', 'desc')
             ->take(60)
             ->get()
             ->reverse()
             ->values()
             ->map(function ($msg) {
+                $negotiationData = null;
+                if ($msg->negotiation) {
+                    $negotiationData = [
+                        'id' => $msg->negotiation->id,
+                        'chat_room_id' => $msg->negotiation->chat_room_id,
+                        'status' => $msg->negotiation->status,
+                        'original_price' => (float) $msg->negotiation->original_price,
+                        'offered_price' => (float) $msg->negotiation->offered_price,
+                        'counter_price' => $msg->negotiation->counter_price !== null ? (float) $msg->negotiation->counter_price : null,
+                        'quantity' => $msg->negotiation->quantity,
+                        'po_days' => $msg->negotiation->po_days,
+                        'note' => $msg->negotiation->note,
+                        'last_action_by' => $msg->negotiation->last_action_by,
+                        'expires_at' => $msg->negotiation->expires_at?->toISOString(),
+                        'is_expired' => $msg->negotiation->isExpired(),
+                        'agreed_price' => $msg->negotiation->agreed_price,
+                        'purchased_at' => $msg->negotiation->purchased_at?->toISOString(),
+                        'product' => $msg->negotiation->product ? [
+                            'id' => $msg->negotiation->product->id,
+                            'name' => $msg->negotiation->product->name,
+                            'slug' => $msg->negotiation->product->slug,
+                            'image_path' => $msg->negotiation->product->image_path,
+                            'unit' => $msg->negotiation->product->unit ?? 'pcs',
+                        ] : null,
+                        'variant_name' => $msg->negotiation->sku?->variant_name,
+                    ];
+                }
+
                 return [
                     'id' => $msg->id,
                     'chat_room_id' => $msg->chat_room_id,
                     'sender_id' => $msg->sender_id,
                     'sender_type' => $msg->sender_type,
+                    'message_type' => $msg->message_type ?? 'text',
+                    'negotiation_id' => $msg->negotiation_id,
+                    'negotiation' => $negotiationData,
                     'message' => $msg->message,
                     'product' => $msg->product ? [
                         'id' => $msg->product->id,

@@ -227,6 +227,9 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                                     !isAllVariantsSelected ||
                                     formattedProduct.availableStock === 0
                                 }
+                                store={product.store}
+                                product={product}
+                                currentSku={currentSku}
                             />
 
                             <DeliveryBanner
