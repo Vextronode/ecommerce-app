@@ -88,7 +88,7 @@ export default function StorefrontLayout({ children }: PropsWithChildren) {
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] font-sans">
-            <Toaster position="top-center" reverseOrder={false} />
+            <Toaster position="top-center" reverseOrder={false} containerStyle={{ zIndex: 9999999 }} />
             <Navbar />
             <main className="w-full">
                 {destinationSkeleton ? destinationSkeleton : children}

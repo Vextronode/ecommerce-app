@@ -14,6 +14,7 @@ class Cart extends Model
         'product_id',
         'quantity',
         'preparation_option',
+        'negotiation_id',
     ];
 
     public function product()
@@ -24,5 +25,10 @@ class Cart extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function negotiation()
+    {
+        return $this->belongsTo(ChatNegotiation::class, 'negotiation_id');
     }
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import RupiahInput from "@/Components/Global/RupiahInput";
 
 interface SkuType {
     variant_name: string;
@@ -51,18 +52,18 @@ export default function SkuMatrix({ data, setData }: Props) {
                                     {sku.variant_name}
                                 </td>
                                 <td className="px-4 py-3">
-                                    <input aria-label="Input field"
-                                        type="number"
+                                    <RupiahInput
+                                        aria-label="Input field"
                                         placeholder="Harga..."
                                         value={sku.price}
-                                        onChange={(e) =>
+                                        onChange={(val) =>
                                             updateSku(
                                                 index,
                                                 "price",
-                                                e.target.value,
+                                                String(val),
                                             )
                                         }
-                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm"
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm font-medium"
                                         required
                                     />
                                 </td>

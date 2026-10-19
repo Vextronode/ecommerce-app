@@ -136,8 +136,26 @@ export default function MerchantChatIndex({ initialRooms, initialRoomId }: Props
             );
         });
 
+        channel.listen(".NegotiationUpdated", (e: any) => {
+            setMessages((prev) =>
+                prev.map((m) => {
+                    if (m.negotiation_id === e.id || m.negotiation?.id === e.id) {
+                        return {
+                            ...m,
+                            negotiation: {
+                                ...m.negotiation,
+                                ...e,
+                            },
+                        };
+                    }
+                    return m;
+                })
+            );
+        });
+
         return () => {
             channel.stopListening(".NewChatMessage");
+            channel.stopListening(".NegotiationUpdated");
         };
     }, [selectedRoomId]);
 
@@ -269,6 +287,22 @@ export default function MerchantChatIndex({ initialRooms, initialRoomId }: Props
                             onBack={() => setSelectedRoomId(null)}
                             onInputChange={setInputMessage}
                             onSendMessage={handleSendMessage}
+                            onNegotiationUpdated={(updated) => {
+                                setMessages((prev) =>
+                                    prev.map((m) => {
+                                        if (m.negotiation_id === updated.id || m.negotiation?.id === updated.id) {
+                                            return {
+                                                ...m,
+                                                negotiation: {
+                                                    ...m.negotiation,
+                                                    ...updated,
+                                                },
+                                            };
+                                        }
+                                        return m;
+                                    })
+                                );
+                            }}
                         />
                     ) : (
                         <MerchantChatEmptyState />

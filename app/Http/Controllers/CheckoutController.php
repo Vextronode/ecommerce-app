@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\ChatNegotiation;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -73,7 +74,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart')->with('error', 'Pilih minimal satu barang untuk checkout.');
         }
 
-        $carts = Cart::with(['product.store', 'product.skus'])
+        $carts = Cart::with(['product.store', 'product.skus', 'negotiation'])
             ->where('user_id', auth()->id())
             ->whereIn('id', $selectedItems)
             ->get();
@@ -89,6 +90,15 @@ class CheckoutController extends Controller
         $cartItems = $carts->map(function ($cart) {
             $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
             $store = $cart->product->store;
+            $effectivePrice = $matchingSku ? (float) $matchingSku->price : (float) $cart->product->price;
+            $isNegotiated = false;
+
+            if ($cart->negotiation) {
+                if ($cart->negotiation->status === 'accepted' && ! $cart->negotiation->isExpired() && $cart->negotiation->purchased_at === null) {
+                    $effectivePrice = $cart->negotiation->agreed_price;
+                    $isNegotiated = true;
+                }
+            }
 
             return [
                 'id' => $cart->id,
@@ -100,7 +110,9 @@ class CheckoutController extends Controller
                 'location' => $store ? $store->name.' - '.$store->address : 'Cibenda Mart',
                 'store_lat' => $store ? $store->latitude : null,
                 'store_lon' => $store ? $store->longitude : null,
-                'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
+                'price' => $effectivePrice,
+                'original_price' => $matchingSku ? (float) $matchingSku->price : (float) $cart->product->price,
+                'is_negotiated' => $isNegotiated,
                 'qty' => $cart->quantity,
                 'img' => $cart->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
                 'preparation_option' => $cart->preparation_option,
@@ -198,7 +210,7 @@ class CheckoutController extends Controller
             $carts = Cart::query()
                 ->where('user_id', auth()->id())
                 ->whereIn('id', $validated['cart_ids'])
-                ->with(['product.store.user'])
+                ->with(['product.store.user', 'negotiation'])
                 ->lockForUpdate()
                 ->get();
 
@@ -249,7 +261,30 @@ class CheckoutController extends Controller
                     }
 
                     $availableStock = $matchingSku ? $matchingSku->stock : $product->stock;
-                    $itemPrice = $matchingSku ? $matchingSku->price : $product->price;
+                    $itemPrice = $matchingSku ? (float) $matchingSku->price : (float) $product->price;
+
+                    if ($cart->negotiation_id) {
+                        $lockedNegotiation = ChatNegotiation::where('id', $cart->negotiation_id)
+                            ->where('user_id', auth()->id())
+                            ->where('product_id', $product->id)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if (! $lockedNegotiation || $lockedNegotiation->status !== 'accepted' || $lockedNegotiation->isExpired() || $lockedNegotiation->purchased_at !== null) {
+                            throw ValidationException::withMessages([
+                                'cart_ids' => "Penawaran harga untuk {$product->name} sudah tidak berlaku atau kadaluarsa. Silakan periksa kembali keranjang Anda.",
+                            ]);
+                        }
+
+                        if ($cart->quantity !== $lockedNegotiation->quantity) {
+                            throw ValidationException::withMessages([
+                                'cart_ids' => "Jumlah barang pada penawaran ({$lockedNegotiation->quantity} pcs) tidak sesuai dengan jumlah di keranjang ({$cart->quantity} pcs).",
+                            ]);
+                        }
+
+                        $itemPrice = $lockedNegotiation->agreed_price;
+                        $cart->setRelation('negotiation', $lockedNegotiation);
+                    }
 
                     if ($cart->quantity > $availableStock) {
                         throw ValidationException::withMessages([
@@ -293,7 +328,12 @@ class CheckoutController extends Controller
 
                 foreach ($storeCarts as $cart) {
                     $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
-                    $itemPrice = $matchingSku ? $matchingSku->price : $cart->product->price;
+                    $itemPrice = $matchingSku ? (float) $matchingSku->price : (float) $cart->product->price;
+
+                    $negotiation = $cart->relationLoaded('negotiation') ? $cart->negotiation : null;
+                    if ($negotiation) {
+                        $itemPrice = $negotiation->agreed_price;
+                    }
 
                     OrderItem::create([
                         'order_id' => $order->id,
@@ -309,6 +349,14 @@ class CheckoutController extends Controller
                         $matchingSku->decrement('stock', $cart->quantity);
                     }
                     $cart->product->decrement('stock', $cart->quantity);
+
+                    if ($negotiation) {
+                        $negotiation->update([
+                            'status' => 'purchased',
+                            'purchased_at' => now(),
+                            'order_id' => $order->id,
+                        ]);
+                    }
 
                     $cart->delete();
                 }

@@ -73,7 +73,7 @@ export default function Edit({
     return (
         <div className="min-h-screen bg-[#F8FAFC] pb-16 font-sans text-gray-900">
             <Head title="Profil & Akun Saya - Cibenda Mart" />
-            <Toaster position="top-right" />
+            <Toaster position="top-right" containerStyle={{ zIndex: 9999999 }} />
 
             {/* Top Bar for Mobile & Desktop Navigation */}
             <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">

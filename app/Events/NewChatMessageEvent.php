@@ -21,7 +21,7 @@ class NewChatMessageEvent implements ShouldBroadcastNow
 
     public function __construct(ChatMessage $message)
     {
-        $this->message = $message->load(['sender', 'product', 'chatRoom.store', 'chatRoom.user']);
+        $this->message = $message->load(['sender', 'product', 'chatRoom.store', 'chatRoom.user', 'negotiation.product', 'negotiation.sku']);
         $this->roomId = $message->chat_room_id;
         
         $room = $this->message->chatRoom;
@@ -72,6 +72,8 @@ class NewChatMessageEvent implements ShouldBroadcastNow
             ? (str_starts_with($rawAvatar, 'http') || str_starts_with($rawAvatar, '/storage/') ? $rawAvatar : '/storage/' . ltrim($rawAvatar, '/'))
             : null;
 
+        $negotiation = $this->message->negotiation;
+
         return [
             'id' => $this->message->id,
             'chat_room_id' => $this->message->chat_room_id,
@@ -79,6 +81,7 @@ class NewChatMessageEvent implements ShouldBroadcastNow
             'sender_name' => $senderName,
             'sender_avatar' => $senderAvatar,
             'sender_type' => $this->message->sender_type,
+            'message_type' => $this->message->message_type ?? 'text',
             'message' => $this->message->message,
             'product' => $this->message->product ? [
                 'id' => $this->message->product->id,
@@ -86,6 +89,28 @@ class NewChatMessageEvent implements ShouldBroadcastNow
                 'slug' => $this->message->product->slug,
                 'price' => $this->message->product->price,
                 'image_path' => $this->message->product->image_path,
+            ] : null,
+            'negotiation' => $negotiation ? [
+                'id' => $negotiation->id,
+                'status' => $negotiation->status,
+                'original_price' => (float) $negotiation->original_price,
+                'offered_price' => (float) $negotiation->offered_price,
+                'counter_price' => $negotiation->counter_price !== null ? (float) $negotiation->counter_price : null,
+                'quantity' => $negotiation->quantity,
+                'po_days' => $negotiation->po_days,
+                'note' => $negotiation->note,
+                'last_action_by' => $negotiation->last_action_by,
+                'expires_at' => $negotiation->expires_at?->toISOString(),
+                'is_expired' => $negotiation->isExpired(),
+                'agreed_price' => $negotiation->agreed_price,
+                'product' => $negotiation->product ? [
+                    'id' => $negotiation->product->id,
+                    'name' => $negotiation->product->name,
+                    'slug' => $negotiation->product->slug,
+                    'image_path' => $negotiation->product->image_path,
+                    'unit' => $negotiation->product->unit ?? 'pcs',
+                ] : null,
+                'variant_name' => $negotiation->sku?->variant_name,
             ] : null,
             'media_path' => $this->message->media_path ? '/storage/' . $this->message->media_path : null,
             'media_type' => $this->message->media_type,

@@ -1,5 +1,6 @@
 import React from "react";
 import { MessageCircleWarning } from "lucide-react";
+import RupiahInput from "@/Components/Global/RupiahInput";
 
 interface Props {
     data: any;
@@ -54,12 +55,14 @@ export default function ProductPricingStock({
                         <label htmlFor="field_54" className="block text-sm font-semibold text-gray-700 mb-2">
                             Harga Dasar (Rp)
                         </label>
-                        <input aria-label="Input field" id="field_54"
-                            type="number"
+                        <RupiahInput
+                            aria-label="Input field"
+                            id="field_54"
                             placeholder="Harga dasar produk"
+                            prefix="Rp"
                             value={data.price}
-                            onChange={(e) => setData("price", e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm transition bg-white"
+                            onChange={(val) => setData("price", val)}
+                            className="w-full py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-orange/50 focus:border-brand-orange outline-none text-sm transition bg-white pr-4 font-medium"
                             required={!hasVariants}
                         />
                         {errors.price && (

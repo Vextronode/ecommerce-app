@@ -17,6 +17,16 @@ class Product extends Model
 
     protected $appends = ['sold'];
 
+    protected function casts(): array
+    {
+        return [
+            'price' => 'float',
+            'stock' => 'integer',
+            'is_active' => 'boolean',
+            'is_preorder' => 'boolean',
+        ];
+    }
+
     public function getSoldAttribute()
     {
         return $this->attributes['sold'] ?? 0;

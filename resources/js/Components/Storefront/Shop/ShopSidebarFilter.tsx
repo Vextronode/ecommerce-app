@@ -2,6 +2,7 @@ import React from "react";
 import { SlidersHorizontal, RotateCcw, Star } from "lucide-react";
 import { renderCategoryIcon } from "@/utils/categoryIcons";
 import { CategoryItem } from "./types";
+import RupiahInput from "@/Components/Global/RupiahInput";
 
 interface ShopSidebarFilterProps {
     categories: CategoryItem[];
@@ -113,19 +114,17 @@ export default function ShopSidebarFilter({
                     </h3>
                     <form onSubmit={onApplyPrice} className="space-y-2.5">
                         <div className="space-y-2">
-                            <input
-                                type="number"
+                            <RupiahInput
                                 placeholder="Harga Min"
                                 value={priceMin}
-                                onChange={(e) => onSetPriceMin(e.target.value)}
-                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20"
+                                onChange={(val) => onSetPriceMin(String(val))}
+                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20 font-medium"
                             />
-                            <input
-                                type="number"
+                            <RupiahInput
                                 placeholder="Harga Max"
                                 value={priceMax}
-                                onChange={(e) => onSetPriceMax(e.target.value)}
-                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20"
+                                onChange={(val) => onSetPriceMax(String(val))}
+                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/20 font-medium"
                             />
                         </div>
                         <button

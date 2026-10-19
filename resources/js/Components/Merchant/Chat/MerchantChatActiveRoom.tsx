@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
-import { MerchantChatRoomItem, ChatMessageItem } from "@/types/chat";
+import { MerchantChatRoomItem, ChatMessageItem, NegotiationItem } from "@/types/chat";
 import ChatProductCard from "@/Components/Storefront/LiveChat/ChatProductCard";
+import ChatNegotiationCard from "@/Components/Storefront/LiveChat/ChatNegotiationCard";
+import NegotiationCounterModal from "./NegotiationCounterModal";
 import {
     User,
     Check,
@@ -26,6 +28,7 @@ interface Props {
     onBack: () => void;
     onInputChange: (val: string) => void;
     onSendMessage: (e?: React.FormEvent, mediaFile?: File | null) => void;
+    onNegotiationUpdated?: (updated: NegotiationItem) => void;
 }
 
 export default function MerchantChatActiveRoom({
@@ -38,6 +41,7 @@ export default function MerchantChatActiveRoom({
     onBack,
     onInputChange,
     onSendMessage,
+    onNegotiationUpdated,
 }: Props) {
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -47,6 +51,7 @@ export default function MerchantChatActiveRoom({
     const [filePreview, setFilePreview] = useState<string | null>(null);
     const [fileType, setFileType] = useState<"image" | "video" | null>(null);
     const [activeLightboxMedia, setActiveLightboxMedia] = useState<string | null>(null);
+    const [counterNegotiation, setCounterNegotiation] = useState<NegotiationItem | null>(null);
 
     useEffect(() => {
         if (messagesContainerRef.current) {
@@ -168,7 +173,18 @@ export default function MerchantChatActiveRoom({
                                     isMerchant ? "items-end" : "items-start"
                                 }`}
                             >
-                                {msg.product && <ChatProductCard product={msg.product} />}
+                                {msg.message_type === "negotiation" && msg.negotiation && (
+                                    <ChatNegotiationCard
+                                        negotiation={msg.negotiation}
+                                        role="merchant"
+                                        onOpenCounterModal={(neg) => setCounterNegotiation(neg)}
+                                        onNegotiationUpdated={onNegotiationUpdated}
+                                    />
+                                )}
+
+                                {msg.product && msg.message_type !== "negotiation" && (
+                                    <ChatProductCard product={msg.product} />
+                                )}
 
                                 <div
                                     className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs ${
@@ -338,6 +354,17 @@ export default function MerchantChatActiveRoom({
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>
+            )}
+
+            {counterNegotiation && (
+                <NegotiationCounterModal
+                    isOpen={counterNegotiation !== null}
+                    negotiation={counterNegotiation}
+                    onClose={() => setCounterNegotiation(null)}
+                    onSuccess={(updated) => {
+                        if (onNegotiationUpdated) onNegotiationUpdated(updated);
+                    }}
+                />
             )}
         </section>
     );

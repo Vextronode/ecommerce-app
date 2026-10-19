@@ -11,6 +11,7 @@ use App\Http\Controllers\Merchant\AnalyticsController;
 use App\Http\Controllers\Merchant\ChatController as MerchantChatController;
 use App\Http\Controllers\Merchant\CustomerController;
 use App\Http\Controllers\Merchant\MerchantSetupController;
+use App\Http\Controllers\Merchant\NegotiationController as MerchantNegotiationController;
 use App\Http\Controllers\Merchant\OrderController;
 use App\Http\Controllers\Merchant\ProductController;
 use App\Http\Controllers\Merchant\SettingsController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\Storefront\ChatController as StorefrontChatController;
+use App\Http\Controllers\Storefront\NegotiationController as StorefrontNegotiationController;
 use App\Http\Middleware\CheckMerchantSetup;
 use App\Models\Order;
 use App\Models\Product;
@@ -110,6 +112,10 @@ Route::middleware(['auth', 'role:user'])->group(function () {
         Route::get('/rooms/{room}/messages', [StorefrontChatController::class, 'messages'])->middleware('throttle:chat-action')->name('chat.messages');
         Route::post('/rooms/{room}/send', [StorefrontChatController::class, 'sendMessage'])->middleware('throttle:chat-send')->name('chat.send');
         Route::post('/rooms/{room}/read', [StorefrontChatController::class, 'markAsRead'])->middleware('throttle:chat-action')->name('chat.read');
+        Route::post('/rooms/{room}/negotiate', [StorefrontNegotiationController::class, 'store'])->middleware('throttle:15,1')->name('chat.negotiate');
+        Route::post('/negotiations/{negotiation}/accept', [StorefrontNegotiationController::class, 'acceptCounter'])->middleware('throttle:15,1')->name('chat.negotiation.accept');
+        Route::post('/negotiations/{negotiation}/reject', [StorefrontNegotiationController::class, 'rejectCounter'])->middleware('throttle:15,1')->name('chat.negotiation.reject');
+        Route::post('/negotiations/{negotiation}/checkout', [StorefrontNegotiationController::class, 'checkout'])->middleware('throttle:15,1')->name('chat.negotiation.checkout');
     });
 });
 
@@ -423,6 +429,9 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
         Route::get('/chat/{room}/messages', [MerchantChatController::class, 'messages'])->middleware('throttle:chat-action')->name('merchant.chat.messages');
         Route::post('/chat/{room}/send', [MerchantChatController::class, 'sendMessage'])->middleware('throttle:chat-send')->name('merchant.chat.send');
         Route::post('/chat/{room}/read', [MerchantChatController::class, 'markAsRead'])->middleware('throttle:chat-action')->name('merchant.chat.read');
+        Route::post('/chat/negotiations/{negotiation}/accept', [MerchantNegotiationController::class, 'accept'])->middleware('throttle:15,1')->name('merchant.chat.negotiation.accept');
+        Route::post('/chat/negotiations/{negotiation}/reject', [MerchantNegotiationController::class, 'reject'])->middleware('throttle:15,1')->name('merchant.chat.negotiation.reject');
+        Route::post('/chat/negotiations/{negotiation}/counter', [MerchantNegotiationController::class, 'counter'])->middleware('throttle:15,1')->name('merchant.chat.negotiation.counter');
     });
 
 Route::post('/api/midtrans/callback', [MidtransCallbackController::class, 'handle'])->middleware('throttle:60,1')->name('midtrans.callback');

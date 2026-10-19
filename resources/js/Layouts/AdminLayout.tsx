@@ -86,7 +86,7 @@ export default function AdminLayout({ children }: Props) {
 
                 {/* Page View Body */}
                 <div className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 w-full max-w-full pb-6 pr-1 md:pr-2">
-                    <Toaster position="top-right" />
+                    <Toaster position="top-right" containerStyle={{ zIndex: 9999999 }} />
                     {children}
                 </div>
             </main>

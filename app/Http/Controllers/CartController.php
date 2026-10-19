@@ -13,7 +13,7 @@ class CartController extends Controller
 {
     public function index()
     {
-        $carts = Cart::with(['product.store', 'product.skus'])
+        $carts = Cart::with(['product.store', 'product.skus', 'negotiation'])
             ->where('user_id', auth()->id())
             ->whereHas('product')
             ->latest()
@@ -30,6 +30,18 @@ class CartController extends Controller
                 'items' => $group->map(function ($cart) {
 
                     $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
+                    $originalPrice = $matchingSku ? (float) $matchingSku->price : (float) $cart->product->price;
+                    $effectivePrice = $originalPrice;
+                    $isNegotiated = false;
+
+                    if ($cart->negotiation) {
+                        if ($cart->negotiation->status === 'accepted' && ! $cart->negotiation->isExpired() && $cart->negotiation->purchased_at === null) {
+                            $effectivePrice = $cart->negotiation->agreed_price;
+                            $isNegotiated = true;
+                        } else {
+                            $cart->update(['negotiation_id' => null]);
+                        }
+                    }
 
                     return [
                         'id' => $cart->id,
@@ -37,7 +49,9 @@ class CartController extends Controller
                         'name' => $cart->product->name,
                         'weight' => $cart->product->unit ?? 'pcs',
 
-                        'price' => $matchingSku ? $matchingSku->price : $cart->product->price,
+                        'price' => $effectivePrice,
+                        'original_price' => $originalPrice,
+                        'is_negotiated' => $isNegotiated,
                         'stock' => $matchingSku ? $matchingSku->stock : $cart->product->stock,
                         'qty' => $cart->quantity,
 
@@ -191,6 +205,11 @@ class CartController extends Controller
                 ->first();
 
             $lockedCart = Cart::where('id', $cart->id)->lockForUpdate()->firstOrFail();
+            if ($lockedCart->negotiation_id) {
+                throw ValidationException::withMessages([
+                    'quantity' => 'Jumlah barang hasil negosiasi harga telah terkunci sesuai kesepakatan dengan penjual.',
+                ]);
+            }
 
             $store = $product?->store;
             if (! $product || ! $product->is_active || ! $store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
