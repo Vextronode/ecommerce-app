@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatNumberId, formatNumberEn } from "@/utils/formatters";
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface AnalyticsOverviewCardProps {
     title: string;
@@ -75,7 +75,22 @@ export default function AnalyticsOverviewCard({
                                         : 'bg-rose-50 text-rose-500 border border-rose-200'
                             }`}
                         >
-                            {isZero ? '→ ' : positiveStatus ? '↗ +' : '↘ -'}{Math.abs(growth)}%
+                            {isZero ? (
+                                <>
+                                    <Minus className="w-3 h-3 shrink-0" />
+                                    <span>0%</span>
+                                </>
+                            ) : positiveStatus ? (
+                                <>
+                                    <TrendingUp className="w-3 h-3 shrink-0" />
+                                    <span>+{Math.abs(growth)}%</span>
+                                </>
+                            ) : (
+                                <>
+                                    <TrendingDown className="w-3 h-3 shrink-0" />
+                                    <span>-{Math.abs(growth)}%</span>
+                                </>
+                            )}
                         </span>
                     )}
                 </div>

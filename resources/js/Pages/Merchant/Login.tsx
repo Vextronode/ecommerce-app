@@ -24,8 +24,8 @@ export default function Login() {
             <Head title="Masuk Akun Pedagang - CibendaMart" />
 
             <div className="w-full h-full flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
-                {/* Left Column: Warm Gradient Hero Panel (Balanced 50%) */}
-                <div className="bg-linear-to-br from-brand-orange-warm via-[#FFB86C] to-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-between relative overflow-hidden">
+                {/* Left Column: Warm Gradient Hero Panel (Balanced 50%, hidden on mobile to avoid cramped scrolling) */}
+                <div className="hidden lg:flex bg-linear-to-br from-brand-orange-warm via-[#FFB86C] to-white p-8 md:p-10 lg:p-12 xl:p-14 flex-col justify-between relative overflow-hidden">
                     {/* Decorative ambient lights */}
                     <div className="absolute -top-16 -left-16 w-56 h-56 bg-white/20 rounded-full blur-2xl pointer-events-none" />
                     <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-400/20 rounded-full blur-3xl pointer-events-none" />
@@ -83,19 +83,35 @@ export default function Login() {
 
                 {/* Right Column: Clean Login Form */}
                 <div className="p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-center bg-white overflow-y-auto">
-                    <div className="max-w-md w-full mx-auto space-y-7">
+                    <div className="max-w-md w-full mx-auto space-y-5 sm:space-y-6">
+                        {/* Mobile Brand Identity Header (Visible only on mobile < lg) */}
+                        <div className="lg:hidden flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                            <div>
+                                <h2 className="text-xl sm:text-2xl font-black text-brand-indigo-merchant tracking-tight">
+                                    Cibenda<span className="text-brand-orange">Mart</span>
+                                </h2>
+                                <p className="text-xs font-semibold text-gray-500 mt-0.5">
+                                    Portal Mitra Pedagang
+                                </p>
+                            </div>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-brand-orange/20 text-xs font-bold text-brand-orange shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <span>Mitra Pedagang</span>
+                            </div>
+                        </div>
+
                         {/* Title & Subtitle */}
                         <div>
-                            <h2 className="text-3xl sm:text-4xl font-black text-brand-indigo-merchant tracking-tight">
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-brand-indigo-merchant tracking-tight">
                                 Masuk Akun Pedagang
                             </h2>
-                            <p className="text-xs sm:text-sm text-gray-500 font-medium mt-2 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1.5 leading-relaxed">
                                 Masukkan email atau username toko terdaftar Anda untuk mengelola toko.
                             </p>
                         </div>
 
                         {/* Form */}
-                        <form onSubmit={submit} className="space-y-5" noValidate>
+                        <form onSubmit={submit} className="space-y-4 sm:space-y-5" noValidate>
                             {/* Field Email atau Username */}
                             <div>
                                 <label

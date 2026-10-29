@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
-import { Users, UserPlus } from 'lucide-react';
+import { Users, UserPlus, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface CustomerStatsCardProps {
     title: string;
@@ -106,7 +106,7 @@ export default function CustomerStatsCard({ title, value, growth, type, chartDat
 
                 <div className="flex items-center gap-2 mb-2">
                     <span
-                        className={`text-xs font-bold px-2 py-0.5 rounded-md inline-flex items-center gap-0.5 ${
+                        className={`text-xs font-bold px-2 py-0.5 rounded-md inline-flex items-center gap-1 ${
                             isPositive
                                 ? 'bg-teal-50 text-teal-600'
                                 : isNegative
@@ -114,9 +114,24 @@ export default function CustomerStatsCard({ title, value, growth, type, chartDat
                                     : 'bg-gray-100 text-gray-600'
                         }`}
                     >
-                        {isPositive && `↗ +${growth}%`}
-                        {isNegative && `↘ ${growth}%`}
-                        {!isPositive && !isNegative && `0%`}
+                        {isPositive && (
+                            <>
+                                <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                                <span>+{growth}%</span>
+                            </>
+                        )}
+                        {isNegative && (
+                            <>
+                                <TrendingDown className="w-3.5 h-3.5 shrink-0" />
+                                <span>{growth}%</span>
+                            </>
+                        )}
+                        {!isPositive && !isNegative && (
+                            <>
+                                <Minus className="w-3.5 h-3.5 shrink-0" />
+                                <span>0%</span>
+                            </>
+                        )}
                     </span>
                     <span className="text-xs text-gray-500 font-medium">vs bulan lalu</span>
                 </div>
