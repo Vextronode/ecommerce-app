@@ -24,8 +24,8 @@ export default function AdminLogin() {
             <Head title="Masuk Portal Admin - CibendaMart" />
 
             <div className="w-full h-full flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
-                {/* Left Column: Pure Deep Indigo Panel (#281B7A, no gradient) */}
-                <div className="bg-[#281B7A] p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-between relative overflow-hidden text-white">
+                {/* Left Column: Pure Deep Indigo Panel (#281B7A, no gradient, hidden on mobile) */}
+                <div className="hidden lg:flex bg-[#281B7A] p-8 md:p-10 lg:p-12 xl:p-14 flex-col justify-between relative overflow-hidden text-white">
                     {/* Top Identity & Headlines */}
                     <div className="relative z-10">
                         {/* Brand Title & Badge */}
@@ -91,13 +91,29 @@ export default function AdminLogin() {
 
                 {/* Right Column: Clean Login Form */}
                 <div className="p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-center bg-white overflow-y-auto">
-                    <div className="max-w-md w-full mx-auto space-y-7">
+                    <div className="max-w-md w-full mx-auto space-y-5 sm:space-y-6">
+                        {/* Mobile Brand Identity Header (Visible only on mobile < lg) */}
+                        <div className="lg:hidden flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                            <div>
+                                <h2 className="text-xl sm:text-2xl font-black text-brand-orange tracking-tight">
+                                    Cibenda<span className="text-[#281B7A]">Mart</span>
+                                </h2>
+                                <p className="text-xs font-semibold text-gray-500 mt-0.5">
+                                    Portal Admin E-Commerce
+                                </p>
+                            </div>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-brand-orange/20 text-xs font-bold text-brand-orange shadow-2xs">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <span>Panel Admin</span>
+                            </div>
+                        </div>
+
                         {/* Title & Subtitle */}
-                        <div className="text-center sm:text-left">
-                            <h2 className="text-3xl sm:text-4xl font-black text-brand-orange tracking-tight">
+                        <div className="text-left">
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-brand-orange tracking-tight">
                                 Login
                             </h2>
-                            <p className="text-xs sm:text-sm text-gray-500 font-medium mt-2 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1.5 leading-relaxed">
                                 Masukkan kredensial Anda untuk mengakses dashboard.
                             </p>
                         </div>
