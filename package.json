@@ -39,5 +39,11 @@
         "react-hot-toast": "^2.6.0",
         "react-is": "^19.2.7",
         "recharts": "^3.9.2"
+    },
+    "optionalDependencies": {
+        "@rolldown/binding-linux-x64-gnu": "1.2.3",
+        "@rolldown/binding-linux-arm64-gnu": "1.2.3",
+        "@rolldown/binding-darwin-arm64": "1.2.3",
+        "@rolldown/binding-darwin-x64": "1.2.3"
     }
 }
