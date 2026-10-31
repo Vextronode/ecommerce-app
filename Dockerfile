@@ -1,15 +1,8 @@
-# =====================================================================
-# Dockerfile - Cibenda Mart
-# Stack: Laravel 11 + Inertia + React + Vite (PHP 8.4 + Node 24)
-# =====================================================================
-
-# Base image PHP 8.4 CLI sesuai versi yang lu pakai di lokal
 FROM php:8.4-cli
 
-# Hindari dialog interaktif debconf yang menyebabkan error terminal
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies sistem yang dibutuhkan PHP (--no-install-recommends mencegah install paket sampah desktop)
+# Install system dependencies for PHP extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl zip unzip \
     libpng-dev libjpeg62-turbo-dev libwebp-dev libfreetype6-dev \
@@ -18,8 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install ekstensi PHP yang dibutuhkan Laravel
-# pcntl = dibutuhin Queue Worker biar bisa gracefully shutdown
+# Install required PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
     pdo_mysql \
@@ -30,28 +22,20 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     gd \
     zip
 
-# Konfigurasi upload limit & resource PHP untuk file gambar/video chat
+# Configure PHP resource limits for uploads and background tasks
 RUN echo "upload_max_filesize = 25M\npost_max_size = 30M\nmemory_limit = 256M\nmax_execution_time = 120" > /usr/local/etc/php/conf.d/uploads.ini
 
-# Install Composer dari image resminya
+# Install Composer and Node.js from official images
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Install Node.js & NPM langsung dari image resminya (Cepat, bersih, tanpa 700+ paket sampah apt)
 COPY --from=node:22-slim /usr/local/bin /usr/local/bin
 COPY --from=node:22-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
 
-# Set working directory di dalam container
 WORKDIR /var/www
 
-# ─── LAYER CACHE TRICK ────────────────────────────────────────────────────────
-# STEP 1: Copy HANYA file manifest dependencies dulu.
-# Selama composer.json & package.json tidak berubah, layer install di bawah
-# akan di-CACHE oleh Docker → build berikutnya langsung skip, hemat waktu!
+# Install dependencies (cached layers)
 COPY composer.json composer.lock ./
 COPY package.json package-lock.json ./
 
-# STEP 2: Install dependencies (kena cache permanen selama manifest tidak berubah)
-# --no-scripts: skip post-install artisan commands dulu karena file artisan belum ada
 ENV COMPOSER_PROCESS_TIMEOUT=3600
 RUN composer install --optimize-autoloader --no-dev --no-scripts
 
@@ -60,27 +44,21 @@ RUN npm config set fetch-retries 5 && \
     npm config set fetch-retry-maxtimeout 120000 && \
     npm install --legacy-peer-deps
 
-# STEP 3: Baru copy semua sisa kode (React, PHP, config, dll)
-# Layer ini yang selalu berubah tiap kita update kode
+# Copy application source code
 COPY . .
-
-# STEP 4: Copy .env.docker sebagai .env untuk konfigurasi Laravel di container
 COPY .env.docker .env
 
-# Jalanin post-install composer scripts sekarang setelah artisan sudah ada
 RUN composer run-script post-autoload-dump
-# ─────────────────────────────────────────────────────────────────────────────
 
-# Build asset React/Vite (cuma dijalankan setelah kode baru di-copy)
+# Build frontend production assets
 RUN npm run build
 
-# Cache view & routes untuk performance (config runtime di-handle via .env.docker)
+# Cache Laravel routes and views for production
 RUN php artisan route:cache \
     && php artisan view:cache
 
-# Set permission folder storage & cache supaya Laravel bisa nulis file
+# Set permissions for storage and bootstrap cache
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Expose port yang dipakai artisan serve
 EXPOSE 8000
