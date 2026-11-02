@@ -150,9 +150,9 @@ REDIS_PORT=6379
 
 # Reverb WebSocket
 BROADCAST_CONNECTION=reverb
-REVERB_APP_ID=584029
-REVERB_APP_KEY=cimart_reverb_key_892147
-REVERB_APP_SECRET=cimart_reverb_secret_389104
+REVERB_APP_ID=your_reverb_app_id
+REVERB_APP_KEY=your_reverb_app_key
+REVERB_APP_SECRET=your_reverb_app_secret
 REVERB_HOST="cimart.domainanda.com"
 REVERB_PORT=443
 REVERB_SCHEME=https
