@@ -8,9 +8,15 @@ interface Props {
         verified_merchants?: number;
         pending_merchants?: number;
     };
+    activeTab?: string;
+    onTabChange?: (tab: "merchants" | "applications") => void;
 }
 
-export default function AdminMerchantStatCards({ stats }: Props) {
+export default function AdminMerchantStatCards({
+    stats,
+    activeTab = "merchants",
+    onTabChange,
+}: Props) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             {/* Akun Suspend */}
@@ -29,7 +35,16 @@ export default function AdminMerchantStatCards({ stats }: Props) {
             </div>
 
             {/* Total Pedagang */}
-            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
+            <div
+                onClick={() => onTabChange && onTabChange("merchants")}
+                className={`bg-white rounded-3xl p-5 md:p-6 border shadow-sm flex items-center justify-between transition hover:shadow-md ${
+                    onTabChange ? "cursor-pointer" : ""
+                } ${
+                    activeTab === "merchants"
+                        ? "border-brand-orange/40 ring-1 ring-brand-orange/20"
+                        : "border-gray-100"
+                }`}
+            >
                 <div>
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                         TOTAL PEDAGANG
@@ -44,7 +59,12 @@ export default function AdminMerchantStatCards({ stats }: Props) {
             </div>
 
             {/* Toko Terverifikasi */}
-            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
+            <div
+                onClick={() => onTabChange && onTabChange("merchants")}
+                className={`bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition hover:shadow-md ${
+                    onTabChange ? "cursor-pointer" : ""
+                }`}
+            >
                 <div>
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                         TERVERIFIKASI
@@ -58,17 +78,31 @@ export default function AdminMerchantStatCards({ stats }: Props) {
                 </div>
             </div>
 
-            {/* Menunggu Review */}
-            <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm flex items-center justify-between transition hover:shadow-md">
+            {/* Menunggu Review (Permohonan Masuk SID) */}
+            <div
+                onClick={() => onTabChange && onTabChange("applications")}
+                className={`bg-white rounded-3xl p-5 md:p-6 border shadow-sm flex items-center justify-between transition hover:shadow-md ${
+                    onTabChange ? "cursor-pointer" : ""
+                } ${
+                    activeTab === "applications"
+                        ? "border-amber-400 ring-2 ring-amber-300/40 bg-amber-50/20"
+                        : "border-gray-100 hover:border-amber-200"
+                }`}
+            >
                 <div>
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                        MENUNGGU REVIEW
-                    </span>
-                    <div className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                    <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
+                            MENUNGGU REVIEW
+                        </span>
+                        {(stats.pending_merchants ?? 0) > 0 && (
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                        )}
+                    </div>
+                    <div className="text-2xl md:text-3xl font-extrabold text-amber-600 tracking-tight">
                         {(stats.pending_merchants ?? 0).toLocaleString()}
                     </div>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shadow-xs shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-xs shrink-0">
                     <Clock className="w-6 h-6" />
                 </div>
             </div>

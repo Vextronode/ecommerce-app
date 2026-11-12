@@ -1,10 +1,17 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import { Eye, EyeOff, Sparkles, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Sparkles, AlertCircle, ShieldCheck } from "lucide-react";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
-import { useCreateMerchantForm } from "@/Hooks/Admin/useCreateMerchantForm";
+import {
+    useCreateMerchantForm,
+    ApplicationInitialData,
+} from "@/Hooks/Admin/useCreateMerchantForm";
 
-export default function CreateMerchantForm() {
+interface Props {
+    application?: ApplicationInitialData | null;
+}
+
+export default function CreateMerchantForm({ application }: Props) {
     const {
         data,
         setData,
@@ -21,10 +28,31 @@ export default function CreateMerchantForm() {
         handleGeneratePassword,
         handleBlur,
         handleSubmit,
-    } = useCreateMerchantForm();
+    } = useCreateMerchantForm(application);
 
     return (
         <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
+            {/* SID Verification Banner */}
+            {application && (
+                <div className="p-4 rounded-2xl bg-orange-50 border border-orange-200/80 flex items-start gap-3.5 shadow-2xs">
+                    <div className="w-9 h-9 rounded-xl bg-brand-orange text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                        <div className="text-xs font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                            <span>Formulir Terisi Otomatis dari SIDUTama</span>
+                            {application.letter_number && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-brand-orange border border-orange-200">
+                                    No. SKU: {application.letter_number}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-[11px] text-gray-600 leading-relaxed">
+                            Data toko, pemilik, NIK, dan kontak telah diverifikasi oleh Pemerintah Desa Cibenda. Silakan buat password akun pedagang di bawah ini untuk mengaktifkan akun.
+                        </p>
+                    </div>
+                </div>
+            )}
             {/* Store Name & Store Username */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Store Name */}

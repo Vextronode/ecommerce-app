@@ -140,6 +140,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/pedagang', [MerchantController::class, 'index'])->name('admin.merchants.index');
         Route::get('/pedagang/create', [MerchantController::class, 'create'])->name('admin.merchants.create');
         Route::post('/pedagang', [MerchantController::class, 'store'])->name('admin.merchants.store');
+        Route::post('/pedagang/applications/sync', [MerchantController::class, 'syncApplications'])->name('admin.merchants.applications.sync');
+        Route::post('/pedagang/applications/{business_ref}/reject', [MerchantController::class, 'rejectApplication'])->name('admin.merchants.applications.reject');
         Route::put('/pedagang/{id}', [MerchantController::class, 'update'])->name('admin.merchants.update');
         Route::patch('/pedagang/{id}/status', [MerchantController::class, 'updateStatus'])->name('admin.merchants.status');
         Route::patch('/pedagang/{id}/verification', [MerchantController::class, 'updateVerification'])->name('admin.merchants.verification');

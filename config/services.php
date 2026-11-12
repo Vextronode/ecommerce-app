@@ -59,5 +59,12 @@ return [
         'credentials_base64' => env('FIREBASE_CREDENTIALS_BASE64'),
     ],
 
+    'sid' => [
+        'url' => env('SID_API_URL', ''),
+        'token' => env('SID_API_TOKEN', ''),
+        'enabled' => env('SID_INTEGRATION_ENABLED', true),
+        'mock' => env('SID_MOCK', true),
+    ],
+
 ];
 

@@ -44,3 +44,10 @@ Artisan::command('inspire', function () {
     ->onOneServer()
     ->name('alert-stuck-withdrawals');
 
+// Sinkronisasi otomatis permohonan pedagang dari SIDUTama (SID)
+\Illuminate\Support\Facades\Schedule::job(new \App\Jobs\SyncSidSellerApplicationsJob)
+    ->everyTwoMinutes()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('sync-sid-seller-applications');
+
