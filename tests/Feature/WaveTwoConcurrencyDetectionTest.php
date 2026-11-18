@@ -71,7 +71,8 @@ class WaveTwoConcurrencyDetectionTest extends TestCase
         $user = $this->buatUser(['fcm_token' => null]);
 
         // paksa transaksi melempar deadlock nyata (PDOException, bukan QueryException)
-        DB::shouldReceive('transaction')
+        DB::partialMock()
+            ->shouldReceive('transaction')
             ->once()
             ->andThrow(new DeadlockException('Deadlock found when trying to get lock; try restarting transaction'));
 
@@ -88,7 +89,8 @@ class WaveTwoConcurrencyDetectionTest extends TestCase
     {
         $user = $this->buatUser(['fcm_token' => null]);
 
-        DB::shouldReceive('transaction')
+        DB::partialMock()
+            ->shouldReceive('transaction')
             ->once()
             ->andThrow(new PDOException('SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction'));
 
@@ -103,7 +105,8 @@ class WaveTwoConcurrencyDetectionTest extends TestCase
     {
         $user = $this->buatUser(['fcm_token' => null]);
 
-        DB::shouldReceive('transaction')
+        DB::partialMock()
+            ->shouldReceive('transaction')
             ->once()
             ->andThrow(new PDOException('SQLSTATE[HY000]: General error: 5 database is locked'));
 
@@ -120,7 +123,8 @@ class WaveTwoConcurrencyDetectionTest extends TestCase
 
         // bug tak terduga yang bukan concurrency error harus tetap meledak,
         // jangan sampai ditelan jadi 409 palsu.
-        DB::shouldReceive('transaction')
+        DB::partialMock()
+            ->shouldReceive('transaction')
             ->once()
             ->andThrow(new \RuntimeException('koneksi db mati total'));
 
