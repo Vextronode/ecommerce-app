@@ -54,8 +54,13 @@ export default function Create({ categories }: Props) {
             onSuccess: () => {
                 toast.success("Produk berhasil ditambahkan!");
             },
-            onError: () => {
-                toast.error("Gagal menyimpan! Periksa kembali isian form Anda.");
+            onError: (errs) => {
+                const firstError = Object.values(errs)[0];
+                if (typeof firstError === "string") {
+                    toast.error(firstError, { duration: 5000 });
+                } else {
+                    toast.error("Gagal menyimpan! Periksa kembali isian form Anda.");
+                }
             },
         });
     };

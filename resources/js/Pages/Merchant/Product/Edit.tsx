@@ -50,8 +50,13 @@ export default function Edit({ product, categories }: any) {
         post(route("merchant.products.update", product.slug), {
             preserveScroll: true,
             onSuccess: () => toast.success("Produk berhasil diupdate!"),
-            onError: () => {
-                toast.error("Gagal menyimpan! Periksa form Anda.");
+            onError: (errs) => {
+                const firstError = Object.values(errs)[0];
+                if (typeof firstError === "string") {
+                    toast.error(firstError, { duration: 5000 });
+                } else {
+                    toast.error("Gagal menyimpan! Periksa form Anda.");
+                }
             },
         });
     };

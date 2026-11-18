@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Rules\NoProhibitedKeywords;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -89,20 +90,20 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', new NoProhibitedKeywords()],
             'category_id' => 'required|exists:categories,id',
-            'description' => 'nullable|string',
+            'description' => ['nullable', 'string', new NoProhibitedKeywords()],
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'is_preorder' => 'boolean',
             'po_days' => 'nullable|integer|min:0|max:365',
             'po_hours' => 'nullable|integer|min:0|max:23',
             'variants' => 'nullable|array|max:10',
-            'variants.*.name' => 'required|string|max:100',
+            'variants.*.name' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
             'variants.*.options' => 'nullable|array|max:50',
-            'variants.*.options.*' => 'required|string|max:100',
+            'variants.*.options.*' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
             'skus' => 'nullable|array|max:100',
-            'skus.*.variant_name' => 'required|string|max:100',
+            'skus.*.variant_name' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
             'skus.*.price' => 'required|numeric|min:100|max:1000000000',
             'skus.*.stock' => 'required|integer|min:0|max:1000000',
             'price' => 'required_without:skus|nullable|numeric|min:100|max:1000000000',
@@ -224,9 +225,9 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', new NoProhibitedKeywords()],
             'category_id' => 'required|exists:categories,id',
-            'description' => 'nullable|string',
+            'description' => ['nullable', 'string', new NoProhibitedKeywords()],
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'deleted_images' => 'nullable|array',
@@ -235,11 +236,11 @@ class ProductController extends Controller
             'po_days' => 'nullable|integer|min:0|max:365',
             'po_hours' => 'nullable|integer|min:0|max:23',
             'variants' => 'nullable|array|max:10',
-            'variants.*.name' => 'required|string|max:100',
+            'variants.*.name' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
             'variants.*.options' => 'nullable|array|max:50',
-            'variants.*.options.*' => 'required|string|max:100',
+            'variants.*.options.*' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
             'skus' => 'nullable|array|max:100',
-            'skus.*.variant_name' => 'required|string|max:100',
+            'skus.*.variant_name' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
             'skus.*.price' => 'required|numeric|min:100|max:1000000000',
             'skus.*.stock' => 'required|integer|min:0|max:1000000',
             'price' => 'required_without:skus|nullable|numeric|min:100|max:1000000000',
