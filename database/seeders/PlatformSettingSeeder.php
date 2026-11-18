@@ -88,10 +88,19 @@ class PlatformSettingSeeder extends Seeder
         ];
 
         foreach ($settings as $setting) {
-            PlatformSetting::updateOrCreate(
-                ['key' => $setting['key']],
-                $setting
-            );
+            $existing = PlatformSetting::where('key', $setting['key'])->first();
+
+            if (! $existing) {
+                PlatformSetting::create($setting);
+            } else {
+                // Di production, pertahankan value yang sudah disetel admin; sinkronkan metadata saja.
+                $existing->update([
+                    'type' => $setting['type'],
+                    'group' => $setting['group'],
+                    'label' => $setting['label'],
+                    'description' => $setting['description'],
+                ]);
+            }
         }
     }
 }

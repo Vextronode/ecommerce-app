@@ -13,24 +13,21 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * seed basis data aplikasi.
-     *
-     * urutan penting: kategori dasar dan admin dulu (selalu ada), lalu pedagang
-     * beserta katalog produknya. pengendalian lewat env:
-     * SEED_SKIP_MERCHANTS=true melewati data demo pedagang.
-     * SEED_SKIP_PHOTOS=true melewati unduhan foto produk.
-     */
     public function run(): void
     {
         $this->seedCategories();
-        $this->seedAdmin();
         $this->call(PlatformSettingSeeder::class);
 
-        // opsi custom tidak tersedia di signature db:seed, jadi pengendalian
-        // lewat env agar tetap kompatibel tanpa mengubah command inti.
+        if (! app()->environment('local')) {
+            $this->command?->info('Lingkungan non-lokal (' . app()->environment() . ') terdeteksi: Data dummy (Admin sampel, Pedagang demo, Katalog produk) dilewati secara aman.');
+
+            return;
+        }
+
+        $this->seedAdminDevelopment();
+
         if ((bool) env('SEED_SKIP_MERCHANTS', false)) {
-            $this->command?->warn('data pedagang & katalog dilewati (SEED_SKIP_MERCHANTS).');
+            $this->command?->warn('Data pedagang & katalog dilewati (SEED_SKIP_MERCHANTS).');
 
             return;
         }
@@ -59,12 +56,12 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    private function seedAdmin(): void
+    private function seedAdminDevelopment(): void
     {
         User::updateOrCreate(
             ['email' => 'admin@cibendamart.com'],
             [
-                'name' => 'Admin CibendaMart',
+                'name' => 'Admin CibendaMart (Dev)',
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
                 'is_password_changed' => true,

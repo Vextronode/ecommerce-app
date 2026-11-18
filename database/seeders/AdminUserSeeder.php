@@ -8,15 +8,18 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        if (! app()->environment('local')) {
+            $this->command?->warn('AdminUserSeeder diblokir: Kredensial default tidak diizinkan di lingkungan produksi.');
+
+            return;
+        }
+
         User::updateOrCreate(
             ['email' => 'admin@cibendamart.com'],
             [
-                'name' => 'Admin CibendaMart',
+                'name' => 'Admin CibendaMart (Dev)',
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
                 'is_password_changed' => true,
