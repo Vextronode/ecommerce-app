@@ -278,18 +278,23 @@ docker compose up -d --build
 ```
 
 ### Menjalankan Perintah Artisan di Container
-Jika perlu menjalankan migrasi database atau seeder secara manual:
+Jika perlu menjalankan migrasi database, seeder master data, atau inisialisasi akun administrator:
 
 ```bash
 # Menjalankan migrasi database
 docker compose exec app_cibenda php artisan migrate --force
 
-# Menjalankan database seeder
+# Menjalankan database seeder (hanya Master Data, dummy otomatis dilewati di production)
 docker compose exec app_cibenda php artisan db:seed --force
+
+# Inisialisasi akun Super Administrator pertama (interaktif & rahasia)
+docker compose exec app_cibenda php artisan admin:init
 
 # Membersihkan seluruh cache sistem
 docker compose exec app_cibenda php artisan optimize:clear
 ```
+> [!NOTE]
+> Panduan lengkap mengenai arsitektur seeder, perlindungan settingan platform, dan SOP inisialisasi admin production dapat dibaca di [PANDUAN_SEEDER_DAN_ADMIN_PRODUCTION.md](file:///mnt/data/Projects/Web/React/e-commerce_platform_pangandaran/docs/deployment/PANDUAN_SEEDER_DAN_ADMIN_PRODUCTION.md).
 
 ### Backup Database MySQL
 Untuk membuat backup database dari container MySQL:
