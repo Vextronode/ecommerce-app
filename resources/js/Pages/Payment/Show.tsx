@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import { ArrowLeft, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import toast from "react-hot-toast";
@@ -33,6 +33,12 @@ export default function PaymentShow({ order, paymentInfo, isOnlinePaymentEnabled
     const [status, setStatus] = useState<string>(order?.payment_status || "pending");
     const [isChecking, setIsChecking] = useState<boolean>(false);
     const [onlinePaymentAvailable, setOnlinePaymentAvailable] = useState<boolean>(isOnlinePaymentEnabled);
+    const prevOnlinePaymentRef = useRef<boolean>(onlinePaymentAvailable);
+
+    useEffect(() => {
+        prevOnlinePaymentRef.current = onlinePaymentAvailable;
+    }, [onlinePaymentAvailable]);
+
     const [isSwitching, setIsSwitching] = useState<boolean>(false);
     const [isAlertExpanded, setIsAlertExpanded] = useState<boolean>(false);
 
@@ -126,6 +132,43 @@ export default function PaymentShow({ order, paymentInfo, isOnlinePaymentEnabled
 
         return () => clearInterval(interval);
     }, [handleCheckStatus, status]);
+
+    // Real-time synchronization of emergency online payment killswitch
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel("platform-settings");
+        const handleSettingsUpdated = (event: { settings?: Record<string, any>; changed_keys?: string[] }) => {
+            const changedKeys = Array.isArray(event?.changed_keys) ? event.changed_keys : [];
+            const keyChanged = changedKeys.length === 0 || changedKeys.includes("enable_online_payment");
+
+            if (keyChanged && event?.settings?.enable_online_payment !== undefined) {
+                const isEnabled = Boolean(event.settings.enable_online_payment);
+                if (prevOnlinePaymentRef.current !== isEnabled) {
+                    prevOnlinePaymentRef.current = isEnabled;
+                    setOnlinePaymentAvailable(isEnabled);
+                    if (!isEnabled) {
+                        toast.error(
+                            "Perhatian: Layanan pembayaran online dinonaktifkan sementara oleh admin platform.",
+                            { id: "payment-show-killswitch-toast", duration: 5000 }
+                        );
+                    } else {
+                        toast.success(
+                            "Layanan pembayaran online telah diaktifkan kembali.",
+                            { id: "payment-show-killswitch-toast", duration: 4000 }
+                        );
+                    }
+                }
+            }
+        };
+
+        channel.listen(".PlatformSettingsUpdated", handleSettingsUpdated);
+        channel.listen("PlatformSettingsUpdated", handleSettingsUpdated);
+
+        return () => {
+            window.Echo.leaveChannel("platform-settings");
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans">

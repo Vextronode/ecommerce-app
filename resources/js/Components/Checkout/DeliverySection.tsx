@@ -7,6 +7,9 @@ interface Props {
     selected: string;
     onSelect: (val: string) => void;
     deliveryFee: number;
+    estimatedDeliveryFee?: number | null;
+    isCalculatingFee?: boolean;
+    isLocalDeliveryEnabled?: boolean;
     storesBreakdown?: StoreShippingBreakdown[];
 }
 
@@ -14,6 +17,9 @@ export default function DeliverySection({
     selected,
     onSelect,
     deliveryFee,
+    estimatedDeliveryFee,
+    isCalculatingFee = false,
+    isLocalDeliveryEnabled = true,
     storesBreakdown = [],
 }: Props) {
     const isMultiStore = storesBreakdown.length > 1;
@@ -36,15 +42,22 @@ export default function DeliverySection({
                 {/* Local Delivery Option */}
                 <div
                     role="button"
-                    tabIndex={0}
+                    tabIndex={isLocalDeliveryEnabled ? 0 : -1}
+                    aria-disabled={!isLocalDeliveryEnabled}
                     onKeyDown={(e) => {
+                        if (!isLocalDeliveryEnabled) return;
                         if (e.key === "Enter") e.currentTarget.click();
                     }}
-                    onClick={() => onSelect("local_delivery")}
-                    className={`relative p-5 rounded-2xl border-2 cursor-pointer transition ${
-                        selected === "local_delivery"
-                            ? "border-brand-orange bg-brand-orange-soft"
-                            : "border-slate-100 hover:border-slate-200"
+                    onClick={() => {
+                        if (!isLocalDeliveryEnabled) return;
+                        onSelect("local_delivery");
+                    }}
+                    className={`relative p-5 rounded-2xl border-2 transition ${
+                        !isLocalDeliveryEnabled
+                            ? "border-slate-200 bg-slate-50/80 opacity-60 cursor-not-allowed select-none"
+                            : selected === "local_delivery"
+                            ? "border-brand-orange bg-brand-orange-soft cursor-pointer"
+                            : "border-slate-100 hover:border-slate-200 cursor-pointer"
                     }`}
                 >
                     <div className="flex justify-between items-start mb-2">
@@ -52,24 +65,50 @@ export default function DeliverySection({
                             <span className="font-bold text-sm text-gray-900">
                                 Kurir Toko (Lokal)
                             </span>
-                            <span className="text-[10px] font-bold bg-brand-orange-tint text-brand-orange px-2 py-0.5 rounded-full">
-                                DIANTAR
-                            </span>
+                            {isLocalDeliveryEnabled ? (
+                                <span className="text-[10px] font-bold bg-brand-orange-tint text-brand-orange px-2 py-0.5 rounded-full">
+                                    DIANTAR
+                                </span>
+                            ) : (
+                                <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                                    DINONAKTIFKAN
+                                </span>
+                            )}
                         </div>
-                        {selected === "local_delivery" && (
+                        {selected === "local_delivery" && isLocalDeliveryEnabled && (
                             <ShieldCheck className="w-5 h-5 text-brand-orange" />
                         )}
                     </div>
                     <p className="text-xs text-slate-500 mb-3">
-                        {isMultiStore
+                        {!isLocalDeliveryEnabled
+                            ? "Pengantaran kurir toko sedang dinonaktifkan sementara oleh admin"
+                            : isMultiStore
                             ? "Diantar langsung oleh masing-masing toko"
                             : "Diantar langsung oleh kurir toko"}
                     </p>
-                    <p className="font-bold text-sm text-brand-orange">
-                        {selected === "local_delivery"
-                            ? formatRupiah(deliveryFee)
-                            : "Dihitung otomatis"}
-                    </p>
+                    <div>
+                        {!isLocalDeliveryEnabled ? (
+                            <p className="font-semibold text-xs text-slate-400">
+                                Layanan tidak tersedia
+                            </p>
+                        ) : isCalculatingFee ? (
+                            <p className="font-semibold text-xs text-brand-orange animate-pulse">
+                                Menghitung tarif...
+                            </p>
+                        ) : estimatedDeliveryFee !== null && estimatedDeliveryFee !== undefined ? (
+                            <p className="font-bold text-sm text-brand-orange">
+                                {formatRupiah(estimatedDeliveryFee)}
+                            </p>
+                        ) : deliveryFee > 0 ? (
+                            <p className="font-bold text-sm text-brand-orange">
+                                {formatRupiah(deliveryFee)}
+                            </p>
+                        ) : (
+                            <p className="font-medium text-xs text-slate-400">
+                                Pilih alamat pengiriman
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 {/* Self Pickup Option */}
@@ -102,7 +141,7 @@ export default function DeliverySection({
             </div>
 
             {/* Per-Store Delivery Fee Breakdown (if multi-store and local delivery selected) */}
-            {selected === "local_delivery" && isMultiStore && (
+            {selected === "local_delivery" && isLocalDeliveryEnabled && isMultiStore && (
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2.5">
                     <p className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
                         <Store className="w-3.5 h-3.5 text-brand-blue" />

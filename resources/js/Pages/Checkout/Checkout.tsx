@@ -28,6 +28,8 @@ export default function Checkout({ initialCartItems, addresses, platformSettings
         processing,
         errors,
         deliveryFee,
+        estimatedDeliveryFee,
+        isCalculatingFee,
         storesBreakdown,
         serviceFee,
         taxAmount,
@@ -35,6 +37,7 @@ export default function Checkout({ initialCartItems, addresses, platformSettings
         enableServiceFee,
         enableTax,
         enableOnlinePayment,
+        enableLocalDelivery,
         isAddressPickerOpen,
         setIsAddressPickerOpen,
         applyAddress,
@@ -66,8 +69,16 @@ export default function Checkout({ initialCartItems, addresses, platformSettings
 
                         <DeliverySection
                             selected={data.delivery_method}
-                            onSelect={(val) => setData("delivery_method", val)}
+                            onSelect={(val) => {
+                                if (val === "local_delivery" && !enableLocalDelivery) {
+                                    return;
+                                }
+                                setData("delivery_method", val);
+                            }}
                             deliveryFee={deliveryFee}
+                            estimatedDeliveryFee={estimatedDeliveryFee}
+                            isCalculatingFee={isCalculatingFee}
+                            isLocalDeliveryEnabled={enableLocalDelivery}
                             storesBreakdown={storesBreakdown}
                         />
 
