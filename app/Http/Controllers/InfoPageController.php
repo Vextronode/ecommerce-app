@@ -14,4 +14,14 @@ class InfoPageController extends Controller
     {
         return Inertia::render('Storefront/About');
     }
+
+    /**
+     * Display the Merchant / Partner Registration Guide page.
+     */
+    public function merchantGuide(): Response
+    {
+        return Inertia::render('Storefront/MerchantGuide', [
+            'sidPortalUrl' => config('services.sid.portal_url', 'https://cibenda.desa.id'),
+        ]);
+    }
 }

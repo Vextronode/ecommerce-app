@@ -49,6 +49,37 @@ class AuthenticationTest extends TestCase
         $response = $this->actingAs($user)->post('/logout');
 
         $this->assertGuest();
+        $response->assertRedirect(route('dashboard'));
+    }
+
+    public function test_inertia_logout_returns_location_header_for_hard_redirect(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->withHeaders(['X-Inertia' => 'true'])
+            ->post('/logout');
+
+        $this->assertGuest();
+        $response->assertStatus(409);
+        $response->assertHeader('X-Inertia-Location', route('dashboard'));
+    }
+
+    public function test_authenticated_routes_have_no_store_cache_headers(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->get(route('profile.edit'));
+
+        $response->assertOk();
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+    }
+
+    public function test_unauthenticated_user_cannot_access_profile_settings(): void
+    {
+        $response = $this->get(route('profile.edit'));
+
         $response->assertRedirect(route('login'));
     }
 

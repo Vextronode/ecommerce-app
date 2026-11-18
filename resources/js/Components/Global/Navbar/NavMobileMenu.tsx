@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import { User as UserIcon } from "lucide-react";
+import { User as UserIcon, Store } from "lucide-react";
 import { User } from "@/types";
 import { platformNavLinks, isLinkActive, handleNavClick } from "@/utils/navigation";
 
@@ -41,7 +41,7 @@ export default function NavMobileMenu({
                 })}
             </div>
 
-            <div className="p-4 border-t border-gray-100">
+            <div className="p-4 border-t border-gray-100 space-y-2.5">
                 {user ? (
                     <Link
                         href={route("profile.edit")}
@@ -58,6 +58,16 @@ export default function NavMobileMenu({
                         style={{ backgroundColor: "#ED7218" }}
                     >
                         <UserIcon size={18} /> Login
+                    </Link>
+                )}
+
+                {!user && (
+                    <Link
+                        href={route("merchant.guide")}
+                        onClick={onClose}
+                        className="flex items-center justify-center gap-2 w-full py-2 bg-orange-50 text-brand-orange border border-brand-orange/20 rounded-lg text-xs font-bold hover:bg-orange-100 transition-colors"
+                    >
+                        <Store size={14} /> Panduan Mitra Pedagang
                     </Link>
                 )}
             </div>

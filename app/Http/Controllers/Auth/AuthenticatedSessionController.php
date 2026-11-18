@@ -59,7 +59,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $adminPrefix = config('admin.prefix', 'cibenda-portal');
         $user = Auth::user();
@@ -74,7 +74,7 @@ class AuthenticatedSessionController extends Controller
             || $request->is($adminPrefix.'/*')
             || str_contains((string) $request->headers->get('referer'), '/'.$adminPrefix);
 
-        $redirectTo = route('login');
+        $redirectTo = route('dashboard');
         if ($isMerchant) {
             $redirectTo = route('merchant.login.view');
         } elseif ($isAdmin && Route::has('admin.login.view')) {
@@ -91,6 +91,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect($redirectTo);
+        return Inertia::location($redirectTo);
     }
 }

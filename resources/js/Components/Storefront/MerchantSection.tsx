@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Link } from "@inertiajs/react";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, ArrowRight } from "lucide-react";
 
 export interface Store {
     id: number | string;
@@ -40,10 +40,22 @@ export default function MerchantSection({ stores = [] }: MerchantSectionProps) {
         <section id="merchants" className="w-full py-16 bg-white scroll-mt-28">
             <div className="w-full xl:max-w-360 2xl:max-w-400 mx-auto px-4 md:px-8">
                 {/* HEADER */}
-                <div className="mb-10">
-                    <h2 className="text-3xl md:text-[34px] font-extrabold text-brand-teal-deep tracking-tight">
-                        Belanja berdasarkan Toko
-                    </h2>
+                <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    <div>
+                        <h2 className="text-3xl md:text-[34px] font-extrabold text-brand-teal-deep tracking-tight">
+                            Belanja berdasarkan Toko
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Pilihan produk langsung dari mitra pedagang UMKM resmi Desa Cibenda
+                        </p>
+                    </div>
+                    <Link
+                        href={route("merchant.guide")}
+                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-orange hover:text-brand-orange-hover hover:underline shrink-0"
+                    >
+                        <span>Ingin Buka Toko? Pelajari Panduan Mitra</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </Link>
                 </div>
 
                 {/* GRID */}

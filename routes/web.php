@@ -56,6 +56,7 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
 // Public Storefront Browsing (Guest & User)
 Route::middleware(['storefront.user'])->group(function () {
     Route::get('/about', [\App\Http\Controllers\InfoPageController::class, 'about'])->name('about');
+    Route::get('/mitra', [\App\Http\Controllers\InfoPageController::class, 'merchantGuide'])->name('merchant.guide');
     Route::get('/shop', [ShopController::class, 'index'])->name('shop');
     Route::get('/product/{slug}', [ShopController::class, 'show'])->name('product.detail');
     Route::get('/store/{slug}', [ShopController::class, 'storeDetail'])->name('store.detail');
