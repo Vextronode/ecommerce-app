@@ -1,18 +1,20 @@
 import React from "react";
 import { formatRupiah } from "@/utils/formatters";
-import { Send, Sparkles } from "lucide-react";
+import { Send, Sparkles, AlertTriangle } from "lucide-react";
 import { useMerchantWithdrawals } from "@/Hooks/Merchant/useMerchantWithdrawals";
 
 interface WithdrawFormCardProps {
     availableBalance: number;
     hasBankAccount: boolean;
     onRequestEditBank: () => void;
+    isWithdrawalEnabled?: boolean;
 }
 
 export default function WithdrawFormCard({
     availableBalance,
     hasBankAccount,
     onRequestEditBank,
+    isWithdrawalEnabled = true,
 }: WithdrawFormCardProps) {
     const {
         data,
@@ -29,6 +31,7 @@ export default function WithdrawFormCard({
         availableBalance,
         hasBankAccount,
         onRequestEditBank,
+        isWithdrawalEnabled,
     });
 
     return (
@@ -45,6 +48,20 @@ export default function WithdrawFormCard({
                 </div>
             </div>
 
+            {!isWithdrawalEnabled && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                            Pencairan Saldo Dinonaktifkan Sementara
+                        </h4>
+                        <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                            Admin platform sedang melakukan pemeliharaan sistem pencairan dana. Anda dapat mengajukan penarikan kembali setelah layanan diaktifkan.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="field_withdrawal_amount" className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-2">
@@ -59,9 +76,10 @@ export default function WithdrawFormCard({
                             id="field_withdrawal_amount"
                             type="number"
                             placeholder="Contoh: 100000"
+                            disabled={!isWithdrawalEnabled}
                             value={data.amount}
                             onChange={(e) => setData("amount", e.target.value)}
-                            className="w-full px-4 py-3 bg-transparent border-none focus:outline-none focus:ring-0 font-extrabold text-gray-900 text-sm"
+                            className="w-full px-4 py-3 bg-transparent border-none focus:outline-none focus:ring-0 font-extrabold text-gray-900 text-sm disabled:text-gray-400 disabled:cursor-not-allowed"
                         />
                     </div>
                     {errors.amount && <p className="text-xs text-rose-500 mt-1 font-semibold">{errors.amount}</p>}
@@ -77,8 +95,9 @@ export default function WithdrawFormCard({
                             <button
                                 key={preset}
                                 type="button"
+                                disabled={!isWithdrawalEnabled}
                                 onClick={() => handleSelectPreset(preset)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border ${
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border disabled:opacity-50 disabled:cursor-not-allowed ${
                                     data.amount === preset.toString()
                                         ? "bg-brand-orange text-white border-brand-orange shadow-sm shadow-brand-orange/30"
                                         : "bg-brand-orange-soft hover:bg-brand-orange-tint text-brand-orange-dark border-brand-orange/20"
@@ -89,8 +108,9 @@ export default function WithdrawFormCard({
                         ))}
                         <button
                             type="button"
+                            disabled={!isWithdrawalEnabled}
                             onClick={handleSelectAll}
-                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-orange-tint hover:bg-brand-orange/20 text-brand-orange border border-brand-orange/30 transition inline-flex items-center gap-1"
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-orange-tint hover:bg-brand-orange/20 text-brand-orange border border-brand-orange/30 transition inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Sparkles className="w-3.5 h-3.5 text-brand-orange" />
                             Tarik Semua
@@ -110,11 +130,20 @@ export default function WithdrawFormCard({
 
                 <button
                     type="submit"
-                    disabled={processing || availableBalance < 10000}
+                    disabled={processing || availableBalance < 10000 || !isWithdrawalEnabled}
                     className="w-full py-3.5 bg-brand-orange hover:bg-brand-orange-hover disabled:opacity-50 text-white font-bold rounded-xl shadow-md shadow-brand-orange/30 transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer disabled:cursor-not-allowed"
                 >
-                    <Send className="w-4 h-4" />
-                    Proses Penarikan Dana
+                    {isWithdrawalEnabled ? (
+                        <>
+                            <Send className="w-4 h-4" />
+                            Proses Penarikan Dana
+                        </>
+                    ) : (
+                        <>
+                            <AlertTriangle className="w-4 h-4" />
+                            Penarikan Dinonaktifkan Sementara
+                        </>
+                    )}
                 </button>
             </form>
         </div>

@@ -9,6 +9,7 @@ use App\Models\Cart;
 use App\Models\ChatMessage;
 use App\Models\ChatNegotiation;
 use App\Models\ChatRoom;
+use App\Models\PlatformSetting;
 use App\Models\Product;
 use App\Models\ProductSku;
 use App\Notifications\PushNotification;
@@ -23,6 +24,10 @@ class NegotiationController extends Controller
 {
     public function store(Request $request, ChatRoom $room): JsonResponse
     {
+        if (! PlatformSetting::isEnabled('enable_negotiation', true)) {
+            return response()->json(['message' => 'Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin platform.'], 403);
+        }
+
         $userId = Auth::id();
         if ((int) $room->user_id !== (int) $userId) {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -188,6 +193,10 @@ class NegotiationController extends Controller
 
     public function acceptCounter(ChatNegotiation $negotiation): JsonResponse
     {
+        if (! PlatformSetting::isEnabled('enable_negotiation', true)) {
+            return response()->json(['message' => 'Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin platform.'], 403);
+        }
+
         $userId = Auth::id();
         if ((int) $negotiation->user_id !== (int) $userId) {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -325,6 +334,10 @@ class NegotiationController extends Controller
 
     public function checkout(ChatNegotiation $negotiation): JsonResponse
     {
+        if (! PlatformSetting::isEnabled('enable_negotiation', true)) {
+            return response()->json(['message' => 'Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin platform.'], 403);
+        }
+
         $userId = Auth::id();
         if ((int) $negotiation->user_id !== (int) $userId) {
             return response()->json(['message' => 'Unauthorized'], 403);

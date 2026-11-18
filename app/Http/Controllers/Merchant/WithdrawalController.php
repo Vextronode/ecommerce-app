@@ -60,6 +60,7 @@ class WithdrawalController extends Controller
                 'total_withdrawn' => $totalWithdrawn,
                 'total_earnings' => $totalEarnings,
             ],
+            'isWithdrawalEnabled' => \App\Models\PlatformSetting::isEnabled('enable_withdrawal', true),
         ]);
     }
 
@@ -140,6 +141,12 @@ class WithdrawalController extends Controller
 
         if (! $store) {
             return back()->with('error', 'Toko tidak ditemukan.');
+        }
+
+        if (! \App\Models\PlatformSetting::isEnabled('enable_withdrawal', true)) {
+            throw ValidationException::withMessages([
+                'amount' => 'Layanan penarikan saldo pedagang sedang dinonaktifkan sementara oleh admin.',
+            ]);
         }
 
         if (! $store->bank_name || ! $store->bank_account_number || ! $store->bank_account_holder) {

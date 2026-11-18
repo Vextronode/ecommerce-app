@@ -125,6 +125,12 @@ class HandleInertiaRequests extends Middleware
                 'total_count' => Cart::where('user_id', $request->user()->id)->count(),
             ] : null,
             'global_categories' => fn () => Category::select('id', 'name', 'slug')->get(),
+            'platform_settings' => fn () => [
+                'enable_negotiation' => \App\Models\PlatformSetting::isEnabled('enable_negotiation', true),
+                'enable_online_payment' => \App\Models\PlatformSetting::isEnabled('enable_online_payment', true),
+                'enable_local_delivery' => \App\Models\PlatformSetting::isEnabled('enable_local_delivery', true),
+                'enable_withdrawal' => \App\Models\PlatformSetting::isEnabled('enable_withdrawal', true),
+            ],
         ];
     }
 }

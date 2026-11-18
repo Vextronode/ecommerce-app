@@ -7,6 +7,7 @@ use App\Events\NewChatMessageEvent;
 use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use App\Models\ChatNegotiation;
+use App\Models\PlatformSetting;
 use App\Notifications\PushNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,10 @@ class NegotiationController extends Controller
 {
     public function accept(ChatNegotiation $negotiation): JsonResponse
     {
+        if (! PlatformSetting::isEnabled('enable_negotiation', true)) {
+            return response()->json(['message' => 'Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin platform.'], 403);
+        }
+
         $user = Auth::user();
         $store = $user->store;
 
@@ -185,6 +190,10 @@ class NegotiationController extends Controller
 
     public function counter(Request $request, ChatNegotiation $negotiation): JsonResponse
     {
+        if (! PlatformSetting::isEnabled('enable_negotiation', true)) {
+            return response()->json(['message' => 'Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin platform.'], 403);
+        }
+
         $user = Auth::user();
         $store = $user->store;
 

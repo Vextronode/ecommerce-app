@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { usePage } from "@inertiajs/react";
 import { BuyerChatRoomItem, ChatMessageItem, ProductAttachment, NegotiationItem } from "@/types/chat";
 import ChatProductCard from "./ChatProductCard";
 import ChatNegotiationCard from "./ChatNegotiationCard";
@@ -64,6 +65,42 @@ export default function StorefrontChatActiveRoom({
     const [fileType, setFileType] = useState<"image" | "video" | null>(null);
     const [activeLightboxMedia, setActiveLightboxMedia] = useState<string | null>(null);
     const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+
+    const { platform_settings } = usePage().props as any;
+    const [isNegotiationEnabled, setIsNegotiationEnabled] = useState<boolean>(
+        platform_settings?.enable_negotiation ?? true
+    );
+
+    useEffect(() => {
+        if (typeof platform_settings?.enable_negotiation !== "undefined") {
+            setIsNegotiationEnabled(Boolean(platform_settings.enable_negotiation));
+        }
+    }, [platform_settings?.enable_negotiation]);
+
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel("platform-settings");
+        const handleSettingsUpdated = (e: {
+            settings?: Record<string, any>;
+            changed_keys?: string[];
+        }) => {
+            if (e?.settings && typeof e.settings.enable_negotiation !== "undefined") {
+                const enabled = Boolean(e.settings.enable_negotiation);
+                setIsNegotiationEnabled(enabled);
+                if (!enabled) {
+                    setIsOfferModalOpen(false);
+                }
+            }
+        };
+
+        channel.listen(".PlatformSettingsUpdated", handleSettingsUpdated);
+        channel.listen("PlatformSettingsUpdated", handleSettingsUpdated);
+
+        return () => {
+            window.Echo.leaveChannel("platform-settings");
+        };
+    }, []);
 
     const isStoreOnline = storeLiveStatus ? storeLiveStatus.is_online : room.store?.is_online;
     const storeLastSeen = storeLiveStatus ? storeLiveStatus.last_seen : room.store?.last_seen;
@@ -237,15 +274,17 @@ export default function StorefrontChatActiveRoom({
                     </div>
 
                     <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
-                        <button
-                            type="button"
-                            onClick={() => setIsOfferModalOpen(true)}
-                            disabled={isSending}
-                            className="px-2.5 py-1 text-[11px] bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full font-bold hover:from-orange-600 hover:to-amber-600 transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-1"
-                        >
-                            <Tag className="w-3 h-3" />
-                            Tawar Produk
-                        </button>
+                        {isNegotiationEnabled && (
+                            <button
+                                type="button"
+                                onClick={() => setIsOfferModalOpen(true)}
+                                disabled={isSending}
+                                className="px-2.5 py-1 text-[11px] bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full font-bold hover:from-orange-600 hover:to-amber-600 transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-1"
+                            >
+                                <Tag className="w-3 h-3" />
+                                Tawar Produk
+                            </button>
+                        )}
                         <button
                             type="button"
                             onClick={() => handleQuickInquiry("Halo kak, apakah produk ini masih tersedia?")}

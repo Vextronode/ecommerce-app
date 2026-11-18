@@ -110,6 +110,22 @@ class PlatformSetting extends Model
     }
 
     /**
+     * Retrieve all platform settings as an associative key-value array with caching.
+     *
+     * @return array<string, mixed>
+     */
+    public static function getAll(): array
+    {
+        return Cache::rememberForever('platform_settings_all', function () {
+            return static::all()
+                ->mapWithKeys(function (self $setting) {
+                    return [$setting->key => $setting->typed_value];
+                })
+                ->toArray();
+        });
+    }
+
+    /**
      * Cast string database value into native PHP typed value.
      */
     public function castValue(?string $val, ?string $type): mixed

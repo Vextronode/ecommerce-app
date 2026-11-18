@@ -6,6 +6,7 @@ interface UseMerchantWithdrawalsOptions {
     availableBalance: number;
     hasBankAccount: boolean;
     onRequestEditBank: () => void;
+    isWithdrawalEnabled?: boolean;
 }
 
 const presetAmounts = [50000, 100000, 250000, 500000];
@@ -14,12 +15,14 @@ export function useMerchantWithdrawals({
     availableBalance,
     hasBankAccount,
     onRequestEditBank,
+    isWithdrawalEnabled = true,
 }: UseMerchantWithdrawalsOptions) {
     const { data, setData, post, processing, errors, reset } = useForm({
         amount: "",
     });
 
     const handleSelectPreset = (amount: number) => {
+        if (!isWithdrawalEnabled) return;
         if (amount > availableBalance) {
             toast.error("Nominal melebihi saldo yang tersedia.", { id: 'withdrawal-toast' });
             return;
@@ -28,6 +31,7 @@ export function useMerchantWithdrawals({
     };
 
     const handleSelectAll = () => {
+        if (!isWithdrawalEnabled) return;
         if (availableBalance < 10000) {
             toast.error("Minimal penarikan adalah Rp 10.000", { id: 'withdrawal-toast' });
             return;
@@ -37,6 +41,10 @@ export function useMerchantWithdrawals({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!isWithdrawalEnabled) {
+            toast.error("Layanan penarikan saldo sedang dinonaktifkan sementara oleh admin.", { id: 'withdrawal-toast' });
+            return;
+        }
         if (!hasBankAccount) {
             toast.error("Silakan lengkapi data rekening bank terlebih dahulu.", { id: 'withdrawal-toast' });
             onRequestEditBank();

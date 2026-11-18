@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\PlatformSettingsUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\PlatformSetting;
 use Illuminate\Http\RedirectResponse;
@@ -41,6 +42,8 @@ class PlatformSettingController extends Controller
             'settings.*.value' => ['nullable'],
         ]);
 
+        $oldSettings = PlatformSetting::getAll();
+
         foreach ($validated['settings'] as $item) {
             $key = $item['key'];
             $value = $item['value'] ?? null;
@@ -58,6 +61,20 @@ class PlatformSettingController extends Controller
             }
 
             PlatformSetting::set($key, $value);
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('platform_settings_all');
+        $allSettings = PlatformSetting::getAll();
+
+        $changedKeys = [];
+        foreach ($allSettings as $key => $val) {
+            if (! array_key_exists($key, $oldSettings) || $oldSettings[$key] !== $val) {
+                $changedKeys[] = $key;
+            }
+        }
+
+        if (! empty($changedKeys)) {
+            broadcast(new PlatformSettingsUpdated($allSettings, $changedKeys));
         }
 
         return back()->with('success', 'Pengaturan platform berhasil diperbarui.');

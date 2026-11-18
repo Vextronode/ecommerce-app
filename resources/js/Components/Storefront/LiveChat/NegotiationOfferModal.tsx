@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { usePage } from "@inertiajs/react";
 import { ProductAttachment } from "@/types/chat";
 import {
     X,
@@ -122,9 +123,18 @@ export default function NegotiationOfferModal({
         setQuantityInput(String(next));
     };
 
+    const { platform_settings } = usePage().props as any;
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg(null);
+
+        if (platform_settings?.enable_negotiation === false) {
+            const msg = "Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin.";
+            setErrorMsg(msg);
+            toast.error(msg);
+            return;
+        }
 
         if (!numericPrice || numericPrice <= 0) {
             setErrorMsg("Silakan masukkan nominal harga tawaran yang valid.");
