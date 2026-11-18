@@ -29,4 +29,24 @@ class LegalPagesTest extends TestCase
                 ->component('Legal/RefundPolicy')
             );
     }
+
+    public function test_can_view_terms_and_conditions_page(): void
+    {
+        $response = $this->get(route('legal.terms'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Legal/TermsAndConditions')
+            );
+    }
+
+    public function test_can_view_prohibited_products_page(): void
+    {
+        $response = $this->get(route('legal.prohibited-products'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Legal/ProhibitedProducts')
+            );
+    }
 }

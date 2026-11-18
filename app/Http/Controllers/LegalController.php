@@ -16,4 +16,14 @@ class LegalController extends Controller
     {
         return Inertia::render('Legal/RefundPolicy');
     }
+
+    public function termsAndConditions(): Response
+    {
+        return Inertia::render('Legal/TermsAndConditions');
+    }
+
+    public function prohibitedProducts(): Response
+    {
+        return Inertia::render('Legal/ProhibitedProducts');
+    }
 }

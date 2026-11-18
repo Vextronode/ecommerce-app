@@ -1,6 +1,7 @@
 import React from "react";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
+import { AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 import ProductPreview, {
@@ -69,7 +70,7 @@ export default function Create({ categories }: Props) {
         <MerchantLayout>
             <Head title="Tambah Produk" />
 
-            <div id="tour-product-create-header" className="flex justify-between items-center mb-8">
+            <div id="tour-product-create-header" className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-extrabold text-brand-orange">
                         Tambah Produk
@@ -77,6 +78,21 @@ export default function Create({ categories }: Props) {
                     <p className="text-gray-500 mt-1 text-sm">
                         Tambahkan produk yang akan dijual disini
                     </p>
+                </div>
+            </div>
+
+            <div className="mb-6 p-4 bg-amber-50/80 border border-amber-200/80 rounded-2xl flex items-start gap-3 text-xs text-amber-900">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                    <span className="font-bold">Pedoman Kepatuhan Produk:</span> Pastikan produk Anda tidak melanggar{" "}
+                    <Link
+                        href={route("legal.prohibited-products")}
+                        target="_blank"
+                        className="font-bold underline text-amber-950 hover:text-brand-orange"
+                    >
+                        Daftar Produk Terlarang & Dibatasi
+                    </Link>
+                    . Produk olahan pangan wajib memiliki izin edar (SPP-IRT/BPOM) dan dilarang mengklaim label Halal tanpa sertifikasi resmi BPJPH.
                 </div>
             </div>
 
