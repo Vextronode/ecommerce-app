@@ -14,6 +14,7 @@ import {
     Truck,
     Percent,
     CheckCircle2,
+    Info,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -162,7 +163,7 @@ export default function SettingsIndex({ settings }: Props) {
                                             Pajak Pertambahan Nilai (PPN)
                                         </h2>
                                         <p className="text-xs text-gray-500 mt-0.5">
-                                            Bebankan PPN pada subtotal transaksi pembeli.
+                                            Status operasional pemungutan pajak platform.
                                         </p>
                                     </div>
                                 </div>
@@ -185,7 +186,7 @@ export default function SettingsIndex({ settings }: Props) {
                                 </button>
                             </div>
 
-                            <div className="pt-4 border-t border-gray-100 space-y-2">
+                            <div className="pt-4 border-t border-gray-100 space-y-3">
                                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
                                     Persentase Pajak (%)
                                 </label>
@@ -208,11 +209,22 @@ export default function SettingsIndex({ settings }: Props) {
                                         %
                                     </div>
                                 </div>
-                                <p className="text-xs text-gray-400">
-                                    {formData["enable_tax"]
-                                        ? "Pajak akan otomatis ditambahkan ke total tagihan saat pembeli checkout."
-                                        : "Pajak saat ini berstatus nonaktif (tidak dibebankan ke pembeli)."}
-                                </p>
+
+                                {formData["enable_tax"] ? (
+                                    <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl flex items-start gap-2.5 text-xs text-amber-800">
+                                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                        <span>
+                                            <strong>Peringatan Regulasi:</strong> Pajak atas barang adalah kewajiban pedagang berstatus PKP (sudah termasuk dalam harga produk). Jangan aktifkan penambahan pajak pada checkout pembeli tanpa dasar surat penunjukan DJP.
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-start gap-2.5 text-xs text-slate-600">
+                                        <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                                        <span>
+                                            Sesuai Business Workflow Pajak, platform beroperasi di <strong>Mode 0</strong> (tanpa pungutan pajak ke pembeli) selama belum ada surat pengukuhan PKP atau penunjukan resmi DJP.
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -228,7 +240,7 @@ export default function SettingsIndex({ settings }: Props) {
                                             Biaya Layanan Platform (Admin Fee)
                                         </h2>
                                         <p className="text-xs text-gray-500 mt-0.5">
-                                            Biaya tetap (flat) per transaksi untuk kas BUMDes.
+                                            Biaya tetap (flat) per transaksi untuk kas operasional Pemerintah Desa Cibenda.
                                         </p>
                                     </div>
                                 </div>

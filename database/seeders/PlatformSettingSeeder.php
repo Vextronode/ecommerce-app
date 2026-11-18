@@ -19,7 +19,7 @@ class PlatformSettingSeeder extends Seeder
                 'type' => PlatformSetting::TYPE_BOOLEAN,
                 'group' => PlatformSetting::GROUP_FINANCE,
                 'label' => 'Aktifkan Pajak (PPN)',
-                'description' => 'Menghitung dan membebankan pajak PPN pada saat pembeli melakukan checkout.',
+                'description' => 'Status pungutan pajak platform. Wajib nonaktif (Mode 0: Tanpa Pajak) selama belum ada penetapan resmi PKP atau penunjukan DJP.',
             ],
             [
                 'key' => 'tax_percentage',
@@ -27,7 +27,7 @@ class PlatformSettingSeeder extends Seeder
                 'type' => PlatformSetting::TYPE_NUMBER,
                 'group' => PlatformSetting::GROUP_FINANCE,
                 'label' => 'Persentase Pajak PPN (%)',
-                'description' => 'Besaran persentase pajak PPN yang dikenakan pada subtotal produk pesanan.',
+                'description' => 'Besaran persentase tarif pajak efektif sesuai ketentuan regulasi perpajakan yang berlaku.',
             ],
             [
                 'key' => 'enable_service_fee',
@@ -43,7 +43,7 @@ class PlatformSettingSeeder extends Seeder
                 'type' => PlatformSetting::TYPE_NUMBER,
                 'group' => PlatformSetting::GROUP_FINANCE,
                 'label' => 'Nominal Biaya Layanan (Rp)',
-                'description' => 'Nominal tetap (flat) biaya penanganan per transaksi untuk kas pemeliharaan BUMDes Cibenda.',
+                'description' => 'Nominal tetap (flat) biaya penanganan per transaksi untuk kas operasional Pemerintah Desa Cibenda.',
             ],
             [
                 'key' => 'enable_online_payment',

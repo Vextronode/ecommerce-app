@@ -64,6 +64,8 @@ Route::middleware(['storefront.user'])->group(function () {
     Route::get('/store/{slug}', [ShopController::class, 'storeDetail'])->name('store.detail');
     Route::get('/kebijakan/perjanjian-mitra', [LegalController::class, 'merchantAgreement'])->name('legal.merchant-agreement');
     Route::get('/kebijakan/refund', [LegalController::class, 'refundPolicy'])->name('legal.refund');
+    Route::get('/kebijakan/syarat-ketentuan', [LegalController::class, 'termsAndConditions'])->name('legal.terms');
+    Route::get('/kebijakan/produk-terlarang', [LegalController::class, 'prohibitedProducts'])->name('legal.prohibited-products');
 });
 
 // Protected Storefront Actions (Requires Login & Role User)

@@ -47,6 +47,22 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
+                                    href={route("legal.terms")}
+                                    className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
+                                >
+                                    Syarat dan Ketentuan
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href={route("legal.prohibited-products")}
+                                    className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
+                                >
+                                    Daftar Produk Terlarang
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
                                     href={route("legal.merchant-agreement")}
                                     className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
                                 >
