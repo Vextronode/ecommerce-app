@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import toast from "react-hot-toast";
 import MerchantLayout from "@/Layouts/MerchantLayout";
@@ -40,10 +40,19 @@ interface Props {
         total_withdrawn: number;
         total_earnings: number;
     };
+    isWithdrawalEnabled?: boolean;
 }
 
-export default function Index({ store, withdrawals, stats }: Props) {
+export default function Index({ store, withdrawals, stats, isWithdrawalEnabled = true }: Props) {
     const isNetworkLoading = useInertiaNetworkLoading();
+    const [withdrawalAvailable, setWithdrawalAvailable] = useState<boolean>(isWithdrawalEnabled);
+
+    useEffect(() => {
+        if (typeof isWithdrawalEnabled !== "undefined") {
+            setWithdrawalAvailable(isWithdrawalEnabled);
+        }
+    }, [isWithdrawalEnabled]);
+
     const hasBankAccount = Boolean(
         store.bank_name && store.bank_account_number && store.bank_account_holder
     );
@@ -91,6 +100,45 @@ export default function Index({ store, withdrawals, stats }: Props) {
         };
     }, [store?.id]);
 
+    // Real-time synchronization of emergency withdrawal killswitch
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.Echo) return;
+
+        const settingsChannel = window.Echo.channel("platform-settings");
+
+        const handleSettingsUpdated = (e: { settings?: Record<string, any>; changed_keys?: string[] }) => {
+            const changedKeys = Array.isArray(e?.changed_keys) ? e.changed_keys : [];
+            const keyChanged = changedKeys.length === 0 || changedKeys.includes("enable_withdrawal");
+
+            if (keyChanged && e?.settings && typeof e.settings.enable_withdrawal !== "undefined") {
+                const enabled = Boolean(e.settings.enable_withdrawal);
+                setWithdrawalAvailable((prev) => {
+                    if (prev !== enabled) {
+                        if (!enabled) {
+                            toast.error(
+                                "Layanan penarikan saldo pedagang dinonaktifkan sementara oleh admin.",
+                                { id: "wd-killswitch-toast", duration: 5000 }
+                            );
+                        } else {
+                            toast.success(
+                                "Layanan penarikan saldo pedagang telah aktif kembali.",
+                                { id: "wd-killswitch-toast", duration: 4000 }
+                            );
+                        }
+                    }
+                    return enabled;
+                });
+            }
+        };
+
+        settingsChannel.listen(".PlatformSettingsUpdated", handleSettingsUpdated);
+        settingsChannel.listen("PlatformSettingsUpdated", handleSettingsUpdated);
+
+        return () => {
+            window.Echo.leaveChannel("platform-settings");
+        };
+    }, []);
+
     return (
         <MerchantLayout>
             <Head title="Penarikan Saldo Toko - Cibenda Mart" />
@@ -122,6 +170,7 @@ export default function Index({ store, withdrawals, stats }: Props) {
                                 availableBalance={stats.available_balance}
                                 hasBankAccount={hasBankAccount}
                                 onRequestEditBank={handleRequestEditBank}
+                                isWithdrawalEnabled={withdrawalAvailable}
                             />
                         </div>
 
