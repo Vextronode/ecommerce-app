@@ -142,11 +142,11 @@ export default function RefundPolicy() {
                                         Bagian 5
                                     </span>
                                     <h2 className="text-lg font-bold text-slate-900">
-                                        Penyelesaian Sengketa (Arbitrasi BUMDes)
+                                        Penyelesaian Sengketa (Mediasi Pemerintah Desa Cibenda)
                                     </h2>
                                 </div>
                                 <p className="text-slate-600">
-                                    Apabila terjadi perselisihan pendapat antara pembeli dan pedagang mengenai kondisi barang atau klaim refund, Admin Pusat CibendaMart dari BUMDes Desa Cibenda akan bertindak sebagai mediator resmi yang memeriksa bukti transaksi secara objektif. Keputusan yang diambil oleh pihak Admin BUMDes bersifat mengikat bagi kedua belah pihak.
+                                    Apabila terjadi perselisihan pendapat antara pembeli dan pedagang mengenai kondisi barang atau klaim refund, Pengelola CibendaMart dari Pemerintah Desa Cibenda akan bertindak sebagai mediator resmi yang memeriksa bukti transaksi secara objektif. Keputusan yang diambil oleh pihak Pengelola Pemerintah Desa Cibenda bersifat mengikat bagi kedua belah pihak.
                                 </p>
                             </section>
                         </div>

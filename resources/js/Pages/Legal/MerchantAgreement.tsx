@@ -34,7 +34,7 @@ export default function MerchantAgreement() {
                                 </div>
                                 <div>
                                     <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                        Pemerintah Desa Cibenda & BUMDes
+                                        Pemerintah Desa Cibenda
                                     </span>
                                     <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                                         Perjanjian Kemitraan Pedagang CibendaMart
@@ -42,7 +42,7 @@ export default function MerchantAgreement() {
                                 </div>
                             </div>
                             <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                                Dokumen ini mengatur hak, kewajiban, standar operasional, dan pedoman kemitraan antara pengelola platform CibendaMart (BUMDes Desa Cibenda, Kec. Parigi, Kab. Pangandaran) dengan pelaku usaha atau pedagang lokal yang membuka toko di platform.
+                                Dokumen ini mengatur hak, kewajiban, standar operasional, dan pedoman kemitraan antara pengelola platform CibendaMart (Pemerintah Desa Cibenda, Kec. Parigi, Kab. Pangandaran) dengan pelaku usaha atau pedagang lokal yang membuka toko di platform.
                             </p>
                         </div>
 
@@ -129,7 +129,7 @@ export default function MerchantAgreement() {
                                 </div>
                                 <ul className="list-disc pl-5 space-y-2 text-slate-600">
                                     <li>
-                                        Platform CibendaMart beroperasi dengan skema bagi hasil/biaya layanan yang ditetapkan secara transparan oleh pengurus BUMDes untuk pemeliharaan server, operasional kurir lokal, dan kas pembangunan desa.
+                                        Platform CibendaMart beroperasi dengan skema bagi hasil/biaya layanan yang ditetapkan secara transparan oleh Pemerintah Desa Cibenda untuk pemeliharaan server, operasional kurir lokal, dan kas pembangunan desa.
                                     </li>
                                     <li>
                                         Besaran pajak dan biaya layanan dikelola terpusat melalui panel pengaturan platform resmi dan dipotong/ditambahkan secara otomatis saat transaksi terjadi.
