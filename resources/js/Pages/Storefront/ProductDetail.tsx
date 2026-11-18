@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { formatRupiah, formatNumberId, formatNumberEn } from "@/utils/formatters";
-import { Head, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import mainImage from "@/assets/images/kakap.png";
+import SEOHead from "@/Components/Global/SEOHead";
 
 import ProductActions from "@/Components/Storefront/ProductDetail/ProductActions";
 import DeliveryBanner from "@/Components/Storefront/ProductDetail/DeliveryBanner";
@@ -160,10 +161,40 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         image: p.image_path || mainImage,
     }));
 
+    const plainDescription = product.description
+        ? product.description.replace(/<[^>]+>/g, "").trim().slice(0, 160)
+        : `Beli ${product.name} terverifikasi asli dari UMKM Desa Cibenda, Parigi, Pangandaran di CibendaMart.`;
+
+    const primaryImage = product.images?.[0]?.image_path || product.image_path || mainImage;
+
+    const productSchema = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.name,
+        image: primaryImage,
+        description: plainDescription,
+        offers: {
+            "@type": "Offer",
+            priceCurrency: "IDR",
+            price: Number(product.price) || 0,
+            availability: (product.stock ?? 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            seller: {
+                "@type": "Organization",
+                name: product.store?.name || "CibendaMart",
+            },
+        },
+    };
+
     if (isNetworkLoading) {
         return (
             <StorefrontLayout>
-                <Head title={`${formattedProduct.name} - Cibenda Mart`} />
+                <SEOHead
+                    title={`${formattedProduct.name} - Cibenda Mart`}
+                    description={plainDescription}
+                    image={primaryImage}
+                    type="product"
+                    jsonLd={productSchema}
+                />
                 <ProductDetailPageSkeleton />
             </StorefrontLayout>
         );
@@ -171,7 +202,13 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
 
     return (
         <StorefrontLayout>
-            <Head title={`${formattedProduct.name} - Cibenda Mart`} />
+            <SEOHead
+                title={`${formattedProduct.name} - Cibenda Mart`}
+                description={plainDescription}
+                image={primaryImage}
+                type="product"
+                jsonLd={productSchema}
+            />
 
             <div className="min-h-screen bg-brand-cyan-soft px-4 pb-8 pt-28 font-sans md:px-8 md:pb-10 md:pt-36">
                 <div className="mx-auto max-w-6xl rounded-[2.5rem] bg-white/90 p-5 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 lg:p-10 mb-16">

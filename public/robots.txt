@@ -1,6 +1,8 @@
 User-agent: *
+Allow: /
 Disallow: /tracker/
 Disallow: /pedagang/
+Disallow: /cibenda-portal/
 Disallow: /checkout/
 Disallow: /payment/
 Disallow: /history/
@@ -8,3 +10,5 @@ Disallow: /profile/
 Disallow: /cart/
 Disallow: /chat/
 Disallow: /api/
+
+Sitemap: https://cimart.cibenda.desa.id/sitemap.xml

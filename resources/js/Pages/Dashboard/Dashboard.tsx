@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Head, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
+import SEOHead from "@/Components/Global/SEOHead";
 import HeroSection from "@/Components/Storefront/HeroSection";
 import DailyTopProducts from "@/Components/Storefront/DailyTopProducts";
 import ExploreProducts from "@/Components/Storefront/ExploreProducts";
@@ -75,9 +76,41 @@ export default function Dashboard({ categories, featuredProducts, stores = EMPTY
             "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400",
     }));
 
+    const homeSchema = [
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "CibendaMart",
+            url: typeof window !== "undefined" ? window.location.origin : "https://cimart.cibenda.desa.id",
+            description: "Platform e-commerce resmi Desa Cibenda, Parigi, Pangandaran. Belanja produk UMKM lokal, oleh-oleh pesisir, dan kuliner terverifikasi.",
+            potentialAction: {
+                "@type": "SearchAction",
+                target: `${typeof window !== "undefined" ? window.location.origin : "https://cimart.cibenda.desa.id"}/shop?search={search_term_string}`,
+                "query-input": "required name=search_term_string",
+            },
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "CibendaMart",
+            url: typeof window !== "undefined" ? window.location.origin : "https://cimart.cibenda.desa.id",
+            logo: `${typeof window !== "undefined" ? window.location.origin : "https://cimart.cibenda.desa.id"}/favicon.png`,
+            address: {
+                "@type": "PostalAddress",
+                addressLocality: "Desa Cibenda, Kecamatan Parigi",
+                addressRegion: "Kabupaten Pangandaran, Jawa Barat",
+                addressCountry: "ID",
+            },
+        },
+    ];
+
     return (
         <StorefrontLayout>
-            <Head title="Home - Cibenda Mart" />
+            <SEOHead
+                title="Cibenda Mart - Belanja Produk UMKM & Oleh-oleh Khas Pangandaran"
+                description="Pusat belanja online resmi UMKM Desa Cibenda, Parigi, Pangandaran. Temukan produk lokal berkualitas, kuliner khas pesisir, dan kerajinan warga terverifikasi."
+                jsonLd={homeSchema}
+            />
 
             {isNetworkLoading ? (
                 <DashboardPageSkeleton />
