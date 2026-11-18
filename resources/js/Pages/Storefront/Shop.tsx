@@ -199,7 +199,7 @@ export default function Shop({
 
                     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-100 pb-5">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#13005E] tracking-tight">
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-teal-deep tracking-tight">
                                 {searchQuery ? (
                                     <span>
                                         Hasil Pencarian: <span className="text-brand-orange">"{searchQuery}"</span>

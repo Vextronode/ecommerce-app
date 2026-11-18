@@ -25,7 +25,7 @@ export default function NavCartPreview({ cartCount = 0, cartPreview }: NavCartPr
             >
                 <ShoppingCart size={22} strokeWidth={2} />
                 {count > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold min-w-4 h-4 px-1 flex items-center justify-center rounded-full leading-none border border-[#F8F9FA]">
+                    <span className="absolute -top-0.5 -right-0.5 bg-brand-danger text-white text-[10px] font-bold min-w-4 h-4 px-1 flex items-center justify-center rounded-full leading-none border border-bg-main">
                         {count > 99 ? "99+" : count}
                     </span>
                 )}

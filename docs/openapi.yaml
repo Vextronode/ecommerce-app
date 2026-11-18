@@ -1,0 +1,678 @@
+openapi: 3.0.3
+
+info:
+  title: SIDUTama Integration API (Cimart)
+  version: "1.0.0"
+  description: |
+    Kontrak API integrasi SIDUTama untuk aplikasi pihak ketiga Cimart.
+    Konteks, alur pendaftaran pedagang, dan kewajiban Cimart dijelaskan di
+    `../sid-thirdparty.md`.
+
+    **Status:** disepakati, belum diimplementasikan (2026-11-12). Setelah
+    implementasi, bila spec dan source berbeda, source yang berlaku dan spec
+    ini diperbarui.
+
+    ## Alur singkat
+
+    1. Warga mendaftar sebagai pedagang Cimart dari SID (opt-in di form SKU
+       atau tombol di halaman Usaha Saya). SID membuat permohonan `pending`.
+    2. Cimart mengambil permohonan `pending` secara berkala lewat
+       `GET /seller-applications`.
+    3. Admin Cimart memproses permohonan, lalu Cimart melaporkan hasilnya
+       lewat `PATCH /seller-applications/{business_ref}`. Akun pedagang baru
+       di-commit setelah `PATCH accepted` dijawab `200`.
+
+    Cimart hanya bisa melihat usaha yang didaftarkan warga ke Cimart. Usaha
+    lain yang tercatat di SID tidak pernah dikembalikan.
+
+    ## Pembatalan oleh warga
+
+    Selama permohonan `pending`, warga boleh membatalkannya di SID. Setelah
+    dibatalkan, permohonan hilang dari daftar, dan endpoint detail serta
+    `PATCH` menjawab `410 application_cancelled` tanpa data pribadi.
+
+    Cimart mendeteksi pembatalan dengan mengambil **seluruh** daftar
+    `pending` (tanpa `since`) setiap sinkronisasi. Request `pending` di
+    Cimart yang tidak ada lagi di daftar diperiksa lewat endpoint detail:
+    `410` berarti dibatalkan, sehingga Cimart menghapus data pribadinya.
+    Warga boleh mendaftar lagi; permohonan muncul kembali sebagai `pending`
+    dengan `business_ref` yang sama.
+
+    ## Autentikasi
+
+    Bearer token per aplikasi (Laravel Sanctum personal access token milik
+    client integrasi, bukan milik user SID). Token diterbitkan, dinonaktifkan,
+    dan diganti hanya dari SID, dan ditampilkan sekali saat terbit. Kirim
+    string token utuh apa adanya:
+
+    ```
+    Authorization: Bearer <token>
+    Accept: application/json
+    ```
+
+    Hak akses token ditentukan oleh abilities:
+
+    | Ability | Endpoint |
+    |---|---|
+    | (semua token aktif) | `GET /ping` |
+    | `seller-applications:read` | `GET /seller-applications`, `GET /seller-applications/{business_ref}` |
+    | `seller-applications:update` | `PATCH /seller-applications/{business_ref}` |
+
+    ## Error
+
+    Klien menggunakan HTTP status dan field `code`, bukan isi `message`
+    (bahasa Indonesia, bisa berubah).
+
+    | HTTP | `code` | Arti |
+    |---|---|---|
+    | 401 | - | Token tidak ada, salah, atau sudah dicabut |
+    | 403 | `integration_disabled` | Client dinonaktifkan oleh SID |
+    | 403 | `ability_forbidden` | Token tidak punya ability untuk endpoint ini |
+    | 404 | - | `business_ref` tidak dikenal atau tidak didaftarkan ke Cimart |
+    | 409 | `application_already_processed` | Permohonan sudah diproses dengan status lain |
+    | 410 | `application_cancelled` | Permohonan dibatalkan warga |
+    | 422 | - | Validasi input gagal (`errors` per field) |
+    | 429 | `too_many_attempts` | Melewati batas request, lihat header `Retry-After` |
+
+    ## Batas request (nilai awal, bisa berubah)
+
+    60 request per menit per client, untuk semua endpoint.
+
+    ## Kompatibilitas
+
+    SID dapat menambah field baru di respons v1 tanpa pemberitahuan; klien
+    wajib mengabaikan field yang tidak dikenal. Perubahan yang merusak
+    kompatibilitas hanya dilakukan di versi path baru (`/v2`).
+  contact:
+    name: Tim SIDUTama
+  license:
+    name: Proprietary - Internal Use Only
+    url: https://sid-cibenda.id/license
+
+servers:
+  - url: /api/integrations/v1
+    description: Relatif terhadap origin backend SID (domain production menyusul)
+
+security:
+  - integrationToken: []
+
+tags:
+  - name: Infrastruktur
+    description: Tes koneksi dan token.
+  - name: Permohonan Pedagang
+    description: |
+      Permohonan pedagang Cimart yang dibuat warga dari SID, beserta data
+      usaha dari Surat Keterangan Usaha (SKU).
+
+paths:
+  /ping:
+    get:
+      tags: [Infrastruktur]
+      summary: Tes koneksi dan token
+      description: |
+        Memastikan SID dapat dijangkau dan token valid serta aktif. Dipakai
+        saat setup, saat menguji token baru sebelum disimpan, dan untuk health
+        check. Tidak memerlukan ability khusus.
+      operationId: ping
+      responses:
+        '200':
+          description: Token valid dan client aktif
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PingResult'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/IntegrationDisabled'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /seller-applications:
+    get:
+      tags: [Permohonan Pedagang]
+      summary: Daftar permohonan pedagang
+      description: |
+        Dipanggil scheduler Cimart secara berkala untuk mengambil permohonan.
+        Hanya mengembalikan usaha yang didaftarkan warga ke Cimart, dan tidak
+        pernah mengembalikan permohonan yang dibatalkan warga.
+
+        Diurutkan dari `requested_at` paling lama (antrean). Ambil semua
+        halaman sampai `meta.current_page` sama dengan `meta.last_page`.
+
+        Untuk sinkronisasi rutin, ambil seluruh daftar `pending` tanpa
+        `since`, lalu periksa request `pending` di Cimart yang tidak ada lagi
+        di daftar lewat endpoint detail (`410` berarti dibatalkan warga).
+
+        Permohonan yang ditolak atau dibatalkan lalu didaftarkan ulang muncul
+        kembali sebagai `pending` dengan `business_ref` yang sama dan
+        `requested_at` baru. Cimart memperbarui request yang sudah ada, bukan
+        membuat baris baru.
+      operationId: listSellerApplications
+      x-required-ability: seller-applications:read
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Filter status permohonan.
+          schema:
+            type: string
+            enum: [pending, accepted, rejected]
+            default: pending
+        - name: since
+          in: query
+          required: false
+          description: |
+            Hanya permohonan dengan `requested_at` setelah waktu ini. Isi
+            dengan `requested_at` terakhir yang sudah diterima untuk hanya
+            mengambil data baru. Jangan dipakai untuk sinkronisasi rutin,
+            karena pembatalan hanya terdeteksi dari seluruh daftar `pending`.
+          schema:
+            type: string
+            format: date-time
+          example: "2026-11-12T08:00:00+07:00"
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Daftar permohonan berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SellerApplication'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  - business_ref: 3f6c2a9e-8b1d-4c57-9e2a-0d4b7f1a2c3e
+                    status: pending
+                    requested_at: "2026-11-05T09:30:00+07:00"
+                    decided_at: null
+                    note: null
+                    nik: "3201010101900001"
+                    name: Joni Saputra
+                    business_name: Warung Kopi Joni
+                    business_activity: Warung kopi
+                    category: kuliner
+                    category_label: Toko Kuliner
+                    email: warkopjoni@example.com
+                    phone: "081234567890"
+                    address: Jl. Raya Cibenda No. 12, RT 01/RW 02
+                    letter_number: 470/012/Des/XI/2026
+                    issued_at: "2026-11-05T09:30:00+07:00"
+                    expires_at: "2027-11-05T09:30:00+07:00"
+                meta:
+                  current_page: 1
+                  per_page: 50
+                  total: 1
+                  last_page: 1
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /seller-applications/{business_ref}:
+    parameters:
+      - name: business_ref
+        in: path
+        required: true
+        description: ID data usaha, sekaligus ID permohonan pedagang.
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Permohonan Pedagang]
+      summary: Detail permohonan pedagang
+      description: |
+        Mengambil data terbaru satu permohonan berstatus `pending`,
+        `accepted`, atau `rejected`, termasuk bila SKU sudah kedaluwarsa.
+
+        - `404` bila `business_ref` tidak dikenal, usahanya tidak didaftarkan
+          ke Cimart, atau penduduknya sudah tidak tercatat di SID.
+        - `410 application_cancelled` bila permohonan dibatalkan warga. Tidak
+          ada data pribadi di respons ini; Cimart wajib menghapus data
+          pribadi request tersebut.
+      operationId: getSellerApplication
+      x-required-ability: seller-applications:read
+      responses:
+        '200':
+          description: Permohonan ditemukan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SellerApplication'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Cancelled'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      tags: [Permohonan Pedagang]
+      summary: Laporkan hasil permohonan
+      description: |
+        Dipanggil Cimart setelah admin memproses permohonan:
+
+        - `accepted` saat akun pedagang dibuat.
+        - `rejected` bila ditolak. `note` wajib diisi dan **ditampilkan ke
+          warga** di SID, jadi tulis dengan bahasa yang sopan dan jelas,
+          tanpa informasi internal.
+
+        Aturan perubahan:
+
+        - Hanya permohonan `pending` yang bisa diubah.
+        - Mengirim status yang sama untuk permohonan yang sudah berstatus itu
+          mengembalikan `200` tanpa perubahan, jadi retry aman.
+        - Mengubah permohonan yang sudah diproses ke status lain ditolak
+          dengan `409 application_already_processed`.
+        - Permohonan yang dibatalkan warga ditolak dengan
+          `410 application_cancelled`.
+
+        SID memproses `PATCH` dan pembatalan oleh warga secara bergantian,
+        jadi hanya salah satu yang berlaku. Karena itu, siapkan akun di dalam
+        transaksi DB Cimart, panggil `PATCH accepted`, lalu commit dan kirim
+        link aktivasi hanya bila SID menjawab `200`. Bila `410`, rollback.
+
+        Setelah berhasil, SID mengirim notifikasi ke warga.
+      operationId: updateSellerApplication
+      x-required-ability: seller-applications:update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/AcceptSellerApplicationRequest'
+                - $ref: '#/components/schemas/RejectSellerApplicationRequest'
+            examples:
+              accepted:
+                summary: Akun pedagang dibuat
+                value:
+                  status: accepted
+              rejected:
+                summary: Permohonan ditolak
+                value:
+                  status: rejected
+                  note: Foto usaha tidak sesuai dengan kategori yang dipilih.
+      responses:
+        '200':
+          description: Status tersimpan (atau sudah sama sebelumnya)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SellerApplication'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/AlreadyProcessed'
+        '410':
+          $ref: '#/components/responses/Cancelled'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+components:
+  securitySchemes:
+    integrationToken:
+      type: http
+      scheme: bearer
+      description: |
+        Token client integrasi yang diterbitkan Staf SIDUTama. Kirim string
+        utuh apa adanya. Simpan hanya di backend (`.env`, atau DB dengan
+        enkripsi); jangan di-hash dan jangan sampai ke browser.
+
+  schemas:
+    PingResult:
+      type: object
+      required: [client, abilities, server_time]
+      properties:
+        client:
+          type: string
+          description: Nama client integrasi pemilik token.
+          example: Cimart
+        abilities:
+          type: array
+          description: Abilities yang dimiliki token ini.
+          items:
+            type: string
+          example: ["seller-applications:read", "seller-applications:update"]
+        server_time:
+          type: string
+          format: date-time
+          example: "2026-11-12T08:00:00+07:00"
+
+    SellerApplication:
+      description: Permohonan pedagang beserta data usahanya.
+      allOf:
+        - type: object
+          required: [status, requested_at, decided_at, note]
+          properties:
+            status:
+              type: string
+              enum: [pending, accepted, rejected]
+              example: pending
+            requested_at:
+              type: string
+              format: date-time
+              description: |
+                Waktu warga mendaftar ke Cimart. Diperbarui saat warga
+                mendaftar ulang setelah ditolak atau dibatalkan.
+              example: "2026-11-05T09:30:00+07:00"
+            decided_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Waktu Cimart melaporkan hasil. `null` saat `pending`.
+              example: null
+            note:
+              type: string
+              nullable: true
+              description: Alasan penolakan dari Cimart. `null` bila tidak ditolak.
+              example: null
+        - $ref: '#/components/schemas/Business'
+
+    Business:
+      type: object
+      description: |
+        Data usaha warga yang dicatat SID saat SKU terbit. Selain `name`,
+        isinya tidak berubah setelah dicatat.
+      required:
+        - business_ref
+        - nik
+        - name
+        - business_name
+        - business_activity
+        - category
+        - category_label
+        - email
+        - phone
+        - address
+        - letter_number
+        - issued_at
+        - expires_at
+      properties:
+        business_ref:
+          type: string
+          format: uuid
+          description: |
+            ID data usaha dan permohonan. Simpan di Cimart sebagai kunci unik
+            request dan akun pedagang.
+          example: 3f6c2a9e-8b1d-4c57-9e2a-0d4b7f1a2c3e
+        nik:
+          type: string
+          description: NIK pemilik usaha.
+          example: "3201010101900001"
+        name:
+          type: string
+          description: Nama pemilik usaha sesuai data kependudukan SID saat request.
+          example: Joni Saputra
+        business_name:
+          type: string
+          description: Nama usaha atau toko.
+          example: Warung Kopi Joni
+        business_activity:
+          type: string
+          description: Kegiatan usaha, sama dengan yang tercetak di SKU.
+          example: Warung kopi
+        category:
+          type: string
+          enum: [kelontong, kuliner, non_kuliner]
+          description: |
+            Kode kategori SID. Kode dijamin tetap di v1; Cimart memetakannya
+            ke kategori Cimart.
+          example: kuliner
+        category_label:
+          type: string
+          description: Label kategori untuk ditampilkan. Bisa berubah.
+          example: Toko Kuliner
+        email:
+          type: string
+          format: email
+          description: Email usaha, terpisah dari email akun SID warga.
+          example: warkopjoni@example.com
+        phone:
+          type: string
+          pattern: '^08[0-9]{8,11}$'
+          description: Nomor HP usaha, dinormalisasi SID ke format `08...`.
+          example: "081234567890"
+        address:
+          type: string
+          description: Alamat usaha atau toko.
+          example: Jl. Raya Cibenda No. 12, RT 01/RW 02
+        letter_number:
+          type: string
+          description: Nomor SKU tempat data usaha ini tercatat.
+          example: 470/012/Des/XI/2026
+        issued_at:
+          type: string
+          format: date-time
+          description: Waktu SKU terbit (persetujuan akhir).
+          example: "2026-11-05T09:30:00+07:00"
+        expires_at:
+          type: string
+          format: date-time
+          description: |
+            Batas berlaku SKU. SKU hanya disyaratkan berlaku saat warga
+            mendaftar, jadi nilai ini tidak memengaruhi pemrosesan.
+          example: "2027-11-05T09:30:00+07:00"
+
+    AcceptSellerApplicationRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [accepted]
+
+    RejectSellerApplicationRequest:
+      type: object
+      required: [status, note]
+      properties:
+        status:
+          type: string
+          enum: [rejected]
+        note:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Alasan penolakan, ditampilkan ke warga.
+          example: Foto usaha tidak sesuai dengan kategori yang dipilih.
+
+    PaginationMeta:
+      type: object
+      required: [current_page, per_page, total, last_page]
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 50
+        total:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 1
+
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: Data tidak ditemukan.
+
+    CodedErrorResponse:
+      type: object
+      required: [message, code]
+      properties:
+        message:
+          type: string
+          example: Integrasi sedang dinonaktifkan oleh desa.
+        code:
+          type: string
+          enum:
+            - integration_disabled
+            - ability_forbidden
+            - application_already_processed
+            - application_cancelled
+            - too_many_attempts
+          example: integration_disabled
+
+    ValidationErrorResponse:
+      type: object
+      required: [message, errors]
+      properties:
+        message:
+          type: string
+          example: Alasan penolakan wajib diisi.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            note: ["Alasan penolakan wajib diisi."]
+
+  responses:
+    Unauthenticated:
+      description: Token tidak ada, salah, atau sudah dicabut
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Token tidak valid.
+
+    IntegrationDisabled:
+      description: Client integrasi dinonaktifkan oleh SID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CodedErrorResponse'
+          example:
+            message: Integrasi sedang dinonaktifkan oleh desa.
+            code: integration_disabled
+
+    Forbidden:
+      description: |
+        Client dinonaktifkan (`integration_disabled`) atau token tidak punya
+        ability untuk endpoint ini (`ability_forbidden`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CodedErrorResponse'
+          examples:
+            disabled:
+              summary: Client dinonaktifkan
+              value:
+                message: Integrasi sedang dinonaktifkan oleh desa.
+                code: integration_disabled
+            ability:
+              summary: Ability tidak dimiliki
+              value:
+                message: Token tidak memiliki akses ke endpoint ini.
+                code: ability_forbidden
+
+    NotFound:
+      description: |
+        `business_ref` tidak dikenal, usahanya tidak didaftarkan ke Cimart,
+        atau penduduknya sudah tidak tercatat di SID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Data tidak ditemukan.
+
+    AlreadyProcessed:
+      description: Permohonan sudah diproses dengan status lain
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CodedErrorResponse'
+          example:
+            message: Permohonan sudah diproses sebelumnya.
+            code: application_already_processed
+
+    Cancelled:
+      description: |
+        Permohonan dibatalkan warga. Jangan buat akun; rollback akun yang
+        sedang disiapkan, tandai request "Dibatalkan pemohon", dan hapus data
+        pribadinya
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CodedErrorResponse'
+          example:
+            message: Permohonan dibatalkan oleh pemohon.
+            code: application_cancelled
+
+    ValidationError:
+      description: Format input tidak valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+    TooManyRequests:
+      description: Melewati batas request
+      headers:
+        Retry-After:
+          description: Detik sampai request boleh dicoba lagi.
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CodedErrorResponse'
+          example:
+            message: Terlalu banyak percobaan. Coba lagi nanti.
+            code: too_many_attempts

@@ -39,7 +39,7 @@ export default function PaymentInstructionsTabs({
                     steps: [
                         { text: <>Buka aplikasi <strong className="font-bold text-gray-900">BCA Mobile</strong> dan pilih menu <strong className="font-bold text-gray-900">m-BCA</strong>.</> },
                         { text: <>Pilih menu <strong className="font-bold text-gray-900">m-Transfer</strong> &gt; <strong className="font-bold text-gray-900">BCA Virtual Account</strong>.</> },
-                        { text: <>Masukkan nomor Virtual Account <strong className="font-bold text-[#281B7A] font-mono">{vaNumber || "Nomor VA"}</strong> lalu klik <strong className="font-bold text-gray-900">Send</strong>.</> },
+                        { text: <>Masukkan nomor Virtual Account <strong className="font-bold text-brand-indigo-merchant font-mono">{vaNumber || "Nomor VA"}</strong> lalu klik <strong className="font-bold text-gray-900">Send</strong>.</> },
                         { text: <>Pastikan nama merchant <strong className="font-bold text-gray-900">Cibenda Mart</strong> dan total tagihan {totalAmount ? <strong className="font-bold text-gray-900">{formatRupiah(totalAmount)}</strong> : "sudah sesuai"}.</> },
                         { text: <>Masukkan PIN m-BCA Anda untuk menyelesaikan pembayaran.</> },
                     ],
@@ -50,7 +50,7 @@ export default function PaymentInstructionsTabs({
                     steps: [
                         { text: <>Masukkan Kartu ATM BCA dan PIN Anda.</> },
                         { text: <>Pilih menu <strong className="font-bold text-gray-900">Transaksi Lainnya</strong> &gt; <strong className="font-bold text-gray-900">Transfer</strong> &gt; <strong className="font-bold text-gray-900">Ke Rek BCA Virtual Account</strong>.</> },
-                        { text: <>Masukkan nomor Virtual Account <strong className="font-bold text-[#281B7A] font-mono">{vaNumber || "Nomor VA"}</strong> lalu tekan <strong className="font-bold text-gray-900">Benar</strong>.</> },
+                        { text: <>Masukkan nomor Virtual Account <strong className="font-bold text-brand-indigo-merchant font-mono">{vaNumber || "Nomor VA"}</strong> lalu tekan <strong className="font-bold text-gray-900">Benar</strong>.</> },
                         { text: <>Periksa rincian pembayaran di layar ATM, lalu pilih <strong className="font-bold text-gray-900">Ya</strong>.</> },
                         { text: <>Ambil struk sebagai bukti transaksi yang sah.</> },
                     ],
@@ -61,7 +61,7 @@ export default function PaymentInstructionsTabs({
                     steps: [
                         { text: <>Login ke akun KlikBCA Individual.</> },
                         { text: <>Pilih menu <strong className="font-bold text-gray-900">Transfer Dana</strong> &gt; <strong className="font-bold text-gray-900">Transfer ke BCA Virtual Account</strong>.</> },
-                        { text: <>Masukkan nomor Virtual Account <strong className="font-bold text-[#281B7A] font-mono">{vaNumber || "Nomor VA"}</strong>.</> },
+                        { text: <>Masukkan nomor Virtual Account <strong className="font-bold text-brand-indigo-merchant font-mono">{vaNumber || "Nomor VA"}</strong>.</> },
                         { text: <>Masukkan Respon KeyBCA Appli 1 dan klik <strong className="font-bold text-gray-900">Kirim</strong>.</> },
                         { text: <>Pembayaran selesai diverifikasi secara otomatis.</> },
                     ],
@@ -76,8 +76,8 @@ export default function PaymentInstructionsTabs({
                     label: "Livin' by Mandiri",
                     steps: [
                         { text: <>Buka aplikasi <strong className="font-bold text-gray-900">Livin' by Mandiri</strong> dan login.</> },
-                        { text: <>Pilih menu <strong className="font-bold text-gray-900">Bayar</strong> &gt; cari <strong className="font-bold text-gray-900">Midtrans</strong> atau kode <strong className="font-mono font-bold text-[#281B7A]">{billerCode || "70012"}</strong>.</> },
-                        { text: <>Masukkan Nomor Tagihan (Bill Key): <strong className="font-mono font-bold text-[#281B7A]">{billKey || "Nomor Tagihan"}</strong>.</> },
+                        { text: <>Pilih menu <strong className="font-bold text-gray-900">Bayar</strong> &gt; cari <strong className="font-bold text-gray-900">Midtrans</strong> atau kode <strong className="font-mono font-bold text-brand-indigo-merchant">{billerCode || "70012"}</strong>.</> },
+                        { text: <>Masukkan Nomor Tagihan (Bill Key): <strong className="font-mono font-bold text-brand-indigo-merchant">{billKey || "Nomor Tagihan"}</strong>.</> },
                         { text: <>Periksa detail transaksi dan konfirmasi pembayaran.</> },
                         { text: <>Masukkan PIN Livin' Anda untuk menyelesaikan transaksi.</> },
                     ],
@@ -88,8 +88,8 @@ export default function PaymentInstructionsTabs({
                     steps: [
                         { text: <>Masukkan kartu ATM Mandiri dan 6 digit PIN Anda.</> },
                         { text: <>Pilih menu <strong className="font-bold text-gray-900">Bayar / Beli</strong> &gt; <strong className="font-bold text-gray-900">Multipayment</strong>.</> },
-                        { text: <>Masukkan Kode Perusahaan: <strong className="font-bold text-[#281B7A]">{billerCode || "70012"}</strong> lalu tekan Benar.</> },
-                        { text: <>Masukkan Nomor Tagihan (Bill Key): <strong className="font-bold text-[#281B7A]">{billKey || "Bill Key"}</strong> lalu tekan Benar.</> },
+                        { text: <>Masukkan Kode Perusahaan: <strong className="font-bold text-brand-indigo-merchant">{billerCode || "70012"}</strong> lalu tekan Benar.</> },
+                        { text: <>Masukkan Nomor Tagihan (Bill Key): <strong className="font-bold text-brand-indigo-merchant">{billKey || "Bill Key"}</strong> lalu tekan Benar.</> },
                         { text: <>Periksa konfirmasi pembayaran dan tekan Ya.</> },
                     ],
                 },
@@ -104,7 +104,7 @@ export default function PaymentInstructionsTabs({
                     steps: [
                         { text: <>Buka aplikasi BNI Mobile Banking dan login ke akun Anda.</> },
                         { text: <>Pilih menu <strong className="font-bold text-gray-900">Transfer</strong> &gt; <strong className="font-bold text-gray-900">Virtual Account Billing</strong>.</> },
-                        { text: <>Pilih tab <strong className="font-bold text-gray-900">Input Baru</strong> dan masukkan nomor VA <strong className="font-mono font-bold text-[#281B7A]">{vaNumber || "Nomor VA"}</strong>.</> },
+                        { text: <>Pilih tab <strong className="font-bold text-gray-900">Input Baru</strong> dan masukkan nomor VA <strong className="font-mono font-bold text-brand-indigo-merchant">{vaNumber || "Nomor VA"}</strong>.</> },
                         { text: <>Konfirmasi rincian pembayaran dan masukkan Password Transaksi.</> },
                     ],
                 },
@@ -114,7 +114,7 @@ export default function PaymentInstructionsTabs({
                     steps: [
                         { text: <>Masukkan kartu ATM BNI dan PIN Anda.</> },
                         { text: <>Pilih <strong className="font-bold text-gray-900">Menu Lain</strong> &gt; <strong className="font-bold text-gray-900">Transfer</strong> &gt; <strong className="font-bold text-gray-900">Virtual Account Billing</strong>.</> },
-                        { text: <>Masukkan nomor Virtual Account <strong className="font-bold text-[#281B7A]">{vaNumber || "Nomor VA"}</strong>.</> },
+                        { text: <>Masukkan nomor Virtual Account <strong className="font-bold text-brand-indigo-merchant">{vaNumber || "Nomor VA"}</strong>.</> },
                         { text: <>Periksa data transaksi dan konfirmasi dengan memilih Ya.</> },
                     ],
                 },
@@ -129,7 +129,7 @@ export default function PaymentInstructionsTabs({
                     steps: [
                         { text: <>Buka aplikasi BRImo dan login ke akun Anda.</> },
                         { text: <>Pilih menu <strong className="font-bold text-gray-900">Tagihan</strong> &gt; <strong className="font-bold text-gray-900">BRIVA</strong>.</> },
-                        { text: <>Pilih Tambah Transaksi Baru dan masukkan nomor BRIVA: <strong className="font-mono font-bold text-[#281B7A]">{vaNumber || "Nomor BRIVA"}</strong>.</> },
+                        { text: <>Pilih Tambah Transaksi Baru dan masukkan nomor BRIVA: <strong className="font-mono font-bold text-brand-indigo-merchant">{vaNumber || "Nomor BRIVA"}</strong>.</> },
                         { text: <>Pastikan nominal tagihan sudah sesuai lalu klik Bayar.</> },
                     ],
                 },
@@ -139,7 +139,7 @@ export default function PaymentInstructionsTabs({
                     steps: [
                         { text: <>Masukkan kartu ATM BRI dan PIN.</> },
                         { text: <>Pilih <strong className="font-bold text-gray-900">Transaksi Lain</strong> &gt; <strong className="font-bold text-gray-900">Pembayaran</strong> &gt; <strong className="font-bold text-gray-900">BRIVA</strong>.</> },
-                        { text: <>Masukkan nomor BRIVA <strong className="font-bold text-[#281B7A]">{vaNumber || "Nomor BRIVA"}</strong> lalu tekan Benar.</> },
+                        { text: <>Masukkan nomor BRIVA <strong className="font-bold text-brand-indigo-merchant">{vaNumber || "Nomor BRIVA"}</strong> lalu tekan Benar.</> },
                         { text: <>Periksa detail pembayaran di layar dan pilih Ya.</> },
                     ],
                 },
@@ -191,16 +191,16 @@ export default function PaymentInstructionsTabs({
 
             {/* Method Tabs Bar */}
             {instructions.length > 1 && (
-                <div className="bg-[#F0F2F5] rounded-xl p-1 flex gap-1 overflow-x-auto scrollbar-none">
+                <div className="bg-slate-100 rounded-xl p-1 flex gap-1 overflow-x-auto scrollbar-none">
                     {instructions.map((cat) => {
                         const isActive = activeTab === cat.id;
                         return (
                             <button
                                 key={cat.id}
                                 onClick={() => setActiveTab(cat.id)}
-                                className={`flex-1 py-2 px-3 sm:px-4 rounded-lg text-xs font-semibold transition whitespace-nowrap text-center ${
+                                className={`flex-1 py-2 px-3 sm:px-4 rounded-lg text-xs font-semibold transition whitespace-nowrap text-center cursor-pointer ${
                                     isActive
-                                        ? "bg-white text-[#281B7A] font-bold shadow-xs"
+                                        ? "bg-white text-brand-indigo-merchant font-bold shadow-xs"
                                         : "text-slate-600 hover:text-slate-900"
                                 }`}
                             >
@@ -216,9 +216,9 @@ export default function PaymentInstructionsTabs({
                 {currentCategory?.steps.map((step, idx) => (
                     <div
                         key={idx}
-                        className="bg-[#F0F2F5] rounded-xl p-3.5 flex items-center gap-3 text-xs sm:text-sm text-slate-700 leading-relaxed"
+                        className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 flex items-center gap-3 text-xs sm:text-sm text-slate-700 leading-relaxed"
                     >
-                        <span className="w-6 h-6 rounded-full bg-[#E5E5F7] text-[#281B7A] font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-2xs">
+                        <span className="w-6 h-6 rounded-full bg-brand-indigo-merchant/10 text-brand-indigo-merchant font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-2xs">
                             {idx + 1}
                         </span>
                         <span className="pt-0.5">{step.text}</span>

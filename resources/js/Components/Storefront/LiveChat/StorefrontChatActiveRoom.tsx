@@ -254,7 +254,7 @@ export default function StorefrontChatActiveRoom({
             )}
 
             {/* Chat Messages */}
-            <div ref={messagesContainerRef} className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-[#F8FAFC]">
+            <div ref={messagesContainerRef} className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-bg-main">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-400">
                         <Loader2 className="w-5 h-5 animate-spin mb-1 text-brand-orange" />

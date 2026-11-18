@@ -12,16 +12,39 @@ export interface StoreShippingBreakdown {
     items_count: number;
 }
 
+export interface PlatformSettings {
+    enable_online_payment: boolean;
+    enable_tax: boolean;
+    tax_percentage: number;
+    enable_service_fee: boolean;
+    service_fee_amount: number;
+    enable_local_delivery: boolean;
+}
+
 interface UseCheckoutFormOptions {
     initialCartItems: any[];
     addresses: CheckoutAddress[];
+    platformSettings?: PlatformSettings;
 }
 
-export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutFormOptions) {
+export function useCheckoutForm({
+    initialCartItems,
+    addresses,
+    platformSettings,
+}: UseCheckoutFormOptions) {
     const { auth } = usePage().props as any;
     const [cartItems] = useState(initialCartItems);
     const [isAddressPickerOpen, setIsAddressPickerOpen] = useState(false);
     const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+
+    const [settings, setSettings] = useState<PlatformSettings>({
+        enable_online_payment: platformSettings?.enable_online_payment ?? true,
+        enable_tax: platformSettings?.enable_tax ?? false,
+        tax_percentage: platformSettings?.tax_percentage ?? 0,
+        enable_service_fee: platformSettings?.enable_service_fee ?? false,
+        service_fee_amount: platformSettings?.service_fee_amount ?? 0,
+        enable_local_delivery: platformSettings?.enable_local_delivery ?? true,
+    });
 
     const subtotal = cartItems.reduce(
         (sum, item) => sum + item.price * item.qty,
@@ -32,15 +55,19 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
     const [deliveryFee, setDeliveryFee] = useState(0);
     const [storesBreakdown, setStoresBreakdown] = useState<StoreShippingBreakdown[]>([]);
 
+    const initialMethod = !settings.enable_online_payment ? "cod" : "va";
+    const initialChannel = !settings.enable_online_payment ? "cod" : "bca_va";
+    const initialDeliveryMethod = !settings.enable_local_delivery ? "self_pickup" : "local_delivery";
+
     const { data, setData, post, processing, errors } = useForm({
         cart_ids: cartItems.map((item) => item.id),
         address_id: null as number | null,
         name: auth?.user?.name || "",
         phone: auth?.user?.phone || "",
         address: "",
-        delivery_method: "local_delivery",
-        payment_method: "va" as "va" | "qris" | "gopay" | "cod",
-        payment_channel: "bca_va",
+        delivery_method: initialDeliveryMethod,
+        payment_method: initialMethod as "va" | "qris" | "gopay" | "cod",
+        payment_channel: initialChannel,
     });
 
     const applyAddress = (address: CheckoutAddress) => {
@@ -58,6 +85,11 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         method: "va" | "qris" | "gopay" | "cod",
         channel: string,
     ) => {
+        if (!settings.enable_online_payment && method !== "cod") {
+            toast.error("Pembayaran online sedang nonaktif. Hanya metode COD yang tersedia.");
+            return;
+        }
+
         setData((prev) => ({
             ...prev,
             payment_method: method,
@@ -76,7 +108,6 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addresses]);
 
-    // eslint-disable-next-line react-doctor/no-fetch-in-effect, react-doctor/no-set-state-after-await-in-effect
     useEffect(() => {
         let isMounted = true;
 
@@ -98,7 +129,6 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
                 }
                 const result = await response.json();
 
-                // eslint-disable-next-line react-doctor/no-set-state-after-await-in-effect
                 if (isMounted) {
                     if (result.delivery_fee !== undefined) {
                         setDeliveryFee(result.delivery_fee);
@@ -106,9 +136,28 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
                     if (result.stores_breakdown) {
                         setStoresBreakdown(result.stores_breakdown);
                     }
+                    if (result.enable_online_payment !== undefined) {
+                        setSettings((prev) => ({
+                            ...prev,
+                            enable_online_payment: result.enable_online_payment,
+                            enable_service_fee: result.enable_service_fee ?? prev.enable_service_fee,
+                            service_fee_amount: result.service_fee ?? prev.service_fee_amount,
+                            enable_tax: result.enable_tax ?? prev.enable_tax,
+                            tax_percentage: result.tax_percentage ?? prev.tax_percentage,
+                            enable_local_delivery: result.enable_local_delivery ?? prev.enable_local_delivery,
+                        }));
+
+                        if (!result.enable_online_payment && data.payment_method !== "cod") {
+                            setData((prev) => ({
+                                ...prev,
+                                payment_method: "cod",
+                                payment_channel: "cod",
+                            }));
+                        }
+                    }
                 }
             } catch (error) {
-                console.error("Failed to fetch delivery fee", error);
+                console.error("Failed to fetch fee", error);
             }
         };
 
@@ -124,8 +173,11 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         };
     }, [data.delivery_method, data.address_id, data.cart_ids]);
 
-    const adminFee = data.payment_method === "cod" ? 0 : 2000;
-    const grandTotal = subtotal + deliveryFee + adminFee;
+    const serviceFee = settings.enable_service_fee ? settings.service_fee_amount : 0;
+    const taxAmount = settings.enable_tax
+        ? Math.round((subtotal * settings.tax_percentage) / 100)
+        : 0;
+    const grandTotal = subtotal + deliveryFee + serviceFee + taxAmount;
 
     const handlePlaceOrder = () => {
         post(route("checkout.store"), {
@@ -152,7 +204,14 @@ export function useCheckoutForm({ initialCartItems, addresses }: UseCheckoutForm
         errors,
         deliveryFee,
         storesBreakdown,
-        adminFee,
+        adminFee: serviceFee,
+        serviceFee,
+        taxAmount,
+        taxPercentage: settings.tax_percentage,
+        enableServiceFee: settings.enable_service_fee,
+        enableTax: settings.enable_tax,
+        enableOnlinePayment: settings.enable_online_payment,
+        enableLocalDelivery: settings.enable_local_delivery,
         grandTotal,
         isAddressPickerOpen,
         setIsAddressPickerOpen,

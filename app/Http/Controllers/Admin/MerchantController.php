@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\Sid\SidApiException;
+use App\Exceptions\Sid\SidApplicationCancelledException;
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncSidSellerApplicationsJob;
 use App\Models\Order;
+use App\Models\SellerApplication;
 use App\Models\Store;
 use App\Models\User;
+use App\Services\Sid\SidApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,8 +25,18 @@ class MerchantController extends Controller
     /**
      * Display a listing of the merchants with server-side pagination, search, and filters.
      */
-    public function index(Request $request): Response
+    public function index(Request $request, SidApiService $sidService): Response
     {
+        // Auto-seed mock data on first visit if table is empty
+        if (SellerApplication::count() === 0 && $sidService->isEnabled()) {
+            (new SyncSidSellerApplicationsJob)->handle($sidService);
+        }
+
+        $activeTab = $request->input('tab', 'merchants');
+        if (! in_array($activeTab, ['merchants', 'applications'])) {
+            $activeTab = 'merchants';
+        }
+
         $search = trim((string) $request->input('search', ''));
         $statusFilter = $request->input('status');
         $sidFilter = $request->input('sid_status');
@@ -67,7 +82,35 @@ class MerchantController extends Controller
         }
 
         // Server-side pagination (10 per page as per UI spec)
-        $merchantsPaginator = $query->paginate(10)->withQueryString();
+        $merchantsPaginator = $query->paginate(10, ['*'], 'merchant_page')->withQueryString();
+
+        // Query applications for Tab 2
+        $appSearch = trim((string) $request->input('app_search', ''));
+        $appStatus = $request->input('app_status', 'pending');
+
+        $applicationsQuery = SellerApplication::query()->latest('requested_at');
+
+        if (! empty($appSearch)) {
+            $applicationsQuery->where(function ($q) use ($appSearch) {
+                $q->where('business_name', 'like', "%{$appSearch}%")
+                    ->orWhere('name', 'like', "%{$appSearch}%")
+                    ->orWhere('nik', 'like', "%{$appSearch}%")
+                    ->orWhere('letter_number', 'like', "%{$appSearch}%")
+                    ->orWhere('email', 'like', "%{$appSearch}%")
+                    ->orWhere('phone', 'like', "%{$appSearch}%");
+            });
+        }
+
+        if (! empty($appStatus) && in_array($appStatus, ['all', 'pending', 'accepted', 'rejected', 'cancelled'])) {
+            if ($appStatus !== 'all') {
+                $applicationsQuery->where('status', $appStatus);
+            }
+        } else {
+            $applicationsQuery->where('status', 'pending');
+            $appStatus = 'pending';
+        }
+
+        $applicationsPaginator = $applicationsQuery->paginate(10, ['*'], 'app_page')->withQueryString();
 
         // Calculate real-time stats
         $totalMerchants = User::where('role', 'pedagang')->count();
@@ -75,7 +118,7 @@ class MerchantController extends Controller
             ->whereIn('status', ['suspended', 'inactive'])
             ->count();
         $verifiedCount = Store::where('sid_status', 'verified')->count();
-        $pendingCount = Store::where('sid_status', 'pending')->count();
+        $pendingApplicationsCount = SellerApplication::where('status', 'pending')->count();
 
         // Transform paginated collection
         $merchantsPaginator->getCollection()->transform(function ($user) {
@@ -115,13 +158,42 @@ class MerchantController extends Controller
             ];
         });
 
+        // Transform paginated collection for applications
+        $applicationsPaginator->getCollection()->transform(function ($app) {
+            return [
+                'id' => $app->id,
+                'business_ref' => $app->business_ref,
+                'status' => $app->status,
+                'requested_at' => $app->requested_at ? $app->requested_at->toISOString() : null,
+                'requested_date' => $app->requested_at ? $app->requested_at->format('d M Y H:i') : '-',
+                'decided_at' => $app->decided_at ? $app->decided_at->toISOString() : null,
+                'note' => $app->note,
+                'nik' => $app->nik ?: '-',
+                'name' => $app->name ?: '-',
+                'business_name' => $app->business_name ?: '-',
+                'business_activity' => $app->business_activity ?: '-',
+                'category' => $app->category ?: '-',
+                'category_label' => $app->category_label ?: 'Lainnya',
+                'email' => $app->email ?: '-',
+                'phone' => $app->phone ?: '-',
+                'address' => $app->address ?: '-',
+                'letter_number' => $app->letter_number ?: '-',
+                'issued_at' => $app->issued_at ? $app->issued_at->format('d M Y') : '-',
+                'expires_at' => $app->expires_at ? $app->expires_at->format('d M Y') : '-',
+                'store_id' => $app->store_id,
+                'user_id' => $app->user_id,
+            ];
+        });
+
         return Inertia::render('Admin/Merchants/Index', [
             'merchants' => $merchantsPaginator,
+            'applications' => $applicationsPaginator,
+            'active_tab' => $activeTab,
             'stats' => [
                 'total_merchants' => $totalMerchants,
                 'suspended_merchants' => $suspendedMerchants,
                 'verified_merchants' => $verifiedCount,
-                'pending_merchants' => $pendingCount,
+                'pending_merchants' => $pendingApplicationsCount,
             ],
             'filters' => [
                 'search' => $search,
@@ -129,21 +201,49 @@ class MerchantController extends Controller
                 'sid_status' => $sidFilter,
                 'subdistrict' => $subdistrictFilter,
             ],
+            'app_filters' => [
+                'app_search' => $appSearch,
+                'app_status' => $appStatus,
+            ],
         ]);
     }
 
     /**
      * Show the form for creating a new merchant account.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Admin/Merchants/Create');
+        $application = null;
+        $businessRef = $request->query('business_ref');
+
+        if ($businessRef) {
+            $app = SellerApplication::where('business_ref', $businessRef)->first();
+            if ($app && $app->status === SellerApplication::STATUS_PENDING) {
+                $application = [
+                    'business_ref' => $app->business_ref,
+                    'business_name' => $app->business_name,
+                    'business_activity' => $app->business_activity,
+                    'name' => $app->name,
+                    'nik' => $app->nik,
+                    'email' => $app->email,
+                    'phone' => $app->phone,
+                    'address' => $app->address,
+                    'category' => $app->category,
+                    'category_label' => $app->category_label,
+                    'letter_number' => $app->letter_number,
+                ];
+            }
+        }
+
+        return Inertia::render('Admin/Merchants/Create', [
+            'application' => $application,
+        ]);
     }
 
     /**
      * Store a newly created merchant and associated store in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, SidApiService $sidService): RedirectResponse
     {
         $validated = $request->validate([
             'merchant_name' => ['required', 'string', 'min:3', 'max:100'],
@@ -153,6 +253,7 @@ class MerchantController extends Controller
             'email' => ['required', 'string', 'email:rfc', 'max:150', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'regex:/^(\+62|62|08)[0-9]{7,13}$/'],
             'password' => ['required', 'string', 'min:8'],
+            'business_ref' => ['nullable', 'uuid', 'exists:seller_applications,business_ref'],
         ], [
             'merchant_name.required' => 'Nama toko (Store Name) wajib diisi.',
             'merchant_name.min' => 'Nama toko minimal 3 karakter.',
@@ -174,41 +275,129 @@ class MerchantController extends Controller
             'password.min' => 'Password minimal terdiri dari 8 karakter.',
         ]);
 
-        DB::transaction(function () use ($validated) {
-            $user = new User([
-                'name' => strip_tags(trim($validated['owner_name'])),
-                'email' => $validated['email'],
-                'phone' => $validated['phone'] ?? null,
-                'nik' => $validated['nik'],
-                'password' => Hash::make($validated['password']),
-                'is_password_changed' => false,
-            ]);
-            $user->role = 'pedagang';
-            $user->status = 'active';
-            $user->email_verified_at = now();
-            $user->save();
+        $businessRef = $validated['business_ref'] ?? null;
+        $application = null;
 
-            $baseSlug = ! empty($validated['username']) ? Str::slug($validated['username']) : Str::slug($validated['merchant_name']);
-            $slug = $baseSlug ?: 'toko-'.$user->id;
-            $count = 1;
-            while (Store::where('slug', $slug)->exists()) {
-                $slug = $baseSlug.'-'.$count++;
+        if ($businessRef) {
+            $application = SellerApplication::where('business_ref', $businessRef)->firstOrFail();
+            if ($application->status !== SellerApplication::STATUS_PENDING) {
+                return back()->withErrors(['business_ref' => 'Permohonan ini sudah diproses atau telah dibatalkan.']);
+            }
+        }
+
+        try {
+            DB::transaction(function () use ($validated, $businessRef, $application, $sidService) {
+                // Atomic Lock: Notify SID with status accepted BEFORE committing local account
+                if ($application) {
+                    $sidService->updateApplicationStatus($application->business_ref, 'accepted');
+                }
+
+                $user = new User([
+                    'name' => strip_tags(trim($validated['owner_name'])),
+                    'email' => $validated['email'],
+                    'phone' => $validated['phone'] ?? null,
+                    'nik' => $validated['nik'],
+                    'password' => Hash::make($validated['password']),
+                    'is_password_changed' => false,
+                ]);
+                $user->role = 'pedagang';
+                $user->status = 'active';
+                $user->email_verified_at = now();
+                $user->save();
+
+                $baseSlug = ! empty($validated['username']) ? Str::slug($validated['username']) : Str::slug($validated['merchant_name']);
+                $slug = $baseSlug ?: 'toko-'.$user->id;
+                $count = 1;
+                while (Store::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug.'-'.$count++;
+                }
+
+                $store = Store::create([
+                    'user_id' => $user->id,
+                    'business_ref' => $businessRef,
+                    'name' => strip_tags(trim($validated['merchant_name'])),
+                    'slug' => $slug,
+                    'description' => $application ? $application->business_activity : null,
+                    'subdistrict' => 'Cibenda',
+                    'address' => $application ? $application->address : null,
+                    'support_email' => $validated['email'],
+                ]);
+                $store->forceFill(['sid_status' => 'verified'])->save();
+
+                if ($application) {
+                    $application->update([
+                        'status' => SellerApplication::STATUS_ACCEPTED,
+                        'decided_at' => now(),
+                        'user_id' => $user->id,
+                        'store_id' => $store->id,
+                    ]);
+                }
+            });
+        } catch (SidApplicationCancelledException $e) {
+            if ($application) {
+                $application->anonymizeCancelled();
             }
 
-            $store = Store::create([
-                'user_id' => $user->id,
-                'name' => strip_tags(trim($validated['merchant_name'])),
-                'slug' => $slug,
-                'description' => null,
-                'subdistrict' => 'Cibenda',
-                'address' => null,
-                'support_email' => $validated['email'],
-            ]);
-            $store->forceFill(['sid_status' => 'verified'])->save();
-        });
+            return redirect()->route('admin.merchants.index', ['tab' => 'applications'])
+                ->with('error', 'Permohonan telah dibatalkan oleh pemohon di SID. Akun tidak dapat dibuat.');
+        } catch (\Throwable $e) {
+            return back()->withInput()->withErrors(['general' => 'Gagal membuat akun pedagang: ' . $e->getMessage()]);
+        }
 
-        return redirect()->route('admin.merchants.index')->with('success', 'Akun pedagang berhasil dibuat.');
+        return redirect()->route('admin.merchants.index', ['tab' => 'merchants'])
+            ->with('success', 'Akun pedagang berhasil dibuat dan status telah disinkronkan ke SID.');
     }
+
+    /**
+     * Reject a pending seller application with reason note.
+     */
+    public function rejectApplication(Request $request, string $businessRef, SidApiService $sidService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'note' => ['required', 'string', 'min:3', 'max:500'],
+        ], [
+            'note.required' => 'Alasan penolakan wajib diisi.',
+            'note.min' => 'Alasan penolakan minimal 3 karakter.',
+            'note.max' => 'Alasan penolakan maksimal 500 karakter.',
+        ]);
+
+        $application = SellerApplication::where('business_ref', $businessRef)->firstOrFail();
+
+        if ($application->status !== SellerApplication::STATUS_PENDING) {
+            return back()->with('error', 'Permohonan ini sudah diproses atau tidak lagi berstatus pending.');
+        }
+
+        try {
+            $sidService->updateApplicationStatus($businessRef, 'rejected', $validated['note']);
+
+            $application->update([
+                'status' => SellerApplication::STATUS_REJECTED,
+                'note' => $validated['note'],
+                'decided_at' => now(),
+            ]);
+
+            return back()->with('success', 'Permohonan pedagang berhasil ditolak dan alasan telah dikirimkan ke SID.');
+        } catch (SidApplicationCancelledException) {
+            $application->anonymizeCancelled();
+            return back()->with('error', 'Permohonan telah dibatalkan oleh pemohon di SID.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal menolak permohonan ke SID: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Trigger manual sync with SID API.
+     */
+    public function syncApplications(SidApiService $sidService): RedirectResponse
+    {
+        try {
+            (new SyncSidSellerApplicationsJob)->handle($sidService);
+            return back()->with('success', 'Sinkronisasi permohonan dari SID berhasil dijalankan.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Sinkronisasi SID gagal: ' . $e->getMessage());
+        }
+    }
+
 
     /**
      * Update the specified merchant account in storage.

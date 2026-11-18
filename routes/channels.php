@@ -80,3 +80,8 @@ Broadcast::channel('store-chats.{storeId}', function ($user, $storeId) {
     return $userStoreId && (int) $userStoreId === (int) $storeId;
 });
 
+// Admin global notifications channel
+Broadcast::channel('admin-notifications', function ($user) {
+    return ($user->role ?? '') === 'admin';
+});
+

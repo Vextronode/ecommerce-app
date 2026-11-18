@@ -85,15 +85,15 @@ export default function Success({ orders = [], order }: Props) {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] flex flex-col font-sans">
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
             <Head title="Pesanan Berhasil - Cibenda Mart" />
 
             <main className="flex-1 w-full flex flex-col items-center">
-                {/* Header Banner - Deep Indigo #281B7A */}
-                <div className="w-full bg-[#281B7A] pt-14 pb-20 px-4 text-center relative overflow-hidden flex flex-col items-center justify-center">
+                {/* Header Banner - Deep Indigo */}
+                <div className="w-full bg-brand-indigo-merchant pt-14 pb-20 px-4 text-center relative overflow-hidden flex flex-col items-center justify-center">
                     <div className="relative z-10 flex flex-col items-center animate-fade-in-up">
-                        {/* Check Circle Badge #40E0D0 */}
-                        <div className="w-16 h-16 rounded-full bg-[#40E0D0] flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        {/* Check Circle Badge */}
+                        <div className="w-16 h-16 rounded-full bg-brand-cyan flex items-center justify-center mx-auto mb-4 shadow-lg">
                             <Check className="w-9 h-9 text-white" strokeWidth={3} />
                         </div>
 
@@ -120,14 +120,14 @@ export default function Success({ orders = [], order }: Props) {
                         </h2>
 
                         <div className="relative flex items-center justify-between max-w-2xl mx-auto px-4">
-                            {/* Connecting Progress Line #006591 */}
+                            {/* Connecting Progress Line */}
                             <div className="absolute top-6 left-12 right-12 h-1 bg-gray-200 -z-0">
-                                <div className="h-full bg-[#006591] w-1/3 transition-all duration-500 rounded-full" />
+                                <div className="h-full bg-brand-blue w-1/3 transition-all duration-500 rounded-full" />
                             </div>
 
                             {/* Step 1: Dikemas */}
                             <div className="flex flex-col items-center text-center relative z-10 max-w-[150px]">
-                                <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#006591] text-[#006591] flex items-center justify-center shadow-xs mb-3">
+                                <div className="w-12 h-12 rounded-2xl bg-white border-2 border-brand-blue text-brand-blue flex items-center justify-center shadow-xs mb-3">
                                     <Package className="w-6 h-6" />
                                 </div>
                                 <h4 className="font-bold text-gray-900 text-xs sm:text-sm">
@@ -166,8 +166,8 @@ export default function Success({ orders = [], order }: Props) {
                         </div>
                     </div>
 
-                    {/* Detail Pesanan Card - Background #40E0D0/10 */}
-                    <div className="w-full bg-[#40E0D0]/10 border border-[#40E0D0]/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
+                    {/* Detail Pesanan Card */}
+                    <div className="w-full bg-brand-blue-soft border border-brand-blue/20 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
                         <h3 className="text-lg font-bold text-gray-900 text-center tracking-tight">
                             Detail Pesanan
                         </h3>
@@ -231,7 +231,7 @@ export default function Success({ orders = [], order }: Props) {
                     {isMultiOrder && (
                         <div className="space-y-4">
                             <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider px-1 flex items-center gap-2">
-                                <Layers className="w-4 h-4 text-[#006591]" />
+                                <Layers className="w-4 h-4 text-brand-blue" />
                                 <span>Daftar Pesanan per Toko ({ordersList.length})</span>
                             </h3>
 
@@ -241,7 +241,7 @@ export default function Success({ orders = [], order }: Props) {
                                     className="bg-white rounded-2xl p-5 shadow-xs border border-gray-100 flex flex-wrap items-center justify-between gap-3 hover:border-gray-200 transition"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 text-[#281B7A] flex items-center justify-center font-bold border border-gray-100">
+                                        <div className="w-10 h-10 rounded-xl bg-gray-50 text-brand-indigo-merchant flex items-center justify-center font-bold border border-gray-100">
                                             <Store className="w-5 h-5" />
                                         </div>
                                         <div>
@@ -262,7 +262,7 @@ export default function Success({ orders = [], order }: Props) {
                                                 href={`/tracker/${ord.invoice_number}`}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="inline-flex items-center gap-1 text-xs font-bold text-[#006591] bg-sky-50 hover:bg-[#006591] hover:text-white px-3 py-1.5 rounded-xl transition"
+                                                className="inline-flex items-center gap-1 text-xs font-bold text-brand-blue bg-brand-blue-tint hover:bg-brand-blue hover:text-white px-3 py-1.5 rounded-xl transition"
                                             >
                                                 <Truck className="w-3.5 h-3.5" />
                                                 <span>Lacak</span>
@@ -278,7 +278,7 @@ export default function Success({ orders = [], order }: Props) {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
                         <Link
                             href={route("shop")}
-                            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 bg-[#281B7A] hover:bg-[#1e145c] text-white font-bold rounded-xl transition shadow-md shadow-[#281B7A]/20 text-sm cursor-pointer"
+                            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 bg-brand-indigo-merchant hover:bg-brand-indigo-merchant-hover text-white font-bold rounded-xl transition shadow-md shadow-brand-indigo-merchant/20 text-sm cursor-pointer"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Lanjut Pesanan

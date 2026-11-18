@@ -56,7 +56,7 @@ export default function DriverPinForm({ invoice_number, is_arrived = false }: Dr
     };
 
     return (
-        <div className="bg-[#281B7A] p-5 rounded-3xl shadow-sm border border-[#281B7A] text-white space-y-4">
+        <div className="bg-brand-indigo-admin p-5 rounded-3xl shadow-sm border border-brand-indigo-admin text-white space-y-4">
             {/* Arrival Status Banner */}
             {is_arrived ? (
                 <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs">
@@ -70,16 +70,16 @@ export default function DriverPinForm({ invoice_number, is_arrived = false }: Dr
                     disabled={markingArrived}
                     className="w-full py-3 px-4 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-98 transition flex items-center justify-center gap-2 text-xs font-bold text-white border border-white/20 cursor-pointer disabled:opacity-50"
                 >
-                    <MapPin className="w-4 h-4 text-[#ED7218]" />
+                    <MapPin className="w-4 h-4 text-brand-orange" />
                     <span>{markingArrived ? 'Mengonfirmasi...' : 'Saya Sudah Sampai di Lokasi Pembeli'}</span>
                 </button>
             )}
 
             <div className="flex items-center gap-3">
-                <ShieldCheck className="w-6 h-6 text-[#ED7218]" />
+                <ShieldCheck className="w-6 h-6 text-brand-orange" />
                 <div>
                     <h3 className="text-sm font-extrabold">Serah Terima Pesanan</h3>
-                    <p className="text-[11px] text-[#ED7218] font-medium">Minta 4-Digit PIN dari HP Pembeli</p>
+                    <p className="text-[11px] text-brand-orange font-medium">Minta 4-Digit PIN dari HP Pembeli</p>
                 </div>
             </div>
 
@@ -91,7 +91,7 @@ export default function DriverPinForm({ invoice_number, is_arrived = false }: Dr
                                 key={index}
                                 type="text"
                                 maxLength={1}
-                                className="w-14 h-16 text-center text-2xl font-black rounded-2xl bg-white/10 border border-white/20 text-white focus:bg-white focus:text-[#281B7A] focus:ring-0 focus:border-[#ED7218] transition"
+                                className="w-14 h-16 text-center text-2xl font-black rounded-2xl bg-white/10 border border-white/20 text-white focus:bg-white focus:text-brand-indigo-admin focus:ring-0 focus:border-brand-orange transition"
                                 value={data.pin[index] || ''}
                                 onChange={(e) => {
                                     const val = e.target.value.replace(/[^0-9]/g, '');
@@ -125,7 +125,7 @@ export default function DriverPinForm({ invoice_number, is_arrived = false }: Dr
                 <button
                     type="submit"
                     disabled={data.pin.length !== 4 || processing}
-                    className="w-full bg-[#ED7218] text-white font-bold py-3.5 rounded-xl hover:bg-[#d66311] transition disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full bg-brand-orange text-white font-bold py-3.5 rounded-xl hover:bg-brand-orange-hover transition disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-xs flex items-center justify-center gap-2 cursor-pointer"
                 >
                     {processing ? 'Memproses...' : 'Selesaikan Pengiriman'}
                 </button>

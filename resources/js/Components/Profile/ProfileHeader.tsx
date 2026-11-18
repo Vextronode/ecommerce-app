@@ -134,7 +134,7 @@ export default function ProfileHeader({ user, className = "" }: ProfileHeaderPro
                         aria-label="Ubah foto profil"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploading}
-                        className="absolute bottom-0 right-0 w-7 h-7 md:w-8 md:h-8 bg-[#ED7218] hover:bg-[#d66311] active:scale-95 disabled:opacity-50 rounded-full text-white flex items-center justify-center transition-all shadow-md cursor-pointer border-2 border-white"
+                        className="absolute bottom-0 right-0 w-7 h-7 md:w-8 md:h-8 bg-brand-orange hover:bg-brand-orange-hover active:scale-95 disabled:opacity-50 rounded-full text-white flex items-center justify-center transition-all shadow-md cursor-pointer border-2 border-white"
                     >
                         {isUploading ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />

@@ -22,7 +22,7 @@ export default function DeliverySection({
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Truck className="w-6 h-6 text-[#ED7218]" />
+                    <Truck className="w-6 h-6 text-brand-orange" />
                     <h2 className="text-xl font-bold text-gray-900">Metode Pengiriman</h2>
                 </div>
                 {isMultiStore && (
@@ -43,7 +43,7 @@ export default function DeliverySection({
                     onClick={() => onSelect("local_delivery")}
                     className={`relative p-5 rounded-2xl border-2 cursor-pointer transition ${
                         selected === "local_delivery"
-                            ? "border-[#ED7218] bg-[#ED7218]/5"
+                            ? "border-brand-orange bg-brand-orange-soft"
                             : "border-slate-100 hover:border-slate-200"
                     }`}
                 >
@@ -52,12 +52,12 @@ export default function DeliverySection({
                             <span className="font-bold text-sm text-gray-900">
                                 Kurir Toko (Lokal)
                             </span>
-                            <span className="text-[10px] font-bold bg-[#ED7218]/10 text-[#ED7218] px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-bold bg-brand-orange-tint text-brand-orange px-2 py-0.5 rounded-full">
                                 DIANTAR
                             </span>
                         </div>
                         {selected === "local_delivery" && (
-                            <ShieldCheck className="w-5 h-5 text-[#ED7218]" />
+                            <ShieldCheck className="w-5 h-5 text-brand-orange" />
                         )}
                     </div>
                     <p className="text-xs text-slate-500 mb-3">
@@ -65,7 +65,7 @@ export default function DeliverySection({
                             ? "Diantar langsung oleh masing-masing toko"
                             : "Diantar langsung oleh kurir toko"}
                     </p>
-                    <p className="font-bold text-sm text-[#ED7218]">
+                    <p className="font-bold text-sm text-brand-orange">
                         {selected === "local_delivery"
                             ? formatRupiah(deliveryFee)
                             : "Dihitung otomatis"}
@@ -82,14 +82,14 @@ export default function DeliverySection({
                     onClick={() => onSelect("self_pickup")}
                     className={`relative p-5 rounded-2xl border-2 cursor-pointer transition ${
                         selected === "self_pickup"
-                            ? "border-[#ED7218] bg-[#ED7218]/5"
+                            ? "border-brand-orange bg-brand-orange-soft"
                             : "border-slate-100 hover:border-slate-200"
                     }`}
                 >
                     <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-sm text-gray-900">Ambil Sendiri</span>
                         {selected === "self_pickup" && (
-                            <ShieldCheck className="w-5 h-5 text-[#ED7218]" />
+                            <ShieldCheck className="w-5 h-5 text-brand-orange" />
                         )}
                     </div>
                     <p className="text-xs text-slate-500 mb-3">
@@ -97,7 +97,7 @@ export default function DeliverySection({
                             ? "Ambil mandiri ke masing-masing lokasi toko"
                             : "Ambil langsung ke toko"}
                     </p>
-                    <p className="font-bold text-sm text-[#ED7218]">Gratis (Rp 0)</p>
+                    <p className="font-bold text-sm text-brand-orange">Gratis (Rp 0)</p>
                 </div>
             </div>
 
@@ -105,7 +105,7 @@ export default function DeliverySection({
             {selected === "local_delivery" && isMultiStore && (
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2.5">
                     <p className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <Store className="w-3.5 h-3.5 text-[#14433D]" />
+                        <Store className="w-3.5 h-3.5 text-brand-blue" />
                         <span>Rincian Ongkir Per Toko:</span>
                     </p>
                     <div className="divide-y divide-slate-200/60 text-xs">

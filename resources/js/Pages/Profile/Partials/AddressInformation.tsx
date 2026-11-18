@@ -72,7 +72,7 @@ export default function AddressInformation({
                         setEditingAddress(null);
                         setIsModalOpen(true);
                     }}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#ED7218] text-white font-bold text-xs md:text-sm hover:bg-[#d66311] transition shadow-sm shadow-orange-500/20 active:scale-95 shrink-0"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-orange text-white font-bold text-xs md:text-sm hover:bg-brand-orange-hover transition shadow-sm shadow-brand-orange/20 active:scale-95 shrink-0 cursor-pointer"
                 >
                     <Plus className="w-4 h-4" />
                     <span>Tambah Alamat Baru</span>
@@ -100,7 +100,7 @@ export default function AddressInformation({
                                 key={address.id}
                                 className={`p-4 md:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row justify-between items-start gap-4 ${
                                     isPrimary
-                                        ? "bg-orange-50/30 border-orange-200/80 shadow-2xs"
+                                        ? "bg-brand-orange-tint/30 border-brand-orange/20 shadow-2xs"
                                         : "bg-white border-slate-200/80 hover:border-slate-300"
                                 }`}
                             >
@@ -116,7 +116,7 @@ export default function AddressInformation({
                                         </span>
 
                                         {isPrimary && (
-                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#ED7218] text-white">
+                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-brand-orange text-white">
                                                 Utama
                                             </span>
                                         )}
@@ -141,7 +141,7 @@ export default function AddressInformation({
                                     <button
                                         type="button"
                                         onClick={() => handleEdit(address)}
-                                        className="px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold text-[#ED7218] hover:bg-orange-50 transition"
+                                        className="px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold text-brand-orange hover:bg-brand-orange-tint transition cursor-pointer"
                                     >
                                         Ubah
                                     </button>

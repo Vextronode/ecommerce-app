@@ -1,10 +1,17 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import { Eye, EyeOff, Sparkles, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Sparkles, AlertCircle, ShieldCheck } from "lucide-react";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
-import { useCreateMerchantForm } from "@/Hooks/Admin/useCreateMerchantForm";
+import {
+    useCreateMerchantForm,
+    ApplicationInitialData,
+} from "@/Hooks/Admin/useCreateMerchantForm";
 
-export default function CreateMerchantForm() {
+interface Props {
+    application?: ApplicationInitialData | null;
+}
+
+export default function CreateMerchantForm({ application }: Props) {
     const {
         data,
         setData,
@@ -21,10 +28,31 @@ export default function CreateMerchantForm() {
         handleGeneratePassword,
         handleBlur,
         handleSubmit,
-    } = useCreateMerchantForm();
+    } = useCreateMerchantForm(application);
 
     return (
         <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
+            {/* SID Verification Banner */}
+            {application && (
+                <div className="p-4 rounded-2xl bg-orange-50 border border-orange-200/80 flex items-start gap-3.5 shadow-2xs">
+                    <div className="w-9 h-9 rounded-xl bg-brand-orange text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                        <div className="text-xs font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                            <span>Formulir Terisi Otomatis dari SIDUTama</span>
+                            {application.letter_number && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-brand-orange border border-orange-200">
+                                    No. SKU: {application.letter_number}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-[11px] text-gray-600 leading-relaxed">
+                            Data toko, pemilik, NIK, dan kontak telah diverifikasi oleh Pemerintah Desa Cibenda. Silakan buat password akun pedagang di bawah ini untuk mengaktifkan akun.
+                        </p>
+                    </div>
+                </div>
+            )}
             {/* Store Name & Store Username */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Store Name */}
@@ -47,7 +75,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("merchant_name")}
                             placeholder="Contoh: Toko Udin Sembako"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.merchant_name || fieldErrors.merchant_name
+                            className={`w-full px-4 py-3 bg-surface-muted/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.merchant_name || fieldErrors.merchant_name
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                 }`}
@@ -82,7 +110,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("username")}
                             placeholder="tokoudin (otomatis dari nama toko)"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.username || fieldErrors.username
+                            className={`w-full px-4 py-3 bg-surface-muted/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.username || fieldErrors.username
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                 }`}
@@ -123,7 +151,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("owner_name")}
                             placeholder="Contoh: Udin Sutarman"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.owner_name || fieldErrors.owner_name
+                            className={`w-full px-4 py-3 bg-surface-muted/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.owner_name || fieldErrors.owner_name
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                 }`}
@@ -159,7 +187,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("nik")}
                             placeholder="Contoh: 3218012345670001"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 font-mono placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.nik || fieldErrors.nik
+                            className={`w-full px-4 py-3 bg-surface-muted/60 border rounded-2xl text-xs text-gray-800 font-mono placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.nik || fieldErrors.nik
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                 }`}
@@ -200,7 +228,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("email")}
                             placeholder="pedagang@domain.com"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.email || fieldErrors.email
+                            className={`w-full px-4 py-3 bg-surface-muted/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.email || fieldErrors.email
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                 }`}
@@ -233,7 +261,7 @@ export default function CreateMerchantForm() {
                             }
                             onBlur={() => handleBlur("phone")}
                             placeholder="081234567890"
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.phone || fieldErrors.phone
+                            className={`w-full px-4 py-3 bg-surface-muted/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.phone || fieldErrors.phone
                                 ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                                 : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                 }`}
@@ -273,7 +301,7 @@ export default function CreateMerchantForm() {
                         }
                         onBlur={() => handleBlur("password")}
                         placeholder="Minimal 8 karakter"
-                        className={`w-full pl-4 pr-11 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 font-mono placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.password || fieldErrors.password
+                        className={`w-full pl-4 pr-11 py-3 bg-surface-muted/60 border rounded-2xl text-xs text-gray-800 font-mono placeholder:font-sans placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${errors.password || fieldErrors.password
                             ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
                             : "border-gray-300/70 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                             }`}

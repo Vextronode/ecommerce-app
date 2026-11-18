@@ -49,7 +49,7 @@ export default function Cart({ cartData, recommendations }: CartProps) {
                                         type="checkbox"
                                         checked={isAllSelected}
                                         onChange={toggleAll}
-                                        className="w-4 h-4 md:w-5 md:h-5 rounded accent-[#006591] border-slate-300"
+                                        className="w-4 h-4 md:w-5 md:h-5 rounded accent-brand-blue border-slate-300"
                                     />
                                     <span className="font-bold text-gray-900 text-xs md:text-sm">
                                         Pilih semua Product

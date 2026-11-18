@@ -45,7 +45,7 @@ export default function ProductRecommendations({ recommendations = [] }: Props) 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                 <div>
-                    <h2 className="text-2xl md:text-[28px] font-extrabold text-[#13005E] tracking-tight mb-1">
+                    <h2 className="text-2xl md:text-[28px] font-extrabold text-brand-teal-deep tracking-tight mb-1">
                         Rekomendasi Produk
                     </h2>
                     <p className="text-sm text-gray-500">
@@ -65,7 +65,7 @@ export default function ProductRecommendations({ recommendations = [] }: Props) 
             <div className="flex justify-center">
                 <Link
                     href="/shop"
-                    className="inline-flex items-center justify-center px-8 md:px-12 py-3.5 rounded-lg border-2 border-[#13005E] text-[#13005E] font-bold text-sm md:text-base hover:bg-[#13005E] hover:text-white transition-colors"
+                    className="inline-flex items-center justify-center px-8 md:px-12 py-3.5 rounded-lg border-2 border-brand-teal-deep text-brand-teal-deep font-bold text-sm md:text-base hover:bg-brand-teal-deep hover:text-white transition-colors"
                     aria-label="Lihat Semua Produk"
                 >
                     Lihat Semua Produk

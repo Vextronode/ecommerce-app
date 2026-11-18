@@ -10,14 +10,15 @@ import OrderSummary from "@/Components/Checkout/OrderSummary";
 import AddressPickerModal, {
     CheckoutAddress,
 } from "@/Components/Checkout/AddressPickerModal";
-import { useCheckoutForm } from "@/Hooks/Storefront/useCheckoutForm";
+import { useCheckoutForm, type PlatformSettings } from "@/Hooks/Storefront/useCheckoutForm";
 
 interface Props {
     initialCartItems: any[];
     addresses: CheckoutAddress[];
+    platformSettings?: PlatformSettings;
 }
 
-export default function Checkout({ initialCartItems, addresses }: Props) {
+export default function Checkout({ initialCartItems, addresses, platformSettings }: Props) {
     const {
         cartItems,
         subtotal,
@@ -28,13 +29,18 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
         errors,
         deliveryFee,
         storesBreakdown,
-        adminFee,
+        serviceFee,
+        taxAmount,
+        taxPercentage,
+        enableServiceFee,
+        enableTax,
+        enableOnlinePayment,
         isAddressPickerOpen,
         setIsAddressPickerOpen,
         applyAddress,
         handlePaymentSelect,
         handlePlaceOrder,
-    } = useCheckoutForm({ initialCartItems, addresses });
+    } = useCheckoutForm({ initialCartItems, addresses, platformSettings });
 
     const selectedAddress = addresses.find(
         (address) => address.id === data.address_id,
@@ -69,6 +75,7 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                             selectedMethod={data.payment_method}
                             selectedChannel={data.payment_channel}
                             onSelect={handlePaymentSelect}
+                            isOnlinePaymentEnabled={enableOnlinePayment}
                         />
                     </div>
 
@@ -76,7 +83,11 @@ export default function Checkout({ initialCartItems, addresses }: Props) {
                         <OrderSummary
                             subtotal={subtotal}
                             deliveryFee={deliveryFee}
-                            adminFee={adminFee}
+                            serviceFee={serviceFee}
+                            taxAmount={taxAmount}
+                            taxPercentage={taxPercentage}
+                            enableServiceFee={enableServiceFee}
+                            enableTax={enableTax}
                             totalItems={totalItems}
                             storesBreakdown={storesBreakdown}
                             onPlaceOrder={handlePlaceOrder}

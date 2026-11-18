@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'user_id',
+    'business_ref',
     'name',
     'slug',
     'logo_path',
@@ -57,6 +58,11 @@ class Store extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function sellerApplication()
+    {
+        return $this->hasOne(SellerApplication::class);
     }
 
     public function reviews()

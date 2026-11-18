@@ -112,7 +112,7 @@ export default function NotificationBell({ user }: { user: any }) {
                             <div className="flex items-center gap-2">
                                 <h2 className="text-base font-bold text-gray-900">Notifikasi</h2>
                                 {unreadCount > 0 && (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-[#ED7218]">
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-orange-tint text-brand-orange">
                                         {unreadCount} baru
                                     </span>
                                 )}

@@ -4,7 +4,7 @@ import { ShoppingBag, Store } from "lucide-react";
 
 export default function AboutCTA() {
     return (
-        <section className="gsap-reveal-section py-16 md:py-20 bg-[#281B7A] text-white">
+        <section className="gsap-reveal-section py-16 md:py-20 bg-brand-indigo-admin text-white">
             <div className="gsap-reveal-item max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
                     Mulai Belanja Hasil Laut Segar Pangandaran
@@ -27,7 +27,7 @@ export default function AboutCTA() {
                         href={route("register")}
                         className="px-6 py-3 bg-white/10 hover:bg-white/15 text-white border border-white/20 rounded-xl font-semibold text-sm sm:text-base transition-colors inline-flex items-center gap-2"
                     >
-                        <Store className="w-4 h-4 text-[#41B9C5]" />
+                        <Store className="w-4 h-4 text-brand-cyan" />
                         <span>Daftar Jadi Penjual</span>
                     </Link>
                 </div>

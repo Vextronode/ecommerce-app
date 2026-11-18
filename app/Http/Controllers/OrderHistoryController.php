@@ -183,6 +183,8 @@ class OrderHistoryController extends Controller
             'total_amount' => $order->total_amount,
             'subtotal' => $order->subtotal,
             'shipping_cost' => $order->shipping_cost,
+            'service_fee' => $order->service_fee,
+            'tax_amount' => $order->tax_amount,
             'customer_name' => $order->customer_name,
             'customer_phone' => $order->customer_phone,
             'shipping_address' => $order->shipping_address,

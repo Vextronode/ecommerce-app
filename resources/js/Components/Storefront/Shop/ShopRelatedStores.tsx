@@ -46,7 +46,7 @@ export default function ShopRelatedStores({ searchQuery, relatedStores }: ShopRe
                             </div>
 
                             <div className="flex flex-col flex-1">
-                                <h3 className="text-base md:text-lg font-bold text-[#13005E] leading-tight mb-1">
+                                <h3 className="text-base md:text-lg font-bold text-brand-teal-deep leading-tight mb-1">
                                     {store.name}
                                 </h3>
                                 <p className="text-xs md:text-sm text-gray-500 mb-3 md:mb-4 line-clamp-2">

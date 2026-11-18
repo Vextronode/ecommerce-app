@@ -5,7 +5,7 @@ import aboutImage from "@/assets/images/about.webp";
 
 export default function AboutHero() {
     return (
-        <section className="pt-32 md:pt-38 pb-16 md:pb-20 bg-[#F4F9FA] border-b border-slate-200/70">
+        <section className="pt-32 md:pt-38 pb-16 md:pb-20 bg-brand-blue-soft/50 border-b border-slate-200/70">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
                     {/* Left: Text & Actions */}
@@ -36,7 +36,7 @@ export default function AboutHero() {
                                 href="#contact-cs"
                                 className="px-5 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl font-semibold text-sm sm:text-base transition-colors inline-flex items-center gap-2 shadow-2xs"
                             >
-                                <MessageSquareText className="w-4 h-4 text-[#006591]" />
+                                <MessageSquareText className="w-4 h-4 text-brand-blue" />
                                 <span>Hubungi Layanan CS</span>
                             </a>
                         </div>

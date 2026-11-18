@@ -28,6 +28,8 @@ export interface OrderData {
     total_amount: number | string;
     subtotal?: number | string;
     shipping_cost?: number | string;
+    service_fee?: number | string;
+    tax_amount?: number | string;
     payment_status: string;
     payment_method: string;
     payment_channel?: string;
@@ -100,7 +102,7 @@ export default function OrderDetailsCard({
             </div>
 
             {/* ITEM BELANJA */}
-            <div className="bg-[#F0F2F5] rounded-2xl p-5 sm:p-6 space-y-4">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 sm:p-6 space-y-4">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                     ITEM BELANJA ({order.items?.length || 1} PRODUK)
                 </span>
@@ -121,10 +123,10 @@ export default function OrderDetailsCard({
                                         <img
                                             src={imgUrl}
                                             alt={item.product_name || item.product?.name || "Produk"}
-                                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover bg-white border border-slate-200/80 flex-shrink-0"
+                                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover bg-white border border-slate-200/80 shrink-0"
                                         />
                                     ) : (
-                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center flex-shrink-0 text-slate-400">
+                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center shrink-0 text-slate-400">
                                             <Package className="w-6 h-6" />
                                         </div>
                                     )}
@@ -170,7 +172,14 @@ export default function OrderDetailsCard({
                             {formatRupiah(Number(order.shipping_cost || 0))}
                         </span>
                     </div>
-                    {Number(order.total_amount) > Number(order.subtotal || 0) + Number(order.shipping_cost || 0) && (
+                    {Number(order.service_fee || 0) > 0 ? (
+                        <div className="flex justify-between">
+                            <span>Biaya Layanan Platform</span>
+                            <span className="font-semibold text-slate-800">
+                                {formatRupiah(Number(order.service_fee))}
+                            </span>
+                        </div>
+                    ) : Number(order.total_amount) > Number(order.subtotal || 0) + Number(order.shipping_cost || 0) && !Number(order.tax_amount || 0) ? (
                         <div className="flex justify-between">
                             <span>Biaya Layanan</span>
                             <span className="font-semibold text-slate-800">
@@ -179,6 +188,14 @@ export default function OrderDetailsCard({
                                         Number(order.subtotal || 0) -
                                         Number(order.shipping_cost || 0)
                                 )}
+                            </span>
+                        </div>
+                    ) : null}
+                    {Number(order.tax_amount || 0) > 0 && (
+                        <div className="flex justify-between">
+                            <span>Pajak (PPN)</span>
+                            <span className="font-semibold text-slate-800">
+                                {formatRupiah(Number(order.tax_amount))}
                             </span>
                         </div>
                     )}
@@ -190,7 +207,7 @@ export default function OrderDetailsCard({
                 <span className="text-base sm:text-xl font-bold text-slate-800">
                     Total Tagihan
                 </span>
-                <span className="text-2xl sm:text-3xl md:text-4xl font-black text-[#281B7A]">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-black text-brand-orange">
                     {formatRupiah(Number(order.total_amount))}
                 </span>
             </div>
@@ -200,7 +217,7 @@ export default function OrderDetailsCard({
                 <button
                     onClick={onCheckStatus}
                     disabled={isChecking}
-                    className="w-full bg-[#281B7A] hover:bg-[#1f1460] text-white font-bold py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xs transition active:scale-[0.99] flex items-center justify-center gap-2.5 disabled:opacity-60"
+                    className="w-full bg-brand-indigo-merchant hover:bg-brand-indigo-merchant-hover text-white font-bold py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xs transition active:scale-[0.99] flex items-center justify-center gap-2.5 disabled:opacity-60 cursor-pointer"
                 >
                     <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${isChecking ? "animate-spin" : ""}`} />
                     <span>{isChecking ? "Memeriksa Pembayaran..." : "Cek Status Pembayaran"}</span>
@@ -209,14 +226,14 @@ export default function OrderDetailsCard({
                 <div className="flex items-center gap-3.5">
                     <Link
                         href={route("shop")}
-                        className="flex-1 bg-[#C6C7D8] hover:bg-[#b5b7ca] text-[#281B7A] font-bold py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-center transition shadow-2xs flex items-center justify-center gap-2"
+                        className="flex-1 bg-brand-indigo-merchant/10 hover:bg-brand-indigo-merchant/15 text-brand-indigo-merchant font-bold py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-center transition shadow-2xs flex items-center justify-center gap-2"
                     >
                         <ShoppingBag className="w-4 h-4" />
                         <span>Lanjut Belanja</span>
                     </Link>
                     <Link
                         href={route("history.show", order.id)}
-                        className="flex-1 bg-[#F5D8BA] hover:bg-[#eecaa8] text-[#D96B00] font-bold py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-center transition shadow-2xs flex items-center justify-center gap-2"
+                        className="flex-1 bg-brand-orange-tint hover:bg-brand-orange-warm/20 text-brand-orange font-bold py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-center transition shadow-2xs flex items-center justify-center gap-2"
                     >
                         <FileText className="w-4 h-4" />
                         <span>Lihat Rincian</span>

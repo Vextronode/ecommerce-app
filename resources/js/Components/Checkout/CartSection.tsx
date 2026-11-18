@@ -114,7 +114,7 @@ export default function CartSection({ items }: { items: CartItem[] }) {
                                             </div>
 
                                             <div className="text-right shrink-0">
-                                                <p className="font-extrabold text-sm md:text-base text-[#14433D]">
+                                                <p className="font-extrabold text-sm md:text-base text-slate-900">
                                                     {formatRupiah(item.price * item.qty)}
                                                 </p>
                                             </div>

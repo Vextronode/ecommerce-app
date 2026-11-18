@@ -5,6 +5,7 @@ import {
     Store,
     UserPlus,
     BarChart2,
+    Sliders,
     LogOut,
 } from "lucide-react";
 import parigiLogo from "@/assets/images/parigi_logo.png";
@@ -88,6 +89,19 @@ export default function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
                 >
                     <BarChart2 className="w-5 h-5 shrink-0" />
                     Laporan Penjualan
+                </Link>
+
+                <Link
+                    href={route("admin.settings.index")}
+                    onClick={onCloseMobile}
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold transition text-sm whitespace-nowrap ${
+                        route().current("admin.settings.*")
+                            ? "bg-brand-orange text-white shadow-lg shadow-brand-orange/30"
+                            : "text-gray-600 hover:bg-orange-50/60 hover:text-brand-orange border border-transparent"
+                    }`}
+                >
+                    <Sliders className="w-5 h-5 shrink-0" />
+                    Pengaturan Platform
                 </Link>
             </nav>
 

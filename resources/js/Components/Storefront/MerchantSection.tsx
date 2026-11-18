@@ -56,7 +56,7 @@ export default function MerchantSection({ stores = [] }: MerchantSectionProps) {
                             <Link
                                 href={`/store/${store.slug || store.id}`}
                                 key={`merchant-${store.id}-${index}`}
-                                className={`bg-[#EAECEF] rounded-xl p-4 md:p-5 flex items-center gap-4 hover:shadow-md transition-all duration-300 border ${borderColor}`}
+                                className={`bg-surface-muted rounded-xl p-4 md:p-5 flex items-center gap-4 hover:shadow-md transition-all duration-300 border ${borderColor}`}
                                 aria-label={`Kunjungi Toko ${store.name}`}
                             >
                                 {/* IMAGE */}

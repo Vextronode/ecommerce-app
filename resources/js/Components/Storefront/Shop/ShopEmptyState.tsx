@@ -11,7 +11,7 @@ export default function ShopEmptyState({ onResetAll }: ShopEmptyStateProps) {
             <div className="w-16 h-16 rounded-2xl bg-orange-50 text-brand-orange flex items-center justify-center mb-4">
                 <Search className="w-8 h-8" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-extrabold text-[#13005E] mb-2">
+            <h3 className="text-xl sm:text-2xl font-extrabold text-brand-teal-deep mb-2">
                 Produk Tidak Ditemukan
             </h3>
             <p className="text-gray-500 text-xs sm:text-sm mb-6 max-w-md">

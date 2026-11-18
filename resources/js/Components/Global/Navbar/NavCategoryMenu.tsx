@@ -108,7 +108,7 @@ export default function NavCategoryMenu({ categories }: NavCategoryMenuProps) {
                 className={`flex items-center gap-2 px-3.5 py-2 border rounded-xl font-bold transition-all text-xs lg:text-sm select-none ${
                     isOpen
                         ? "bg-brand-orange text-white border-brand-orange shadow-md shadow-brand-orange/20"
-                        : "bg-[#F1F3F5] border-gray-200 text-gray-700 hover:bg-gray-200"
+                        : "bg-surface-muted border-border-subtle text-gray-700 hover:bg-slate-200"
                 }`}
             >
                 <LayoutGrid size={17} className={isOpen ? "text-white" : "text-gray-700"} />

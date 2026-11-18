@@ -6,15 +6,35 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const PHONE_REGEX = /^(\+62|62|08)[0-9]{7,13}$/;
 export const NIK_REGEX = /^[0-9]{16}$/;
 
-export function useCreateMerchantForm() {
+export interface ApplicationInitialData {
+    business_ref: string;
+    business_name: string;
+    business_activity?: string;
+    name: string;
+    nik: string;
+    email: string;
+    phone: string;
+    address?: string;
+    category?: string;
+    category_label?: string;
+    letter_number?: string;
+}
+
+export function useCreateMerchantForm(initialApplication?: ApplicationInitialData | null) {
+    const autoSlug = (initialApplication?.business_name || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .slice(0, 30);
+
     const { data, setData, post, processing, errors } = useForm({
-        merchant_name: "",
-        owner_name: "",
-        nik: "",
-        username: "",
-        email: "",
-        phone: "",
+        merchant_name: initialApplication?.business_name || "",
+        owner_name: initialApplication?.name || "",
+        nik: initialApplication?.nik || "",
+        username: autoSlug,
+        email: initialApplication?.email || "",
+        phone: initialApplication?.phone || "",
         password: "",
+        business_ref: initialApplication?.business_ref || "",
     });
 
     const [showPassword, setShowPassword] = useState(false);
@@ -86,11 +106,11 @@ export function useCreateMerchantForm() {
     const handleMerchantNameChange = (val: string) => {
         setData("merchant_name", val);
         if (!touched.username) {
-            const autoSlug = val
+            const newSlug = val
                 .toLowerCase()
                 .replace(/[^a-z0-9]/g, "")
                 .slice(0, 30);
-            setData((prev) => ({ ...prev, merchant_name: val, username: autoSlug }));
+            setData((prev) => ({ ...prev, merchant_name: val, username: newSlug }));
         }
     };
 

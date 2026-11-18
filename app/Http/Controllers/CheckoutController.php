@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\ChatNegotiation;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PlatformSetting;
 use App\Models\Product;
 use App\Services\MidtransService;
 use App\Services\OrderNotificationService;
@@ -22,8 +23,6 @@ class CheckoutController extends Controller
         'coastal' => 25000,
         'standard' => 15000,
     ];
-
-    private const ADMIN_FEE = 2000;
 
     private function haversineDistance($lat1, $lon1, $lat2, $lon2)
     {
@@ -123,6 +122,14 @@ class CheckoutController extends Controller
         return Inertia::render('Checkout/Checkout', [
             'initialCartItems' => $cartItems,
             'addresses' => $request->user()->addresses()->orderBy('is_primary', 'desc')->latest()->get(),
+            'platformSettings' => [
+                'enable_online_payment' => PlatformSetting::isEnabled('enable_online_payment', true),
+                'enable_tax' => PlatformSetting::isEnabled('enable_tax', false),
+                'tax_percentage' => (float) PlatformSetting::get('tax_percentage', 0),
+                'enable_service_fee' => PlatformSetting::isEnabled('enable_service_fee', false),
+                'service_fee_amount' => (float) PlatformSetting::get('service_fee_amount', 0),
+                'enable_local_delivery' => PlatformSetting::isEnabled('enable_local_delivery', true),
+            ],
         ]);
     }
 
@@ -157,6 +164,20 @@ class CheckoutController extends Controller
         if (! in_array($validated['payment_channel'], $allowedChannelsByMethod[$validated['payment_method']] ?? [], true)) {
             throw ValidationException::withMessages([
                 'payment_channel' => 'Saluran pembayaran tidak sesuai dengan metode pembayaran yang dipilih.',
+            ]);
+        }
+
+        $isOnlinePaymentEnabled = PlatformSetting::isEnabled('enable_online_payment', true);
+        if (! $isOnlinePaymentEnabled && $validated['payment_method'] !== 'cod') {
+            throw ValidationException::withMessages([
+                'payment_method' => 'Pembayaran online sedang dinonaktifkan sementara. Pesanan hanya dapat diproses menggunakan metode Bayar di Tempat (COD).',
+            ]);
+        }
+
+        $isLocalDeliveryEnabled = PlatformSetting::isEnabled('enable_local_delivery', true);
+        if (! $isLocalDeliveryEnabled && $validated['delivery_method'] === 'local_delivery') {
+            throw ValidationException::withMessages([
+                'delivery_method' => 'Pengiriman kurir lokal sedang dinonaktifkan sementara. Silakan pilih metode Ambil Sendiri (Pick-up).',
             ]);
         }
 
@@ -226,7 +247,11 @@ class CheckoutController extends Controller
             });
 
             $createdOrders = [];
-            $adminFeeApplied = false;
+            $enableServiceFee = PlatformSetting::isEnabled('enable_service_fee', false);
+            $serviceFeeConfig = (float) PlatformSetting::get('service_fee_amount', 0);
+            $enableTax = PlatformSetting::isEnabled('enable_tax', false);
+            $taxPercentage = (float) PlatformSetting::get('tax_percentage', 0);
+            $serviceFeeApplied = false;
 
             foreach ($cartsByStore as $storeId => $storeCarts) {
                 $subtotal = 0;
@@ -298,9 +323,10 @@ class CheckoutController extends Controller
                 }
 
                 $deliveryFee = $this->calculateShippingCost($store, $addressLat, $addressLon, $validated['delivery_method']);
-                $adminFee = ($validated['payment_method'] === 'cod' || $adminFeeApplied) ? 0 : self::ADMIN_FEE;
-                $adminFeeApplied = true;
-                $totalAmount = $subtotal + $deliveryFee + $adminFee;
+                $serviceFee = ($enableServiceFee && ! $serviceFeeApplied) ? $serviceFeeConfig : 0;
+                $serviceFeeApplied = true;
+                $taxAmount = $enableTax ? round(($subtotal * $taxPercentage) / 100, 2) : 0;
+                $totalAmount = $subtotal + $deliveryFee + $serviceFee + $taxAmount;
 
                 $order = Order::create([
                     'store_id' => $storeId,
@@ -314,6 +340,8 @@ class CheckoutController extends Controller
                     'delivery_method' => $validated['delivery_method'],
                     'subtotal' => $subtotal,
                     'shipping_cost' => $deliveryFee,
+                    'service_fee' => $serviceFee,
+                    'tax_amount' => $taxAmount,
                     'total_amount' => $totalAmount,
                     'payment_method' => $validated['payment_method'],
                     'payment_channel' => $validated['payment_channel'],
@@ -543,10 +571,23 @@ class CheckoutController extends Controller
         $cartIds = array_filter((array) $request->query('cart_ids', []), fn ($id) => is_scalar($id) && ctype_digit((string) $id));
         $method = is_string($request->query('delivery_method')) ? $request->query('delivery_method') : 'local_delivery';
 
+        $enableServiceFee = PlatformSetting::isEnabled('enable_service_fee', false);
+        $serviceFeeAmount = $enableServiceFee ? (float) PlatformSetting::get('service_fee_amount', 0) : 0;
+        $enableTax = PlatformSetting::isEnabled('enable_tax', false);
+        $taxPercentage = $enableTax ? (float) PlatformSetting::get('tax_percentage', 0) : 0;
+        $enableOnlinePayment = PlatformSetting::isEnabled('enable_online_payment', true);
+        $enableLocalDelivery = PlatformSetting::isEnabled('enable_local_delivery', true);
+
         if (empty($cartIds)) {
             return response()->json([
                 'delivery_fee' => 0,
                 'stores_breakdown' => [],
+                'service_fee' => $serviceFeeAmount,
+                'enable_service_fee' => $enableServiceFee,
+                'tax_percentage' => $taxPercentage,
+                'enable_tax' => $enableTax,
+                'enable_online_payment' => $enableOnlinePayment,
+                'enable_local_delivery' => $enableLocalDelivery,
             ]);
         }
 
@@ -590,6 +631,12 @@ class CheckoutController extends Controller
         return response()->json([
             'delivery_fee' => $totalDeliveryFee,
             'stores_breakdown' => $storesBreakdown,
+            'service_fee' => $serviceFeeAmount,
+            'enable_service_fee' => $enableServiceFee,
+            'tax_percentage' => $taxPercentage,
+            'enable_tax' => $enableTax,
+            'enable_online_payment' => $enableOnlinePayment,
+            'enable_local_delivery' => $enableLocalDelivery,
         ]);
     }
 }

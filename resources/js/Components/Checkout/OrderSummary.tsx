@@ -6,7 +6,12 @@ import type { StoreShippingBreakdown } from "@/Hooks/Storefront/useCheckoutForm"
 interface Props {
     subtotal: number;
     deliveryFee: number;
-    adminFee: number;
+    adminFee?: number;
+    serviceFee?: number;
+    taxAmount?: number;
+    taxPercentage?: number;
+    enableServiceFee?: boolean;
+    enableTax?: boolean;
     totalItems: number;
     storesBreakdown?: StoreShippingBreakdown[];
     onPlaceOrder: () => void;
@@ -16,14 +21,22 @@ interface Props {
 export default function OrderSummary({
     subtotal,
     deliveryFee,
-    adminFee,
+    adminFee = 0,
+    serviceFee,
+    taxAmount = 0,
+    taxPercentage = 0,
+    enableServiceFee,
+    enableTax,
     totalItems,
     storesBreakdown = [],
     onPlaceOrder,
     processing,
 }: Props) {
     const [showBreakdown, setShowBreakdown] = useState(false);
-    const grandTotal = subtotal + deliveryFee + adminFee;
+    const resolvedServiceFee = serviceFee !== undefined ? serviceFee : adminFee;
+    const showServiceFee = enableServiceFee !== undefined ? enableServiceFee : resolvedServiceFee > 0;
+    const showTax = enableTax !== undefined ? enableTax : taxAmount > 0;
+    const grandTotal = subtotal + deliveryFee + (showServiceFee ? resolvedServiceFee : 0) + (showTax ? taxAmount : 0);
     const isMultiStore = storesBreakdown.length > 1;
 
     return (
@@ -42,7 +55,6 @@ export default function OrderSummary({
                     </span>
                 </div>
 
-                {/* Delivery Fee Line with multi-store toggle */}
                 <div>
                     <div className="flex justify-between items-center text-sm">
                         <div className="flex items-center gap-1.5">
@@ -53,7 +65,7 @@ export default function OrderSummary({
                                 <button
                                     type="button"
                                     onClick={() => setShowBreakdown(!showBreakdown)}
-                                    className="text-[#41B9C5] hover:text-[#14433D] transition p-0.5 cursor-pointer"
+                                    className="text-brand-blue hover:text-brand-blue-hover transition p-0.5 cursor-pointer"
                                     title="Lihat rincian per toko"
                                 >
                                     {showBreakdown ? (
@@ -86,19 +98,32 @@ export default function OrderSummary({
                     )}
                 </div>
 
-                <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 font-medium">
-                        Biaya Layanan (Admin)
-                    </span>
-                    <span className="text-gray-900 font-bold">
-                        {formatRupiah(adminFee)}
-                    </span>
-                </div>
+                {showServiceFee && (
+                    <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 font-medium">
+                            Biaya Layanan Platform
+                        </span>
+                        <span className="text-gray-900 font-bold">
+                            {formatRupiah(resolvedServiceFee)}
+                        </span>
+                    </div>
+                )}
+
+                {showTax && (
+                    <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 font-medium">
+                            Pajak PPN ({taxPercentage}%)
+                        </span>
+                        <span className="text-gray-900 font-bold">
+                            {formatRupiah(taxAmount)}
+                        </span>
+                    </div>
+                )}
             </div>
 
             <div className="flex justify-between items-end mb-8">
                 <span className="font-bold text-gray-900">Total Tagihan</span>
-                <span className="text-2xl font-extrabold text-[#ED7218]">
+                <span className="text-2xl font-extrabold text-brand-orange">
                     {formatRupiah(grandTotal)}
                 </span>
             </div>
@@ -109,7 +134,7 @@ export default function OrderSummary({
                 className={`w-full font-bold py-4 rounded-2xl transition shadow-lg mb-4 flex items-center justify-center cursor-pointer ${
                     processing
                         ? "bg-slate-400 text-white cursor-not-allowed"
-                        : "bg-[#ED7218] hover:bg-orange-600 text-white shadow-orange-500/20 active:scale-[0.98]"
+                        : "bg-brand-orange hover:bg-brand-orange-hover text-white shadow-brand-orange/20 active:scale-[0.98]"
                 }`}
             >
                 {processing ? (
@@ -120,7 +145,7 @@ export default function OrderSummary({
             </button>
 
             <div className="flex items-center justify-center gap-2 text-xs font-medium text-slate-400">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <ShieldCheck className="w-4 h-4 text-status-success" />
                 <span>Transaksi Terenkripsi & Aman 100%</span>
             </div>
         </div>

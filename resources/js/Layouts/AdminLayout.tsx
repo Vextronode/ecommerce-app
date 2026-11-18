@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: Props) {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     return (
-        <div className="flex h-screen bg-[#F8F9FA] p-3 sm:p-4 md:p-6 gap-3 sm:gap-4 md:gap-6 font-sans overflow-hidden max-w-full w-full">
+        <div className="flex h-screen bg-bg-main p-3 sm:p-4 md:p-6 gap-3 sm:gap-4 md:gap-6 font-sans overflow-hidden max-w-full w-full">
             {/* Mobile Backdrop */}
             {isMobileSidebarOpen && (
                 <button

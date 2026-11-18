@@ -44,14 +44,14 @@ export default function Show({ order }: { order: any }) {
 
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC]">
+        <div className="min-h-screen bg-slate-50">
             <Head title={`Pesanan ${order.invoice_number}`} />
             <Navbar />
 
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-32">
                 <Link
                     href={route("history.index")}
-                    className="inline-flex items-center text-sm text-gray-500 hover:text-[#ED7218] mb-6 transition-colors font-medium"
+                    className="inline-flex items-center text-sm text-gray-500 hover:text-brand-orange mb-6 transition-colors font-medium cursor-pointer"
                 >
                     <ChevronLeft className="w-4 h-4 mr-1" />
                     Kembali ke Riwayat
@@ -93,9 +93,9 @@ export default function Show({ order }: { order: any }) {
                                         {order.shipping_address}
                                     </p>
                                     {order.shipping_status === 'shipped' && order.delivery_method === 'local_delivery' && order.shipping_pin && (
-                                        <div className="mt-4 bg-[#EAF7F7] p-4 rounded-xl border border-[#41B9C5]/30">
-                                            <p className="text-xs font-bold text-[#14433D] uppercase tracking-wider mb-1">PIN Pengiriman</p>
-                                            <div className="text-3xl font-black text-[#41B9C5] tracking-[0.2em]">{order.shipping_pin}</div>
+                                        <div className="mt-4 bg-brand-blue-soft p-4 rounded-xl border border-brand-blue/20">
+                                            <p className="text-xs font-bold text-brand-blue-dark uppercase tracking-wider mb-1">PIN Pengiriman</p>
+                                            <div className="text-3xl font-black text-brand-blue tracking-[0.2em]">{order.shipping_pin}</div>
                                             <p className="text-[10px] text-gray-500 mt-1">Berikan PIN ini kepada kurir toko saat menerima barang untuk menyelesaikan pesanan.</p>
                                         </div>
                                     )}
@@ -186,7 +186,7 @@ export default function Show({ order }: { order: any }) {
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-[#281B7A]">
+                                        <p className="font-bold text-slate-900">
                                             Rp
                                             {Number(item.price).toLocaleString(
                                                 "id-ID"
@@ -219,11 +219,33 @@ export default function Show({ order }: { order: any }) {
                                     )}
                                 </span>
                             </div>
+                            {Number(order.service_fee || 0) > 0 && (
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Biaya Layanan Platform</span>
+                                    <span>
+                                        Rp
+                                        {Number(order.service_fee).toLocaleString(
+                                            "id-ID"
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+                            {Number(order.tax_amount || 0) > 0 && (
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Pajak (PPN)</span>
+                                    <span>
+                                        Rp
+                                        {Number(order.tax_amount).toLocaleString(
+                                            "id-ID"
+                                        )}
+                                    </span>
+                                </div>
+                            )}
                             <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
                                 <span className="font-bold text-gray-900">
                                     Total Pesanan
                                 </span>
-                                <span className="text-xl font-bold text-[#281B7A]">
+                                <span className="text-xl font-bold text-brand-orange">
                                     Rp
                                     {Number(order.total_amount).toLocaleString(
                                         "id-ID"
@@ -248,7 +270,7 @@ export default function Show({ order }: { order: any }) {
                                     href={order.store_phone ? `https://wa.me/${order.store_phone.replace(/\D/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo admin ${order.store_name}, saya pembeli dengan nomor pesanan #${order.invoice_number}. Saya ingin bertanya mengenai pesanan saya...`)}` : '#'}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center justify-center px-6 py-2.5 bg-[#281B7A]/5 border border-[#281B7A]/20 text-[#281B7A] text-sm font-bold rounded-xl hover:bg-[#281B7A]/10 transition-colors"
+                                    className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-indigo-merchant/5 border border-brand-indigo-merchant/20 text-brand-indigo-merchant text-sm font-bold rounded-xl hover:bg-brand-indigo-merchant/10 transition-colors"
                                 >
                                     <MessageSquare className="w-4 h-4 mr-2" />
                                     Hubungi Penjual

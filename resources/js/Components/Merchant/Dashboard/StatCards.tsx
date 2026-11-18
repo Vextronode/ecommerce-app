@@ -29,25 +29,25 @@ export default function StatCards({ statsData }: Props) {
             title: "Total Penjualan",
             value: formatRupiah(statsData.sales),
             growth: statsData.sales_growth ?? 0,
-            icon: <Banknote className="w-6 h-6 text-[#245D56]" />,
+            icon: <Banknote className="w-6 h-6 text-brand-teal-deep" />,
         },
         {
             title: "Total Pesanan",
             value: statsData.orders.toString(),
             growth: statsData.orders_growth ?? 0,
-            icon: <ShoppingBag className="w-6 h-6 text-[#245D56]" />,
+            icon: <ShoppingBag className="w-6 h-6 text-brand-teal-deep" />,
         },
         {
             title: "Total Pelanggan",
             value: statsData.customers.toString(),
             growth: statsData.customers_growth ?? 0,
-            icon: <Users className="w-6 h-6 text-[#245D56]" />,
+            icon: <Users className="w-6 h-6 text-brand-teal-deep" />,
         },
         {
             title: "Total Produk",
             value: statsData.products.toString(),
             growth: statsData.products_growth ?? 0,
-            icon: <Package className="w-6 h-6 text-[#245D56]" />,
+            icon: <Package className="w-6 h-6 text-brand-teal-deep" />,
         },
     ];
 
@@ -64,7 +64,7 @@ export default function StatCards({ statsData }: Props) {
                         className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-brand-orange/30 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow max-w-full overflow-hidden"
                     >
                         <div className="flex justify-between items-start mb-6">
-                            <div className="w-12 h-12 bg-[#EAF7F7] rounded-full flex items-center justify-center">
+                            <div className="w-12 h-12 bg-brand-cyan-soft rounded-full flex items-center justify-center">
                                 {stat.icon}
                             </div>
                             <span
