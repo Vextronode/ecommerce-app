@@ -81,8 +81,13 @@ export default function Footer() {
                             <li className="text-[15px] text-white/80 hover:text-white transition cursor-pointer">
                                 Cara Berbelanja
                             </li>
-                            <li className="text-[15px] text-white/80 hover:text-white transition cursor-pointer">
-                                Panduan Penjual
+                            <li>
+                                <Link
+                                    href={route("merchant.guide")}
+                                    className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
+                                >
+                                    Panduan Mitra Pedagang
+                                </Link>
                             </li>
                         </ul>
                     </div>

@@ -76,22 +76,22 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                     initial={{ opacity: 1 }}
                     animate={contentControls}
                 >
-                    <div className="w-1/2 h-full flex items-center justify-center px-8 lg:px-14">
+                    <div className="w-1/2 h-full flex items-center justify-center px-6 lg:px-10 py-6 overflow-y-auto">
                         {isLogin ? (
                             <AuthBranding type="login" />
                         ) : (
-                            <div className="w-full max-w-xl">
-                                <div className="bg-bg-main rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
+                            <div className="w-full max-w-lg my-auto">
+                                <div className="bg-bg-main rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-6 sm:p-8 lg:p-10">
                                     {children}
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="w-1/2 h-full flex items-center justify-center px-8 lg:px-14">
+                    <div className="w-1/2 h-full flex items-center justify-center px-6 lg:px-10 py-6 overflow-y-auto">
                         {isLogin ? (
-                            <div className="w-full max-w-xl">
-                                <div className="bg-bg-main rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
+                            <div className="w-full max-w-lg my-auto">
+                                <div className="bg-bg-main rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-6 sm:p-8 lg:p-10">
                                     {children}
                                 </div>
                             </div>

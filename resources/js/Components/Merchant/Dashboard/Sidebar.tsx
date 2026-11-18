@@ -118,6 +118,7 @@ export default function Sidebar() {
                     method="post"
                     data={{ source: "merchant" }}
                     as="button"
+                    replace
                     className="flex items-center w-full gap-4 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl font-medium transition text-sm whitespace-nowrap"
                 >
                     <LogOut className="w-5 h-5 shrink-0" />

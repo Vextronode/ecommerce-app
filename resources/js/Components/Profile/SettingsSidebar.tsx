@@ -140,6 +140,7 @@ export default function SettingsSidebar({
                         href={route("logout")}
                         method="post"
                         as="button"
+                        replace
                         className="flex w-full items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition duration-150 text-left"
                     >
                         <LogOut className="w-4.5 h-4.5" />

@@ -112,6 +112,7 @@ export default function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
                     method="post"
                     data={{ source: "admin" }}
                     as="button"
+                    replace
                     className="flex items-center justify-start gap-3 w-full px-4 py-2.5 text-rose-500 hover:bg-rose-50 border border-rose-200 rounded-2xl font-semibold transition text-sm cursor-pointer"
                 >
                     <LogOut className="w-4 h-4 shrink-0 text-rose-500" />

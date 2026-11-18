@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Store } from "lucide-react";
 import logoParigi from "@/assets/images/parigi_logo.png";
 import { PageProps } from "@/types";
 import { platformNavLinks, isLinkActive, handleNavClick } from "@/utils/navigation";
@@ -79,7 +79,18 @@ export default function Navbar() {
                 <NavSearchBar variant="desktop" />
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-1 md:gap-3">
+                <div className="flex items-center gap-1.5 md:gap-3">
+                    {!user && (
+                        <Link
+                            href={route("merchant.guide")}
+                            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-bold bg-brand-orange hover:bg-brand-orange-hover text-white shadow-sm shadow-brand-orange/25 transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0 cursor-pointer"
+                            aria-label="Mulai Berjualan sebagai Mitra Pedagang"
+                        >
+                            <Store className="w-3.5 h-3.5 shrink-0" />
+                            <span className="hidden sm:inline">Mulai Berjualan</span>
+                            <span className="sm:hidden">Mulai Berjualan</span>
+                        </Link>
+                    )}
                     <NotificationBell user={user} />
                     <NavCartPreview cartCount={cartCount} cartPreview={cart_preview} />
                     <div className="hidden md:block w-px h-6 bg-gray-300 mx-1"></div>
