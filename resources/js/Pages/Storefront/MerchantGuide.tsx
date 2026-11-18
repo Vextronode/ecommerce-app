@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { Head } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
+import SEOHead from "@/Components/Global/SEOHead";
 import MerchantGuideHero from "@/Components/Storefront/MerchantGuide/MerchantGuideHero";
 import MerchantGuideBenefits from "@/Components/Storefront/MerchantGuide/MerchantGuideBenefits";
 import MerchantGuideSteps from "@/Components/Storefront/MerchantGuide/MerchantGuideSteps";
@@ -43,13 +43,10 @@ export default function MerchantGuide({ sidPortalUrl }: MerchantGuideProps) {
 
     return (
         <StorefrontLayout>
-            <Head>
-                <title>Panduan Kemitraan & Pendaftaran Pedagang - CibendaMart</title>
-                <meta
-                    name="description"
-                    content="Panduan resmi cara mendaftar sebagai mitra pedagang di CibendaMart melalui Sistem Informasi Desa (SID) Cibenda. Gratis pendaftaran dan didukung pemerintah desa."
-                />
-            </Head>
+            <SEOHead
+                title="Panduan Kemitraan & Pendaftaran Pedagang - CibendaMart"
+                description="Panduan resmi cara mendaftar sebagai mitra pedagang di CibendaMart melalui Sistem Informasi Desa (SID) Cibenda. Gratis pendaftaran dan didukung pemerintah desa."
+            />
 
             <div ref={mainRef} className="w-full">
                 <MerchantGuideHero sidPortalUrl={sidPortalUrl} />

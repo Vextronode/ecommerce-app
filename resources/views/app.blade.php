@@ -15,6 +15,22 @@
 
         <title inertia>{{ config('app.name', 'Cibenda Mart') }}</title>
 
+        <!-- Default SEO Meta Tags -->
+        <meta name="description" content="CibendaMart - Platform e-commerce resmi Desa Cibenda, Parigi, Pangandaran. Belanja produk UMKM lokal, oleh-oleh khas pesisir, dan kuliner desa terverifikasi langsung dari pedagang.">
+        <meta name="keywords" content="CibendaMart, Desa Cibenda, UMKM Pangandaran, oleh-oleh Pangandaran, belanja online Parigi, pasar desa digital">
+        <meta name="author" content="Pemerintah Desa Cibenda">
+        <meta name="robots" content="index, follow">
+
+        <!-- Default Open Graph / Social Sharing -->
+        <meta property="og:site_name" content="CibendaMart">
+        <meta property="og:type" content="website">
+        <meta property="og:locale" content="id_ID">
+        <meta name="twitter:card" content="summary_large_image">
+
+        @if(config('services.google.site_verification'))
+            <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+        @endif
+
         <!-- Favicon & PWA Icons per Role -->
         @if($isMerchant)
             <meta name="theme-color" content="#4F46E5">

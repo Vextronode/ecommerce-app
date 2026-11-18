@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { Head } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
+import SEOHead from "@/Components/Global/SEOHead";
 import AboutHero from "@/Components/Storefront/About/AboutHero";
 import AboutStory from "@/Components/Storefront/About/AboutStory";
 import AboutValues from "@/Components/Storefront/About/AboutValues";
@@ -62,7 +62,10 @@ export default function About() {
 
     return (
         <StorefrontLayout>
-            <Head title="Tentang Kami & Kontak CS - Cibenda Mart" />
+            <SEOHead
+                title="Tentang Kami & Layanan Pelanggan - Cibenda Mart"
+                description="Mengenal CibendaMart, inisiatif digitalisasi UMKM oleh Pemerintah Desa Cibenda, Parigi, Pangandaran. Mendukung produk lokal terverifikasi dan ekonomi pesisir berkelanjutan."
+            />
 
             <div ref={mainRef} className="w-full">
                 {/* Hero Section */}

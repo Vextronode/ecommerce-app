@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 import { ChevronRight } from "lucide-react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
+import SEOHead from "@/Components/Global/SEOHead";
 import ProductCard from "@/Components/Storefront/ProductCard";
 import { renderCategoryIcon } from "@/utils/categoryIcons";
 import {
@@ -163,7 +164,10 @@ export default function Shop({
 
     return (
         <StorefrontLayout>
-            <Head title={pageTitle} />
+            <SEOHead
+                title={pageTitle}
+                description="Jelajahi seluruh katalog produk UMKM Desa Cibenda, Parigi, Pangandaran. Temukan produk lokal pilihan, oleh-oleh, dan kuliner terverifikasi."
+            />
 
             {isNetworkLoading && !isLoading ? (
                 <ShopPageSkeleton />

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import StorefrontLayout from '@/Layouts/StorefrontLayout';
+import SEOHead from '@/Components/Global/SEOHead';
 import StoreHeader from '@/Components/Storefront/StoreDetail/StoreHeader';
 import StoreFilters from '@/Components/Storefront/StoreDetail/StoreFilters';
 import ShopProductRow from '@/Components/Storefront/ShopProductRow';
@@ -124,9 +125,34 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
         });
     };
 
+    const storeDescription = store.description
+        ? store.description.slice(0, 160)
+        : `Kunjungi ${store.name}, toko mitra resmi UMKM Desa Cibenda di CibendaMart. Belanja produk lokal berkualitas terverifikasi.`;
+
+    const storeSchema = {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        name: store.name,
+        description: storeDescription,
+        image: store.logo_path || "/favicon.png",
+        address: {
+            "@type": "PostalAddress",
+            addressLocality: "Desa Cibenda, Parigi",
+            addressRegion: "Pangandaran, Jawa Barat",
+            addressCountry: "ID",
+            streetAddress: store.address || "Desa Cibenda",
+        },
+    };
+
     return (
         <StorefrontLayout>
-            <Head title={`${store.name} - Cibenda Mart`} />
+            <SEOHead
+                title={`${store.name} - Toko Resmi Mitra Cibenda Mart`}
+                description={storeDescription}
+                image={store.logo_path || "/favicon.png"}
+                type="profile"
+                jsonLd={storeSchema}
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-32 space-y-6">
 
                 <StoreHeader
