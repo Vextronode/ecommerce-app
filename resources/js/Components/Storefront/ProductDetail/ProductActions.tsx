@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { ShoppingCart, Tag } from "lucide-react";
 import { router, usePage } from "@inertiajs/react";
 import toast from "react-hot-toast";
@@ -22,8 +23,41 @@ export default function ProductActions({
     product,
     currentSku,
 }: Props) {
-    const { auth } = usePage<PageProps>().props;
+    const { auth, platform_settings } = usePage<
+        PageProps & { platform_settings?: { enable_negotiation?: boolean } }
+    >().props;
     const user = auth?.user;
+
+    const [isNegotiationEnabled, setIsNegotiationEnabled] = useState<boolean>(
+        platform_settings?.enable_negotiation ?? true
+    );
+
+    useEffect(() => {
+        if (typeof platform_settings?.enable_negotiation !== "undefined") {
+            setIsNegotiationEnabled(Boolean(platform_settings.enable_negotiation));
+        }
+    }, [platform_settings?.enable_negotiation]);
+
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel("platform-settings");
+        const handleSettingsUpdated = (e: {
+            settings?: Record<string, any>;
+            changed_keys?: string[];
+        }) => {
+            if (e?.settings && typeof e.settings.enable_negotiation !== "undefined") {
+                setIsNegotiationEnabled(Boolean(e.settings.enable_negotiation));
+            }
+        };
+
+        channel.listen(".PlatformSettingsUpdated", handleSettingsUpdated);
+        channel.listen("PlatformSettingsUpdated", handleSettingsUpdated);
+
+        return () => {
+            window.Echo.leaveChannel("platform-settings");
+        };
+    }, []);
 
     const handleAddToCart = () => {
         if (disabled)
@@ -70,6 +104,10 @@ export default function ProductActions({
     };
 
     const handleNegotiate = () => {
+        if (!isNegotiationEnabled) {
+            return toast.error("Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin.");
+        }
+
         if (disabled)
             return toast.error("Silakan lengkapi pilihan varian dulu!");
 
@@ -122,7 +160,7 @@ export default function ProductActions({
             >
                 <ShoppingCart className="w-4 h-4 text-brand-blue" /> + Keranjang
             </button>
-            {store?.id && (
+            {store?.id && isNegotiationEnabled && (
                 <button
                     type="button"
                     onClick={handleNegotiate}

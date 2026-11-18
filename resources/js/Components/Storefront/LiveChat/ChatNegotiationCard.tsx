@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { usePage } from "@inertiajs/react";
 import { NegotiationItem } from "@/types/chat";
 import {
     Tag,
@@ -32,6 +33,38 @@ export default function ChatNegotiationCard({
 }: Props) {
     const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
 
+    const { platform_settings } = usePage().props as any;
+    const [isNegotiationEnabled, setIsNegotiationEnabled] = useState<boolean>(
+        platform_settings?.enable_negotiation ?? true
+    );
+
+    useEffect(() => {
+        if (typeof platform_settings?.enable_negotiation !== "undefined") {
+            setIsNegotiationEnabled(Boolean(platform_settings.enable_negotiation));
+        }
+    }, [platform_settings?.enable_negotiation]);
+
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.Echo) return;
+
+        const channel = window.Echo.channel("platform-settings");
+        const handleSettingsUpdated = (e: {
+            settings?: Record<string, any>;
+            changed_keys?: string[];
+        }) => {
+            if (e?.settings && typeof e.settings.enable_negotiation !== "undefined") {
+                setIsNegotiationEnabled(Boolean(e.settings.enable_negotiation));
+            }
+        };
+
+        channel.listen(".PlatformSettingsUpdated", handleSettingsUpdated);
+        channel.listen("PlatformSettingsUpdated", handleSettingsUpdated);
+
+        return () => {
+            window.Echo.leaveChannel("platform-settings");
+        };
+    }, []);
+
     const isBuyer = role === "buyer";
     const isMerchant = role === "merchant";
 
@@ -47,6 +80,10 @@ export default function ChatNegotiationCard({
     const discountPercent = Math.round(((originalTotal - totalPrice) / originalTotal) * 100);
 
     const handleBuyerAccept = async () => {
+        if (!isNegotiationEnabled) {
+            toast.error("Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin.");
+            return;
+        }
         setIsActionLoading("buyer_accept");
         try {
             const res = await axios.post(`/chat/negotiations/${negotiation.id}/accept`);
@@ -79,6 +116,10 @@ export default function ChatNegotiationCard({
     };
 
     const handleBuyerCheckout = async () => {
+        if (!isNegotiationEnabled) {
+            toast.error("Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin.");
+            return;
+        }
         setIsActionLoading("buyer_checkout");
         try {
             const res = await axios.post(`/chat/negotiations/${negotiation.id}/checkout`);
@@ -93,6 +134,10 @@ export default function ChatNegotiationCard({
     };
 
     const handleMerchantAccept = async () => {
+        if (!isNegotiationEnabled) {
+            toast.error("Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin.");
+            return;
+        }
         setIsActionLoading("merchant_accept");
         try {
             const res = await axios.post(`/pedagang/chat/negotiations/${negotiation.id}/accept`);
@@ -270,8 +315,16 @@ export default function ChatNegotiationCard({
                     </p>
                 )}
 
+                {/* Killswitch Disabled Notice */}
+                {!isNegotiationEnabled && ["pending", "countered", "accepted"].includes(effectiveStatus) && (
+                    <div className="mt-3 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 font-medium flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>Fitur tawar-menawar sedang dinonaktifkan sementara oleh admin.</span>
+                    </div>
+                )}
+
                 {/* Buyer Actions */}
-                {isBuyer && effectiveStatus === "countered" && (
+                {isBuyer && effectiveStatus === "countered" && isNegotiationEnabled && (
                     <div className="mt-3 grid grid-cols-2 gap-2">
                         <button
                             type="button"
@@ -306,7 +359,7 @@ export default function ChatNegotiationCard({
                     </div>
                 )}
 
-                {isBuyer && effectiveStatus === "accepted" && (
+                {isBuyer && effectiveStatus === "accepted" && isNegotiationEnabled && (
                     <div className="mt-3">
                         <button
                             type="button"
@@ -328,7 +381,7 @@ export default function ChatNegotiationCard({
                 )}
 
                 {/* Merchant Actions */}
-                {isMerchant && effectiveStatus === "pending" && (
+                {isMerchant && effectiveStatus === "pending" && isNegotiationEnabled && (
                     <div className="mt-3 flex items-center gap-1.5">
                         <button
                             type="button"
