@@ -17,6 +17,7 @@ import {
     Maximize2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { compressImage } from "@/utils/imageCompressor";
 
 interface Props {
     room: MerchantChatRoomItem;
@@ -63,7 +64,7 @@ export default function MerchantChatActiveRoom({
         inputRef.current?.focus();
     }, [room.id]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -73,6 +74,18 @@ export default function MerchantChatActiveRoom({
         }
 
         const isVideo = file.type.startsWith("video/");
+        if (!isVideo && file.type.startsWith("image/") && file.type !== "image/gif") {
+            try {
+                const optimized = await compressImage(file, 1920, 1920, 0.85);
+                setFileType("image");
+                setSelectedFile(optimized);
+                setFilePreview(URL.createObjectURL(optimized));
+                return;
+            } catch {
+                // fallback jika kompresi canvas gagal
+            }
+        }
+
         setFileType(isVideo ? "video" : "image");
         setSelectedFile(file);
         setFilePreview(URL.createObjectURL(file));

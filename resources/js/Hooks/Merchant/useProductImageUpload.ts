@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { compressImage } from "@/utils/imageCompressor";
 
 export interface PreviewItem {
     id?: number;
@@ -23,29 +24,54 @@ export function useProductImageUpload(
     const MAX_TOTAL_SIZE = 8 * 1024 * 1024; // 8 MB
     const MAX_SINGLE_SIZE = 2 * 1024 * 1024; // 2 MB
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length === 0) return;
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawFiles = Array.from(e.target.files || []);
+        if (rawFiles.length === 0) return;
 
-        let hasOversized = false;
-        files.forEach((file) => {
-            if (file.size > MAX_SINGLE_SIZE) hasOversized = true;
-        });
+        const needsCompression = rawFiles.some(
+            (f) => f.size > MAX_SINGLE_SIZE || (f.type.startsWith("image/") && f.type !== "image/webp")
+        );
+        const toastId = needsCompression
+            ? toast.loading("Mengoptimalkan foto produk...")
+            : undefined;
 
-        if (hasOversized) {
-            toast.error("Ada foto yang ukurannya lebih dari 2MB. Silakan kompres dulu.");
-            return;
+        try {
+            const processedFiles: File[] = [];
+            for (const file of rawFiles) {
+                if (file.type.startsWith("image/") && file.type !== "image/gif" && file.type !== "image/svg+xml") {
+                    // Kompresi WebP mempertahankan ketajaman 2048px dengan ukuran efisien
+                    const optimized = await compressImage(file, 2048, 2048, 0.85);
+                    processedFiles.push(optimized);
+                } else {
+                    processedFiles.push(file);
+                }
+            }
+
+            if (toastId) toast.dismiss(toastId);
+
+            let hasOversized = false;
+            processedFiles.forEach((file) => {
+                if (file.size > MAX_SINGLE_SIZE) hasOversized = true;
+            });
+
+            if (hasOversized) {
+                toast.error("Ada foto yang ukurannya melebihi batas 2MB.");
+                return;
+            }
+
+            const newImages = [...images, ...processedFiles];
+            const newPreviews: PreviewItem[] = processedFiles.map((file) => ({
+                // eslint-disable-next-line react-doctor/no-create-object-url-without-revoke
+                url: URL.createObjectURL(file),
+            }));
+
+            setImages(newImages);
+            setPreviewList((prev) => [...prev, ...newPreviews]);
+            onImagesChange?.(newImages);
+        } catch {
+            if (toastId) toast.dismiss(toastId);
+            toast.error("Gagal memproses gambar.");
         }
-
-        const newImages = [...images, ...files];
-        const newPreviews: PreviewItem[] = files.map((file) => ({
-            // eslint-disable-next-line react-doctor/no-create-object-url-without-revoke
-            url: URL.createObjectURL(file),
-        }));
-
-        setImages(newImages);
-        setPreviewList((prev) => [...prev, ...newPreviews]);
-        onImagesChange?.(newImages);
     };
 
     const handleRemoveImage = (index: number) => {
