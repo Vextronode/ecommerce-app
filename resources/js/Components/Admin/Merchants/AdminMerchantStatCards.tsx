@@ -29,7 +29,7 @@ export default function AdminMerchantStatCards({
                         {stats.suspended_merchants.toLocaleString()}
                     </div>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#FFF1F2] border border-rose-100 flex items-center justify-center text-rose-500 shadow-xs shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-brand-danger-tint border border-rose-100 flex items-center justify-center text-rose-500 shadow-xs shrink-0">
                     <UserX className="w-6 h-6" />
                 </div>
             </div>

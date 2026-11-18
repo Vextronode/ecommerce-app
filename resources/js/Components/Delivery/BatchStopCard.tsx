@@ -61,7 +61,7 @@ export default function BatchStopCard({
                     ? "bg-emerald-50/70 border-emerald-200/80"
                     : isSelectedTarget
                     ? "bg-white border-sky-400 ring-2 ring-sky-100 shadow-md"
-                    : "bg-white border-slate-200 hover:border-[#41B9C5]/50"
+                    : "bg-white border-slate-200 hover:border-brand-cyan/50"
             }`}
         >
             <div className="flex items-start justify-between gap-3">
@@ -180,12 +180,12 @@ export default function BatchStopCard({
                             placeholder="••••"
                             value={pin}
                             onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                            className="w-28 text-center tracking-[0.4em] font-mono font-bold text-sm bg-white border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-[#41B9C5] focus:outline-none"
+                            className="w-28 text-center tracking-[0.4em] font-mono font-bold text-sm bg-white border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-brand-cyan focus:outline-none"
                         />
                         <button
                             type="submit"
                             disabled={isSubmitting || pin.length !== 4}
-                            className="flex-1 bg-[#14433D] hover:bg-[#0f342f] text-white font-bold text-xs rounded-xl py-2 px-4 transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
+                            className="flex-1 bg-brand-teal-deep hover:bg-brand-blue-hover text-white font-bold text-xs rounded-xl py-2 px-4 transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
                         >
                             {isSubmitting ? (
                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -218,11 +218,11 @@ export default function SalesChart({ chartData, monthlyChartData = [] }: Props) 
                                 <span>Minggu Ini</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <span className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6] shrink-0"></span>
+                                <span className="w-2.5 h-2.5 rounded-full bg-violet-500 shrink-0"></span>
                                 <span>Minggu Lalu</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <span className="w-2.5 h-2.5 rounded-full bg-[#22d3ee] shrink-0"></span>
+                                <span className="w-2.5 h-2.5 rounded-full bg-brand-cyan shrink-0"></span>
                                 <span>2 Minggu Lalu</span>
                             </div>
                         </div>

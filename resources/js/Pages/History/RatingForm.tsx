@@ -45,7 +45,7 @@ export default function RatingForm({ orderItem }: Props) {
     });
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC]">
+        <div className="min-h-screen bg-slate-50">
             <Head title={`Nilai Produk - ${orderItem.product_name}`} />
             <Navbar />
 
@@ -97,7 +97,7 @@ export default function RatingForm({ orderItem }: Props) {
                                 value={data.comment}
                                 onChange={(e) => setData('comment', e.target.value)}
                                 rows={4}
-                                className="w-full rounded-2xl border-gray-200 shadow-sm focus:border-[#ED7218] focus:ring-[#ED7218] bg-gray-50/50 p-4 transition-colors"
+                                className="w-full rounded-2xl border-gray-200 shadow-sm focus:border-brand-orange focus:ring-brand-orange bg-gray-50/50 p-4 transition-colors"
                                 placeholder="Bagikan pengalamanmu menggunakan produk ini..."
                             ></textarea>
                             <InputError message={errors.comment} className="mt-2" />

@@ -40,27 +40,27 @@ export default function Error({ status }: Props) {
         <>
             <Head title={`${status} - ${title}`} />
 
-            <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center relative overflow-hidden px-4">
+            <div className="min-h-screen bg-bg-main flex flex-col items-center justify-center relative overflow-hidden px-4">
                 {/* Background decorative blobs */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     {/* Top-left teal blob */}
                     <div
                         className="absolute -top-32 -left-32 w-80 h-80 md:w-125 md:h-125 rounded-full opacity-[0.07]"
                         style={{
-                            background: "radial-gradient(circle, #40E0D0 0%, transparent 70%)",
+                            background: "radial-gradient(circle, var(--color-blue-light) 0%, transparent 70%)",
                         }}
                     />
                     {/* Bottom-right dark blob */}
                     <div
                         className="absolute -bottom-40 -right-40 w-96 h-96 md:w-150 md:h-150 rounded-full opacity-[0.05]"
                         style={{
-                            background: "radial-gradient(circle, #215B63 0%, transparent 70%)",
+                            background: "radial-gradient(circle, var(--color-blue-dark) 0%, transparent 70%)",
                         }}
                     />
                     {/* Small floating shapes */}
-                    <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-[#40E0D0]/20 rounded-full animate-pulse" />
-                    <div className="absolute bottom-1/3 left-1/5 w-2 h-2 bg-[#215B63]/15 rounded-full animate-pulse delay-700" />
-                    <div className="absolute top-1/2 right-1/6 w-4 h-4 bg-[#FF7A00]/10 rounded-full animate-pulse delay-300" />
+                    <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-brand-cyan/20 rounded-full animate-pulse" />
+                    <div className="absolute bottom-1/3 left-1/5 w-2 h-2 bg-brand-teal-deep/15 rounded-full animate-pulse delay-700" />
+                    <div className="absolute top-1/2 right-1/6 w-4 h-4 bg-brand-orange/10 rounded-full animate-pulse delay-300" />
                 </div>
 
                 {/* Logo */}
@@ -87,7 +87,7 @@ export default function Error({ status }: Props) {
                         <h1
                             className="text-[140px] sm:text-[180px] md:text-[220px] font-black leading-none tracking-tighter"
                             style={{
-                                background: "linear-gradient(135deg, #215B63 0%, #40E0D0 50%, #389f9f 100%)",
+                                background: "linear-gradient(135deg, var(--color-blue-dark) 0%, var(--color-blue-light) 50%, var(--color-blue-primary) 100%)",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
                                 backgroundClip: "text",
@@ -110,7 +110,7 @@ export default function Error({ status }: Props) {
                         {/* Tombol utama */}
                         <Link
                             href="/dashboard"
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-linear-to-r from-[#215B63] to-[#389f9f] hover:from-[#1a464d] hover:to-[#2d8282] text-white font-bold px-7 py-3.5 rounded-full shadow-lg shadow-[#215B63]/20 hover:shadow-xl hover:shadow-[#215B63]/30 hover:-translate-y-0.5 transition duration-300"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-linear-to-r from-brand-teal-deep to-brand-blue hover:from-brand-blue-dark hover:to-brand-blue-hover text-white font-bold px-7 py-3.5 rounded-full shadow-lg shadow-brand-teal-deep/20 hover:shadow-xl hover:shadow-brand-teal-deep/30 hover:-translate-y-0.5 transition duration-300"
                         >
                             <Home className="w-5 h-5" />
                             Kembali ke Home
@@ -129,7 +129,7 @@ export default function Error({ status }: Props) {
                     {/* Back link */}
                     <button
                         onClick={() => window.history.back()}
-                        className="mt-6 inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#215B63] transition-colors cursor-pointer"
+                        className="mt-6 inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-brand-teal-deep transition-colors cursor-pointer"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         atau kembali ke halaman sebelumnya
@@ -138,7 +138,7 @@ export default function Error({ status }: Props) {
 
                 {/* Footer branding mini */}
                 <div className="absolute bottom-8 flex items-center gap-1 text-xs text-gray-300 select-none">
-                    <span className="font-bold text-[#40E0D0]/60">CIBENDA</span>
+                    <span className="font-bold text-brand-cyan/60">CIBENDA</span>
                     <span className="font-bold text-gray-300">MART</span>
                 </div>
             </div>

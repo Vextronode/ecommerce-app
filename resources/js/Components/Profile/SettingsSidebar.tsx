@@ -54,22 +54,22 @@ export default function SettingsSidebar({
                                     key={menu.id}
                                     type="button"
                                     onClick={() => setActiveTab(menu.id)}
-                                    className={`flex w-full items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-sm transition duration-150 text-left ${
+                                    className={`flex w-full items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-sm transition duration-150 text-left cursor-pointer ${
                                         isActive
-                                            ? "bg-orange-50/80 text-[#ED7218] font-bold shadow-2xs"
+                                            ? "bg-brand-orange-tint/80 text-brand-orange font-bold shadow-2xs"
                                             : "text-slate-600 hover:bg-slate-50 hover:text-gray-900"
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Icon
                                             className={`w-4.5 h-4.5 shrink-0 ${
-                                                isActive ? "text-[#ED7218]" : "text-slate-400"
+                                                isActive ? "text-brand-orange" : "text-slate-400"
                                             }`}
                                         />
                                         <span>{menu.name}</span>
                                     </div>
                                     {isActive && (
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#ED7218]"></span>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-brand-orange"></span>
                                     )}
                                 </button>
                             );

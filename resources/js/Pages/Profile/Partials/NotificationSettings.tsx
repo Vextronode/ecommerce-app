@@ -90,7 +90,7 @@ export default function NotificationSettings({
         <section>
             <div className="pb-4 mb-6 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-[#ED7218]" />
+                    <Bell className="w-5 h-5 text-brand-orange" />
                     <h3 className="text-base md:text-lg font-bold text-gray-900">
                         Pengaturan Notifikasi
                     </h3>
@@ -111,7 +111,7 @@ export default function NotificationSettings({
                             className="py-3.5 flex items-center justify-between gap-4 transition hover:bg-slate-50/50 rounded-xl px-2.5"
                         >
                             <div className="flex items-start gap-3 min-w-0">
-                                <div className="w-8 h-8 rounded-lg bg-orange-50 text-[#ED7218] flex items-center justify-center shrink-0 mt-0.5">
+                                <div className="w-8 h-8 rounded-lg bg-brand-orange-tint text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
                                     <Icon className="w-4 h-4" />
                                 </div>
                                 <div>
@@ -131,7 +131,7 @@ export default function NotificationSettings({
                                 aria-checked={isChecked}
                                 onClick={() => handleToggle(item.key)}
                                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                    isChecked ? "bg-[#ED7218]" : "bg-slate-200"
+                                    isChecked ? "bg-brand-orange" : "bg-slate-200"
                                 }`}
                             >
                                 <span

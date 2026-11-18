@@ -72,7 +72,7 @@ export default function UpdatePasswordForm({
                         type="password"
                         placeholder="••••••••"
                         autoComplete="current-password"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                     />
                     {errors.current_password && (
                         <p className="text-xs text-red-600 mt-1">{errors.current_password}</p>
@@ -91,7 +91,7 @@ export default function UpdatePasswordForm({
                         type="password"
                         placeholder="••••••••"
                         autoComplete="new-password"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                     />
                     {errors.password && (
                         <p className="text-xs text-red-600 mt-1">{errors.password}</p>
@@ -109,7 +109,7 @@ export default function UpdatePasswordForm({
                         type="password"
                         placeholder="••••••••"
                         autoComplete="new-password"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                     />
                     {errors.password_confirmation && (
                         <p className="text-xs text-red-600 mt-1">{errors.password_confirmation}</p>
@@ -120,7 +120,7 @@ export default function UpdatePasswordForm({
                     <button
                         type="submit"
                         disabled={processing}
-                        className="px-6 py-2.5 rounded-xl bg-[#ED7218] text-white font-bold text-xs md:text-sm hover:bg-[#d66311] transition shadow-sm shadow-orange-500/20 active:scale-95 disabled:opacity-50"
+                        className="px-6 py-2.5 rounded-xl bg-brand-orange text-white font-bold text-xs md:text-sm hover:bg-brand-orange-hover transition shadow-sm shadow-brand-orange/20 active:scale-95 disabled:opacity-50 cursor-pointer"
                     >
                         {processing ? "Menyimpan..." : "Simpan Kata Sandi"}
                     </button>
@@ -132,7 +132,7 @@ export default function UpdatePasswordForm({
                         leave="transition ease-in-out duration-200"
                         leaveTo="opacity-0"
                     >
-                        <span className="text-xs font-bold text-[#ED7218]">
+                        <span className="text-xs font-bold text-brand-orange">
                             Tersimpan.
                         </span>
                     </Transition>

@@ -246,7 +246,7 @@ export default function DeliveryMap({
                 <div className="flex items-center gap-2 pointer-events-auto">
                     {roadDistanceKm && (
                         <div className="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-xl shadow-md border border-slate-200/70 flex items-center gap-1.5">
-                            <Compass className="w-3.5 h-3.5 text-[#006591]" />
+                            <Compass className="w-3.5 h-3.5 text-brand-blue" />
                             <span className="text-[11px] font-bold text-slate-800">
                                 ~{roadDistanceKm} KM (Jalur Darat)
                             </span>
@@ -277,7 +277,7 @@ export default function DeliveryMap({
                             </>
                         ) : (
                             <>
-                                <Maximize2 className="w-3.5 h-3.5 text-[#006591]" />
+                                <Maximize2 className="w-3.5 h-3.5 text-brand-blue" />
                                 <span className="hidden xs:inline sm:inline">Layar Penuh</span>
                             </>
                         )}
@@ -296,14 +296,14 @@ export default function DeliveryMap({
                     onClick={fitAllRoutes}
                     className={`px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
                         cameraMode === "fit"
-                            ? "bg-[#006591] text-white border border-[#006591] shadow-[#006591]/30"
+                            ? "bg-brand-blue text-white border border-brand-blue shadow-brand-blue/30"
                             : "bg-white/95 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-white"
                     }`}
                     title="Tampilkan seluruh rute (toko, kurir, dan tujuan) agar tidak terpotong"
                 >
                     <Maximize2
                         className={`w-3.5 h-3.5 ${
-                            cameraMode === "fit" ? "text-white" : "text-[#006591]"
+                            cameraMode === "fit" ? "text-white" : "text-brand-blue"
                         }`}
                     />
                     <span>Semua Rute</span>
@@ -315,14 +315,14 @@ export default function DeliveryMap({
                         onClick={focusDriver}
                         className={`px-3 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all duration-300 active:scale-95 cursor-pointer ${
                             cameraMode === "driver"
-                                ? "bg-[#006591] text-white border border-[#006591] shadow-[#006591]/30"
+                                ? "bg-brand-blue text-white border border-brand-blue shadow-brand-blue/30"
                                 : "bg-white/95 backdrop-blur-md text-slate-700 border border-slate-200 hover:bg-white"
                         }`}
                         title="Perbesar dan ikuti posisi kurir secara dekat"
                     >
                         <LocateFixed
                             className={`w-3.5 h-3.5 ${
-                                cameraMode === "driver" ? "text-white" : "text-[#006591]"
+                                cameraMode === "driver" ? "text-white" : "text-brand-blue"
                             }`}
                         />
                         <span>{isDriver ? "Fokus Saya" : "Fokus Kurir"}</span>
@@ -338,7 +338,7 @@ export default function DeliveryMap({
                     rel="noopener noreferrer"
                     className="absolute bottom-3 right-3 z-400 bg-white/95 backdrop-blur-md text-slate-800 px-3.5 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-white flex items-center gap-2 border border-slate-200/80 transition-all hover:scale-102 active:scale-95 cursor-pointer"
                 >
-                    <Navigation className="w-3.5 h-3.5 text-[#006591]" />
+                    <Navigation className="w-3.5 h-3.5 text-brand-blue" />
                     <span className="hidden xs:inline sm:inline">Navigasi</span> Google Maps
                 </a>
             )}
@@ -348,7 +348,7 @@ export default function DeliveryMap({
                 <div className="absolute bottom-4 inset-x-4 max-w-xl mx-auto z-400 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-slate-200/80 flex items-center justify-between gap-3 animate-fade-in-up">
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-md bg-[#006591] text-white flex items-center justify-center font-black text-[11px] shrink-0">
+                            <span className="w-5 h-5 rounded-md bg-brand-blue text-white flex items-center justify-center font-black text-[11px] shrink-0">
                                 1
                             </span>
                             <h4 className="font-bold text-slate-900 text-sm truncate">
@@ -379,7 +379,7 @@ export default function DeliveryMap({
                             href={googleMapsUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 bg-[#006591] hover:bg-[#005174] text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-[#006591]/20 transition cursor-pointer"
+                            className="inline-flex items-center gap-1.5 bg-brand-blue hover:bg-brand-blue-hover text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-brand-blue/20 transition cursor-pointer"
                         >
                             <Navigation className="w-3.5 h-3.5" />
                             <span>Navigasi</span>

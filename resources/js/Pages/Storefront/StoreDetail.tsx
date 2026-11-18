@@ -153,7 +153,7 @@ export default function StoreDetail({ store, isFollowing: initialIsFollowing, ca
                                         onClick={() => handleTabChange(tab)}
                                         className={`text-base md:text-lg font-bold px-8 md:px-10 py-3.5 transition-all whitespace-nowrap border-b-[3px] ${
                                             isActive
-                                                ? "bg-[#E5E7EB]/70 text-gray-900 border-[#006591]"
+                                                ? "bg-surface-muted/70 text-gray-900 border-brand-blue"
                                                 : "bg-transparent text-gray-900 border-transparent hover:bg-gray-100/50"
                                         }`}
                                     >

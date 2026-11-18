@@ -60,19 +60,30 @@ export default function DeliveryOrderSummary({ order }: DeliveryOrderSummaryProp
                         <span className="text-xs text-gray-500">Ongkos Kirim</span>
                         <span className="text-xs font-medium text-gray-700">Rp {Number(order.shipping_cost).toLocaleString('id-ID')}</span>
                     </div>
-                    {(order.total_amount - order.subtotal - order.shipping_cost) > 0 && (
+                    {Number(order.service_fee || 0) > 0 ? (
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-500">Biaya Layanan Platform</span>
+                            <span className="text-xs font-medium text-gray-700">Rp {Number(order.service_fee).toLocaleString('id-ID')}</span>
+                        </div>
+                    ) : (order.total_amount - order.subtotal - order.shipping_cost) > 0 && !Number(order.tax_amount || 0) ? (
                         <div className="flex justify-between items-center">
                             <span className="text-xs text-gray-500">Biaya Layanan/Admin</span>
                             <span className="text-xs font-medium text-gray-700">Rp {Number(order.total_amount - order.subtotal - order.shipping_cost).toLocaleString('id-ID')}</span>
                         </div>
+                    ) : null}
+                    {Number(order.tax_amount || 0) > 0 && (
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-500">Pajak (PPN)</span>
+                            <span className="text-xs font-medium text-gray-700">Rp {Number(order.tax_amount).toLocaleString('id-ID')}</span>
+                        </div>
                     )}
                     <div className="flex justify-between items-center pt-2">
                         <span className="text-xs font-bold text-gray-900">Total Tagihan</span>
-                        <span className="text-sm font-extrabold text-[#281B7A]">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
+                        <span className="text-sm font-extrabold text-brand-indigo-admin">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
                     </div>
                 </div>
                 
-                <div className="mt-4 bg-[#ED7218]/5 p-3 rounded-xl border border-[#ED7218]/20 flex justify-between items-center text-xs">
+                <div className="mt-4 bg-brand-orange/5 p-3 rounded-xl border border-brand-orange/20 flex justify-between items-center text-xs">
                     <span className="font-medium text-gray-600">Metode Pembayaran</span>
                     <span
                         className={`font-bold uppercase tracking-wide ${

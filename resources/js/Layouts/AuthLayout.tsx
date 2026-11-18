@@ -54,7 +54,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
     }, [isLogin, panelControls, contentControls]);
 
     return (
-        <div className="relative w-full min-h-screen overflow-hidden bg-[#F0F2F5]">
+        <div className="relative w-full min-h-screen overflow-hidden bg-bg-main">
             <div className="hidden md:flex relative w-full h-screen">
                 <motion.div
                     className="absolute top-0 bottom-0 z-0"
@@ -81,7 +81,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                             <AuthBranding type="login" />
                         ) : (
                             <div className="w-full max-w-xl">
-                                <div className="bg-[#F0F2F5] rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
+                                <div className="bg-bg-main rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
                                     {children}
                                 </div>
                             </div>
@@ -91,7 +91,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                     <div className="w-1/2 h-full flex items-center justify-center px-8 lg:px-14">
                         {isLogin ? (
                             <div className="w-full max-w-xl">
-                                <div className="bg-[#F0F2F5] rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
+                                <div className="bg-bg-main rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-10 lg:p-14">
                                     {children}
                                 </div>
                             </div>
@@ -109,7 +109,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                 <svg
                     viewBox="0 0 1440 80"
                     preserveAspectRatio="none"
-                    className="w-full h-8 block bg-[#F0F2F5] -mt-px"
+                    className="w-full h-8 block bg-bg-main -mt-px"
                 >
                     <path
                         d="M0,0 C360,60 1080,-20 1440,40 L1440,0 L0,0 Z"
@@ -117,7 +117,7 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                     />
                 </svg>
 
-                <div className="flex-1 flex items-start justify-center px-6 py-8 overflow-y-auto bg-[#F0F2F5]">
+                <div className="flex-1 flex items-start justify-center px-6 py-8 overflow-y-auto bg-bg-main">
                     <div className="w-full max-w-md">{children}</div>
                 </div>
             </div>

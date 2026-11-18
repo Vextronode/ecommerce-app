@@ -32,7 +32,7 @@ export default function FormInput({
                     {...props}
                     type={inputType}
                     required={required}
-                    className={`w-full bg-[#f8f9fa] border border-slate-200/80 rounded-xl px-4 py-3 text-gray-700 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue focus:bg-white focus:outline-none transition duration-300 shadow-sm ${
+                    className={`w-full bg-bg-main border border-slate-200/80 rounded-xl px-4 py-3 text-gray-700 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue focus:bg-white focus:outline-none transition duration-300 shadow-sm ${
                         isPassword ? "pr-11" : ""
                     }`}
                 />

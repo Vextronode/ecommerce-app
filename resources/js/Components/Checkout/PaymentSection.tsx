@@ -1,5 +1,5 @@
 import React from "react";
-import { Landmark, QrCode, Banknote, Wallet, Check } from "lucide-react";
+import { Landmark, QrCode, Banknote, Wallet, AlertCircle } from "lucide-react";
 
 export interface PaymentOption {
     id: string;
@@ -14,6 +14,7 @@ interface Props {
     selectedMethod: string;
     selectedChannel: string;
     onSelect: (method: "va" | "qris" | "gopay" | "cod", channel: string) => void;
+    isOnlinePaymentEnabled?: boolean;
 }
 
 const VA_CHANNELS: PaymentOption[] = [
@@ -87,7 +88,11 @@ const COD_OPTION: PaymentOption = {
     badge: "COD",
 };
 
-export default function PaymentSection({ selectedChannel, onSelect }: Props) {
+export default function PaymentSection({
+    selectedChannel,
+    onSelect,
+    isOnlinePaymentEnabled = true,
+}: Props) {
     return (
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
             <div className="flex items-center justify-between mb-6">
@@ -99,124 +104,45 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                 </div>
             </div>
 
+            {!isOnlinePaymentEnabled && (
+                <div className="mb-6 p-4 rounded-2xl bg-status-warning-tint border border-status-warning/40 text-status-warning-dark text-xs flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-status-warning-dark shrink-0 mt-0.5" />
+                    <div>
+                        <span className="font-bold block text-sm">Pembayaran Online Dinonaktifkan Sementara</span>
+                        <span className="text-slate-700">
+                            Untuk saat ini pemesanan dialihkan menggunakan metode <strong>Bayar di Tempat (COD)</strong>.
+                        </span>
+                    </div>
+                </div>
+            )}
+
             <div className="space-y-6">
-                {/* Virtual Account Section */}
+                {/* Cash on Delivery (COD) */}
                 <div>
                     <div className="flex items-center gap-2 mb-3">
-                        <Landmark className="w-4 h-4 text-[#ED7218]" />
-                        <h3 className="text-sm font-bold text-gray-800">Virtual Account (Transfer Bank)</h3>
-                        <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full border border-emerald-200">
-                            Otomatis Terverifikasi
-                        </span>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2.5">
-                        {VA_CHANNELS.map((item) => {
-                            const isSelected = selectedChannel === item.channel;
-                            return (
-                                <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
-                                    key={item.id}
-                                    onClick={() => onSelect(item.method, item.channel)}
-                                    className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${isSelected
-                                            ? "border-[#ED7218] bg-[#ED7218]/5 shadow-sm"
-                                            : "border-slate-100 hover:border-slate-300 bg-white"
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3.5">
-                                        <div
-                                            className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${isSelected
-                                                    ? "text-[#ED7218] border-slate-200 bg-slate-50"
-                                                    : "bg-slate-50 text-slate-700 border-slate-200"
-                                                }`}
-                                        >
-                                            {item.badge}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-sm text-gray-900">{item.name}</h4>
-                                            <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
-                                        </div>
-                                    </div>
-                                    <div
-                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${isSelected ? "border-[#ED7218]" : "border-slate-300"
-                                            }`}
-                                    >
-                                        {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#ED7218]" />}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/*  QRIS & E-Wallet Section */}
-                <div>
-                    <div className="flex items-center gap-2 mb-3">
-                        <QrCode className="w-4 h-4 text-[#ED7218]" />
-                        <h3 className="text-sm font-bold text-gray-800">QRIS & E-Wallet</h3>
-                        <span className="text-[10px] bg-sky-50 text-sky-700 font-semibold px-2 py-0.5 rounded-full border border-sky-200">
-                            Instant Scan
-                        </span>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2.5">
-                        {EWALLET_CHANNELS.map((item) => {
-                            const isSelected = selectedChannel === item.channel;
-                            return (
-                                <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
-                                    key={item.id}
-                                    onClick={() => onSelect(item.method, item.channel)}
-                                    className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${isSelected
-                                            ? "border-[#ED7218] bg-[#ED7218]/5 shadow-sm"
-                                            : "border-slate-100 hover:border-slate-300 bg-white"
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3.5">
-                                        <div
-                                            className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${isSelected
-                                                    ? "text-[#ED7218] border-slate-200 bg-slate-50"
-                                                    : "bg-slate-50 text-slate-700 border-slate-200"
-                                                }`}
-                                        >
-                                            {item.channel === "qris" ? (
-                                                <QrCode className="w-5 h-5" />
-                                            ) : (
-                                                <Wallet className="w-5 h-5" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-sm text-gray-900">{item.name}</h4>
-                                            <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
-                                        </div>
-                                    </div>
-                                    <div
-                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${isSelected ? "border-[#ED7218]" : "border-slate-300"
-                                            }`}
-                                    >
-                                        {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#ED7218]" />}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/*  Cash on Delivery (COD) */}
-                <div>
-                    <div className="flex items-center gap-2 mb-3">
-                        <Banknote className="w-4 h-4 text-[#ED7218]" />
+                        <Banknote className="w-4 h-4 text-brand-orange" />
                         <h3 className="text-sm font-bold text-gray-800">Bayar di Tempat</h3>
                     </div>
-                    <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click(); }}
+                    <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") e.currentTarget.click();
+                        }}
                         onClick={() => onSelect(COD_OPTION.method, COD_OPTION.channel)}
-                        className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${selectedChannel === COD_OPTION.channel
-                                ? "border-[#ED7218] bg-[#ED7218]/5 shadow-sm"
+                        className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${
+                            selectedChannel === COD_OPTION.channel
+                                ? "border-brand-orange bg-brand-orange-soft shadow-sm"
                                 : "border-slate-100 hover:border-slate-300 bg-white"
-                            }`}
+                        }`}
                     >
                         <div className="flex items-center gap-3.5">
                             <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${selectedChannel === COD_OPTION.channel
-                                        ? "text-[#ED7218] border-slate-200 bg-slate-50"
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${
+                                    selectedChannel === COD_OPTION.channel
+                                        ? "text-brand-orange border-slate-200 bg-slate-50"
                                         : "bg-slate-50 text-slate-700 border-slate-200"
-                                    }`}
+                                }`}
                             >
                                 <Banknote className="w-5 h-5" />
                             </div>
@@ -226,15 +152,136 @@ export default function PaymentSection({ selectedChannel, onSelect }: Props) {
                             </div>
                         </div>
                         <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${selectedChannel === COD_OPTION.channel ? "border-[#ED7218]" : "border-slate-300"
-                                }`}
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${
+                                selectedChannel === COD_OPTION.channel
+                                    ? "border-brand-orange"
+                                    : "border-slate-300"
+                            }`}
                         >
                             {selectedChannel === COD_OPTION.channel && (
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#ED7218]" />
+                                <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />
                             )}
                         </div>
                     </div>
                 </div>
+
+                {isOnlinePaymentEnabled && (
+                    <>
+                        {/* Virtual Account Section */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <Landmark className="w-4 h-4 text-brand-orange" />
+                                <h3 className="text-sm font-bold text-gray-800">Virtual Account (Transfer Bank)</h3>
+                                <span className="text-[10px] bg-status-success-tint text-status-success-dark font-semibold px-2 py-0.5 rounded-full border border-status-success/30">
+                                    Otomatis Terverifikasi
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-2.5">
+                                {VA_CHANNELS.map((item) => {
+                                    const isSelected = selectedChannel === item.channel;
+                                    return (
+                                        <div
+                                            role="button"
+                                            tabIndex={0}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") e.currentTarget.click();
+                                            }}
+                                            key={item.id}
+                                            onClick={() => onSelect(item.method, item.channel)}
+                                            className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${
+                                                isSelected
+                                                    ? "border-brand-orange bg-brand-orange-soft shadow-sm"
+                                                    : "border-slate-100 hover:border-slate-300 bg-white"
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3.5">
+                                                <div
+                                                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${
+                                                        isSelected
+                                                            ? "text-brand-orange border-slate-200 bg-slate-50"
+                                                            : "bg-slate-50 text-slate-700 border-slate-200"
+                                                    }`}
+                                                >
+                                                    {item.badge}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-sm text-gray-900">{item.name}</h4>
+                                                    <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${
+                                                    isSelected ? "border-brand-orange" : "border-slate-300"
+                                                }`}
+                                            >
+                                                {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* QRIS & E-Wallet Section */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <QrCode className="w-4 h-4 text-brand-orange" />
+                                <h3 className="text-sm font-bold text-gray-800">QRIS & E-Wallet</h3>
+                                <span className="text-[10px] bg-brand-blue-tint text-brand-blue font-semibold px-2 py-0.5 rounded-full border border-brand-blue/30">
+                                    Instant Scan
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-2.5">
+                                {EWALLET_CHANNELS.map((item) => {
+                                    const isSelected = selectedChannel === item.channel;
+                                    return (
+                                        <div
+                                            role="button"
+                                            tabIndex={0}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") e.currentTarget.click();
+                                            }}
+                                            key={item.id}
+                                            onClick={() => onSelect(item.method, item.channel)}
+                                            className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition duration-200 ${
+                                                isSelected
+                                                    ? "border-brand-orange bg-brand-orange-soft shadow-sm"
+                                                    : "border-slate-100 hover:border-slate-300 bg-white"
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3.5">
+                                                <div
+                                                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border ${
+                                                        isSelected
+                                                            ? "text-brand-orange border-slate-200 bg-slate-50"
+                                                            : "bg-slate-50 text-slate-700 border-slate-200"
+                                                    }`}
+                                                >
+                                                    {item.channel === "qris" ? (
+                                                        <QrCode className="w-5 h-5" />
+                                                    ) : (
+                                                        <Wallet className="w-5 h-5" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-sm text-gray-900">{item.name}</h4>
+                                                    <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${
+                                                    isSelected ? "border-brand-orange" : "border-slate-300"
+                                                }`}
+                                            >
+                                                {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </section>
     );

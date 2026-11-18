@@ -37,6 +37,8 @@ class PaymentOrderResource extends JsonResource
             'total_amount' => (float) $siblingOrders->sum('total_amount'),
             'subtotal' => (float) $siblingOrders->sum('subtotal'),
             'shipping_cost' => (float) $siblingOrders->sum('shipping_cost'),
+            'service_fee' => (float) $siblingOrders->sum('service_fee'),
+            'tax_amount' => (float) $siblingOrders->sum('tax_amount'),
             'payment_status' => $this->payment_status,
             'payment_method' => $this->payment_method,
             'payment_channel' => $this->payment_channel,

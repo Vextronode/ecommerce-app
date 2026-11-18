@@ -23,7 +23,7 @@ export default function MerchantChatSidebar({
 
     return (
         <aside
-            className={`w-full md:w-80 lg:w-96 flex flex-col border-r border-gray-100 bg-[#FAFBFD] ${
+            className={`w-full md:w-80 lg:w-96 flex flex-col border-r border-gray-100 bg-bg-main ${
                 selectedRoomId ? "hidden md:flex" : "flex"
             }`}
         >

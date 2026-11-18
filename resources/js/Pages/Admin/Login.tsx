@@ -25,7 +25,7 @@ export default function AdminLogin() {
 
             <div className="w-full h-full flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
                 {/* Left Column: Pure Deep Indigo Panel (#281B7A, no gradient, hidden on mobile) */}
-                <div className="hidden lg:flex bg-[#281B7A] p-8 md:p-10 lg:p-12 xl:p-14 flex-col justify-between relative overflow-hidden text-white">
+                <div className="hidden lg:flex bg-brand-indigo-admin p-8 md:p-10 lg:p-12 xl:p-14 flex-col justify-between relative overflow-hidden text-white">
                     {/* Top Identity & Headlines */}
                     <div className="relative z-10">
                         {/* Brand Title & Badge */}
@@ -96,7 +96,7 @@ export default function AdminLogin() {
                         <div className="lg:hidden flex items-center justify-between gap-3 pb-3 border-b border-gray-100">
                             <div>
                                 <h2 className="text-xl sm:text-2xl font-black text-brand-orange tracking-tight">
-                                    Cibenda<span className="text-[#281B7A]">Mart</span>
+                                    Cibenda<span className="text-brand-indigo-admin">Mart</span>
                                 </h2>
                                 <p className="text-xs font-semibold text-gray-500 mt-0.5">
                                     Portal Admin E-Commerce

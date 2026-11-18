@@ -98,7 +98,7 @@ export default function UpdateProfileInformation({
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             placeholder="Nama depan"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                         />
                     </div>
 
@@ -113,7 +113,7 @@ export default function UpdateProfileInformation({
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             placeholder="Nama belakang"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                         />
                         {errors.name && (
                             <p className="text-xs text-red-600 mt-1">{errors.name}</p>
@@ -152,7 +152,7 @@ export default function UpdateProfileInformation({
                                 value={data.phone}
                                 onChange={(e) => setData("phone", e.target.value)}
                                 placeholder="81234567890"
-                                className="flex-1 w-full px-4 py-2.5 rounded-r-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
+                                className="flex-1 w-full px-4 py-2.5 rounded-r-xl border border-slate-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                             />
                         </div>
                         {errors.phone && (
@@ -173,7 +173,7 @@ export default function UpdateProfileInformation({
                                     value="male"
                                     checked={data.gender === "male"}
                                     onChange={() => setData("gender", "male")}
-                                    className="w-4 h-4 text-[#ED7218] focus:ring-[#ED7218] accent-[#ED7218] border-slate-300"
+                                    className="w-4 h-4 text-brand-orange focus:ring-brand-orange accent-brand-orange border-slate-300"
                                 />
                                 <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
                                     Laki-laki
@@ -186,7 +186,7 @@ export default function UpdateProfileInformation({
                                     value="female"
                                     checked={data.gender === "female"}
                                     onChange={() => setData("gender", "female")}
-                                    className="w-4 h-4 text-[#ED7218] focus:ring-[#ED7218] accent-[#ED7218] border-slate-300"
+                                    className="w-4 h-4 text-brand-orange focus:ring-brand-orange accent-brand-orange border-slate-300"
                                 />
                                 <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
                                     Perempuan
@@ -210,7 +210,7 @@ export default function UpdateProfileInformation({
                             onChange={(e) => setData("dob", e.target.value)}
                             max={maxDob}
                             min="1900-01-01"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#ED7218] focus:ring-2 focus:ring-[#ED7218]/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 bg-slate-50/50 text-sm font-medium text-gray-900 transition"
                         />
                         {errors.dob && (
                             <p className="text-xs text-red-600 mt-1">{errors.dob}</p>
@@ -227,7 +227,7 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out duration-200"
                         leaveTo="opacity-0"
                     >
-                        <span className="text-xs font-bold text-[#ED7218] mr-2">
+                        <span className="text-xs font-bold text-brand-orange mr-2">
                             Tersimpan.
                         </span>
                     </Transition>
@@ -236,7 +236,7 @@ export default function UpdateProfileInformation({
                         type="button"
                         onClick={handleCancel}
                         disabled={processing}
-                        className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs md:text-sm hover:bg-slate-50 transition active:scale-95 disabled:opacity-50"
+                        className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs md:text-sm hover:bg-slate-50 transition active:scale-95 disabled:opacity-50 cursor-pointer"
                     >
                         Batal
                     </button>
@@ -244,7 +244,7 @@ export default function UpdateProfileInformation({
                     <button
                         type="submit"
                         disabled={processing}
-                        className="px-6 py-2.5 rounded-xl bg-[#ED7218] text-white font-bold text-xs md:text-sm hover:bg-[#d66311] transition shadow-sm shadow-orange-500/20 active:scale-95 disabled:opacity-50"
+                        className="px-6 py-2.5 rounded-xl bg-brand-orange text-white font-bold text-xs md:text-sm hover:bg-brand-orange-hover transition shadow-sm shadow-brand-orange/20 active:scale-95 disabled:opacity-50 cursor-pointer"
                     >
                         {processing ? "Menyimpan..." : "Simpan Perubahan"}
                     </button>

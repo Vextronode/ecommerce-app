@@ -136,15 +136,15 @@ export default function AdminSalesChart({ chartData }: Props) {
             {/* Custom Legend Matching Mockup */}
             <div className="flex justify-center items-center mt-3 gap-5 text-xs text-gray-500 font-medium">
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full border-2 border-[#ED7218] bg-white"></div>
+                    <div className="w-2 h-2 rounded-full border-2 border-brand-orange bg-white"></div>
                     <span>1 Minggu</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full border-2 border-[#F59E0B] bg-white"></div>
+                    <div className="w-2 h-2 rounded-full border-2 border-status-warning bg-white"></div>
                     <span>2 Minggu</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full border-2 border-[#10B981] bg-white"></div>
+                    <div className="w-2 h-2 rounded-full border-2 border-status-success bg-white"></div>
                     <span>3 Minggu</span>
                 </div>
             </div>

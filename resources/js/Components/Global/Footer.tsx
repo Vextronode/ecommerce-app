@@ -9,7 +9,7 @@ import logoPangandaran from "@/assets/images/lambang-pangandaran.webp";
 
 export default function Footer() {
     return (
-        <footer className="w-full bg-[#281B7A] text-white py-12 md:py-16 px-6 md:px-12 lg:px-20 font-sans">
+        <footer className="w-full bg-brand-indigo-admin text-white py-12 md:py-16 px-6 md:px-12 lg:px-20 font-sans">
             <div className="max-w-350 mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-8 mb-12">
                     {/* Column 1: Brand & Logos */}
@@ -45,11 +45,21 @@ export default function Footer() {
                                     Tentang Kami
                                 </Link>
                             </li>
-                            <li className="text-[15px] text-white/80 hover:text-white transition cursor-pointer">
-                                Kebijakan Privasi
+                            <li>
+                                <Link
+                                    href={route("legal.merchant-agreement")}
+                                    className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
+                                >
+                                    Perjanjian Mitra Pedagang
+                                </Link>
                             </li>
-                            <li className="text-[15px] text-white/80 hover:text-white transition cursor-pointer">
-                                Syarat & Ketentuan
+                            <li>
+                                <Link
+                                    href={route("legal.refund")}
+                                    className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
+                                >
+                                    Kebijakan Refund & Retur
+                                </Link>
                             </li>
                         </ul>
                     </div>

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\PaymentOrderResource;
 use App\Models\Order;
+use App\Models\PlatformSetting;
+use App\Services\MidtransService;
 use App\Services\PaymentSyncService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -71,6 +73,7 @@ class PaymentController extends Controller
         return Inertia::render('Payment/Show', [
             'order' => (new PaymentOrderResource($order))->resolve(),
             'paymentInfo' => $paymentInfo,
+            'isOnlinePaymentEnabled' => PlatformSetting::isEnabled('enable_online_payment', true),
         ]);
     }
 
@@ -97,6 +100,34 @@ class PaymentController extends Controller
             'payment_status' => $order->payment_status,
             'is_paid' => $order->payment_status === 'paid',
             'redirect_url' => route('checkout.success', ['order_id' => $order->id]),
+            'is_online_payment_enabled' => PlatformSetting::isEnabled('enable_online_payment', true),
         ]);
+    }
+
+    /**
+     * Switch pending online order to Cash on Delivery (COD)
+     */
+    public function switchToCod(Request $request, int|string $orderId, MidtransService $midtransService): RedirectResponse
+    {
+        $order = Order::where('id', $orderId)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        if ($order->payment_status !== 'pending' || $order->payment_method === 'cod') {
+            return redirect()->route('history.index');
+        }
+
+        $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+        if ($midtransOrderId) {
+            $midtransService->cancelTransaction($midtransOrderId);
+        }
+
+        $order->update([
+            'payment_method' => 'cod',
+            'payment_channel' => 'cod',
+        ]);
+
+        return redirect()->route('checkout.success', ['order_id' => $order->id])
+            ->with('success', 'Metode pembayaran berhasil dialihkan ke Bayar di Tempat (COD).');
     }
 }

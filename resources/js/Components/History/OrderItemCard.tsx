@@ -31,14 +31,14 @@ export default function OrderItemCard({ order }: OrderItemCardProps) {
     const getStatusColor = (status: string) => {
         switch (status) {
             case "Selesai":
-                return "text-[#281B7A] border-gray-300 bg-white";
+                return "text-status-success-dark border-status-success/30 bg-status-success-tint";
             case "Dibatalkan":
-                return "text-[#281B7A] border-gray-300 bg-white";
+                return "text-brand-danger-dark border-brand-danger/30 bg-brand-danger-tint";
             case "Belum Bayar":
-                return "text-[#ED7218] border-[#ED7218]/40 bg-[#ED7218]/5";
+                return "text-brand-orange border-brand-orange/40 bg-brand-orange-soft";
             case "Dikemas":
             case "Dikirim":
-                return "text-[#281B7A] border-[#281B7A]/40 bg-[#281B7A]/5";
+                return "text-brand-blue border-brand-blue/30 bg-brand-blue-tint";
             default:
                 return "text-gray-600 border-gray-300 bg-white";
         }
@@ -53,7 +53,7 @@ export default function OrderItemCard({ order }: OrderItemCardProps) {
             {/* Card Header */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="bg-[#ED7218] text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-semibold shadow-xs">
+                    <div className="bg-brand-orange text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-semibold shadow-xs">
                         <Store className="w-3.5 h-3.5" />
                         <span className="truncate max-w-[150px] sm:max-w-none">{order.store_name}</span>
                     </div>
@@ -93,7 +93,7 @@ export default function OrderItemCard({ order }: OrderItemCardProps) {
                             </p>
                         </div>
                         <div className="text-right shrink-0">
-                            <p className="font-bold text-[#281B7A] text-sm sm:text-base">
+                            <p className="font-bold text-slate-900 text-sm sm:text-base">
                                 Rp
                                 {Number(
                                     item.price
@@ -111,7 +111,7 @@ export default function OrderItemCard({ order }: OrderItemCardProps) {
                     <span className="text-xs sm:text-sm text-gray-600 font-medium">
                         Total Pesanan:{" "}
                     </span>
-                    <span className="text-base sm:text-lg font-bold text-[#281B7A]">
+                    <span className="text-base sm:text-lg font-bold text-brand-orange">
                         Rp
                         {Number(
                             order.total_amount
@@ -121,12 +121,12 @@ export default function OrderItemCard({ order }: OrderItemCardProps) {
                 <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap pt-2 sm:pt-0 border-t border-gray-100 sm:border-0">
                     {order.status === "Selesai" && (
                         <>
-                            <button className="flex-1 sm:flex-initial px-3.5 py-2 bg-[#281B7A]/5 border border-[#281B7A]/20 text-[#281B7A] text-xs sm:text-sm font-medium rounded-xl hover:bg-[#281B7A]/10 transition-colors whitespace-nowrap text-center cursor-pointer">
+                            <button className="flex-1 sm:flex-initial px-3.5 py-2 bg-brand-indigo-merchant/5 border border-brand-indigo-merchant/20 text-brand-indigo-merchant text-xs sm:text-sm font-medium rounded-xl hover:bg-brand-indigo-merchant/10 transition-colors whitespace-nowrap text-center cursor-pointer">
                                 Tampilkan Rincian Pengembalian
                             </button>
                             <Link
                                 href={route("product.detail", order.items[0]?.product_slug || order.items[0]?.product_id)}
-                                className="flex-1 sm:flex-initial px-5 py-2 bg-[#ED7218] text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-[#d66311] transition-colors shadow-xs whitespace-nowrap text-center"
+                                className="flex-1 sm:flex-initial px-5 py-2 bg-brand-orange text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-brand-orange-hover transition-colors shadow-xs whitespace-nowrap text-center"
                             >
                                 Beli Lagi
                             </Link>

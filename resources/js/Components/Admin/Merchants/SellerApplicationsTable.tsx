@@ -156,13 +156,13 @@ export default function SellerApplicationsTable({
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Cari toko, nama pemilik, NIK, atau no. SKU..."
-                        className="w-full pl-9 pr-4 py-2 bg-[#EEF2F4]/60 border border-gray-200/80 rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-brand-orange transition"
+                        className="w-full pl-9 pr-4 py-2 bg-surface-muted/60 border border-gray-200/80 rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-brand-orange transition"
                     />
                 </form>
 
                 {/* Filter Pills & Sync Button */}
                 <div className="flex items-center justify-between sm:justify-end gap-2 overflow-x-auto">
-                    <div className="flex items-center gap-1.5 bg-[#EEF2F4]/60 p-1 rounded-2xl border border-gray-200/80">
+                    <div className="flex items-center gap-1.5 bg-surface-muted/60 p-1 rounded-2xl border border-gray-200/80">
                         {[
                             { key: "pending", label: "Menunggu" },
                             { key: "all", label: "Semua" },
@@ -285,7 +285,7 @@ export default function SellerApplicationsTable({
 
                                 {/* Detail Grid */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                                    <div className="p-3 bg-[#EEF2F4]/40 rounded-2xl border border-gray-100">
+                                    <div className="p-3 bg-surface-muted/40 rounded-2xl border border-gray-100">
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                                             Kegiatan Usaha
                                         </span>
@@ -294,7 +294,7 @@ export default function SellerApplicationsTable({
                                         </p>
                                     </div>
 
-                                    <div className="p-3 bg-[#EEF2F4]/40 rounded-2xl border border-gray-100">
+                                    <div className="p-3 bg-surface-muted/40 rounded-2xl border border-gray-100">
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                                             Nomor SKU & Berlaku
                                         </span>
@@ -306,7 +306,7 @@ export default function SellerApplicationsTable({
                                         </span>
                                     </div>
 
-                                    <div className="p-3 bg-[#EEF2F4]/40 rounded-2xl border border-gray-100">
+                                    <div className="p-3 bg-surface-muted/40 rounded-2xl border border-gray-100">
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                                             Kontak Usaha
                                         </span>
@@ -318,7 +318,7 @@ export default function SellerApplicationsTable({
                                         </span>
                                     </div>
 
-                                    <div className="p-3 bg-[#EEF2F4]/40 rounded-2xl border border-gray-100">
+                                    <div className="p-3 bg-surface-muted/40 rounded-2xl border border-gray-100">
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                                             Waktu Pendaftaran SID
                                         </span>

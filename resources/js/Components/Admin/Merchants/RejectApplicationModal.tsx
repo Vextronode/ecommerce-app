@@ -114,7 +114,7 @@ export default function RejectApplicationModal({
                             value={data.note}
                             onChange={(e) => setData("note", e.target.value)}
                             placeholder="Contoh: Foto usaha tidak sesuai dengan bidang usaha atau nomor kontak tidak dapat dihubungi saat verifikasi."
-                            className={`w-full px-4 py-3 bg-[#EEF2F4]/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${
+                            className={`w-full px-4 py-3 bg-surface-muted/60 border rounded-2xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${
                                 errors.note
                                     ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
                                     : "border-gray-300/70 focus:border-rose-400 focus:ring-1 focus:ring-rose-400"

@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Admin\MerchantController;
+use App\Http\Controllers\Admin\PlatformSettingController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryTrackerController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Merchant\AnalyticsController;
 use App\Http\Controllers\Merchant\ChatController as MerchantChatController;
 use App\Http\Controllers\Merchant\CustomerController;
@@ -57,6 +59,8 @@ Route::middleware(['storefront.user'])->group(function () {
     Route::get('/shop', [ShopController::class, 'index'])->name('shop');
     Route::get('/product/{slug}', [ShopController::class, 'show'])->name('product.detail');
     Route::get('/store/{slug}', [ShopController::class, 'storeDetail'])->name('store.detail');
+    Route::get('/kebijakan/perjanjian-mitra', [LegalController::class, 'merchantAgreement'])->name('legal.merchant-agreement');
+    Route::get('/kebijakan/refund', [LegalController::class, 'refundPolicy'])->name('legal.refund');
 });
 
 // Protected Storefront Actions (Requires Login & Role User)
@@ -78,6 +82,9 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/payment/{order}/check-status', [PaymentController::class, 'checkStatus'])
         ->middleware('throttle:payment-status')
         ->name('payment.check-status');
+    Route::post('/payment/{order}/switch-to-cod', [PaymentController::class, 'switchToCod'])
+        ->middleware('throttle:15,1')
+        ->name('payment.switch-to-cod');
     Route::get('/history', [OrderHistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{order}', [OrderHistoryController::class, 'show'])->name('history.show');
 
@@ -150,6 +157,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // Laporan Penjualan (Best Selling Products & Platform Reports)
         Route::get('/laporan', [ReportController::class, 'index'])->name('admin.reports.index');
         Route::get('/laporan/export', [ReportController::class, 'export'])->name('admin.reports.export');
+
+        // Pengaturan Platform (Platform Settings & Kill Switches)
+        Route::get('/pengaturan', [PlatformSettingController::class, 'index'])->name('admin.settings.index');
+        Route::put('/pengaturan', [PlatformSettingController::class, 'update'])->name('admin.settings.update');
     });
 
 // Obfuscation Masking: Return 404 for obvious guessable admin URLs if admin prefix is customized

@@ -59,14 +59,14 @@ export default function OrderStatusBar({ counts, className = "" }: OrderStatusBa
             {/* Header: Title & View All */}
             <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-[#ED7218] rounded-full"></span>
+                    <span className="w-1.5 h-4 bg-brand-orange rounded-full"></span>
                     <h3 className="font-bold text-gray-900 text-sm md:text-base tracking-tight">
                         Pesanan Saya
                     </h3>
                 </div>
                 <Link
                     href={route("history.index")}
-                    className="group inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-[#ED7218] hover:text-[#c45a0e] transition-colors"
+                    className="group inline-flex items-center gap-1 text-xs md:text-sm font-semibold text-brand-orange hover:text-brand-orange-hover transition-colors cursor-pointer"
                 >
                     <span>Lihat Riwayat Pesanan</span>
                     <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
@@ -81,14 +81,14 @@ export default function OrderStatusBar({ counts, className = "" }: OrderStatusBa
                         <Link
                             key={tab.id}
                             href={tab.href}
-                            className="flex flex-col items-center justify-center p-2 md:p-3 rounded-xl md:rounded-2xl hover:bg-slate-50 transition duration-150 group text-center"
+                            className="flex flex-col items-center justify-center p-2 md:p-3 rounded-xl md:rounded-2xl hover:bg-slate-50 transition duration-150 group text-center cursor-pointer"
                         >
                             <div className="relative mb-2">
                                 <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${tab.bgColor} flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs`}>
                                     <Icon className={`w-5 h-5 md:w-6 md:h-6 ${tab.iconColor}`} />
                                 </div>
                                 {tab.count > 0 && (
-                                    <span className="absolute -top-1 -right-1.5 min-w-4.5 h-4.5 px-1 bg-[#ED7218] text-white text-[10px] md:text-xs font-black rounded-full flex items-center justify-center border-2 border-white shadow-xs animate-in fade-in zoom-in">
+                                    <span className="absolute -top-1 -right-1.5 min-w-4.5 h-4.5 px-1 bg-brand-orange text-white text-[10px] md:text-xs font-black rounded-full flex items-center justify-center border-2 border-white shadow-xs animate-in fade-in zoom-in">
                                         {tab.count > 99 ? "99+" : tab.count}
                                     </span>
                                 )}

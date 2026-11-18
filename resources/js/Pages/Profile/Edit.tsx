@@ -71,7 +71,7 @@ export default function Edit({
     ];
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-16 font-sans text-gray-900">
+        <div className="min-h-screen bg-slate-50 pb-16 font-sans text-gray-900">
             <Head title="Profil & Akun Saya - Cibenda Mart" />
             <Toaster position="top-right" containerStyle={{ zIndex: 9999999 }} />
 
@@ -95,7 +95,7 @@ export default function Edit({
 
                     <Link
                         href={route("history.index")}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-orange-50 text-[#ED7218] hover:bg-orange-100 transition"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-brand-orange-tint text-brand-orange hover:bg-brand-orange-warm/20 transition cursor-pointer"
                     >
                         <ShoppingBag className="w-3.5 h-3.5" />
                         <span className="hidden sm:inline">Riwayat Pesanan</span>
@@ -122,9 +122,9 @@ export default function Edit({
                                     key={tab.id}
                                     type="button"
                                     onClick={() => handleTabChange(tab.id)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                                         isActive
-                                            ? "bg-[#ED7218] text-white shadow-xs shadow-orange-500/25"
+                                            ? "bg-brand-orange text-white shadow-xs shadow-brand-orange/25"
                                             : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
                                     }`}
                                 >

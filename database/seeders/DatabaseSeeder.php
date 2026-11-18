@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->seedCategories();
         $this->seedAdmin();
+        $this->call(PlatformSettingSeeder::class);
 
         // opsi custom tidak tersedia di signature db:seed, jadi pengendalian
         // lewat env agar tetap kompatibel tanpa mengubah command inti.

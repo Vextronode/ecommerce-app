@@ -47,7 +47,7 @@ export default function Navbar() {
         <header
             className={`fixed top-0 left-0 w-full z-50 transition-transform duration-300 ease-in-out ${
                 isVisible ? "translate-y-0" : "-translate-y-full"
-            } bg-[#F8F9FA] shadow-sm`}
+            } bg-bg-main shadow-sm`}
         >
             {/* Top Row */}
             <div className="w-full px-4 md:px-8 py-3 flex items-center justify-between gap-2 md:gap-6">
@@ -100,7 +100,7 @@ export default function Navbar() {
                                 className={`text-sm font-bold whitespace-nowrap transition-colors ${
                                     active
                                         ? "text-brand-orange"
-                                        : "text-[#5F6A76] hover:text-gray-900"
+                                        : "text-text-muted hover:text-gray-900"
                                 }`}
                             >
                                 {link.name}

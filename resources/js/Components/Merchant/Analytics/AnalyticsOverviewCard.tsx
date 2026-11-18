@@ -47,11 +47,11 @@ export default function AnalyticsOverviewCard({
     const isZero = growth !== undefined && Math.abs(growth) < 0.01;
 
     const themeStyles = {
-        teal: 'bg-[#EAF7F7] text-[#41B9C5]',
-        emerald: 'bg-[#E8F8F5] text-[#10B981]',
-        blue: 'bg-[#E0F2FE] text-[#0284C7]',
+        teal: 'bg-brand-cyan-soft text-brand-cyan',
+        emerald: 'bg-status-success-tint text-status-success',
+        blue: 'bg-brand-blue-tint text-brand-blue',
         orange: 'bg-brand-orange-tint text-brand-orange',
-        amber: 'bg-amber-50 text-amber-500',
+        amber: 'bg-status-warning-tint text-status-warning',
     };
 
     return (

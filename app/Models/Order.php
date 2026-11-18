@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Log;
     'delivery_method',
     'subtotal',
     'shipping_cost',
+    'service_fee',
+    'tax_amount',
     'total_amount',
     'payment_method',
     'payment_type',

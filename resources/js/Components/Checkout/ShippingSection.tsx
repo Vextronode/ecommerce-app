@@ -19,7 +19,7 @@ export default function ShippingSection({
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
-                    <MapPin className="w-6 h-6 text-[#ED7218]" />
+                    <MapPin className="w-6 h-6 text-brand-orange" />
                     <h2 className="text-xl font-bold text-gray-900">
                         Rincian Pengiriman
                     </h2>
@@ -27,16 +27,16 @@ export default function ShippingSection({
                 <button
                     type="button"
                     onClick={onOpenAddressPicker}
-                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#ED7218] px-4 py-2 text-sm font-bold text-[#ED7218] transition hover:bg-[#ED7218]/5"
+                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-brand-orange px-4 py-2 text-sm font-bold text-brand-orange transition hover:bg-brand-orange-soft"
                 >
                     <Plus className="h-4 w-4" />
                     Gunakan alamat lain
                 </button>
             </div>
             {selectedAddress ? (
-                <div className="rounded-2xl border border-[#ED7218]/20 bg-[#ED7218]/5 p-4">
+                <div className="rounded-2xl border border-brand-orange/20 bg-brand-orange-soft p-4">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#ED7218]">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-brand-orange">
                             {selectedAddress.label}
                         </span>
                         {Boolean(selectedAddress.is_primary) && (
@@ -62,7 +62,7 @@ export default function ShippingSection({
                     <button
                         type="button"
                         onClick={onOpenAddressPicker}
-                        className="inline-flex items-center gap-2 rounded-xl bg-[#ED7218] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#ED7218]/30 transition hover:bg-[#d66311]"
+                        className="inline-flex items-center gap-2 rounded-xl bg-brand-orange px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-orange/30 transition hover:bg-brand-orange-hover"
                     >
                         <Plus className="h-4 w-4" />
                         Pilih / Tambah Alamat

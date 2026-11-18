@@ -102,11 +102,32 @@ html {
     --color-brand-danger: var(--color-status-danger);
     --color-brand-danger-dark: var(--color-status-danger-dark);
     --color-brand-danger-tint: var(--color-status-danger-tint);
+
+    /* System Status Warning Utilities: bg-status-warning, text-status-warning, border-status-warning */
+    --color-status-warning: var(--color-status-warning);
+    --color-status-warning-dark: var(--color-status-warning-dark);
+    --color-status-warning-tint: var(--color-status-warning-tint);
+
+    /* System Status Success Utilities: bg-status-success, text-status-success, border-status-success */
+    --color-status-success: var(--color-status-success);
+    --color-status-success-dark: var(--color-status-success-dark);
+    --color-status-success-tint: var(--color-status-success-tint);
+
+    /* Surfaces & Neutrals Utilities */
+    --color-bg-main: var(--color-bg-main);
+    --color-surface-white: var(--color-surface-white);
+    --color-surface-muted: var(--color-surface-muted);
+    --color-border-subtle: var(--color-border-subtle);
+    --color-border-light: var(--color-border-light);
+    --color-text-title: var(--color-text-title);
+    --color-text-body: var(--color-text-body);
+    --color-text-muted: var(--color-text-muted);
+    --color-text-light: var(--color-text-light);
 }
 
-/* Prevent horizontal scroll at the document level — safe for position:sticky */
+/* Prevent horizontal scroll at document level. Using clip so position:sticky is not broken */
 html, body {
-    overflow-x: hidden;
+    overflow-x: clip;
     background-color: var(--color-bg-main);
     color: var(--color-text-title);
 }

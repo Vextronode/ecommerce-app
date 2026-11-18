@@ -45,7 +45,7 @@ export default function QrisCard({
             {/* Header */}
             <div className="flex items-center justify-between pb-2">
                 <div className="flex items-center gap-3">
-                    <div className="px-3 py-1.5 rounded-xl font-bold text-xs bg-[#281B7A] text-white tracking-wider shadow-2xs">
+                    <div className="px-3 py-1.5 rounded-xl font-bold text-xs bg-brand-indigo-merchant text-white tracking-wider shadow-2xs">
                         QRIS
                     </div>
                     <div>
@@ -58,21 +58,18 @@ export default function QrisCard({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-full">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-status-success-dark bg-status-success-tint border border-status-success/30 px-3 py-1.5 rounded-full">
+                    <span className="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
                     <span>Siap Di-scan</span>
                 </div>
             </div>
 
             {/* QR Container */}
-            <div
-                className="rounded-2xl p-5 sm:p-6 border border-[#40E0D0]/40 flex flex-col items-center justify-center"
-                style={{ backgroundColor: "rgba(64, 224, 208, 0.12)" }}
-            >
+            <div className="rounded-2xl p-5 sm:p-6 border border-brand-blue/20 bg-brand-blue-soft flex flex-col items-center justify-center">
                 <div className="bg-white p-4 rounded-2xl shadow-md border border-slate-200/80 flex flex-col items-center">
                     <div className="w-full pb-2 mb-2 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-700">
                         <span>QRIS</span>
-                        <span className="text-[#F77F00] font-extrabold">STANDAR PEMBAYARAN NASIONAL</span>
+                        <span className="text-brand-orange font-extrabold">STANDAR PEMBAYARAN NASIONAL</span>
                     </div>
 
                     {qrCodeUrl ? (
@@ -83,7 +80,7 @@ export default function QrisCard({
                         />
                     ) : (
                         <div className="w-52 h-52 flex flex-col items-center justify-center text-slate-400 gap-2">
-                            <QrCode className="w-12 h-12 stroke-[1.5] animate-pulse text-[#281B7A]" />
+                            <QrCode className="w-12 h-12 stroke-[1.5] animate-pulse text-brand-indigo-merchant" />
                             <span className="text-xs font-medium">Memuat QR Code...</span>
                         </div>
                     )}
@@ -104,7 +101,7 @@ export default function QrisCard({
                     {qrCodeUrl && (
                         <button
                             onClick={downloadQr}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 hover:border-slate-400 text-[#281B7A] text-xs font-bold rounded-xl shadow-xs transition active:scale-95"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 hover:border-slate-400 text-brand-indigo-merchant text-xs font-bold rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                         >
                             <Download className="w-3.5 h-3.5" />
                             <span>Unduh Kode QR</span>
@@ -116,7 +113,7 @@ export default function QrisCard({
                             href={deeplinkUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex items-center gap-2 px-4 py-2.5 bg-[#00AA13] hover:bg-[#008f10] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-status-success hover:bg-status-success-dark text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                         >
                             <Smartphone className="w-3.5 h-3.5" />
                             <span>Buka Aplikasi GoPay</span>
@@ -127,21 +124,18 @@ export default function QrisCard({
             </div>
 
             {/* Total Pembayaran */}
-            <div
-                className="rounded-2xl p-4 sm:p-5 border border-[#F77F00]/30 flex items-center justify-between"
-                style={{ backgroundColor: "rgba(247, 127, 0, 0.14)" }}
-            >
+            <div className="rounded-2xl p-4 sm:p-5 border border-brand-orange/30 bg-brand-orange-soft flex items-center justify-between">
                 <div>
                     <span className="text-xs text-slate-500 font-medium">Total Pembayaran</span>
-                    <p className="text-xl sm:text-2xl font-black text-[#F77F00] mt-0.5 tracking-tight">
+                    <p className="text-xl sm:text-2xl font-black text-brand-orange mt-0.5 tracking-tight">
                         {formatRupiah(totalAmount)}
                     </p>
                 </div>
                 <button
                     onClick={copyAmount}
-                    className="flex items-center gap-1.5 text-xs font-bold text-[#F77F00] bg-white border border-[#F77F00] hover:bg-[#F77F00]/5 px-4 py-2.5 rounded-xl shadow-xs transition active:scale-95"
+                    className="flex items-center gap-1.5 text-xs font-bold text-brand-orange bg-white border border-brand-orange hover:bg-brand-orange-tint px-4 py-2.5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                 >
-                    {copiedAmount ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedAmount ? <Check className="w-3.5 h-3.5 text-status-success" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedAmount ? "Tersalin" : "Salin Jumlah"}</span>
                 </button>
             </div>

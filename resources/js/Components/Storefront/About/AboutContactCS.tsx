@@ -64,11 +64,11 @@ export default function AboutContactCS() {
     const waLink = `https://wa.me/${waNumber}?text=${waText}`;
 
     return (
-        <section id="contact-cs" className="gsap-reveal-section py-16 md:py-20 bg-[#F4F9FA] border-t border-slate-200/80 scroll-mt-20">
+        <section id="contact-cs" className="gsap-reveal-section py-16 md:py-20 bg-brand-blue-soft/50 border-t border-slate-200/80 scroll-mt-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header Section */}
                 <div className="gsap-reveal-item max-w-3xl mb-12">
-                    <span className="text-xs font-bold tracking-wider text-[#006591] uppercase">
+                    <span className="text-xs font-bold tracking-wider text-brand-blue uppercase">
                         Bantuan & Layanan Pelanggan
                     </span>
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 mb-3">
@@ -110,7 +110,7 @@ export default function AboutContactCS() {
                     {/* Email */}
                     <div className="gsap-reveal-item bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
                         <div className="space-y-3">
-                            <div className="w-10 h-10 rounded-lg bg-slate-100 text-[#006591] flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-lg bg-slate-100 text-brand-blue flex items-center justify-center">
                                 <Mail className="w-5 h-5" />
                             </div>
                             <h3 className="text-base font-bold text-slate-900">
@@ -173,7 +173,7 @@ export default function AboutContactCS() {
                                         placeholder="Nama Anda"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-[#006591] focus:border-[#006591]"
+                                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue"
                                         required
                                     />
                                 </div>
@@ -186,7 +186,7 @@ export default function AboutContactCS() {
                                         placeholder="0812xxxx atau email@anda.com"
                                         value={formData.contact}
                                         onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-[#006591] focus:border-[#006591]"
+                                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue"
                                         required
                                     />
                                 </div>
@@ -199,7 +199,7 @@ export default function AboutContactCS() {
                                 <select
                                     value={formData.category}
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-[#006591] focus:border-[#006591] bg-white"
+                                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue bg-white"
                                 >
                                     <option value="pesanan">Kendala Pesanan & Pengiriman</option>
                                     <option value="stok">Cek Ketersediaan Ikan Hari Ini</option>
@@ -218,7 +218,7 @@ export default function AboutContactCS() {
                                     placeholder="Jelaskan pertanyaan atau kendala yang dialami..."
                                     value={formData.message}
                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-[#006591] focus:border-[#006591] resize-none"
+                                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue resize-none"
                                     required
                                 />
                             </div>
@@ -237,7 +237,7 @@ export default function AboutContactCS() {
                     {/* Right: Clean FAQ Accordion */}
                     <div className="gsap-reveal-item lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-2xs">
                         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                            <HelpCircle className="w-4 h-4 text-[#006591]" />
+                            <HelpCircle className="w-4 h-4 text-brand-blue" />
                             <h3 className="font-bold text-slate-900 text-base">
                                 Pertanyaan yang Sering Diajukan
                             </h3>
@@ -254,12 +254,12 @@ export default function AboutContactCS() {
                                         <button
                                             type="button"
                                             onClick={() => setOpenFaq(isOpen ? null : idx)}
-                                            className="w-full p-3.5 text-left flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold text-slate-800 hover:text-[#006591] transition-colors cursor-pointer"
+                                            className="w-full p-3.5 text-left flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold text-slate-800 hover:text-brand-blue transition-colors cursor-pointer"
                                         >
                                             <span>{faq.q}</span>
                                             <ChevronDown
                                                 className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${
-                                                    isOpen ? "rotate-180 text-[#006591]" : ""
+                                                    isOpen ? "rotate-180 text-brand-blue" : ""
                                                 }`}
                                             />
                                         </button>

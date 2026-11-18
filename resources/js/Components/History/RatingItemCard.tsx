@@ -29,12 +29,12 @@ export default function RatingItemCard({ item }: RatingItemCardProps) {
             {/* Store Header */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="bg-[#ED7218] text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-semibold shadow-xs">
+                    <div className="bg-brand-orange text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-semibold shadow-xs">
                         <Store className="w-3.5 h-3.5" />
                         <span className="truncate max-w-[150px] sm:max-w-none">{item.store_name}</span>
                     </div>
                 </div>
-                <div className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-[#281B7A] text-[#281B7A] text-xs font-medium">
+                <div className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-brand-indigo-merchant text-brand-indigo-merchant text-xs font-medium">
                     Rating Produk
                 </div>
             </div>
@@ -52,8 +52,8 @@ export default function RatingItemCard({ item }: RatingItemCardProps) {
                 <div className="flex justify-end">
                     <span className={`inline-block px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-xl transition-colors whitespace-nowrap text-center ${
                         item.rating 
-                            ? "bg-white border border-[#ED7218] text-[#ED7218] hover:bg-orange-50" 
-                            : "bg-[#ED7218] text-white border border-transparent hover:bg-[#d66311]"
+                            ? "bg-white border border-brand-orange text-brand-orange hover:bg-brand-orange-tint" 
+                            : "bg-brand-orange text-white border border-transparent hover:bg-brand-orange-hover"
                     }`}>
                         {item.rating ? "Perbarui" : "Nilai sekarang"}
                     </span>
@@ -62,7 +62,7 @@ export default function RatingItemCard({ item }: RatingItemCardProps) {
 
             {/* Rating Stars Box */}
             <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-1">
-                <div className="bg-[#f3f4f6] rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+                <div className="bg-slate-100 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
                     <span className="text-xs sm:text-sm font-medium text-gray-500">
                         {item.rating ? "Terimakasih atas penilaiannya" : "Nilai produk ini"}
                     </span>

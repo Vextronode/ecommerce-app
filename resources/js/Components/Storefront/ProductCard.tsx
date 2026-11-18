@@ -118,7 +118,7 @@ export default function ProductCard({ product }: { product: any }) {
             className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-gray-200 transition duration-300 flex flex-col h-full overflow-hidden p-3 sm:p-3.5 group/card cursor-pointer"
         >
             {/* Product Image Area */}
-            <div className="w-full aspect-square rounded-xl bg-[#F8FAFC] overflow-hidden flex items-center justify-center relative mb-3">
+            <div className="w-full aspect-square rounded-xl bg-bg-main overflow-hidden flex items-center justify-center relative mb-3">
                 <img
                     src={image}
                     alt={name}

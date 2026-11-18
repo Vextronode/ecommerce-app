@@ -32,7 +32,7 @@ export default function AboutPartners() {
         <section className="gsap-reveal-section py-16 md:py-20 bg-white border-t border-slate-200/70">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="gsap-reveal-item max-w-3xl mb-12">
-                    <span className="text-xs font-bold tracking-wider text-[#006591] uppercase">
+                    <span className="text-xs font-bold tracking-wider text-brand-blue uppercase">
                         Sinergi & Kemitraan
                     </span>
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 mb-3">
@@ -47,7 +47,7 @@ export default function AboutPartners() {
                     {partners.map((p, idx) => (
                         <div
                             key={idx}
-                            className="gsap-reveal-item bg-[#FAFBFD] border border-slate-200/80 rounded-2xl p-6 flex flex-col justify-between"
+                            className="gsap-reveal-item bg-surface-muted/60 border border-slate-200/80 rounded-2xl p-6 flex flex-col justify-between"
                         >
                             <div>
                                 <div className="w-20 h-16 bg-white rounded-xl border border-slate-200/60 p-2.5 flex items-center justify-center mb-4">

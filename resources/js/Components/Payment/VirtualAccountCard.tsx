@@ -16,11 +16,11 @@ interface Props {
 }
 
 const BANK_INFO: Record<string, { name: string; code: string; bgBadge: string; textBadge: string }> = {
-    bca_va: { name: "BCA Virtual Account", code: "BCA", bgBadge: "bg-[#281B7A]", textBadge: "text-white" },
-    mandiri_bill: { name: "Mandiri Bill Payment", code: "MANDIRI", bgBadge: "bg-[#002D62]", textBadge: "text-white" },
-    bni_va: { name: "BNI Virtual Account", code: "BNI", bgBadge: "bg-[#005E6A]", textBadge: "text-white" },
-    bri_va: { name: "BRI Virtual Account (BRIVA)", code: "BRI", bgBadge: "bg-[#00529C]", textBadge: "text-white" },
-    permata_va: { name: "Permata Virtual Account", code: "PERMATA", bgBadge: "bg-[#281B7A]", textBadge: "text-white" },
+    bca_va: { name: "BCA Virtual Account", code: "BCA", bgBadge: "bg-brand-indigo-merchant", textBadge: "text-white" },
+    mandiri_bill: { name: "Mandiri Bill Payment", code: "MANDIRI", bgBadge: "bg-brand-blue-dark", textBadge: "text-white" },
+    bni_va: { name: "BNI Virtual Account", code: "BNI", bgBadge: "bg-brand-teal", textBadge: "text-white" },
+    bri_va: { name: "BRI Virtual Account (BRIVA)", code: "BRI", bgBadge: "bg-brand-blue", textBadge: "text-white" },
+    permata_va: { name: "Permata Virtual Account", code: "PERMATA", bgBadge: "bg-brand-indigo-merchant", textBadge: "text-white" },
 };
 
 export default function VirtualAccountCard({
@@ -38,7 +38,7 @@ export default function VirtualAccountCard({
     const bank = BANK_INFO[channel] || {
         name: "Virtual Account Bank",
         code: "VA",
-        bgBadge: "bg-[#281B7A]",
+        bgBadge: "bg-brand-indigo-merchant",
         textBadge: "text-white",
     };
 
@@ -94,59 +94,50 @@ export default function VirtualAccountCard({
             {isMandiri ? (
                 <div className="space-y-3.5">
                     {/* Biller Code Box */}
-                    <div
-                        className="rounded-2xl p-5 sm:p-6 border border-[#40E0D0]/40 flex items-center justify-between"
-                        style={{ backgroundColor: "rgba(64, 224, 208, 0.12)" }}
-                    >
+                    <div className="rounded-2xl p-5 sm:p-6 border border-brand-blue/20 bg-brand-blue-soft flex items-center justify-between">
                         <div>
                             <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                                 KODE PERUSAHAAN (BILLER CODE)
                             </span>
-                            <p className="text-2xl sm:text-3xl font-mono font-black text-[#281B7A] mt-1 tracking-wider">
+                            <p className="text-2xl sm:text-3xl font-mono font-black text-brand-blue-dark mt-1 tracking-wider">
                                 {billerCode || "70012"}
                             </p>
                             <span className="text-xs text-slate-500">Midtrans / Cibenda Mart</span>
                         </div>
                         <button
                             onClick={() => copyToClipboard(billerCode || "70012", "Kode Perusahaan")}
-                            className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-[#281B7A] hover:bg-[#1f1460] px-5 py-2.5 rounded-xl shadow-xs transition active:scale-95"
+                            className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-brand-blue hover:bg-brand-blue-hover px-5 py-2.5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                         >
-                            {copiedBillerCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            {copiedBillerCode ? <Check className="w-4 h-4 text-status-success" /> : <Copy className="w-4 h-4" />}
                             <span>{copiedBillerCode ? "Tersalin" : "Salin Kode"}</span>
                         </button>
                     </div>
 
-                    <div
-                        className="rounded-2xl p-5 sm:p-6 border border-[#40E0D0]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                        style={{ backgroundColor: "rgba(64, 224, 208, 0.12)" }}
-                    >
+                    <div className="rounded-2xl p-5 sm:p-6 border border-brand-blue/20 bg-brand-blue-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                             <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                                 NOMOR TAGIHAN (BILL KEY)
                             </span>
-                            <p className="text-2xl sm:text-3xl font-mono font-black text-[#281B7A] mt-1 tracking-wider">
+                            <p className="text-2xl sm:text-3xl font-mono font-black text-brand-blue-dark mt-1 tracking-wider">
                                 {billKey || "-"}
                             </p>
                         </div>
                         <button
                             onClick={() => copyToClipboard(billKey || "", "Nomor Tagihan")}
-                            className="flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white bg-[#281B7A] hover:bg-[#1f1460] px-5 py-2.5 rounded-xl shadow-xs transition active:scale-95"
+                            className="flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white bg-brand-blue hover:bg-brand-blue-hover px-5 py-2.5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                         >
-                            {copiedBillKey ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            {copiedBillKey ? <Check className="w-4 h-4 text-status-success" /> : <Copy className="w-4 h-4" />}
                             <span>{copiedBillKey ? "Tersalin!" : "Salin Nomor"}</span>
                         </button>
                     </div>
                 </div>
             ) : (
-                <div
-                    className="rounded-2xl p-5 sm:p-6 border border-[#40E0D0]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                    style={{ backgroundColor: "rgba(64, 224, 208, 0.12)" }}
-                >
+                <div className="rounded-2xl p-5 sm:p-6 border border-brand-blue/20 bg-brand-blue-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                         <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                             NO. REKENING VIRTUAL ACCOUNT
                         </span>
-                        <p className="text-2xl sm:text-3xl md:text-4xl font-mono font-black text-[#281B7A] tracking-wider">
+                        <p className="text-2xl sm:text-3xl md:text-4xl font-mono font-black text-brand-blue-dark tracking-wider">
                             {vaNumber ? formatVaNumber(vaNumber) : "Menyiapkan Nomor VA..."}
                         </p>
                     </div>
@@ -154,9 +145,9 @@ export default function VirtualAccountCard({
                     {vaNumber && (
                         <button
                             onClick={() => copyToClipboard(vaNumber, "Nomor VA")}
-                            className="flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white bg-[#281B7A] hover:bg-[#1f1460] px-5 py-3 rounded-xl shadow-xs transition active:scale-95 flex-shrink-0"
+                            className="flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white bg-brand-blue hover:bg-brand-blue-hover px-5 py-3 rounded-xl shadow-xs transition active:scale-95 flex-shrink-0 cursor-pointer"
                         >
-                            {copiedVa ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            {copiedVa ? <Check className="w-4 h-4 text-status-success" /> : <Copy className="w-4 h-4" />}
                             <span>{copiedVa ? "Tersalin!" : "Salin Nomor"}</span>
                         </button>
                     )}
@@ -164,21 +155,18 @@ export default function VirtualAccountCard({
             )}
 
             {/* Total Pembayaran */}
-            <div
-                className="rounded-2xl p-5 sm:p-6 border border-[#F77F00]/30 flex items-center justify-between"
-                style={{ backgroundColor: "rgba(247, 127, 0, 0.14)" }}
-            >
+            <div className="rounded-2xl p-5 sm:p-6 border border-brand-orange/30 bg-brand-orange-soft flex items-center justify-between">
                 <div>
                     <span className="text-xs sm:text-sm text-slate-500 font-medium">Total Pembayaran</span>
-                    <p className="text-2xl sm:text-3xl font-black text-[#F77F00] mt-0.5 tracking-tight">
+                    <p className="text-2xl sm:text-3xl font-black text-brand-orange mt-0.5 tracking-tight">
                         {formatRupiah(totalAmount)}
                     </p>
                 </div>
                 <button
                     onClick={() => copyToClipboard(totalAmount.toString(), "Total Pembayaran")}
-                    className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#F77F00] bg-white border border-[#F77F00] hover:bg-[#F77F00]/5 px-5 py-2.5 rounded-xl shadow-xs transition active:scale-95"
+                    className="flex items-center gap-2 text-xs sm:text-sm font-bold text-brand-orange bg-white border border-brand-orange hover:bg-brand-orange-tint px-5 py-2.5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                 >
-                    {copiedAmount ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    {copiedAmount ? <Check className="w-4 h-4 text-status-success" /> : <Copy className="w-4 h-4" />}
                     <span>{copiedAmount ? "Tersalin" : "Salin Jumlah"}</span>
                 </button>
             </div>

@@ -331,7 +331,7 @@ export default function BatchTracker({
                         <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                             Urutan Pengantaran (Terdekat ke Terjauh)
                         </h2>
-                        <span className="text-xs font-bold text-[#14433D]">
+                        <span className="text-xs font-bold text-brand-teal-deep">
                             {deliveredCount} dari {totalStops} Selesai
                         </span>
                     </div>
