@@ -244,11 +244,13 @@ class AuditRemediationWave3Test extends TestCase
         $this->assertSame('image', $type);
         $this->assertStringStartsWith('chat_media/', $path);
         $this->assertStringEndsNotWith('geotag.jpg', $path);
+        $this->assertStringEndsWith('.webp', $path);
         Storage::disk('public')->assertExists($path);
 
-        // hasil re-encode tetap jpeg valid tanpa exif mentah asli
+        // hasil re-encode menjadi format webp valid tanpa exif mentah asli
         $stored = Storage::disk('public')->get($path);
         $this->assertNotEmpty($stored);
-        $this->assertStringStartsWith("\xFF\xD8", $stored);
+        $this->assertStringStartsWith('RIFF', $stored);
+        $this->assertSame('WEBP', substr($stored, 8, 4));
     }
 }

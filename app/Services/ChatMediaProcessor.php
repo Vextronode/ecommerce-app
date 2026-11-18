@@ -19,6 +19,7 @@ class ChatMediaProcessor
 {
     private const MAX_IMAGE_DIMENSION = 2560;
     private const JPEG_QUALITY = 82;
+    private const WEBP_QUALITY = 82;
 
     /**
      * proses file media lalu simpan ke disk, kembalikan [path, type].
@@ -53,14 +54,14 @@ class ChatMediaProcessor
             imagedestroy($source);
         }
 
-        $encoded = $this->encode($resized, $mime);
+        [$encoded, $targetMime] = $this->encode($resized, $mime);
         imagedestroy($resized);
 
         if ($encoded === null) {
             throw new RuntimeException('Gagal meng-encode ulang gambar.');
         }
 
-        $path = trim($directory, '/').'/'.Str::random(40).'.'.$this->extensionFor($mime);
+        $path = trim($directory, '/').'/'.Str::random(40).'.'.$this->extensionFor($targetMime);
         Storage::disk($disk)->put($path, $encoded);
 
         return $path;
@@ -134,30 +135,50 @@ class ChatMediaProcessor
     }
 
     /**
+     * encode gambar ke format yang efisien (WebP default untuk kompresi maksimal dan resolusi utuh).
+     *
      * @param  resource|\GdImage  $image
+     * @return array{0: string|null, 1: string}
      */
-    private function encode($image, string $mime): ?string
+    private function encode($image, string $mime): array
     {
+        // pertahankan transparansi jika ada (terutama sumber PNG / WebP transparan)
+        if (function_exists('imagepalettetotruecolor') && ! imageistruecolor($image)) {
+            imagepalettetotruecolor($image);
+        }
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+
         ob_start();
 
-        $ok = match ($mime) {
-            'image/png' => imagepng($image, null, 6),
-            'image/webp' => imagewebp($image, null, self::JPEG_QUALITY),
-            'image/gif' => imagegif($image),
-            default => imagejpeg($image, null, self::JPEG_QUALITY),
-        };
+        if ($mime === 'image/gif') {
+            // pertahankan format GIF (misal animasi stiker/chat)
+            $ok = imagegif($image);
+            $targetMime = 'image/gif';
+        } elseif (function_exists('imagewebp')) {
+            // kompresi WebP mempertahankan detail visual tajam dengan ukuran jauh lebih kecil
+            $ok = imagewebp($image, null, self::WEBP_QUALITY);
+            $targetMime = 'image/webp';
+        } else {
+            $ok = match ($mime) {
+                'image/png' => imagepng($image, null, 6),
+                default => imagejpeg($image, null, self::JPEG_QUALITY),
+            };
+            $targetMime = ($mime === 'image/png') ? 'image/png' : 'image/jpeg';
+        }
 
         $data = ob_get_clean();
+        $content = ($ok && $data !== false && $data !== '') ? $data : null;
 
-        return ($ok && $data !== false && $data !== '') ? $data : null;
+        return [$content, $targetMime];
     }
 
     private function extensionFor(string $mime): string
     {
         return match ($mime) {
-            'image/png' => 'png',
             'image/webp' => 'webp',
             'image/gif' => 'gif',
+            'image/png' => 'png',
             default => 'jpg',
         };
     }

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useForm } from "@inertiajs/react";
 import toast from "react-hot-toast";
+import { compressImage } from "@/utils/imageCompressor";
 
 interface MerchantUser {
     id: number;
@@ -51,18 +52,23 @@ export function useMerchantSettings({
         longitude: merchantStore.longitude || null,
     });
 
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                toast.error("Ukuran foto maksimal 2MB.");
-                return;
+            try {
+                const optimized = await compressImage(file, 800, 800, 0.85);
+                if (optimized.size > 2 * 1024 * 1024) {
+                    toast.error("Ukuran foto maksimal 2MB.");
+                    return;
+                }
+                setData("photo", optimized);
+                const reader = new FileReader();
+                reader.onload = (ev) =>
+                    setPhotoPreview(ev.target?.result as string);
+                reader.readAsDataURL(optimized);
+            } catch {
+                toast.error("Gagal memproses foto.");
             }
-            setData("photo", file);
-            const reader = new FileReader();
-            reader.onload = (ev) =>
-                setPhotoPreview(ev.target?.result as string);
-            reader.readAsDataURL(file);
         }
     };
 

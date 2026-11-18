@@ -2,6 +2,7 @@ import React from 'react';
 import { Camera, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import InputError from '@/Components/InputError';
+import { compressImage } from '@/utils/imageCompressor';
 
 interface ReviewImageUploaderProps {
     images: File[];
@@ -19,7 +20,7 @@ export default function ReviewImageUploader({
     error
 }: ReviewImageUploaderProps) {
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
 
@@ -29,19 +30,29 @@ export default function ReviewImageUploader({
                 return;
             }
 
+            const processedFiles: File[] = [];
             for (const f of files) {
-                if (f.size > 2 * 1024 * 1024) {
-                    toast.error(`Ukuran file "${f.name}" melebihi 2MB.`);
+                if (f.type.startsWith('image/') && f.type !== 'image/gif' && f.type !== 'image/svg+xml') {
+                    const compressed = await compressImage(f, 1920, 1920, 0.85);
+                    processedFiles.push(compressed);
+                } else {
+                    processedFiles.push(f);
+                }
+            }
+
+            for (const f of processedFiles) {
+                if (f.size > 5 * 1024 * 1024) {
+                    toast.error(`Ukuran file "${f.name}" melebihi 5MB.`);
                     return;
                 }
             }
 
-            const newFiles = [...images, ...files];
+            const newFiles = [...images, ...processedFiles];
             onImagesChange(newFiles);
 
             // Create previews
             // eslint-disable-next-line react-doctor/no-create-object-url-without-revoke
-            const newPreviews = files.map(file => URL.createObjectURL(file));
+            const newPreviews = processedFiles.map(file => URL.createObjectURL(file));
             onPreviewImagesChange([...previewImages, ...newPreviews]);
         }
     };
