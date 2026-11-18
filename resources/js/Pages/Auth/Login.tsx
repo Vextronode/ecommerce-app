@@ -1,13 +1,14 @@
 // import libraries
 import { useEffect, FormEventHandler } from "react";
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
-import { Store, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 //import components
 import FormInput from "@/Components/FormInput";
 import PrimaryButton from "@/Components/PrimaryButton";
 import GoogleIcon from "@/Components/Icons/GoogleIcon";
 import AuthErrorBanner from "@/Components/AuthErrorBanner";
+import AuthMerchantNotice from "@/Components/AuthMerchantNotice";
 import AuthLayout from "@/Layouts/AuthLayout";
 
 const Login = () => {
@@ -102,32 +103,7 @@ const Login = () => {
                     </a>
                 </div>
 
-                {/* Mitra Pedagang Info Notice */}
-                <div className="mt-4 pt-3.5 border-t border-gray-100 shrink-0">
-                    <div className="p-2.5 sm:p-3 rounded-xl bg-orange-50/70 border border-brand-orange/20 flex items-center gap-2.5 text-left">
-                        <div className="w-7 h-7 rounded-lg bg-brand-orange/15 text-brand-orange flex items-center justify-center shrink-0">
-                            <Store className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="text-xs text-gray-600 min-w-0 flex-1">
-                            <span className="font-semibold text-gray-800">Ingin berjualan di CibendaMart?</span>
-                            <div className="flex items-center gap-1.5 mt-0.5 text-[11px] sm:text-xs">
-                                <Link
-                                    href={route("merchant.guide")}
-                                    className="text-brand-orange hover:text-brand-orange-hover font-bold hover:underline"
-                                >
-                                    Panduan Mitra
-                                </Link>
-                                <span className="text-gray-300">&bull;</span>
-                                <Link
-                                    href={route("merchant.login.view")}
-                                    className="text-brand-orange hover:text-brand-orange-hover font-bold hover:underline"
-                                >
-                                    Masuk Pedagang
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <AuthMerchantNotice />
             </form>
         </>
     );

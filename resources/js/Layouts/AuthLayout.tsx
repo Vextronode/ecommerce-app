@@ -6,11 +6,11 @@ import AuthBranding from "@/Components/AuthBranding";
 
 const WaveEdge = ({ side }: { side: "right" | "left" }) => (
     <div
-        className="absolute top-0 bottom-0 w-25 text-brand-blue"
+        className="absolute top-0 bottom-0 w-14 xl:w-16 text-brand-blue pointer-events-none"
         style={
             side === "right"
-                ? { right: "-99px" }
-                : { left: "-99px", transform: "scaleX(-1)" }
+                ? { left: "calc(100% - 1px)" }
+                : { right: "calc(100% - 1px)", transform: "scaleX(-1)" }
         }
     >
         <svg
@@ -18,7 +18,7 @@ const WaveEdge = ({ side }: { side: "right" | "left" }) => (
             preserveAspectRatio="none"
             className="w-full h-full fill-current"
         >
-            <path d="M0,0 L0,1000 C 0,950 100,925 100,850 C 100,775 30,750 30,675 C 30,600 90,575 90,500 C 90,425 20,400 20,325 C 20,250 100,225 100,150 C 100,75 0,50 0,0 Z" />
+            <path d="M 0,0 L 55,0 C 72,36 85,64 85,100 C 85,173 25,227 25,300 C 25,373 85,427 85,500 C 85,573 25,627 25,700 C 25,773 85,827 85,900 C 85,936 72,964 55,1000 L 0,1000 Z" />
         </svg>
     </div>
 );
@@ -55,7 +55,8 @@ export default function AuthLayout({ children }: PropsWithChildren) {
 
     return (
         <div className="relative w-full min-h-screen overflow-hidden bg-bg-main">
-            <div className="hidden md:flex relative w-full h-screen">
+            {/* Desktop Two-Column View with Animated Sliding Wave Panel (Visible on lg and larger) */}
+            <div className="hidden lg:flex relative w-full h-screen">
                 <motion.div
                     className="absolute top-0 bottom-0 z-0"
                     initial={{
@@ -76,22 +77,36 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                     initial={{ opacity: 1 }}
                     animate={contentControls}
                 >
-                    <div className="w-1/2 h-full flex items-center justify-center px-6 lg:px-10 py-6 overflow-y-auto">
+                    {/* Left Column */}
+                    <div
+                        className={`w-1/2 h-full flex items-center ${
+                            isLogin
+                                ? "justify-center px-6 lg:px-10"
+                                : "justify-center xl:justify-end pr-20 xl:pr-28 pl-6 lg:pl-10"
+                        } py-6 overflow-y-auto`}
+                    >
                         {isLogin ? (
                             <AuthBranding type="login" />
                         ) : (
-                            <div className="w-full max-w-lg my-auto">
-                                <div className="bg-bg-main rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-6 sm:p-8 lg:p-10">
+                            <div className="w-full max-w-[390px] xl:max-w-[440px] my-auto">
+                                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-7 xl:p-8">
                                     {children}
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="w-1/2 h-full flex items-center justify-center px-6 lg:px-10 py-6 overflow-y-auto">
+                    {/* Right Column */}
+                    <div
+                        className={`w-1/2 h-full flex items-center ${
+                            isLogin
+                                ? "justify-center xl:justify-start pl-20 xl:pl-28 pr-6 lg:pr-10"
+                                : "justify-center px-6 lg:px-10"
+                        } py-6 overflow-y-auto`}
+                    >
                         {isLogin ? (
-                            <div className="w-full max-w-lg my-auto">
-                                <div className="bg-bg-main rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.10)] border border-white/80 p-6 sm:p-8 lg:p-10">
+                            <div className="w-full max-w-[390px] xl:max-w-[440px] my-auto">
+                                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-7 xl:p-8">
                                     {children}
                                 </div>
                             </div>
@@ -102,23 +117,26 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                 </motion.div>
             </div>
 
-            <div className="md:hidden flex flex-col min-h-screen">
-                <div className="bg-brand-blue flex items-center justify-center py-14 px-6">
+            {/* Mobile & Tablet Clean Stacked View (< 1024px, avoids wave collision on narrow viewports) */}
+            <div className="lg:hidden flex flex-col min-h-screen bg-bg-main">
+                <div className="bg-brand-blue flex items-center justify-center py-8 sm:py-10 px-6 relative">
                     <AuthBranding type={isLogin ? "login" : "register"} />
                 </div>
                 <svg
                     viewBox="0 0 1440 80"
                     preserveAspectRatio="none"
-                    className="w-full h-8 block bg-bg-main -mt-px"
+                    className="w-full h-8 block bg-bg-main -mt-px text-brand-blue"
                 >
                     <path
                         d="M0,0 C360,60 1080,-20 1440,40 L1440,0 L0,0 Z"
-                        fill="var(--color-blue-primary)"
+                        fill="currentColor"
                     />
                 </svg>
 
-                <div className="flex-1 flex items-start justify-center px-6 py-8 overflow-y-auto bg-bg-main">
-                    <div className="w-full max-w-md">{children}</div>
+                <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-6 sm:py-8">
+                    <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-8">
+                        {children}
+                    </div>
                 </div>
             </div>
         </div>
