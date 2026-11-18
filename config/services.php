@@ -64,6 +64,7 @@ return [
         'token' => env('SID_API_TOKEN', ''),
         'enabled' => env('SID_INTEGRATION_ENABLED', true),
         'mock' => env('SID_MOCK', true),
+        'portal_url' => env('SID_PORTAL_URL', 'https://cibenda.desa.id'),
     ],
 
 ];

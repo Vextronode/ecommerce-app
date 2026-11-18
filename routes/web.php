@@ -130,7 +130,9 @@ $adminPrefix = config('admin.prefix', 'cibenda-portal');
 
 Route::middleware('guest')->group(function () use ($adminPrefix) {
     Route::get('/pedagang/login', function () {
-        return Inertia::render('Merchant/Login');
+        return Inertia::render('Merchant/Login', [
+            'sidPortalUrl' => config('services.sid.portal_url'),
+        ]);
     })->name('merchant.login.view');
 
     Route::get("/{$adminPrefix}/login", function () {

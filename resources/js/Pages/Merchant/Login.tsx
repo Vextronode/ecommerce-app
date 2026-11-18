@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
-import { Eye, EyeOff, Store } from "lucide-react";
+import { Eye, EyeOff, Store, ExternalLink } from "lucide-react";
 import MerchantAuthLayout from "@/Layouts/MerchantAuthLayout";
 import parigiMerchantImg from "@/assets/images/parigi_merchant.png";
 
-export default function Login() {
+interface LoginProps {
+    sidPortalUrl: string;
+}
+
+export default function Login({ sidPortalUrl }: LoginProps) {
     const [showPassword, setShowPassword] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
@@ -212,13 +216,33 @@ export default function Login() {
                                 <div className="w-7 h-7 rounded-xl bg-brand-orange/15 flex items-center justify-center text-brand-orange shrink-0 mt-0.5">
                                     <Store className="w-4 h-4" />
                                 </div>
-                                <div>
+                                <div className="flex-1 min-w-0">
                                     <h4 className="text-xs font-bold text-gray-800">
                                         Belum Terdaftar Sebagai Pedagang?
                                     </h4>
                                     <p className="text-[11px] text-gray-600 mt-0.5 leading-relaxed">
-                                        Pendaftaran akun pedagang terintegrasi langsung melalui aplikasi <strong>Sistem Informasi Desa (SID)</strong> atau verifikasi oleh Administrator Desa Cibenda.
+                                        Pendaftaran akun pedagang terintegrasi langsung melalui aplikasi{" "}
+                                        <a
+                                            href={sidPortalUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-semibold text-brand-orange hover:text-brand-orange-hover underline underline-offset-2"
+                                        >
+                                            Sistem Informasi Desa (SID)
+                                        </a>{" "}
+                                        atau verifikasi oleh Administrator Desa Cibenda.
                                     </p>
+                                    <div className="mt-2.5">
+                                        <a
+                                            href={sidPortalUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-orange hover:text-brand-orange-hover hover:underline group"
+                                        >
+                                            <span>Buka Portal SID Desa Cibenda</span>
+                                            <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
