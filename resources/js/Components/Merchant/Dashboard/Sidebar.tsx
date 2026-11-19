@@ -107,7 +107,7 @@ export default function Sidebar() {
                     className="flex items-center gap-4 px-4 py-3.5 rounded-xl font-semibold transition text-sm whitespace-nowrap text-brand-orange bg-brand-orange-tint/40 hover:bg-brand-orange-tint mt-2"
                 >
                     <ShoppingBag className="w-5 h-5 shrink-0 text-brand-orange" />
-                    Belanja Storefront
+                    Belanja Produk
                 </Link>
             </nav>
 

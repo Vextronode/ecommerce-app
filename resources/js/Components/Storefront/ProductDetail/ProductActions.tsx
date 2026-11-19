@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ShoppingCart, Tag } from "lucide-react";
+import { ShoppingCart, Tag, Info } from "lucide-react";
 import { router, usePage } from "@inertiajs/react";
 import toast from "react-hot-toast";
 import { PageProps } from "@/types";
@@ -27,6 +27,9 @@ export default function ProductActions({
         PageProps & { platform_settings?: { enable_negotiation?: boolean } }
     >().props;
     const user = auth?.user;
+    const isOwnProduct = Boolean(
+        user && store && (Number(store.user_id) === Number(user.id) || Number(store.userId) === Number(user.id))
+    );
 
     const [isNegotiationEnabled, setIsNegotiationEnabled] = useState<boolean>(
         platform_settings?.enable_negotiation ?? true
@@ -60,6 +63,10 @@ export default function ProductActions({
     }, []);
 
     const handleAddToCart = () => {
+        if (isOwnProduct) {
+            return toast.error("Anda tidak dapat membeli produk dari toko Anda sendiri.");
+        }
+
         if (disabled)
             return toast.error("Silakan lengkapi pilihan varian dulu!");
 
@@ -81,11 +88,24 @@ export default function ProductActions({
                 onSuccess: () => {
                     toast.success("Produk berhasil ditambahkan ke keranjang!");
                 },
+                onError: (errors: any) => {
+                    const errorMsg =
+                        errors.product_id ||
+                        errors.quantity ||
+                        errors.preparation_option ||
+                        Object.values(errors)[0] ||
+                        "Gagal menambahkan produk ke keranjang.";
+                    toast.error(String(errorMsg));
+                },
             },
         );
     };
 
     const handleBuyNow = () => {
+        if (isOwnProduct) {
+            return toast.error("Anda tidak dapat membeli produk dari toko Anda sendiri.");
+        }
+
         if (disabled)
             return toast.error("Silakan lengkapi pilihan varian dulu!");
 
@@ -95,15 +115,33 @@ export default function ProductActions({
             return;
         }
 
-        router.post("/cart", {
-            product_id: productId,
-            quantity: quantity,
-            preparation_option: prepOption,
-            checkout: true,
-        });
+        router.post(
+            "/cart",
+            {
+                product_id: productId,
+                quantity: quantity,
+                preparation_option: prepOption,
+                checkout: true,
+            },
+            {
+                onError: (errors: any) => {
+                    const errorMsg =
+                        errors.product_id ||
+                        errors.quantity ||
+                        errors.preparation_option ||
+                        Object.values(errors)[0] ||
+                        "Gagal melanjutkan ke pembelian.";
+                    toast.error(String(errorMsg));
+                },
+            },
+        );
     };
 
     const handleNegotiate = () => {
+        if (isOwnProduct) {
+            return toast.error("Anda tidak dapat menawar produk dari toko Anda sendiri.");
+        }
+
         if (!isNegotiationEnabled) {
             return toast.error("Fitur tawar-menawar harga sedang dinonaktifkan sementara oleh admin.");
         }
@@ -138,6 +176,7 @@ export default function ProductActions({
                                   stock: currentSku ? currentSku.stock : product.stock,
                               }
                             : null,
+                        autoNegotiate: true,
                     },
                 })
             );
@@ -146,16 +185,24 @@ export default function ProductActions({
 
     return (
         <div className="grid grid-cols-2 gap-3 mb-6">
+            {isOwnProduct && (
+                <div className="col-span-2 p-3.5 bg-amber-50/90 border border-amber-200/90 rounded-2xl flex items-center gap-2.5 text-xs text-amber-900 mb-1">
+                    <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Ini adalah produk dari toko Anda sendiri. Pembelian dan penawaran dinonaktifkan.</span>
+                </div>
+            )}
             <button
+                type="button"
                 onClick={handleBuyNow}
-                disabled={disabled}
+                disabled={disabled || isOwnProduct}
                 className="bg-brand-orange text-white py-3.5 rounded-xl font-bold text-sm hover:bg-brand-orange-hover transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
                 Beli Sekarang
             </button>
             <button
+                type="button"
                 onClick={handleAddToCart}
-                disabled={disabled}
+                disabled={disabled || isOwnProduct}
                 className="bg-white text-brand-blue py-3.5 rounded-xl font-bold text-sm border-2 border-brand-blue hover:bg-brand-blue-tint/30 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
                 <ShoppingCart className="w-4 h-4 text-brand-blue" /> + Keranjang
@@ -164,7 +211,7 @@ export default function ProductActions({
                 <button
                     type="button"
                     onClick={handleNegotiate}
-                    disabled={disabled}
+                    disabled={disabled || isOwnProduct}
                     className="col-span-2 py-3 px-4 bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 text-brand-orange border border-orange-200/90 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Tag className="w-4 h-4 text-brand-orange" />

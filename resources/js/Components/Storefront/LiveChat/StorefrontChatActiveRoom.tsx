@@ -30,6 +30,8 @@ interface Props {
     isSending: boolean;
     inputMessage: string;
     pendingProduct: ProductAttachment | null;
+    autoOpenNegotiation?: boolean;
+    onResetAutoNegotiate?: () => void;
     storeLiveStatus: { is_online: boolean; last_seen: string } | null;
     onBack: () => void;
     onClose: () => void;
@@ -47,6 +49,8 @@ export default function StorefrontChatActiveRoom({
     isSending,
     inputMessage,
     pendingProduct,
+    autoOpenNegotiation,
+    onResetAutoNegotiate,
     storeLiveStatus,
     onBack,
     onClose,
@@ -76,6 +80,12 @@ export default function StorefrontChatActiveRoom({
             setIsNegotiationEnabled(Boolean(platform_settings.enable_negotiation));
         }
     }, [platform_settings?.enable_negotiation]);
+
+    useEffect(() => {
+        if (autoOpenNegotiation && pendingProduct && isNegotiationEnabled) {
+            setIsOfferModalOpen(true);
+        }
+    }, [autoOpenNegotiation, pendingProduct, isNegotiationEnabled]);
 
     useEffect(() => {
         if (typeof window === "undefined" || !window.Echo) return;
@@ -515,8 +525,13 @@ export default function StorefrontChatActiveRoom({
                     isOpen={isOfferModalOpen}
                     roomId={room.id}
                     product={pendingProduct}
-                    onClose={() => setIsOfferModalOpen(false)}
+                    onClose={() => {
+                        setIsOfferModalOpen(false);
+                        onResetAutoNegotiate?.();
+                    }}
                     onSuccess={(negotiation) => {
+                        setIsOfferModalOpen(false);
+                        onResetAutoNegotiate?.();
                         if (onNegotiationSuccess) onNegotiationSuccess(negotiation);
                     }}
                 />

@@ -28,6 +28,7 @@ export default function StorefrontChatWidget() {
     const [isSending, setIsSending] = useState(false);
     const [unreadTotal, setUnreadTotal] = useState<number>(unread_chats_count || 0);
     const [pendingProduct, setPendingProduct] = useState<ProductAttachment | null>(null);
+    const [autoOpenNegotiation, setAutoOpenNegotiation] = useState(false);
     const [storeLiveStatus, setStoreLiveStatus] = useState<{ is_online: boolean; last_seen: string } | null>(null);
 
     useEffect(() => {
@@ -276,7 +277,7 @@ export default function StorefrontChatWidget() {
 
     useEffect(() => {
         const handleOpenChatEvent = async (event: any) => {
-            const { storeId, product } = event.detail || {};
+            const { storeId, product, autoNegotiate } = event.detail || {};
 
             if (!user) {
                 toast.error("Silakan login terlebih dahulu untuk mengobrol dengan penjual!");
@@ -286,11 +287,6 @@ export default function StorefrontChatWidget() {
 
             if (!storeId) return;
 
-            setIsOpen(true);
-            if (product) {
-                setPendingProduct(product);
-            }
-
             try {
                 const res = await axios.post("/chat/room", {
                     store_id: storeId,
@@ -298,6 +294,12 @@ export default function StorefrontChatWidget() {
                 });
 
                 if (res.data.room) {
+                    setIsOpen(true);
+                    if (product) {
+                        setPendingProduct(product);
+                    }
+                    setAutoOpenNegotiation(Boolean(autoNegotiate));
+
                     const roomData = res.data.room;
                     const matchedRoom: BuyerChatRoomItem = {
                         id: roomData.id,
@@ -441,6 +443,8 @@ export default function StorefrontChatWidget() {
                         isSending={isSending}
                         inputMessage={inputMessage}
                         pendingProduct={pendingProduct}
+                        autoOpenNegotiation={autoOpenNegotiation}
+                        onResetAutoNegotiate={() => setAutoOpenNegotiation(false)}
                         storeLiveStatus={storeLiveStatus}
                         onBack={() => {
                             setActiveRoom(null);

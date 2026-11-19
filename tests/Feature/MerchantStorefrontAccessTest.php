@@ -10,6 +10,8 @@ use App\Models\Store;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\User as SocialiteUser;
 use Tests\TestCase;
 
 class MerchantStorefrontAccessTest extends TestCase
@@ -234,5 +236,78 @@ class MerchantStorefrontAccessTest extends TestCase
             ]);
 
         $responseNegotiate->assertStatus(422);
+    }
+
+    private function fakeGoogle(string $email, string $googleId = 'GOOGLE-PEDAGANG-1'): void
+    {
+        $user = new SocialiteUser;
+        $user->id = $googleId;
+        $user->email = $email;
+        $user->name = 'Pedagang Google';
+        $user->user = ['email_verified' => true];
+        $user->token = 'token-fake';
+
+        Socialite::fake('google', $user);
+    }
+
+    public function test_merchant_can_login_via_google_when_already_linked(): void
+    {
+        [$merchant] = $this->createMerchantWithStore();
+        $merchant->forceFill([
+            'email' => 'pedagang.sid@gmail.com',
+            'google_id' => 'GOOGLE-PEDAGANG-1',
+            'is_password_changed' => true,
+        ])->save();
+
+        $this->fakeGoogle('pedagang.sid@gmail.com', 'GOOGLE-PEDAGANG-1');
+
+        $response = $this->get(route('google.callback'));
+
+        $response->assertRedirect(route('merchant.dashboard', absolute: false));
+        $this->assertAuthenticatedAs($merchant);
+    }
+
+    public function test_merchant_can_link_google_account_using_password(): void
+    {
+        [$merchant] = $this->createMerchantWithStore();
+        $merchant->forceFill([
+            'email' => 'pedagang.link@gmail.com',
+            'google_id' => null,
+            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+            'is_password_changed' => true,
+        ])->save();
+
+        $this->fakeGoogle('pedagang.link@gmail.com', 'GOOGLE-PEDAGANG-LINKED');
+
+        $startResp = $this->get(route('google.callback'));
+        $startResp->assertRedirect(route('google.link.confirm'));
+
+        $nonce = (string) session('socialite.link_intent');
+        $confirmResp = $this->post(route('google.link.confirmed'), [
+            'password' => 'password123',
+            'nonce' => $nonce,
+        ]);
+
+        $confirmResp->assertRedirect(route('merchant.dashboard', absolute: false));
+        $this->assertAuthenticatedAs($merchant);
+
+        $merchant->refresh();
+        $this->assertEquals('GOOGLE-PEDAGANG-LINKED', $merchant->google_id);
+    }
+
+    public function test_admin_is_blocked_from_google_login(): void
+    {
+        $admin = User::factory()->create([
+            'email' => 'admin.desa@gmail.com',
+            'role' => 'admin',
+        ]);
+
+        $this->fakeGoogle('admin.desa@gmail.com', 'GOOGLE-ADMIN-1');
+
+        $response = $this->get(route('google.callback'));
+
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors(['email' => 'Akun administrator harus login melalui portal resmi.']);
+        $this->assertGuest();
     }
 }
