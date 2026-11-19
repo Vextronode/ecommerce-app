@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Database Service (MySQL 8.0)
+  # MySQL database
   db_cibenda:
     image: mysql:8.0
     container_name: cibenda_mysql
@@ -23,7 +23,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Cache, Session & Queue Store (Redis)
+  # Redis cache, session, and queues
   redis_cibenda:
     image: redis:alpine
     container_name: cibenda_redis
@@ -37,7 +37,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Application Web Server (Laravel 11 + Inertia + React)
+  # Laravel HTTP web server
   app_cibenda:
     build: .
     container_name: cibenda_app
@@ -72,7 +72,7 @@ services:
       redis_cibenda:
         condition: service_healthy
 
-  # Background Queue Worker (Notifications, Emails & Async Jobs)
+  # Laravel queue worker
   queue_cibenda:
     build: .
     container_name: cibenda_queue
@@ -102,7 +102,7 @@ services:
       app_cibenda:
         condition: service_started
 
-  # WebSocket Server (Laravel Reverb Real-time Sync)
+  # Reverb websocket server
   reverb_cibenda:
     build: .
     container_name: cibenda_reverb
@@ -129,7 +129,7 @@ services:
       app_cibenda:
         condition: service_started
 
-  # Task Scheduler (Automated Cron / SID Sync / Maintenance)
+  # Laravel schedule worker
   scheduler_cibenda:
     build: .
     container_name: cibenda_scheduler
