@@ -55,7 +55,6 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::delete('/api/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 
-// Public Storefront Browsing (Guest & User)
 Route::middleware(['storefront.user'])->group(function () {
     Route::get('/about', [\App\Http\Controllers\InfoPageController::class, 'about'])->name('about');
     Route::get('/mitra', [\App\Http\Controllers\InfoPageController::class, 'merchantGuide'])->name('merchant.guide');
@@ -68,8 +67,7 @@ Route::middleware(['storefront.user'])->group(function () {
     Route::get('/kebijakan/produk-terlarang', [LegalController::class, 'prohibitedProducts'])->name('legal.prohibited-products');
 });
 
-// Protected Storefront Actions (Requires Login & Role User)
-Route::middleware(['auth', 'role:user'])->group(function () {
+Route::middleware(['auth', 'role:user,pedagang'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

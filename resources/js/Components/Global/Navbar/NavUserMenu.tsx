@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import { User as UserIcon } from "lucide-react";
+import { User as UserIcon, Store } from "lucide-react";
 import { User } from "@/types";
 
 interface NavUserMenuProps {
@@ -10,26 +10,38 @@ interface NavUserMenuProps {
 export default function NavUserMenu({ user }: NavUserMenuProps) {
     if (user) {
         return (
-            <Link
-                href={route("profile.edit")}
-                aria-label="My Profile"
-                className="hidden md:flex items-center gap-2 pl-4 pr-1.5 py-1.5 bg-surface-muted hover:bg-slate-200 rounded-full transition-colors"
-            >
-                <span className="font-bold text-sm text-gray-800">
-                    {user.name ? user.name.split(" ")[0] : "User"}
-                </span>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-slate-700 text-white">
-                    {user.profile_photo_path ? (
-                        <img
-                            src={`/storage/${user.profile_photo_path}`}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                        />
-                    ) : (
-                        <UserIcon size={18} />
-                    )}
-                </div>
-            </Link>
+            <div className="hidden md:flex items-center gap-2.5">
+                {user.role === "pedagang" && (
+                    <Link
+                        href={route("merchant.dashboard")}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-brand-orange bg-brand-orange-tint/70 hover:bg-brand-orange-tint rounded-full border border-brand-orange/30 transition-colors shadow-2xs"
+                    >
+                        <Store className="w-3.5 h-3.5" />
+                        <span>Toko Saya</span>
+                    </Link>
+                )}
+
+                <Link
+                    href={route("profile.edit")}
+                    aria-label="My Profile"
+                    className="flex items-center gap-2 pl-4 pr-1.5 py-1.5 bg-surface-muted hover:bg-slate-200 rounded-full transition-colors"
+                >
+                    <span className="font-bold text-sm text-gray-800">
+                        {user.name ? user.name.split(" ")[0] : "User"}
+                    </span>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-slate-700 text-white">
+                        {user.profile_photo_path ? (
+                            <img
+                                src={`/storage/${user.profile_photo_path}`}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <UserIcon size={18} />
+                        )}
+                    </div>
+                </Link>
+            </div>
         );
     }
 
@@ -46,4 +58,3 @@ export default function NavUserMenu({ user }: NavUserMenuProps) {
         </Link>
     );
 }
-

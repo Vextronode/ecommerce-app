@@ -9,6 +9,7 @@ import {
     Wallet,
     Settings,
     LogOut,
+    ShoppingBag,
 } from "lucide-react";
 import parigiLogo from "@/assets/images/parigi_logo.png";
 
@@ -99,6 +100,14 @@ export default function Sidebar() {
                 >
                     <Wallet className="w-5 h-5 shrink-0" />
                     Penarikan Saldo
+                </Link>
+
+                <Link
+                    href={route("shop")}
+                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl font-semibold transition text-sm whitespace-nowrap text-brand-orange bg-brand-orange-tint/40 hover:bg-brand-orange-tint mt-2"
+                >
+                    <ShoppingBag className="w-5 h-5 shrink-0 text-brand-orange" />
+                    Belanja Produk
                 </Link>
             </nav>
 

@@ -69,9 +69,9 @@ class SocialiteController extends Controller
         $user = User::query()->where('email', $email)->first();
 
         if ($user) {
-            if ($user->role !== 'user') {
+            if ($user->role === 'admin') {
                 return redirect('/login')->withErrors([
-                    'email' => 'Akun ini tidak bisa dipakai untuk login sebagai pembeli.',
+                    'email' => 'Akun administrator harus login melalui portal resmi.',
                 ]);
             }
 
@@ -160,11 +160,10 @@ class SocialiteController extends Controller
             return redirect('/login')->withErrors(['email' => 'Gagal menautkan akun Google.']);
         }
 
-        // guard role konsisten dengan callback: cegah link Google ke akun non-pembeli
-        // (mis. akun yang dipromosikan jadi admin/pedagang di sela window intent)
-        if ($user->role !== 'user') {
+        // Cegah link Google ke akun administrator (harus lewat portal admin khusus)
+        if ($user->role === 'admin') {
             return redirect('/login')->withErrors([
-                'email' => 'Akun ini tidak bisa dipakai untuk login sebagai pembeli.',
+                'email' => 'Akun administrator harus login melalui portal resmi.',
             ]);
         }
 
@@ -274,6 +273,14 @@ class SocialiteController extends Controller
     {
         Auth::login($user);
         request()->session()->regenerate();
+
+        if ($user->role === 'pedagang') {
+            if (! $user->is_password_changed) {
+                return redirect()->intended(route('merchant.store.setup', absolute: false));
+            }
+
+            return redirect()->intended(route('merchant.dashboard', absolute: false));
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
