@@ -46,6 +46,7 @@ services:
       sh -c "php artisan config:clear &&
              php artisan storage:link --force &&
              php artisan migrate --force &&
+             php artisan db:seed --force &&
              php artisan serve --host=0.0.0.0 --port=8000"
     ports:
       - "127.0.0.1:8000:8000"
@@ -120,6 +121,33 @@ services:
       - REDIS_HOST=redis_cibenda
       - REDIS_CLIENT=predis
       - REDIS_PORT=6379
+    depends_on:
+      db_cibenda:
+        condition: service_healthy
+      redis_cibenda:
+        condition: service_healthy
+      app_cibenda:
+        condition: service_started
+
+  # Task Scheduler (Automated Cron / SID Sync / Maintenance)
+  scheduler_cibenda:
+    build: .
+    container_name: cibenda_scheduler
+    restart: unless-stopped
+    command: sh -c "php artisan config:clear && php artisan schedule:work"
+    env_file:
+      - .env.docker
+    environment:
+      - DB_HOST=db_cibenda
+      - DB_PORT=3306
+      - DB_DATABASE=cibenda_mart
+      - DB_USERNAME=cibenda_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis_cibenda
+      - REDIS_CLIENT=predis
+      - REDIS_PORT=6379
+    volumes:
+      - storage_data:/var/www/storage/app/public
     depends_on:
       db_cibenda:
         condition: service_healthy

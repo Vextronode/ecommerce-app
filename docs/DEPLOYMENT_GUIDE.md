@@ -38,8 +38,8 @@ Platform Cibenda Mart dibangun dengan arsitektur multi-container yang saling ter
                      ^                                         ^
                      |                 queue_cibenda           |
                      +-----------------------------------------+
-                                 Laravel Queue Worker
-                               (Background FCM & Mail)
+                                Laravel Queue & Scheduler
+                               (FCM, Mail & Auto-Sync SID)
 ```
 
 ### Tabel Rincian Port
@@ -63,6 +63,7 @@ Port yang hanya diikat ke loopback lokal dan **tidak boleh** dibuka ke publik:
 | **`db_cibenda`** | `127.0.0.1:3307` | `3306` | Database MySQL 8.0 (di-map ke 3307 untuk menghindari bentrok jika host memiliki MySQL lokal). |
 | **`redis_cibenda`** | `127.0.0.1:6379` | `6379` | Cache in-memory, session store, dan antrean queue worker. |
 | **`queue_cibenda`** | Tidak ada | Tidak ada | Worker background mandiri tanpa port terbuka (memproses notifikasi FCM dan email). |
+| **`scheduler_cibenda`** | Tidak ada | Tidak ada | Worker task scheduler mandiri (menjalankan `SyncSidSellerApplicationsJob` tiap 2 menit otomatis). |
 
 ---
 
@@ -170,13 +171,27 @@ GOOGLE_REDIRECT_URI="https://cimart.domainanda.com/auth/google/callback"
 ```
 
 ### Langkah 5: Build dan Jalankan Container Docker
-Jalankan proses build container:
+
+Anda dapat menjalankan skrip otomasi deployment satu langkah:
 
 ```bash
-docker compose up -d --build
+./deploy.sh
 ```
 
-Pastikan seluruh 5 container berstatus sehat (`Up` atau `healthy`):
+Atau menggunakan perintah Docker Compose langsung:
+
+```bash
+docker compose up -d --build --remove-orphans
+```
+
+Saat proses build dan start berjalan, sistem secara otomatis:
+1. Menghapus dan menyegarkan cache konfigurasi (`php artisan config:clear`).
+2. Menghubungkan symlink direktori publik berkas (`php artisan storage:link --force`).
+3. Menjalankan migrasi database (`php artisan migrate --force`).
+4. Menjalankan seeder master data produksi secara idempoten (`php artisan db:seed --force`).
+5. Menjalankan worker scheduler mandiri (`scheduler_cibenda`) yang otomatis menarik data permohonan pedagang dari SID setiap 2 menit.
+
+Pastikan seluruh 6 container berstatus sehat (`Up` atau `healthy`):
 
 ```bash
 docker compose ps
