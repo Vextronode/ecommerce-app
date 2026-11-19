@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MySQL database
   db_cibenda:
@@ -53,17 +51,17 @@ services:
     env_file:
       - .env.docker
     environment:
-      - DB_HOST=db_cibenda
-      - DB_PORT=3306
-      - DB_DATABASE=cibenda_mart
-      - DB_USERNAME=cibenda_user
+      - DB_HOST=${DB_HOST:-db_cibenda}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-cibenda_mart}
+      - DB_USERNAME=${DB_USERNAME:-cibenda_user}
       - DB_PASSWORD=${DB_PASSWORD}
-      - REVERB_SERVER_HOST=reverb_cibenda
-      - REVERB_SERVER_PORT=8080
-      - REVERB_SERVER_SCHEME=http
-      - REDIS_HOST=redis_cibenda
-      - REDIS_CLIENT=predis
-      - REDIS_PORT=6379
+      - REVERB_SERVER_HOST=${REVERB_SERVER_HOST:-reverb_cibenda}
+      - REVERB_SERVER_PORT=${REVERB_SERVER_PORT:-8080}
+      - REVERB_SERVER_SCHEME=${REVERB_SERVER_SCHEME:-http}
+      - REDIS_HOST=${REDIS_HOST:-redis_cibenda}
+      - REDIS_CLIENT=${REDIS_CLIENT:-predis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
     volumes:
       - storage_data:/var/www/storage/app/public
     depends_on:
@@ -81,17 +79,17 @@ services:
     env_file:
       - .env.docker
     environment:
-      - DB_HOST=db_cibenda
-      - DB_PORT=3306
-      - DB_DATABASE=cibenda_mart
-      - DB_USERNAME=cibenda_user
+      - DB_HOST=${DB_HOST:-db_cibenda}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-cibenda_mart}
+      - DB_USERNAME=${DB_USERNAME:-cibenda_user}
       - DB_PASSWORD=${DB_PASSWORD}
-      - REVERB_SERVER_HOST=reverb_cibenda
-      - REVERB_SERVER_PORT=8080
-      - REVERB_SERVER_SCHEME=http
-      - REDIS_HOST=redis_cibenda
-      - REDIS_CLIENT=predis
-      - REDIS_PORT=6379
+      - REVERB_SERVER_HOST=${REVERB_SERVER_HOST:-reverb_cibenda}
+      - REVERB_SERVER_PORT=${REVERB_SERVER_PORT:-8080}
+      - REVERB_SERVER_SCHEME=${REVERB_SERVER_SCHEME:-http}
+      - REDIS_HOST=${REDIS_HOST:-redis_cibenda}
+      - REDIS_CLIENT=${REDIS_CLIENT:-predis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
     volumes:
       - storage_data:/var/www/storage/app/public
     depends_on:
@@ -113,14 +111,14 @@ services:
     env_file:
       - .env.docker
     environment:
-      - DB_HOST=db_cibenda
-      - DB_PORT=3306
-      - DB_DATABASE=cibenda_mart
-      - DB_USERNAME=cibenda_user
+      - DB_HOST=${DB_HOST:-db_cibenda}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-cibenda_mart}
+      - DB_USERNAME=${DB_USERNAME:-cibenda_user}
       - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=redis_cibenda
-      - REDIS_CLIENT=predis
-      - REDIS_PORT=6379
+      - REDIS_HOST=${REDIS_HOST:-redis_cibenda}
+      - REDIS_CLIENT=${REDIS_CLIENT:-predis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
     depends_on:
       db_cibenda:
         condition: service_healthy
@@ -138,14 +136,14 @@ services:
     env_file:
       - .env.docker
     environment:
-      - DB_HOST=db_cibenda
-      - DB_PORT=3306
-      - DB_DATABASE=cibenda_mart
-      - DB_USERNAME=cibenda_user
+      - DB_HOST=${DB_HOST:-db_cibenda}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-cibenda_mart}
+      - DB_USERNAME=${DB_USERNAME:-cibenda_user}
       - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=redis_cibenda
-      - REDIS_CLIENT=predis
-      - REDIS_PORT=6379
+      - REDIS_HOST=${REDIS_HOST:-redis_cibenda}
+      - REDIS_CLIENT=${REDIS_CLIENT:-predis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
     volumes:
       - storage_data:/var/www/storage/app/public
     depends_on:
