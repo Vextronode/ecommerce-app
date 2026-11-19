@@ -131,7 +131,7 @@ class AuthenticationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    public function test_merchants_are_redirected_away_from_user_storefront(): void
+    public function test_merchants_can_browse_user_storefront(): void
     {
         $merchant = User::factory()->create([
             'role' => 'pedagang',
@@ -139,7 +139,7 @@ class AuthenticationTest extends TestCase
 
         $response = $this->actingAs($merchant)->get('/shop');
 
-        $response->assertRedirect('/pedagang/dashboard');
+        $response->assertOk();
     }
 
     public function test_merchant_logout_returns_to_merchant_login(): void

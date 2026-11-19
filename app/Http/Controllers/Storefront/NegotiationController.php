@@ -55,6 +55,13 @@ class NegotiationController extends Controller
             'quantity.min' => 'Jumlah barang minimal 1.',
         ]);
 
+        $room->loadMissing('store');
+        if ($room->store && (int) $room->store->user_id === (int) $userId) {
+            throw ValidationException::withMessages([
+                'product_id' => 'Anda tidak dapat mengajukan penawaran harga ke toko Anda sendiri.',
+            ]);
+        }
+
         $result = DB::transaction(function () use ($room, $userId, $validated) {
             $product = Product::where('id', $validated['product_id'])
                 ->where('store_id', $room->store_id)

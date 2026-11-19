@@ -86,6 +86,12 @@ class CheckoutController extends Controller
             return redirect()->route('cart')->with('error', 'Ada item keranjang yang tidak valid.');
         }
 
+        foreach ($carts as $cart) {
+            if ((int) $cart->product?->store?->user_id === (int) auth()->id()) {
+                return redirect()->route('cart')->with('error', 'Anda tidak dapat membeli produk dari toko Anda sendiri.');
+            }
+        }
+
         $cartItems = $carts->map(function ($cart) {
             $matchingSku = $cart->product->skus->where('variant_name', $cart->preparation_option)->first();
             $store = $cart->product->store;

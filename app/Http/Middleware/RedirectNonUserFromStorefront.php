@@ -25,14 +25,6 @@ class RedirectNonUserFromStorefront
             ]);
         }
 
-        if ($user && $user->role !== 'user') {
-            return redirect(match ($user->role) {
-                'pedagang' => '/pedagang/dashboard',
-                'admin' => '/'.config('admin.prefix', 'cibenda-portal').'/dashboard',
-                default => '/dashboard',
-            });
-        }
-
         return $next($request);
     }
 }

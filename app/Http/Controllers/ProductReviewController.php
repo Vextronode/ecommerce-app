@@ -28,6 +28,11 @@ class ProductReviewController extends Controller
                 ->with('error', 'Produk tidak ditemukan atau belum selesai.');
         }
 
+        if ($orderItem->order?->store && (int) $orderItem->order->store->user_id === (int) auth()->id()) {
+            return redirect()->route('history.index', ['status' => 'rating'])
+                ->with('error', 'Anda tidak dapat memberikan ulasan untuk toko milik Anda sendiri.');
+        }
+
         return Inertia::render('History/RatingForm', [
             'orderItem' => [
                 'id' => $orderItem->id,
@@ -53,7 +58,7 @@ class ProductReviewController extends Controller
 
     public function store(Request $request, $order_item_id)
     {
-        $orderItem = OrderItem::with(['order', 'review'])
+        $orderItem = OrderItem::with(['order.store', 'review'])
             ->where('id', $order_item_id)
             ->whereHas('order', function ($query) {
                 $query->where('user_id', auth()->id())
@@ -63,6 +68,10 @@ class ProductReviewController extends Controller
 
         if (! $orderItem) {
             abort(403, 'Anda hanya dapat memberikan ulasan untuk pesanan Anda sendiri yang telah selesai.');
+        }
+
+        if ($orderItem->order?->store && (int) $orderItem->order->store->user_id === (int) auth()->id()) {
+            abort(403, 'Anda tidak dapat memberikan ulasan untuk toko milik Anda sendiri.');
         }
 
         $validated = $request->validate([

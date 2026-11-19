@@ -42,6 +42,16 @@ export default function NavMobileMenu({
             </div>
 
             <div className="p-4 border-t border-gray-100 space-y-2.5">
+                {user?.role === "pedagang" && (
+                    <Link
+                        href={route("merchant.dashboard")}
+                        onClick={onClose}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-brand-orange-tint text-brand-orange border border-brand-orange/30 rounded-lg font-bold text-sm"
+                    >
+                        <Store size={18} /> Toko Saya (Dashboard Pedagang)
+                    </Link>
+                )}
+
                 {user ? (
                     <Link
                         href={route("profile.edit")}
