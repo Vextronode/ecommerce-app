@@ -5,12 +5,13 @@
 | Field | Isi |
 |---|---|
 | Keparahan | High |
-| Status | Perlu konfirmasi |
-| Lokasi | `app/Models/Order.php:381` (`canBuyerComplete`); `app/Http/Controllers/Merchant/OrderController.php:174`; `app/Http/Controllers/DeliveryTrackerController.php:30` |
+| Status | Selesai |
+| Lokasi | `app/Models/Order.php:381` (`canBuyerComplete`); `app/Http/Controllers/Merchant/OrderController.php:174`; `app/Http/Controllers/DeliveryTrackerController.php:30`; `resources/js/Components/Merchant/Orders/UpdateStatusModal.tsx` |
 | Kondisi Aktual | Ada tiga jalur menuju `delivered`: PIN dari kurir, konfirmasi pembeli, dan penyelesaian otomatis. Tidak satu pun berlaku untuk pesanan COD dengan `self_pickup`. Pelacakan dan PIN hanya untuk `local_delivery`. Pembeli tidak dapat mengonfirmasi pesanan COD. Penyelesaian otomatis hanya untuk `local_delivery` non-COD. Validasi status pedagang hanya menerima `pending`, `processing`, `shipped`, dan `cancelled`. |
 | Dampak | Pesanan tertahan di `shipped` dengan `payment_status` `pending`. Pembeli tidak dapat memberi ulasan, dan pesanan tidak tercatat sebagai selesai di laporan maupun analitik. Pesan galat di kode menyebut "konfirmasi pembayaran dari penjual", tetapi fitur itu tidak ditemukan. |
 | Bukti | `canBuyerComplete()` mengembalikan `false` bila `payment_method === 'cod'`. `DeliveryTrackerController::show` menolak pesanan selain `local_delivery`, dan serah terima batch hanya memuat pesanan `local_delivery` (`app/Http/Controllers/Merchant/OrderController.php`, `generateBatchHandover`). Checkout di backend maupun antarmuka (`resources/js/Hooks/Storefront/useCheckoutForm.ts`) tidak melarang kombinasi COD dan ambil sendiri. Bila `enable_online_payment` dan `enable_local_delivery` sama-sama nonaktif, kombinasi ini menjadi satu-satunya pilihan. |
 | Rekomendasi | Pastikan apakah kombinasi COD dan ambil sendiri memang dapat dipilih di checkout. Bila dapat, sediakan jalur penyelesaian, misalnya konfirmasi pembayaran oleh pedagang. |
+| Keputusan | Diselesaikan 20 November 2026: Diizinkan pedagang menandai status `delivered` khusus untuk pesanan ambil sendiri (`self_pickup`). Bila pesanan berupa COD, sistem otomatis mengubah `payment_status` menjadi `paid`. Bila non-COD, saldo escrow toko otomatis dilepas ke `available_balance`. Pengiriman kurir lokal tetap terlindungi dan hanya dapat diselesaikan melalui PIN kurir/pembeli. |
 
 ## ORD-02 Penanda kedatangan kurir hanya tersimpan di cache
 

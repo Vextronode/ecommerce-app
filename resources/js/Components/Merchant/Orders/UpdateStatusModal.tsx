@@ -35,6 +35,15 @@ export default function UpdateStatusModal({ isOpen, onClose, order }: any) {
         });
     }
 
+    if (order.delivery_method !== 'local_delivery' && (order.shipping_status === 'shipped' || order.shipping_status === 'processing')) {
+        statuses.push({
+            id: "delivered",
+            label: order.payment_method === 'cod' ? "Selesai (Diambil & Dibayar)" : "Selesai (Sudah Diambil)",
+            icon: CheckCircle,
+            desc: order.payment_method === 'cod' ? "Barang sudah diserahkan dan uang tunai diterima" : "Barang sudah diserahkan ke pembeli",
+        });
+    }
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in transition-opacity duration-200 border border-brand-orange/20">
