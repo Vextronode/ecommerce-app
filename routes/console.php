@@ -16,13 +16,19 @@ Artisan::command('inspire', function () {
         ->delete();
 })->daily()->name('prune-old-notifications')->withoutOverlapping()->onOneServer();
 
-// Auto-Complete: Selesaikan pesanan kurir lokal non-COD yang sudah dibayar & dikirim > 4 jam jika belum dikonfirmasi (Shopee-style)
+// Auto-Complete: Selesaikan pesanan kurir lokal non-COD yang sudah dibayar & dikirim > 4 jam jika belum dikonfirmasi (Shopee-style, ORD-03)
 \Illuminate\Support\Facades\Schedule::call(function () {
     \App\Models\Order::where('shipping_status', 'shipped')
         ->where('delivery_method', 'local_delivery')
         ->where('payment_method', '!=', 'cod')
         ->where('payment_status', 'paid')
-        ->where('updated_at', '<=', now()->subHours(4))
+        ->where(function ($q) {
+            $q->where('shipped_at', '<=', now()->subHours(4))
+                ->orWhere(function ($fallback) {
+                    $fallback->whereNull('shipped_at')
+                        ->where('updated_at', '<=', now()->subHours(4));
+                });
+        })
         ->chunk(50, function ($orders) {
             foreach ($orders as $order) {
                 $order->autoCompleteDelivery();

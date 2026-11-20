@@ -69,8 +69,8 @@ Diurutkan berdasarkan tingkat keparahan.
 | INF-02 | Tidak ada status check wajib pada branch terlindungi | Medium | Terbuka | `infra_repo.md` |
 | CHK-03 | Nilai default kolom pesanan berbeda dengan nilai yang diterima checkout | Low | Terbuka | `checkout_pembayaran.md` |
 | CHK-04 | Tipe kolom `payment_status` berbeda antara MySQL dan driver lain | Low | Terbuka | `checkout_pembayaran.md` |
-| ORD-02 | Penanda kedatangan kurir hanya tersimpan di cache | Low | Terbuka | `pesanan_pengiriman.md` |
-| ORD-03 | Batas 4 jam penyelesaian otomatis dihitung dari `updated_at` | Low | Perlu konfirmasi | `pesanan_pengiriman.md` |
+| ORD-02 | Penanda kedatangan kurir hanya tersimpan di cache | Low | Selesai | `pesanan_pengiriman.md` |
+| ORD-03 | Batas 4 jam penyelesaian otomatis dihitung dari `updated_at` | Low | Selesai | `pesanan_pengiriman.md` |
 | NEG-01 | Status `expired` tidak tersimpan untuk tawaran yang dibiarkan | Low | Terbuka | `tawar_menawar.md` |
 | MER-02 | Query analitik memakai nilai `payment_status` yang tidak pernah disimpan | Low | Terbuka | `pedagang_toko.md` |
 | SID-02 | `business_ref` antara toko dan permohonan tidak diikat foreign key | Low | Terbuka | `integrasi_sid.md` |

@@ -18,21 +18,23 @@
 | Field | Isi |
 |---|---|
 | Keparahan | Low |
-| Status | Terbuka |
+| Status | Selesai |
 | Lokasi | `app/Models/Order.php:357` (`markAsArrived`), `:369` (`isArrived`) |
 | Kondisi Aktual | Penanda "kurir tiba" disimpan di cache dengan kunci `order_arrived_{id}` selama 7 hari. Kode juga memeriksa kolom `arrived_at`, tetapi kolom itu tidak ada di migrasi mana pun. |
 | Dampak | Penanda hilang bila cache dibersihkan (misalnya `php artisan optimize:clear` yang tercantum di panduan deployment) atau Redis dimulai ulang (lihat INF-06). Pembeli baru dapat mengonfirmasi pesanan setelah 4 jam. |
 | Bukti | `Schema::hasColumn('orders', 'arrived_at')` selalu bernilai `false` pada skema saat ini. |
 | Rekomendasi | Simpan waktu kedatangan di kolom database, atau hapus rujukan ke `arrived_at`. |
+| Keputusan | Diselesaikan 20 November 2026: Ditambahkan migrasi kolom timestamp `arrived_at` (nullable) pada tabel `orders`. Metode `markAsArrived` menyimpan timestamp ke database serta cache Redis, dan `isArrived` memprioritaskan pengecekan kolom database sehingga penanda kedatangan kurir persisten dan tidak hilang saat cache dibersihkan. |
 
 ## ORD-03 Batas 4 jam penyelesaian otomatis dihitung dari `updated_at`
 
 | Field | Isi |
 |---|---|
 | Keparahan | Low |
-| Status | Perlu konfirmasi |
+| Status | Selesai |
 | Lokasi | `routes/console.php` (jadwal `auto-complete-shipped-orders`); `app/Models/Order.php:399` |
 | Kondisi Aktual | Penyelesaian otomatis dan konfirmasi pembeli memakai `updated_at` sebagai titik awal 4 jam, bukan waktu pesanan berubah menjadi `shipped`. |
 | Dampak | Setiap pembaruan baris pesanan, termasuk yang tidak berkaitan dengan pengiriman, mengulang hitungan 4 jam. |
 | Bukti | `->where('updated_at', '<=', now()->subHours(4))` |
 | Rekomendasi | Pastikan apakah perilaku ini disengaja. Bila tidak, simpan waktu pengiriman di kolom tersendiri. |
+| Keputusan | Diselesaikan 20 November 2026: Ditambahkan migrasi kolom timestamp `shipped_at` (nullable) pada tabel `orders` yang diisi secara otomatis via model lifecycle hook saat pesanan berpindah ke status `shipped`. Perhitungan ambang batas 4 jam pada `Order::canBuyerComplete()` serta scheduler `auto-complete-shipped-orders` di `routes/console.php` kini dihitung berbasis `shipped_at` (dengan fallback `updated_at` untuk data lawas), sehingga pembaruan data pesanan lain tidak lagi mengulang durasi 4 jam. |

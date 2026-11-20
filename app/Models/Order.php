@@ -43,14 +43,27 @@ use Illuminate\Support\Facades\Log;
     'balance_credited_at',
     'escrow_credited_at',
     'stock_restored_at',
+    'arrived_at',
+    'shipped_at',
 ])]
 class Order extends Model
 {
+    protected static function booted(): void
+    {
+        static::updating(function (Order $order) {
+            if ($order->isDirty('shipping_status') && $order->shipping_status === 'shipped' && empty($order->shipped_at)) {
+                $order->shipped_at = now();
+            }
+        });
+    }
+
     protected $casts = [
         'payment_expiry_time' => 'datetime',
         'balance_credited_at' => 'datetime',
         'escrow_credited_at' => 'datetime',
         'stock_restored_at' => 'datetime',
+        'arrived_at' => 'datetime',
+        'shipped_at' => 'datetime',
         'payment_payload' => 'array',
         'total_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
@@ -357,9 +370,7 @@ class Order extends Model
     public function markAsArrived(): void
     {
         \Illuminate\Support\Facades\Cache::put("order_arrived_{$this->id}", now()->toIso8601String(), 86400 * 7);
-        if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'arrived_at')) {
-            $this->forceFill(['arrived_at' => now()])->save();
-        }
+        $this->forceFill(['arrived_at' => now()])->save();
     }
 
 
@@ -368,9 +379,10 @@ class Order extends Model
      */
     public function isArrived(): bool
     {
-        if (!empty($this->arrived_at)) {
+        if ($this->arrived_at !== null) {
             return true;
         }
+
         return \Illuminate\Support\Facades\Cache::has("order_arrived_{$this->id}");
     }
 
@@ -396,7 +408,9 @@ class Order extends Model
             return true;
         }
 
-        $hoursElapsed = $this->updated_at ? $this->updated_at->diffInHours(now()) : 0;
+        $referenceTime = $this->shipped_at ?? $this->updated_at;
+        $hoursElapsed = $referenceTime ? $referenceTime->diffInHours(now()) : 0;
+
         return $hoursElapsed >= 4;
     }
 
