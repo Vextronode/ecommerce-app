@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Exceptions\GatewayRateLimitedException;
+use App\Exceptions\GatewayUncertainException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -34,8 +36,6 @@ class MidtransIrisService
     /**
      * Create payout (disbursement) to bank account.
      *
-     * @param array $payoutData
-     * @return array
      * @throws \RuntimeException
      */
     public function createPayout(array $payoutData): array
@@ -89,7 +89,7 @@ class MidtransIrisService
 
             if ($response->status() === 429) {
                 $retryAfter = (int) ($response->header('Retry-After') ?: 60);
-                throw new \App\Exceptions\GatewayRateLimitedException(
+                throw new GatewayRateLimitedException(
                     'Gateway Midtrans IRIS mengembalikan 429 Too Many Requests (Rate Limited).',
                     $retryAfter
                 );
@@ -98,7 +98,7 @@ class MidtransIrisService
             if (in_array($response->status(), [502, 503, 504])) {
                 // 5xx artinya request udah nyampe gateway tapi ga dapet jawaban pasti.
                 // payout mungkin udah kebuat, jadi jangan dianggap rate-limit yang aman di-retry dari nol.
-                throw new \App\Exceptions\GatewayUncertainException(
+                throw new GatewayUncertainException(
                     "Gateway Midtrans IRIS memberi respons ambigu saat kirim payout (HTTP {$response->status()}).",
                     $response->status()
                 );
@@ -174,7 +174,7 @@ class MidtransIrisService
 
             if (in_array($response->status(), [502, 503, 504])) {
                 // 5xx saat cek status itu ambigu, bukan rate-limit yang aman di-retry dari nol
-                throw new \App\Exceptions\GatewayUncertainException(
+                throw new GatewayUncertainException(
                     "Gateway Midtrans IRIS sedang mengalami gangguan sementara saat cek status (HTTP {$response->status()}).",
                     $response->status()
                 );

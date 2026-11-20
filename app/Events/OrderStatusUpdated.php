@@ -14,7 +14,9 @@ class OrderStatusUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     protected Order $order;
+
     public ?string $status = null;
+
     public ?string $shippingStatus = null;
 
     /**
@@ -31,29 +33,29 @@ class OrderStatusUpdated implements ShouldBroadcastNow
      * Get the channels the event should broadcast on.
      * All channels are private — no unauthenticated subscriber can receive order data.
      *
-     * @return array<int, \Illuminate\Broadcasting\PrivateChannel>
+     * @return array<int, PrivateChannel>
      */
     public function broadcastOn(): array
     {
         $channels = [];
 
         if ($this->order->store_id) {
-            $channels[] = new PrivateChannel('store.' . $this->order->store_id);
-            $channels[] = new PrivateChannel('store-orders.' . $this->order->store_id);
+            $channels[] = new PrivateChannel('store.'.$this->order->store_id);
+            $channels[] = new PrivateChannel('store-orders.'.$this->order->store_id);
         }
 
         if ($this->order->user_id) {
-            $channels[] = new PrivateChannel('order.' . $this->order->id);
-            $channels[] = new PrivateChannel('App.Models.User.' . $this->order->user_id);
-            $channels[] = new PrivateChannel('user-orders.' . $this->order->user_id);
+            $channels[] = new PrivateChannel('order.'.$this->order->id);
+            $channels[] = new PrivateChannel('App.Models.User.'.$this->order->user_id);
+            $channels[] = new PrivateChannel('user-orders.'.$this->order->user_id);
         }
 
         if ($this->order->invoice_number) {
-            $channels[] = new PrivateChannel('order-tracking.' . $this->order->invoice_number);
+            $channels[] = new PrivateChannel('order-tracking.'.$this->order->invoice_number);
         }
 
-        if (!empty($this->order->delivery_batch_token)) {
-            $channels[] = new PrivateChannel('batch.' . $this->order->delivery_batch_token);
+        if (! empty($this->order->delivery_batch_token)) {
+            $channels[] = new PrivateChannel('batch.'.$this->order->delivery_batch_token);
         }
 
         return $channels;
@@ -76,13 +78,13 @@ class OrderStatusUpdated implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'order_id'        => $this->order->id,
-            'invoice_number'  => $this->order->invoice_number,
-            'status'          => $this->status,
+            'order_id' => $this->order->id,
+            'invoice_number' => $this->order->invoice_number,
+            'status' => $this->status,
             'shipping_status' => $this->shippingStatus,
-            'payment_status'  => $this->order->payment_status,
-            'total_amount'    => $this->order->total_amount,
-            'updated_at'      => $this->order->updated_at?->toIso8601String(),
+            'payment_status' => $this->order->payment_status,
+            'total_amount' => $this->order->total_amount,
+            'updated_at' => $this->order->updated_at?->toIso8601String(),
         ];
     }
 }

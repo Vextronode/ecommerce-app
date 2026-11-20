@@ -49,7 +49,7 @@ class PaymentSyncService
                 $this->applyPaymentStatus($order->id, $trxStatus, $fraudStatus);
             }
         } catch (\Throwable $e) {
-            Log::warning("PaymentSyncService::syncByMidtransOrderId failed for {$midtransOrderId}: " . $e->getMessage());
+            Log::warning("PaymentSyncService::syncByMidtransOrderId failed for {$midtransOrderId}: ".$e->getMessage());
         }
     }
 
@@ -130,7 +130,7 @@ class PaymentSyncService
                     try {
                         broadcast(new OrderStatusUpdated($lockedOrder))->toOthers();
                     } catch (\Throwable $e) {
-                        Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: ' . $e->getMessage());
+                        Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: '.$e->getMessage());
                     }
                 }
             } elseif (in_array($transactionStatus, ['refund', 'partial_refund'], true)) {
@@ -138,6 +138,15 @@ class PaymentSyncService
                     $wasPaid = $lockedOrder->payment_status === 'paid';
                     $isFullRefund = $transactionStatus === 'refund';
                     $wasDelivered = $lockedOrder->balance_credited_at !== null;
+
+                    // PENTING (CHK-01): Notifikasi partial_refund untuk checkout multi-toko
+                    // hanya diterapkan ke pesanan yang status pengirimannya cancelled.
+                    // Pesanan toko lain yang masih aktif/berjalan tidak boleh ditandai refunded.
+                    if ($transactionStatus === 'partial_refund' && $lockedOrder->shipping_status !== 'cancelled') {
+                        Log::info("Partial refund diabaikan untuk order #{$lockedOrder->invoice_number} karena pesanan tidak dibatalkan.");
+
+                        return;
+                    }
 
                     $updateFields = ['payment_status' => 'refunded'];
                     // partial refund ga batalin seluruh order
@@ -159,6 +168,11 @@ class PaymentSyncService
                     }
                 }
             } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'], true)) {
+                // SECURITY GUARD (CHK-05): Pesanan yang sudah dialihkan ke COD tidak boleh dibatalkan oleh event cancel dari gateway
+                if ($lockedOrder->payment_method === 'cod') {
+                    return;
+                }
+
                 if (! in_array($lockedOrder->payment_status, ['paid', 'refunded', 'failed'], true)) {
                     $updateFields = ['payment_status' => 'failed'];
                     if ($lockedOrder->shipping_status === 'pending') {
@@ -172,7 +186,7 @@ class PaymentSyncService
                     try {
                         broadcast(new OrderStatusUpdated($lockedOrder))->toOthers();
                     } catch (\Throwable $e) {
-                        Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: ' . $e->getMessage());
+                        Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: '.$e->getMessage());
                     }
                 }
             } elseif ($transactionStatus === 'pending') {
@@ -183,4 +197,3 @@ class PaymentSyncService
         });
     }
 }
-

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Exceptions\Sid\SidApiException;
 use App\Exceptions\Sid\SidApplicationCancelledException;
 use App\Http\Controllers\Controller;
 use App\Jobs\SyncSidSellerApplicationsJob;
 use App\Models\Order;
+use App\Models\PlatformSetting;
 use App\Models\SellerApplication;
 use App\Models\Store;
 use App\Models\User;
@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -27,8 +28,8 @@ class MerchantController extends Controller
      */
     public function index(Request $request, SidApiService $sidService): Response
     {
-        // Auto-seed mock data on first visit if table is empty
-        if (SellerApplication::count() === 0 && $sidService->isEnabled()) {
+        // Auto-seed mock data on first visit if table is empty and SID sync is enabled
+        if (SellerApplication::count() === 0 && $sidService->isEnabled() && PlatformSetting::isEnabled('enable_sid_sync', true)) {
             (new SyncSidSellerApplicationsJob)->handle($sidService);
         }
 
@@ -152,6 +153,8 @@ class MerchantController extends Controller
                     'address' => $store?->address ?: '-',
                     'subdistrict' => $subdistrict,
                     'sid_status' => $store?->sid_status ?? 'verified',
+                    'is_manual_creation' => (bool) ($store?->is_manual_creation ?? false),
+                    'manual_creation_reason' => $store?->manual_creation_reason,
                     'balance' => (int) ($store?->available_balance ?? 0),
                 ],
                 'username' => '@'.preg_replace('/-[0-9a-f]{10,}$/i', '', $store?->slug ?: Str::slug($user->name)),
@@ -254,6 +257,7 @@ class MerchantController extends Controller
             'phone' => ['nullable', 'string', 'regex:/^(\+62|62|08)[0-9]{7,13}$/'],
             'password' => ['required', 'string', 'min:8'],
             'business_ref' => ['nullable', 'uuid', 'exists:seller_applications,business_ref'],
+            'manual_creation_reason' => ['required_without:business_ref', 'nullable', 'string', 'min:5', 'max:500'],
         ], [
             'merchant_name.required' => 'Nama toko (Store Name) wajib diisi.',
             'merchant_name.min' => 'Nama toko minimal 3 karakter.',
@@ -273,6 +277,7 @@ class MerchantController extends Controller
             'phone.regex' => 'Format nomor telepon tidak valid. Gunakan format Indonesia (contoh: 081234567890 atau +6281234567890).',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal terdiri dari 8 karakter.',
+            'manual_creation_reason.required_without' => 'Alasan pendaftaran manual wajib diisi apabila pedagang didaftarkan tanpa permohonan SID.',
         ]);
 
         $businessRef = $validated['business_ref'] ?? null;
@@ -286,12 +291,7 @@ class MerchantController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($validated, $businessRef, $application, $sidService) {
-                // Atomic Lock: Notify SID with status accepted BEFORE committing local account
-                if ($application) {
-                    $sidService->updateApplicationStatus($application->business_ref, 'accepted');
-                }
-
+            DB::transaction(function () use ($validated, $businessRef, $application, $sidService, $request) {
                 $user = new User([
                     'name' => strip_tags(trim($validated['owner_name'])),
                     'email' => $validated['email'],
@@ -315,6 +315,8 @@ class MerchantController extends Controller
                 $store = Store::create([
                     'user_id' => $user->id,
                     'business_ref' => $businessRef,
+                    'is_manual_creation' => empty($businessRef),
+                    'manual_creation_reason' => empty($businessRef) ? $validated['manual_creation_reason'] : null,
                     'name' => strip_tags(trim($validated['merchant_name'])),
                     'slug' => $slug,
                     'description' => $application ? $application->business_activity : null,
@@ -331,6 +333,11 @@ class MerchantController extends Controller
                         'user_id' => $user->id,
                         'store_id' => $store->id,
                     ]);
+
+                    // Sinkronisasi status accepted ke SID setelah akun lokal siap (SID-04)
+                    $sidService->updateApplicationStatus($application->business_ref, 'accepted');
+                } else {
+                    Log::info("Admin #{$request->user()?->id} ({$request->user()?->name}) mendaftarkan pedagang manual tanpa SID untuk toko '{$store->name}'. Alasan: {$validated['manual_creation_reason']}");
                 }
             });
         } catch (SidApplicationCancelledException $e) {
@@ -341,7 +348,12 @@ class MerchantController extends Controller
             return redirect()->route('admin.merchants.index', ['tab' => 'applications'])
                 ->with('error', 'Permohonan telah dibatalkan oleh pemohon di SID. Akun tidak dapat dibuat.');
         } catch (\Throwable $e) {
-            return back()->withInput()->withErrors(['general' => 'Gagal membuat akun pedagang: ' . $e->getMessage()]);
+            Log::error("Pembuatan akun pedagang gagal: {$e->getMessage()}", [
+                'business_ref' => $businessRef,
+                'exception' => $e,
+            ]);
+
+            return back()->withInput()->withErrors(['general' => 'Gagal membuat akun pedagang: '.$e->getMessage()]);
         }
 
         return redirect()->route('admin.merchants.index', ['tab' => 'merchants'])
@@ -379,9 +391,10 @@ class MerchantController extends Controller
             return back()->with('success', 'Permohonan pedagang berhasil ditolak dan alasan telah dikirimkan ke SID.');
         } catch (SidApplicationCancelledException) {
             $application->anonymizeCancelled();
+
             return back()->with('error', 'Permohonan telah dibatalkan oleh pemohon di SID.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menolak permohonan ke SID: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menolak permohonan ke SID: '.$e->getMessage());
         }
     }
 
@@ -390,14 +403,18 @@ class MerchantController extends Controller
      */
     public function syncApplications(SidApiService $sidService): RedirectResponse
     {
+        if (! PlatformSetting::isEnabled('enable_sid_sync', true)) {
+            return back()->with('error', 'Sinkronisasi otomatis SIDUTama sedang dinonaktifkan di pengaturan sistem.');
+        }
+
         try {
             (new SyncSidSellerApplicationsJob)->handle($sidService);
+
             return back()->with('success', 'Sinkronisasi permohonan dari SID berhasil dijalankan.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Sinkronisasi SID gagal: ' . $e->getMessage());
+            return back()->with('error', 'Sinkronisasi SID gagal: '.$e->getMessage());
         }
     }
-
 
     /**
      * Update the specified merchant account in storage.

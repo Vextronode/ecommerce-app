@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Events\PlatformSettingsUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\PlatformSetting;
+use Database\Seeders\PlatformSettingSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,7 +17,7 @@ class PlatformSettingController extends Controller
     public function index(): Response
     {
         if (PlatformSetting::count() === 0) {
-            (new \Database\Seeders\PlatformSettingSeeder())->run();
+            (new PlatformSettingSeeder)->run();
         }
 
         $settings = PlatformSetting::orderBy('group')
@@ -67,7 +69,7 @@ class PlatformSettingController extends Controller
             PlatformSetting::set($key, $value);
         }
 
-        \Illuminate\Support\Facades\Cache::forget('platform_settings_all');
+        Cache::forget('platform_settings_all');
         $allSettings = PlatformSetting::getAll();
 
         $changedKeys = [];

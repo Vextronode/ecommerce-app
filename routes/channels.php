@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Broadcast;
+use App\Models\ChatRoom;
 use App\Models\Order;
+use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
@@ -10,12 +11,14 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 // Merchant Store Orders Channel
 Broadcast::channel('store.{storeId}', function ($user, $storeId) {
     $userStoreId = $user->store?->id;
+
     return ($userStoreId && (int) $userStoreId === (int) $storeId) || ($user->role ?? '') === 'admin';
 });
 
 // Per-store order list (for merchant Order Index page)
 Broadcast::channel('store-orders.{storeId}', function ($user, $storeId) {
     $userStoreId = $user->store?->id;
+
     return ($userStoreId && (int) $userStoreId === (int) $storeId) || ($user->role ?? '') === 'admin';
 });
 
@@ -27,10 +30,11 @@ Broadcast::channel('user-orders.{userId}', function ($user, $userId) {
 // Specific Order Channel (for Buyer & Merchant)
 Broadcast::channel('order.{orderId}', function ($user, $orderId) {
     $order = Order::find($orderId);
-    if (!$order) {
+    if (! $order) {
         return false;
     }
     $userStoreId = $user->store?->id;
+
     return (int) $user->id === (int) $order->user_id
         || ($userStoreId && (int) $userStoreId === (int) $order->store_id);
 });
@@ -38,10 +42,11 @@ Broadcast::channel('order.{orderId}', function ($user, $orderId) {
 // Per-invoice tracking channel (for buyer History/Show, merchant OrderTableRow, Delivery Tracker)
 Broadcast::channel('order-tracking.{invoiceNumber}', function ($user, $invoiceNumber) {
     $order = Order::where('invoice_number', $invoiceNumber)->first();
-    if (!$order) {
+    if (! $order) {
         return false;
     }
     $userStoreId = $user->store?->id;
+
     return (int) $user->id === (int) $order->user_id
         || ($userStoreId && (int) $userStoreId === (int) $order->store_id);
 });
@@ -62,12 +67,13 @@ Broadcast::channel('batch.{batchToken}', function ($user, $batchToken) {
 });
 
 Broadcast::channel('chat.room.{roomId}', function ($user, $roomId) {
-    $room = \App\Models\ChatRoom::with('store')->find($roomId);
-    if (!$room) {
+    $room = ChatRoom::with('store')->find($roomId);
+    if (! $room) {
         return false;
     }
     $isBuyer = (int) $user->id === (int) $room->user_id;
     $isMerchant = $room->store && (int) $user->id === (int) $room->store->user_id;
+
     return $isBuyer || $isMerchant;
 });
 
@@ -77,6 +83,7 @@ Broadcast::channel('user-chats.{userId}', function ($user, $userId) {
 
 Broadcast::channel('store-chats.{storeId}', function ($user, $storeId) {
     $userStoreId = $user->store?->id;
+
     return $userStoreId && (int) $userStoreId === (int) $storeId;
 });
 
@@ -84,4 +91,3 @@ Broadcast::channel('store-chats.{storeId}', function ($user, $storeId) {
 Broadcast::channel('admin-notifications', function ($user) {
     return ($user->role ?? '') === 'admin';
 });
-

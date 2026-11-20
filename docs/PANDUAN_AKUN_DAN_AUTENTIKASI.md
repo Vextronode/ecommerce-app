@@ -11,8 +11,8 @@ Sistem Cibenda Mart memiliki 3 peran utama pengguna yang tersimpan di kolom `rol
 
 | Peran | Nilai Kolom `role` | Metode Pendaftaran | Akses Dashboard | Hak Akses Etalase Publik |
 |---|---|---|---|---|
-| **Pembeli (User)** | `user` | Google OAuth 2.0 instan | `/dashboard` | Menjelajah, membeli, menawar, mengulas seluruh toko yang terverifikasi. |
-| **Pedagang (Merchant)** | `pedagang` | Kantor Desa via SIDUTama (Verifikasi SKU) | `/pedagang/dashboard` | Menjelajah seluruh etalase, membeli dari toko lain. **Dilarang transaksi/ulas toko sendiri.** |
+| **Pembeli (User)** | `user` | Google OAuth 2.0 (Instan) atau Formulir Email (`/register`) | `/dashboard` | Menjelajah, membeli, menawar, mengulas seluruh toko yang terverifikasi. |
+| **Pedagang (Merchant)** | `pedagang` | Kantor Desa via SIDUTama (Verifikasi SKU) atau Jalur Khusus Manual Berita Acara Admin | `/pedagang/dashboard` | Menjelajah seluruh etalase, membeli dari toko lain. **Dilarang transaksi/ulas toko sendiri.** |
 | **Administrator Desa** | `admin` | CLI Aman `php artisan admin:init` | `/{adminPrefix}/dashboard` | Mengelola data desa, persetujuan pedagang, pengaturan platform. Dilarang login via Google. |
 
 ---
@@ -22,9 +22,12 @@ Sistem Cibenda Mart memiliki 3 peran utama pengguna yang tersimpan di kolom `rol
 ```mermaid
 flowchart TD
     subgraph Warga & Pembeli
-        A[Warga / Wisatawan] -->|Login Google| B{Email Terdaftar?}
-        B -->|Belum Ada| C[Buat Akun role: user Baru]
+        A[Warga / Wisatawan] -->|Pilih Metode| M{Metode Masuk}
+        M -->|Google OAuth| B{Email Terdaftar?}
+        B -->|Belum Ada| C[Buat Akun role: user Baru Google]
         B -->|Sudah Ada| D[Masuk Sesuai Role]
+        M -->|Formulir Email /register| E[Input Nama, Email, Password]
+        E -->|Submit| F[Akun role: user Baru Aktif]
     end
 
     subgraph Calon Pedagang Desa Cibenda
@@ -36,12 +39,16 @@ flowchart TD
 ```
 
 ### 2.1 Pembeli Umum
-* Pembeli mendaftar secara mandiri melalui tombol **"Masuk dengan Google"** di `/login`.
-* Saat pertama kali masuk, sistem membuat entri baru di tabel `users` dengan:
-  * `role = 'user'`
-  * `email_verified_at = now()`
-  * `google_id = <ID Google Pengguna>`
-  * `password = Hash::make(Str::random(16))`
+* Pembeli dapat mendaftar melalui dua metode:
+  1. **Masuk dengan Google (OAuth 2.0):** Metode utama yang instan dan terverifikasi otomatis.
+     * `role = 'user'`
+     * `email_verified_at = now()`
+     * `google_id = <ID Google Pengguna>`
+     * `password = Hash::make(Str::random(16))`
+  2. **Formulir Pendaftaran Email (`/register`):** Disediakan bagi pembeli yang ingin menggunakan kredensial email dan password secara langsung.
+     * `role = 'user'`
+     * `password = Hash::make(<Password Pilihan>)`
+     * Akun langsung aktif untuk memungkinkan transaksi belanja dan pesanan logistik desa tanpa kendala gateway email di area berjarak sinyal minim (AUTH-01). Pemulihan akun tetap aman difasilitasi melalui mekanisme reset password ke email terdaftar.
 
 ### 2.2 Pedagang (Warga Desa Cibenda)
 * Sesuai regulasi desa, pedagang **tidak dapat mendaftar mandiri secara terbuka** di website etalase guna mencegah pedagang fiktif atau produk ilegal di luar wilayah Cibenda.

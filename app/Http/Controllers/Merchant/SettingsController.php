@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Models\User;
+use App\Services\ChatMediaProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -165,7 +166,7 @@ class SettingsController extends Controller
                 Storage::disk('public')->delete($store->logo_path);
             }
 
-            [$path] = app(\App\Services\ChatMediaProcessor::class)->store($request->file('photo'), 'profile-photos', 'public');
+            [$path] = app(ChatMediaProcessor::class)->store($request->file('photo'), 'profile-photos', 'public');
             $user->profile_photo_path = $path;
             $store->logo_path = $path;
         }

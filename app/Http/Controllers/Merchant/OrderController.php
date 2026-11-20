@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Events\OrderStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\MidtransService;
 use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -134,7 +135,7 @@ class OrderController extends Controller
             ], 422);
         }
 
-        $batchToken = 'BAT-' . strtoupper(Str::random(12));
+        $batchToken = 'BAT-'.strtoupper(Str::random(12));
         $validOrderIds = $orders->pluck('id')->toArray();
         $validInvoices = $orders->pluck('invoice_number')->toArray();
 
@@ -171,16 +172,20 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'shipping_status' => 'required|in:pending,processing,shipped,cancelled',
+            'shipping_status' => 'required|in:pending,processing,shipped,delivered,cancelled',
         ]);
 
         $store = $request->user()->store;
 
         $midtransOrderIdToCancel = null;
         $midtransOrderIdToRefund = null;
+        $midtransAmountToRefund = null;
+        $isManualVaRefund = false;
+        $orderInvoice = null;
 
-        $response = DB::transaction(function () use ($request, $id, $store, &$midtransOrderIdToCancel, &$midtransOrderIdToRefund) {
+        $response = DB::transaction(function () use ($request, $id, $store, &$midtransOrderIdToCancel, &$midtransOrderIdToRefund, &$midtransAmountToRefund, &$isManualVaRefund, &$orderInvoice) {
             $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
+            $orderInvoice = $order->invoice_number;
 
             if ($order->store_id !== $store->id) {
                 abort(403, 'Anda tidak punya akses ke pesanan ini.');
@@ -202,9 +207,20 @@ class OrderController extends Controller
                 return redirect()->route('merchant.orders.index')->with('error', 'Pesanan yang sudah dikirim tidak dapat dibatalkan langsung. Ajukan pengembalian dana lewat admin.');
             }
 
-            // Security Guard: Non-COD orders must be paid before being processed or shipped
-            if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid' && in_array($newStatus, ['processing', 'shipped'])) {
+            // Security Guard: Non-COD orders must be paid before being processed, shipped, or delivered
+            if ($order->payment_method !== 'cod' && $order->payment_status !== 'paid' && in_array($newStatus, ['processing', 'shipped', 'delivered'])) {
                 return redirect()->route('merchant.orders.index')->with('error', 'Pesanan non-COD belum dibayar oleh pembeli.');
+            }
+
+            // Validasi status delivered: hanya diizinkan untuk metode ambil sendiri (self_pickup)
+            if ($newStatus === 'delivered') {
+                if ($order->delivery_method !== 'self_pickup') {
+                    return redirect()->route('merchant.orders.index')->with('error', 'Pesanan pengiriman kurir lokal diselesaikan melalui verifikasi PIN kurir atau konfirmasi pembeli.');
+                }
+
+                if (! in_array($order->shipping_status, ['processing', 'shipped'], true)) {
+                    return redirect()->route('merchant.orders.index')->with('error', 'Pesanan harus dalam status diproses atau siap diambil sebelum diselesaikan.');
+                }
             }
 
             // Guard stok: order yang stoknya sudah habis ga boleh diproses atau dikirim
@@ -214,7 +230,19 @@ class OrderController extends Controller
 
             $updateData = ['shipping_status' => $newStatus];
 
-            if ($newStatus === 'shipped') {
+            if ($newStatus === 'delivered') {
+                if ($order->payment_method === 'cod') {
+                    $updateData['payment_status'] = 'paid';
+                }
+                $order->update($updateData);
+
+                // Untuk non-COD, lepaskan saldo escrow toko ke available_balance
+                if ($order->payment_method !== 'cod') {
+                    $order->creditStoreBalance();
+                }
+
+                OrderNotificationService::orderDelivered($order);
+            } elseif ($newStatus === 'shipped') {
                 $newPin = null;
                 if (empty($order->shipping_pin)) {
                     $newPin = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
@@ -228,12 +256,33 @@ class OrderController extends Controller
             } elseif ($newStatus === 'cancelled') {
                 $wasPaidNonCod = $order->payment_status === 'paid' && $order->payment_method !== 'cod';
                 $wasUnpaidNonCod = $order->payment_status !== 'paid' && $order->payment_method !== 'cod';
-                $updateData['payment_status'] = $order->payment_status === 'paid' ? 'refunded' : 'failed';
+
+                // Status pesanan yang belum dibayar diubah menjadi failed.
+                // Bila sudah dibayar, status pembayaran tetap dipertahankan sampai refund berhasil terkonfirmasi (CHK-01).
+                if (! $wasPaidNonCod) {
+                    $updateData['payment_status'] = 'failed';
+                }
                 $order->update($updateData);
+
                 if ($wasPaidNonCod) {
-                    // dana sudah masuk gateway; tarik escrow lokal lalu minta refund riil ke gateway
+                    // Dana sudah masuk gateway; tarik escrow lokal lalu proses refund
                     $order->reversePendingBalance();
-                    $midtransOrderIdToRefund = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+
+                    $isVirtualAccount = $order->payment_method === 'va'
+                        || in_array($order->payment_channel, ['bca_va', 'bni_va', 'bri_va', 'permata_va', 'mandiri_bill', 'echannel'], true);
+
+                    if ($isVirtualAccount) {
+                        $isManualVaRefund = true;
+                        $payload = $order->payment_payload ?? [];
+                        $payload['needs_reconciliation'] = true;
+                        $payload['refund_type'] = 'manual_bank_transfer';
+                        $payload['refund_reason'] = 'Virtual Account memerlukan refund manual transfer oleh pengelola';
+                        $payload['refund_amount'] = (float) $order->total_amount;
+                        $order->forceFill(['payment_payload' => $payload])->save();
+                    } else {
+                        $midtransOrderIdToRefund = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
+                        $midtransAmountToRefund = (float) $order->total_amount;
+                    }
                 }
                 // Idempotent stock restoration
                 $order->restoreStock();
@@ -260,29 +309,35 @@ class OrderController extends Controller
             try {
                 broadcast(new OrderStatusUpdated($order));
             } catch (\Throwable $e) {
-                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: '.$e->getMessage());
             }
 
             return redirect()->route('merchant.orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
         });
 
-        $midtrans = app(\App\Services\MidtransService::class);
+        $midtrans = app(MidtransService::class);
 
         if ($midtransOrderIdToCancel) {
             $midtrans->cancelTransaction($midtransOrderIdToCancel);
         }
 
-        if ($midtransOrderIdToRefund) {
-            // panggilan network di luar transaksi & lock, sama seperti pola cancel.
-            // bila gateway tidak menjawab, jangan diamkan: tandai order butuh rekonsiliasi.
-            $refundResult = $midtrans->refundTransaction($midtransOrderIdToRefund);
+        if ($midtransOrderIdToRefund && $midtransAmountToRefund !== null) {
+            // Panggilan network di luar transaksi & lock.
+            // Kirim nominal spesifik pesanan toko agar pada checkout multi-toko tidak me-refund seluruh invoice gabungan (CHK-01).
+            $refundResult = $midtrans->refundTransaction(
+                $midtransOrderIdToRefund,
+                $midtransAmountToRefund,
+                "Pembatalan pesanan #{$orderInvoice}"
+            );
+
+            $order = Order::find($id);
 
             if ($refundResult === null) {
-                $order = Order::find($id);
-
                 if ($order) {
                     $payload = $order->payment_payload ?? [];
                     $payload['needs_reconciliation'] = true;
+                    $payload['refund_reason'] = 'Pengembalian dana otomatis via gateway gagal atau ditolak';
+                    $payload['refund_amount'] = $midtransAmountToRefund;
                     $order->forceFill(['payment_payload' => $payload])->save();
                 }
 
@@ -290,6 +345,14 @@ class OrderController extends Controller
 
                 return redirect()->route('merchant.orders.index')->with('error', 'Pesanan dibatalkan, tapi pengembalian dana ke gateway belum terkonfirmasi. Admin akan menindaklanjuti rekonsiliasi.');
             }
+
+            if ($order) {
+                $order->forceFill(['payment_status' => 'refunded'])->save();
+            }
+        }
+
+        if ($isManualVaRefund) {
+            return redirect()->route('merchant.orders.index')->with('info', 'Pesanan dibatalkan. Pengembalian dana Virtual Account akan diproses manual oleh admin desa.');
         }
 
         return $response;

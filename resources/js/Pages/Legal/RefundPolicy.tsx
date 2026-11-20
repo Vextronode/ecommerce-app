@@ -78,7 +78,7 @@ export default function RefundPolicy() {
                                 </p>
                                 <ul className="list-disc pl-5 space-y-2 text-slate-600">
                                     <li>
-                                        <strong>Pesanan Dibatalkan Otomatis:</strong> Pedagang tidak merespons atau tidak menyiapkan pesanan dalam waktu lebih dari 1x24 jam sejak order masuk.
+                                        <strong>Hak Pembatalan Akibat Keterlambatan Respon:</strong> Pedagang tidak merespons atau tidak menyiapkan pesanan dalam waktu lebih dari 1x24 jam sejak order masuk. Dalam kondisi ini, pembeli atau Pengelola berhak membatalkan pesanan.
                                     </li>
                                     <li>
                                         <strong>Produk Rusak atau Basi:</strong> Produk olahan segar (hasil laut/seafood Pangandaran, sayuran, makanan siap saji) diterima dalam keadaan basi, busuk, atau tidak higienis.
@@ -99,7 +99,7 @@ export default function RefundPolicy() {
                                         Bagian 3
                                     </span>
                                     <h2 className="text-lg font-bold text-slate-900">
-                                        Syarat Bukti dan Batas Waktu Pengajuan
+                                        Syarat Bukti, Saluran Aduan, dan Batas Waktu Pengajuan
                                     </h2>
                                 </div>
                                 <ul className="list-disc pl-5 space-y-2 text-slate-600">
@@ -110,7 +110,10 @@ export default function RefundPolicy() {
                                         Pembeli wajib melampirkan foto jelas label resi pesanan dan bukti kondisi barang yang bermasalah (foto produk cacat/video singkat unboxing).
                                     </li>
                                     <li>
-                                        Klaim tanpa kelengkapan bukti dokumentasi fisik dapat ditolak oleh sistem.
+                                        Pengajuan aduan refund atau komplain dilakukan melalui saluran resmi Customer Support Pemerintah Desa Cibenda (Helpdesk Kantor Desa / WhatsApp Resmi Layanan Konsumen di +62 812-3456-7890) dengan menyertakan nomor invoice dan bukti fisik tersebut.
+                                    </li>
+                                    <li>
+                                        Klaim tanpa kelengkapan bukti dokumentasi fisik dapat ditolak dalam proses verifikasi aduan.
                                     </li>
                                 </ul>
                             </section>
@@ -146,23 +149,32 @@ export default function RefundPolicy() {
                                     </h2>
                                 </div>
                                 <p className="text-slate-600">
-                                    Apabila terjadi perselisihan pendapat antara pembeli dan pedagang mengenai kondisi barang atau klaim refund, Pengelola CibendaMart dari Pemerintah Desa Cibenda akan bertindak sebagai mediator resmi yang memeriksa bukti transaksi secara objektif. Keputusan yang diambil oleh pihak Pengelola Pemerintah Desa Cibenda bersifat mengikat bagi kedua belah pihak.
+                                    Apabila terjadi perselisihan pendapat antara pembeli dan pedagang mengenai kondisi barang atau klaim refund, Pengelola CibendaMart dari Pemerintah Desa Cibenda akan memfasilitasi musyawarah dan mediasi berdasarkan bukti transaksi secara objektif. Mediasi bertujuan mencapai penyelesaian kekeluargaan yang adil dan tidak mengurangi hak para pihak untuk menempuh penyelesaian sengketa konsumen sesuai ketentuan perundang-undangan yang berlaku (UU No. 8 Tahun 1999 tentang Perlindungan Konsumen).
                                 </p>
                             </section>
                         </div>
 
-                        {/* Footer Link to Merchant Agreement */}
+                        {/* Footer Link to Merchant Agreement and Privacy */}
                         <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-3 text-slate-600 text-xs sm:text-sm">
                                 <ShieldCheck className="w-5 h-5 text-status-success shrink-0" />
                                 <span>CibendaMart melindungi hak konsumen dan menjaga martabat pedagang lokal.</span>
                             </div>
-                            <Link
-                                href={route("legal.merchant-agreement")}
-                                className="text-xs sm:text-sm font-bold text-brand-orange hover:text-brand-orange-hover transition"
-                            >
-                                Baca Perjanjian Mitra Pedagang &rarr;
-                            </Link>
+                            <div className="flex items-center gap-4 text-xs sm:text-sm font-bold text-brand-orange">
+                                <Link
+                                    href={route("legal.privacy")}
+                                    className="hover:text-brand-orange-hover transition"
+                                >
+                                    Kebijakan Privasi
+                                </Link>
+                                <span className="text-slate-300">•</span>
+                                <Link
+                                    href={route("legal.merchant-agreement")}
+                                    className="hover:text-brand-orange-hover transition"
+                                >
+                                    Perjanjian Mitra &rarr;
+                                </Link>
+                            </div>
                         </div>
                     </article>
                 </div>

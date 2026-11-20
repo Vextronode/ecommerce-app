@@ -35,6 +35,8 @@ export interface MerchantItem {
         subdistrict?: string;
         sid_status?: "verified" | "pending" | "rejected" | string;
         balance?: number;
+        is_manual_creation?: boolean;
+        manual_creation_reason?: string | null;
     };
 }
 
@@ -131,15 +133,26 @@ export default function AdminMerchantTable({ merchants, onResetFilter }: Props) 
                                         </span>
                                     )}
 
-                                    {sidStatus === "verified" && (
-                                        <span className="text-[10px] font-semibold text-brand-orange bg-orange-50 px-2 py-0.5 rounded-md border border-brand-orange/20">
-                                            SID Terverifikasi
+                                    {merchant.store?.is_manual_creation ? (
+                                        <span
+                                            className="text-[10px] font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-md border border-gray-300"
+                                            title={merchant.store?.manual_creation_reason || "Didaftarkan secara manual oleh admin"}
+                                        >
+                                            Manual (Non-SID)
                                         </span>
-                                    )}
-                                    {sidStatus === "pending" && (
-                                        <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                                            SID Menunggu
-                                        </span>
+                                    ) : (
+                                        <>
+                                            {sidStatus === "verified" && (
+                                                <span className="text-[10px] font-semibold text-brand-orange bg-orange-50 px-2 py-0.5 rounded-md border border-brand-orange/20">
+                                                    SID Terverifikasi
+                                                </span>
+                                            )}
+                                            {sidStatus === "pending" && (
+                                                <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                                    SID Menunggu
+                                                </span>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -273,23 +286,35 @@ export default function AdminMerchantTable({ merchants, onResetFilter }: Props) 
 
                                         {/* STATUS SID */}
                                         <td className="py-4 px-4 whitespace-nowrap">
-                                            {sidStatus === "verified" && (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-orange-50 text-brand-orange border border-brand-orange/30">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
-                                                    Terverifikasi
+                                            {merchant.store?.is_manual_creation ? (
+                                                <span
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-700 border border-gray-300 cursor-help"
+                                                    title={merchant.store?.manual_creation_reason || "Didaftarkan secara manual oleh admin"}
+                                                >
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-500" />
+                                                    Manual (Non-SID)
                                                 </span>
-                                            )}
-                                            {sidStatus === "pending" && (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                                    Menunggu
-                                                </span>
-                                            )}
-                                            {sidStatus === "rejected" && (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                                    Ditolak
-                                                </span>
+                                            ) : (
+                                                <>
+                                                    {sidStatus === "verified" && (
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-orange-50 text-brand-orange border border-brand-orange/30">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
+                                                            Terverifikasi
+                                                        </span>
+                                                    )}
+                                                    {sidStatus === "pending" && (
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                                            Menunggu
+                                                        </span>
+                                                    )}
+                                                    {sidStatus === "rejected" && (
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                                            Ditolak
+                                                        </span>
+                                                    )}
+                                                </>
                                             )}
                                         </td>
 

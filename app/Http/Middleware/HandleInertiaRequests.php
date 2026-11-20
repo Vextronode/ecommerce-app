@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use App\Models\Cart;
 use App\Models\Category;
 use App\Models\ChatMessage;
+use App\Models\PlatformSetting;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -55,11 +57,11 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
 
         if ($user) {
-            $lastSeen = $user->last_seen_at instanceof \Carbon\Carbon
+            $lastSeen = $user->last_seen_at instanceof Carbon
                 ? $user->last_seen_at
-                : ($user->last_seen_at ? \Carbon\Carbon::parse($user->last_seen_at) : null);
+                : ($user->last_seen_at ? Carbon::parse($user->last_seen_at) : null);
 
-            if (!$lastSeen || $lastSeen->lt(now()->subMinutes(2))) {
+            if (! $lastSeen || $lastSeen->lt(now()->subMinutes(2))) {
                 $user->forceFill(['last_seen_at' => now()])->saveQuietly();
             }
         }
@@ -113,6 +115,7 @@ class HandleInertiaRequests extends Middleware
                     ->get()
                     ->map(function ($cart) {
                         $matchingSku = $cart->product ? $cart->product->skus->where('variant_name', $cart->preparation_option)->first() : null;
+
                         return [
                             'id' => $cart->id,
                             'name' => $cart->product->name ?? 'Produk',
@@ -126,10 +129,10 @@ class HandleInertiaRequests extends Middleware
             ] : null,
             'global_categories' => fn () => Category::select('id', 'name', 'slug')->get(),
             'platform_settings' => fn () => [
-                'enable_negotiation' => \App\Models\PlatformSetting::isEnabled('enable_negotiation', true),
-                'enable_online_payment' => \App\Models\PlatformSetting::isEnabled('enable_online_payment', true),
-                'enable_local_delivery' => \App\Models\PlatformSetting::isEnabled('enable_local_delivery', true),
-                'enable_withdrawal' => \App\Models\PlatformSetting::isEnabled('enable_withdrawal', true),
+                'enable_negotiation' => PlatformSetting::isEnabled('enable_negotiation', true),
+                'enable_online_payment' => PlatformSetting::isEnabled('enable_online_payment', true),
+                'enable_local_delivery' => PlatformSetting::isEnabled('enable_local_delivery', true),
+                'enable_withdrawal' => PlatformSetting::isEnabled('enable_withdrawal', true),
             ],
         ];
     }

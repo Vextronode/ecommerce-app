@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers\Merchant;
 
+use App\Events\ProductStockUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Notifications\PushNotification;
 use App\Rules\NoProhibitedKeywords;
+use App\Services\ChatMediaProcessor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -90,20 +95,20 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255', new NoProhibitedKeywords()],
+            'name' => ['required', 'string', 'max:255', new NoProhibitedKeywords],
             'category_id' => 'required|exists:categories,id',
-            'description' => ['nullable', 'string', new NoProhibitedKeywords()],
+            'description' => ['nullable', 'string', new NoProhibitedKeywords],
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'is_preorder' => 'boolean',
             'po_days' => 'nullable|integer|min:0|max:365',
             'po_hours' => 'nullable|integer|min:0|max:23',
             'variants' => 'nullable|array|max:10',
-            'variants.*.name' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
+            'variants.*.name' => ['required', 'string', 'max:100', new NoProhibitedKeywords],
             'variants.*.options' => 'nullable|array|max:50',
-            'variants.*.options.*' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
+            'variants.*.options.*' => ['required', 'string', 'max:100', new NoProhibitedKeywords],
             'skus' => 'nullable|array|max:100',
-            'skus.*.variant_name' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
+            'skus.*.variant_name' => ['required', 'string', 'max:100', new NoProhibitedKeywords],
             'skus.*.price' => 'required|numeric|min:100|max:1000000000',
             'skus.*.stock' => 'required|integer|min:0|max:1000000',
             'price' => 'required_without:skus|nullable|numeric|min:100|max:1000000000',
@@ -121,7 +126,7 @@ class ProductController extends Controller
             $totalStock = collect($request->skus)->sum('stock');
         }
 
-        $product = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user, $hasSkus, $basePrice, $totalStock) {
+        $product = DB::transaction(function () use ($request, $user, $hasSkus, $basePrice, $totalStock) {
             $cleanName = strip_tags(trim($request->name));
             $product = $user->store->products()->create([
                 'category_id' => $request->category_id,
@@ -139,7 +144,7 @@ class ProductController extends Controller
 
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $index => $file) {
-                    [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'products', 'public');
+                    [$path] = app(ChatMediaProcessor::class)->store($file, 'products', 'public');
                     $url = '/storage/'.$path;
 
                     if ($index === 0) {
@@ -180,25 +185,25 @@ class ProductController extends Controller
         });
 
         try {
-            broadcast(new \App\Events\ProductStockUpdated($product, 'created'))->toOthers();
+            broadcast(new ProductStockUpdated($product, 'created'))->toOthers();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+            Log::warning('ProductStockUpdated broadcast error: '.$e->getMessage());
         }
 
         try {
             // chunk biar toko populer tidak menarik ribuan follower sekaligus ke memori
             $user->store->followers()->chunkById(500, function ($followers) use ($user, $product) {
                 foreach ($followers as $follower) {
-                    $follower->notify(new \App\Notifications\PushNotification(
-                        title: '✨ Produk Baru dari ' . $user->store->name,
-                        message: $user->store->name . ' baru saja menambahkan produk baru: "' . $product->name . '". Yuk cek sekarang!',
+                    $follower->notify(new PushNotification(
+                        title: '✨ Produk Baru dari '.$user->store->name,
+                        message: $user->store->name.' baru saja menambahkan produk baru: "'.$product->name.'". Yuk cek sekarang!',
                         type: 'promo',
                         actionUrl: route('product.detail', $product->slug)
                     ));
                 }
             });
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Follower notification error: ' . $e->getMessage());
+            Log::warning('Follower notification error: '.$e->getMessage());
         }
 
         return redirect()->route('merchant.products.index');
@@ -225,9 +230,9 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255', new NoProhibitedKeywords()],
+            'name' => ['required', 'string', 'max:255', new NoProhibitedKeywords],
             'category_id' => 'required|exists:categories,id',
-            'description' => ['nullable', 'string', new NoProhibitedKeywords()],
+            'description' => ['nullable', 'string', new NoProhibitedKeywords],
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'deleted_images' => 'nullable|array',
@@ -236,11 +241,11 @@ class ProductController extends Controller
             'po_days' => 'nullable|integer|min:0|max:365',
             'po_hours' => 'nullable|integer|min:0|max:23',
             'variants' => 'nullable|array|max:10',
-            'variants.*.name' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
+            'variants.*.name' => ['required', 'string', 'max:100', new NoProhibitedKeywords],
             'variants.*.options' => 'nullable|array|max:50',
-            'variants.*.options.*' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
+            'variants.*.options.*' => ['required', 'string', 'max:100', new NoProhibitedKeywords],
             'skus' => 'nullable|array|max:100',
-            'skus.*.variant_name' => ['required', 'string', 'max:100', new NoProhibitedKeywords()],
+            'skus.*.variant_name' => ['required', 'string', 'max:100', new NoProhibitedKeywords],
             'skus.*.price' => 'required|numeric|min:100|max:1000000000',
             'skus.*.stock' => 'required|integer|min:0|max:1000000',
             'price' => 'required_without:skus|nullable|numeric|min:100|max:1000000000',
@@ -258,7 +263,7 @@ class ProductController extends Controller
             $totalStock = collect($request->skus)->sum('stock');
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $product, $hasSkus, $basePrice, $totalStock) {
+        DB::transaction(function () use ($request, $product, $hasSkus, $basePrice, $totalStock) {
             $cleanName = strip_tags(trim($request->name));
             $newSlug = $cleanName !== $product->name
                 ? Str::slug($cleanName.'-'.uniqid())
@@ -287,7 +292,7 @@ class ProductController extends Controller
 
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $file) {
-                    [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'products', 'public');
+                    [$path] = app(ChatMediaProcessor::class)->store($file, 'products', 'public');
                     $url = '/storage/'.$path;
                     $product->images()->create(['image_path' => $url]);
                 }
@@ -334,9 +339,9 @@ class ProductController extends Controller
         });
 
         try {
-            broadcast(new \App\Events\ProductStockUpdated($product, 'updated'))->toOthers();
+            broadcast(new ProductStockUpdated($product, 'updated'))->toOthers();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+            Log::warning('ProductStockUpdated broadcast error: '.$e->getMessage());
         }
 
         return redirect()->route('merchant.products.index');
@@ -367,9 +372,9 @@ class ProductController extends Controller
         }
 
         try {
-            broadcast(new \App\Events\ProductStockUpdated($product, 'deleted'))->toOthers();
+            broadcast(new ProductStockUpdated($product, 'deleted'))->toOthers();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('ProductStockUpdated broadcast error: ' . $e->getMessage());
+            Log::warning('ProductStockUpdated broadcast error: '.$e->getMessage());
         }
 
         $product->delete();

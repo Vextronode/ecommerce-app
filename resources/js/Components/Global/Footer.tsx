@@ -77,6 +77,14 @@ export default function Footer() {
                                     Kebijakan Refund & Retur
                                 </Link>
                             </li>
+                            <li>
+                                <Link
+                                    href={route("legal.privacy")}
+                                    className="text-[15px] text-white/80 hover:text-white transition cursor-pointer"
+                                >
+                                    Kebijakan Privasi
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 

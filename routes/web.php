@@ -8,6 +8,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryTrackerController;
+use App\Http\Controllers\InfoPageController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Merchant\AnalyticsController;
 use App\Http\Controllers\Merchant\ChatController as MerchantChatController;
@@ -19,21 +20,25 @@ use App\Http\Controllers\Merchant\ProductController;
 use App\Http\Controllers\Merchant\SettingsController;
 use App\Http\Controllers\Merchant\WithdrawalController;
 use App\Http\Controllers\MidtransCallbackController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Storefront\ChatController as StorefrontChatController;
 use App\Http\Controllers\Storefront\NegotiationController as StorefrontNegotiationController;
 use App\Http\Middleware\CheckMerchantSetup;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 Route::redirect('/', '/dashboard');
 
@@ -42,22 +47,22 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 Route::middleware(['auth', 'throttle:60,1'])->group(function () {
-    Route::get('/api/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/api/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
-    Route::post('/api/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
-    Route::post('/api/notifications/clear-all', [\App\Http\Controllers\NotificationController::class, 'clearAll'])->name('notifications.clearAll');
-    Route::post('/api/notifications/fcm-token', [\App\Http\Controllers\NotificationController::class, 'saveFcmToken'])
+    Route::get('/api/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/api/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+    Route::post('/api/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::post('/api/notifications/clear-all', [NotificationController::class, 'clearAll'])->name('notifications.clearAll');
+    Route::post('/api/notifications/fcm-token', [NotificationController::class, 'saveFcmToken'])
         ->middleware('throttle:fcm-token')
         ->name('notifications.saveFcmToken');
-    Route::post('/api/notifications/fcm-token/clear', [\App\Http\Controllers\NotificationController::class, 'clearFcmToken'])
+    Route::post('/api/notifications/fcm-token/clear', [NotificationController::class, 'clearFcmToken'])
         ->name('notifications.clearFcmToken');
-    Route::post('/api/notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
-    Route::delete('/api/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::post('/api/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::delete('/api/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 
 Route::middleware(['storefront.user'])->group(function () {
-    Route::get('/about', [\App\Http\Controllers\InfoPageController::class, 'about'])->name('about');
-    Route::get('/mitra', [\App\Http\Controllers\InfoPageController::class, 'merchantGuide'])->name('merchant.guide');
+    Route::get('/about', [InfoPageController::class, 'about'])->name('about');
+    Route::get('/mitra', [InfoPageController::class, 'merchantGuide'])->name('merchant.guide');
     Route::get('/shop', [ShopController::class, 'index'])->name('shop');
     Route::get('/product/{slug}', [ShopController::class, 'show'])->name('product.detail');
     Route::get('/store/{slug}', [ShopController::class, 'storeDetail'])->name('store.detail');
@@ -65,6 +70,7 @@ Route::middleware(['storefront.user'])->group(function () {
     Route::get('/kebijakan/refund', [LegalController::class, 'refundPolicy'])->name('legal.refund');
     Route::get('/kebijakan/syarat-ketentuan', [LegalController::class, 'termsAndConditions'])->name('legal.terms');
     Route::get('/kebijakan/produk-terlarang', [LegalController::class, 'prohibitedProducts'])->name('legal.prohibited-products');
+    Route::get('/kebijakan/privasi', [LegalController::class, 'privacyPolicy'])->name('legal.privacy');
 });
 
 Route::middleware(['auth', 'role:user,pedagang'])->group(function () {
@@ -108,11 +114,12 @@ Route::middleware(['auth', 'role:user,pedagang'])->group(function () {
     Route::delete('/profile/address/{id}', [ProfileController::class, 'destroyAddress'])->middleware('throttle:20,1')->name('profile.address.destroy');
     Route::put('/profile/notifications', [ProfileController::class, 'updateNotifications'])->middleware('throttle:20,1')->name('profile.notifications.update');
 
-    Route::get('/chat', function (\Illuminate\Http\Request $request) {
+    Route::get('/chat', function (Request $request) {
         $roomId = $request->query('room_id') ?: $request->query('room');
         if ($roomId) {
             return redirect()->route('home', ['open_chat' => $roomId]);
         }
+
         return redirect()->route('home', ['open_chat' => '1']);
     })->name('chat.index');
 
@@ -166,6 +173,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // Pengaturan Platform (Platform Settings & Kill Switches)
         Route::get('/pengaturan', [PlatformSettingController::class, 'index'])->name('admin.settings.index');
         Route::put('/pengaturan', [PlatformSettingController::class, 'update'])->name('admin.settings.update');
+
+        // Rekonsiliasi Pesanan / Refund Manual (CHK-01)
+        Route::post('/pesanan/{id}/reconcile', [App\Http\Controllers\Admin\DashboardController::class, 'reconcileOrder'])->name('admin.orders.reconcile');
     });
 
 // Obfuscation Masking: Return 404 for obvious guessable admin URLs if admin prefix is customized
@@ -242,7 +252,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
         Route::get('/dashboard', function (Request $request) {
             $user = $request->user()->load('store');
             $storeId = $user->store ? $user->store->id : null;
-            $netAmountExpr = \Illuminate\Support\Facades\DB::raw('CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END');
+            $netAmountExpr = DB::raw('CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END');
 
             $sales = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->sum($netAmountExpr) : 0;
             $ordersCount = $storeId ? Order::where('store_id', $storeId)->where('shipping_status', 'delivered')->count() : 0;
@@ -270,6 +280,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                 if ($previous > 0) {
                     return round((($current - $previous) / $previous) * 100, 1);
                 }
+
                 return $current > 0 ? 100.0 : 0.0;
             };
 
@@ -342,7 +353,7 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                     ->where('created_at', '>=', $startDate)
                     ->selectRaw('created_at, CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END as net_amount')
                     ->get()
-                    ->groupBy(fn ($row) => \Illuminate\Support\Carbon::parse($row->created_at)->format('Y-m-d'))
+                    ->groupBy(fn ($row) => Carbon::parse($row->created_at)->format('Y-m-d'))
                     ->map(fn ($rows) => (float) $rows->sum('net_amount'));
 
                 $days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
@@ -369,18 +380,18 @@ Route::middleware(['auth', 'verified', 'role:pedagang', CheckMerchantSetup::clas
                     ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
                     ->selectRaw('created_at, CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END as net_amount')
                     ->get()
-                    ->groupBy(fn ($row) => \Illuminate\Support\Carbon::parse($row->created_at)->format('Y-m'))
+                    ->groupBy(fn ($row) => Carbon::parse($row->created_at)->format('Y-m'))
                     ->map(fn ($rows) => (float) $rows->sum('net_amount'));
 
                 $monthNames = [
                     1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
-                    7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'
+                    7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
                 ];
 
                 for ($m = 5; $m >= 0; $m--) {
                     $dateObj = now()->subMonths($m);
                     $ym = $dateObj->format('Y-m');
-                    $monthLabel = $monthNames[(int) $dateObj->format('n')] . ' ' . $dateObj->format('y');
+                    $monthLabel = $monthNames[(int) $dateObj->format('n')].' '.$dateObj->format('y');
                     $monthlyChartData[] = [
                         'name' => $monthLabel,
                         'sales' => $monthlyOrders[$ym] ?? 0,

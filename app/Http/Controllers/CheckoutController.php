@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderStatusUpdated;
 use App\Models\Cart;
 use App\Models\ChatNegotiation;
 use App\Models\Order;
@@ -454,9 +455,9 @@ class CheckoutController extends Controller
         foreach ($orders as $order) {
             OrderNotificationService::orderCreated($order);
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($order));
+                broadcast(new OrderStatusUpdated($order));
             } catch (\Throwable $e) {
-                Log::warning('Order created broadcast error: ' . $e->getMessage());
+                Log::warning('Order created broadcast error: '.$e->getMessage());
             }
         }
 

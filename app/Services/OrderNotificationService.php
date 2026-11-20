@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Mail\NewOrderMerchantMail;
 use App\Models\Order;
 use App\Notifications\PushNotification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OrderNotificationService
 {
@@ -25,7 +27,7 @@ class OrderNotificationService
                     $title = $order->payment_method === 'cod'
                         ? 'Pesanan COD Dibuat'
                         : 'Menunggu Pembayaran';
-                    $message = "Pesanan #{$order->invoice_number} sebesar Rp" . number_format($order->total_amount, 0, ',', '.') . " telah berhasil dibuat.";
+                    $message = "Pesanan #{$order->invoice_number} sebesar Rp".number_format($order->total_amount, 0, ',', '.').' telah berhasil dibuat.';
                     $actionUrl = $order->payment_method === 'cod'
                         ? route('history.show', $order->id, false)
                         : route('payment.show', $order->id, false);
@@ -53,13 +55,13 @@ class OrderNotificationService
             $storeEmail = $order->store?->support_email ?: $storeOwner?->email;
             if ($storeEmail) {
                 try {
-                    \Illuminate\Support\Facades\Mail::to($storeEmail)->send(new \App\Mail\NewOrderMerchantMail($order));
+                    Mail::to($storeEmail)->send(new NewOrderMerchantMail($order));
                 } catch (\Throwable $mailEx) {
-                    Log::warning('OrderNotificationService: Failed to send merchant email: ' . $mailEx->getMessage());
+                    Log::warning('OrderNotificationService: Failed to send merchant email: '.$mailEx->getMessage());
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('OrderNotificationService::orderCreated error: ' . $e->getMessage());
+            Log::error('OrderNotificationService::orderCreated error: '.$e->getMessage());
         }
     }
 
@@ -100,7 +102,7 @@ class OrderNotificationService
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('OrderNotificationService::paymentReceived error: ' . $e->getMessage());
+            Log::error('OrderNotificationService::paymentReceived error: '.$e->getMessage());
         }
     }
 
@@ -126,7 +128,7 @@ class OrderNotificationService
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('OrderNotificationService::orderProcessing error: ' . $e->getMessage());
+            Log::error('OrderNotificationService::orderProcessing error: '.$e->getMessage());
         }
     }
 
@@ -154,7 +156,7 @@ class OrderNotificationService
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('OrderNotificationService::orderShipped error: ' . $e->getMessage());
+            Log::error('OrderNotificationService::orderShipped error: '.$e->getMessage());
         }
     }
 
@@ -179,7 +181,7 @@ class OrderNotificationService
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('OrderNotificationService::orderArrived error: ' . $e->getMessage());
+            Log::error('OrderNotificationService::orderArrived error: '.$e->getMessage());
         }
     }
 
@@ -187,7 +189,6 @@ class OrderNotificationService
      * Notify buyer when status changes to 'delivered'.
      */
     public static function orderDelivered(Order $order): void
-
     {
         try {
             $order->loadMissing(['user', 'store', 'items']);
@@ -220,7 +221,7 @@ class OrderNotificationService
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('OrderNotificationService::orderDelivered error: ' . $e->getMessage());
+            Log::error('OrderNotificationService::orderDelivered error: '.$e->getMessage());
         }
     }
 
@@ -232,7 +233,7 @@ class OrderNotificationService
         try {
             $order->loadMissing(['user', 'store.user']);
 
-            $reasonText = $reason ? " Alasan: {$reason}." : "";
+            $reasonText = $reason ? " Alasan: {$reason}." : '';
 
             if ($order->user) {
                 $userSettings = $order->user->notification_settings ?? [];
@@ -261,7 +262,7 @@ class OrderNotificationService
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('OrderNotificationService::orderCancelled error: ' . $e->getMessage());
+            Log::error('OrderNotificationService::orderCancelled error: '.$e->getMessage());
         }
     }
 }

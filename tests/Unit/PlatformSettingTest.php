@@ -4,7 +4,6 @@ namespace Tests\Unit;
 
 use App\Models\PlatformSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class PlatformSettingTest extends TestCase

@@ -14,8 +14,11 @@ use Illuminate\Support\Facades\Log;
 class SidApiService
 {
     protected string $baseUrl;
+
     protected string $token;
+
     protected bool $enabled;
+
     protected bool $isMock;
 
     public function __construct()
@@ -64,6 +67,7 @@ class SidApiService
         }
 
         $response = $this->client()->get('/ping');
+
         return $this->handleResponse($response);
     }
 
@@ -87,6 +91,7 @@ class SidApiService
         }
 
         $response = $this->client()->get('/seller-applications', $params);
+
         return $this->handleResponse($response);
     }
 
@@ -100,6 +105,7 @@ class SidApiService
         }
 
         $response = $this->client()->get("/seller-applications/{$businessRef}");
+
         return $this->handleResponse($response);
     }
 
@@ -118,6 +124,7 @@ class SidApiService
         }
 
         $response = $this->client()->patch("/seller-applications/{$businessRef}", $payload);
+
         return $this->handleResponse($response);
     }
 
@@ -133,7 +140,7 @@ class SidApiService
         $status = $response->status();
         $json = $response->json() ?? [];
         $code = $json['code'] ?? null;
-        $message = $json['message'] ?? 'SID API request failed with status ' . $status;
+        $message = $json['message'] ?? 'SID API request failed with status '.$status;
 
         if ($status === 410 || $code === 'application_cancelled') {
             throw new SidApplicationCancelledException($message);
@@ -205,6 +212,7 @@ class SidApiService
             if ($local && $local->status !== 'pending' && $status === 'pending') {
                 return false;
             }
+
             return $item['status'] === $status;
         }));
 
@@ -232,8 +240,9 @@ class SidApiService
         $local = SellerApplication::where('business_ref', $businessRef)->first();
         if ($local) {
             if ($local->status === SellerApplication::STATUS_CANCELLED) {
-                throw new SidApplicationCancelledException();
+                throw new SidApplicationCancelledException;
             }
+
             return [
                 'data' => [
                     'business_ref' => $local->business_ref,
@@ -268,7 +277,7 @@ class SidApiService
 
         // Simulate cancellation edge case if business_ref ends with 'c44ce1'
         if (str_ends_with($businessRef, 'c44ce1')) {
-            throw new SidApplicationCancelledException();
+            throw new SidApplicationCancelledException;
         }
 
         return [

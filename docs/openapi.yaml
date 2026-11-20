@@ -8,9 +8,9 @@ info:
     Konteks, alur pendaftaran pedagang, dan kewajiban Cimart dijelaskan di
     `../sid-thirdparty.md`.
 
-    **Status:** disepakati, belum diimplementasikan (2026-11-12). Setelah
-    implementasi, bila spec dan source berbeda, source yang berlaku dan spec
-    ini diperbarui.
+    **Status:** Diimplementasikan dan aktif operasional (2026-11-20). Sinkronisasi,
+    penerimaan, penolakan, dan penanganan pembatalan terintegrasi dengan backend Cimart.
+    Bila spec dan source berbeda, source yang berlaku dan spec ini diperbarui.
 
     ## Alur singkat
 

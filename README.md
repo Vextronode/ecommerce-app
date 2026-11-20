@@ -45,6 +45,7 @@ Port yang hanya diakses internal oleh Nginx Reverse Proxy dan tidak diekspos ke 
 | db_cibenda | 127.0.0.1:3307 | 3306 | Database MySQL 8.0 |
 | redis_cibenda | 127.0.0.1:6379 | 6379 | Cache in-memory, session store, & queue |
 | queue_cibenda | - | - | Background queue worker (FCM & Mail) |
+| scheduler_cibenda | - | - | Background cron scheduler (Laravel schedule:run) |
 
 ---
 

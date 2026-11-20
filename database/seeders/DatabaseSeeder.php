@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PlatformSettingSeeder::class);
 
         if (! app()->environment('local')) {
-            $this->command?->info('Lingkungan non-lokal (' . app()->environment() . ') terdeteksi: Data dummy (Admin sampel, Pedagang demo, Katalog produk) dilewati secara aman.');
+            $this->command?->info('Lingkungan non-lokal ('.app()->environment().') terdeteksi: Data dummy (Admin sampel, Pedagang demo, Katalog produk) dilewati secara aman.');
 
             return;
         }

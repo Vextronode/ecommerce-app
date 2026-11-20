@@ -5,6 +5,7 @@ import AdminStatCards from "@/Components/Admin/Dashboard/AdminStatCards";
 import AdminSalesChart from "@/Components/Admin/Dashboard/AdminSalesChart";
 import AdminMerchantRegistrations from "@/Components/Admin/Dashboard/AdminMerchantRegistrations";
 import AdminRecentActivities from "@/Components/Admin/Dashboard/AdminRecentActivities";
+import AdminRefundReconciliations, { ReconciliationOrder } from "@/Components/Admin/Dashboard/AdminRefundReconciliations";
 
 interface Props {
     stats: {
@@ -20,9 +21,10 @@ interface Props {
     chartData: any[];
     registrations: any[];
     activities?: any[];
+    pendingReconciliations?: ReconciliationOrder[];
 }
 
-export default function AdminDashboard({ stats, chartData, registrations, activities }: Props) {
+export default function AdminDashboard({ stats, chartData, registrations, activities, pendingReconciliations = [] }: Props) {
     const [greeting, setGreeting] = useState("Selamat Datang, Admin");
 
     useEffect(() => {
@@ -51,6 +53,9 @@ export default function AdminDashboard({ stats, chartData, registrations, activi
                     Ringkasan performa dan aktivitas operasional platform CibendaMart.
                 </p>
             </div>
+
+            {/* Reconciliations Alert Banner / Table if any (CHK-01) */}
+            <AdminRefundReconciliations reconciliations={pendingReconciliations} />
 
             {/* Metric Cards */}
             <AdminStatCards stats={stats} />

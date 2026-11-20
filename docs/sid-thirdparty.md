@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Disepakati tim SIDUTama dan Cimart, belum diimplementasikan |
+| **Status** | Diimplementasikan dan aktif operasional (2026-11-20) |
 | **Versi API** | v1 |
 | **Tanggal** | 2026-11-12 |
 | **Pemilik** | Tim SIDUTama |

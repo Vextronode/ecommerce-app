@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,12 +39,12 @@ class DashboardController extends Controller
 
         // Produk Terjual (Total Qty Sold dari Paid Orders) & Trend
         $totalSold = (int) OrderItem::whereHas('order', function ($q) {
-            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+            $q->where('payment_status', 'paid')
                 ->where('shipping_status', '!=', 'cancelled');
         })->sum('quantity');
 
         $lastMonthSold = (int) OrderItem::whereHas('order', function ($q) {
-            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+            $q->where('payment_status', 'paid')
                 ->where('shipping_status', '!=', 'cancelled')
                 ->where('created_at', '<', now()->startOfMonth());
         })->sum('quantity');
@@ -55,7 +56,7 @@ class DashboardController extends Controller
         // Produk Terlaris (Berdasarkan jumlah terjual aktual dari order yang sukses)
         $topProduct = Product::with(['store', 'category'])
             ->withSum(['orderItems as total_sold' => function ($q) {
-                $q->whereHas('order', fn ($o) => $o->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])->where('shipping_status', '!=', 'cancelled'));
+                $q->whereHas('order', fn ($o) => $o->where('payment_status', 'paid')->where('shipping_status', '!=', 'cancelled'));
             }], 'quantity')
             ->orderByDesc('total_sold')
             ->first();
@@ -85,7 +86,7 @@ class DashboardController extends Controller
 
         $startDate = now()->startOfWeek()->subWeeks(2);
         $weeklySales = OrderItem::whereHas('order', function ($q) use ($startDate) {
-            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+            $q->where('payment_status', 'paid')
                 ->where('shipping_status', '!=', 'cancelled')
                 ->where('created_at', '>=', $startDate);
         })
@@ -139,6 +140,32 @@ class DashboardController extends Controller
             ];
         }
 
+        // Pesanan yang memerlukan rekonsiliasi pengembalian dana manual (CHK-01)
+        $pendingReconciliations = Order::with(['store', 'user'])
+            ->where('payment_payload->needs_reconciliation', true)
+            ->latest('id')
+            ->get()
+            ->map(function ($order) {
+                $payload = $order->payment_payload ?? [];
+
+                return [
+                    'id' => $order->id,
+                    'invoice_number' => $order->invoice_number,
+                    'store_name' => $order->store?->name ?? 'Toko Mitra',
+                    'customer_name' => $order->customer_name ?: ($order->user?->name ?? 'Pelanggan'),
+                    'customer_phone' => $order->customer_phone ?? '-',
+                    'total_amount' => (float) $order->total_amount,
+                    'payment_method' => $order->payment_method,
+                    'payment_channel' => $order->payment_channel,
+                    'shipping_status' => $order->shipping_status,
+                    'payment_status' => $order->payment_status,
+                    'refund_type' => $payload['refund_type'] ?? 'gateway',
+                    'refund_reason' => $payload['refund_reason'] ?? 'Perlu rekonsiliasi pengembalian dana',
+                    'refund_amount' => isset($payload['refund_amount']) ? (float) $payload['refund_amount'] : (float) $order->total_amount,
+                    'created_at' => $order->created_at ? $order->created_at->format('d M Y H:i') : '-',
+                ];
+            });
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'total_merchants' => $totalMerchants,
@@ -153,6 +180,30 @@ class DashboardController extends Controller
             'chartData' => $chartData,
             'registrations' => $recentStores,
             'activities' => $activities,
+            'pendingReconciliations' => $pendingReconciliations,
         ]);
+    }
+
+    /**
+     * Selesaikan rekonsiliasi / refund manual pesanan oleh admin desa (CHK-01).
+     */
+    public function reconcileOrder(Request $request, int $id): RedirectResponse
+    {
+        $order = Order::findOrFail($id);
+        $payload = $order->payment_payload ?? [];
+
+        $payload['needs_reconciliation'] = false;
+        $payload['reconciled_at'] = now()->toIso8601String();
+        $payload['reconciled_by'] = $request->user()?->name ?? 'Admin Desa';
+        $payload['reconcile_notes'] = $request->input('notes', 'Refund manual telah diselesaikan oleh Pemerintah Desa Cibenda');
+
+        $order->forceFill([
+            'payment_status' => 'refunded',
+            'payment_payload' => $payload,
+        ])->save();
+
+        Log::info("Admin #{$request->user()?->id} menyelesaikan rekonsiliasi pesanan #{$order->invoice_number}");
+
+        return redirect()->back()->with('success', "Rekonsiliasi pesanan #{$order->invoice_number} berhasil diselesaikan.");
     }
 }

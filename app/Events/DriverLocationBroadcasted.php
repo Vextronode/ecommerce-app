@@ -13,11 +13,17 @@ class DriverLocationBroadcasted implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public ?string $batchToken;
+
     public ?string $invoiceNumber;
+
     public float $latitude;
+
     public float $longitude;
+
     public ?float $heading;
+
     public ?float $speed;
+
     public string $updatedAt;
 
     /**
@@ -43,18 +49,18 @@ class DriverLocationBroadcasted implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\PrivateChannel>
+     * @return array<int, PrivateChannel>
      */
     public function broadcastOn(): array
     {
         $channels = [];
 
-        if (!empty($this->batchToken)) {
-            $channels[] = new PrivateChannel('batch.' . $this->batchToken);
+        if (! empty($this->batchToken)) {
+            $channels[] = new PrivateChannel('batch.'.$this->batchToken);
         }
 
-        if (!empty($this->invoiceNumber)) {
-            $channels[] = new PrivateChannel('order-tracking.' . $this->invoiceNumber);
+        if (! empty($this->invoiceNumber)) {
+            $channels[] = new PrivateChannel('order-tracking.'.$this->invoiceNumber);
         }
 
         return $channels;

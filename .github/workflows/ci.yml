@@ -33,7 +33,6 @@ jobs:
 
       - name: Code Style Check (Laravel Pint)
         run: ./vendor/bin/pint --test
-        continue-on-error: true
 
       - name: Run Test Suite
         env:

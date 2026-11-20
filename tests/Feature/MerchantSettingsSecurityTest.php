@@ -13,6 +13,7 @@ class MerchantSettingsSecurityTest extends TestCase
     use RefreshDatabase;
 
     protected User $merchantUser;
+
     protected Store $store;
 
     protected function setUp(): void

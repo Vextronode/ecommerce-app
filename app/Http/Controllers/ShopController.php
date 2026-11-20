@@ -161,6 +161,7 @@ class ShopController extends Controller
             $products = $products->map(function ($product) use ($dailySeed) {
                 $noise = ((abs(crc32($product->id.'-'.$dailySeed)) % 1000) + 1) / 1000;
                 $product->score = (($product->rating ?? 0) * 20) + ($product->sold ?? 0) + $noise;
+
                 return $product;
             })->sortByDesc('score')->values();
         }

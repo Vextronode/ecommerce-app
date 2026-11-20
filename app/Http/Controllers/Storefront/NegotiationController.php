@@ -35,7 +35,7 @@ class NegotiationController extends Controller
 
         $room->loadMissing('store.user');
         $store = $room->store;
-        if (!$store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
+        if (! $store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
             return response()->json(['message' => 'Toko ini sedang tidak aktif.'], 422);
         }
 
@@ -69,20 +69,20 @@ class NegotiationController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            if (!$product) {
+            if (! $product) {
                 throw ValidationException::withMessages([
                     'product_id' => 'Produk tidak valid atau sudah tidak aktif di toko ini.',
                 ]);
             }
 
             $sku = null;
-            if (!empty($validated['product_sku_id'])) {
+            if (! empty($validated['product_sku_id'])) {
                 $sku = ProductSku::where('id', $validated['product_sku_id'])
                     ->where('product_id', $product->id)
                     ->lockForUpdate()
                     ->first();
 
-                if (!$sku) {
+                if (! $sku) {
                     throw ValidationException::withMessages([
                         'product_sku_id' => 'Varian produk yang dipilih tidak valid.',
                     ]);
@@ -106,14 +106,14 @@ class NegotiationController extends Controller
 
             if ($offeredPrice >= $originalPrice) {
                 throw ValidationException::withMessages([
-                    'offered_price' => 'Harga tawaran harus lebih murah dari harga asli produk (Rp ' . number_format($originalPrice, 0, ',', '.') . ').',
+                    'offered_price' => 'Harga tawaran harus lebih murah dari harga asli produk (Rp '.number_format($originalPrice, 0, ',', '.').').',
                 ]);
             }
 
             $minimumAllowedPrice = round($originalPrice * 0.3, 2);
             if ($offeredPrice < $minimumAllowedPrice) {
                 throw ValidationException::withMessages([
-                    'offered_price' => 'Harga tawaran terlalu rendah (minimal 30% dari harga asli: Rp ' . number_format($minimumAllowedPrice, 0, ',', '.') . ').',
+                    'offered_price' => 'Harga tawaran terlalu rendah (minimal 30% dari harga asli: Rp '.number_format($minimumAllowedPrice, 0, ',', '.').').',
                 ]);
             }
 
@@ -131,7 +131,7 @@ class NegotiationController extends Controller
                 ]);
             }
 
-            $sanitizedNote = !empty($validated['note'])
+            $sanitizedNote = ! empty($validated['note'])
                 ? trim((string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', strip_tags($validated['note'])))
                 : null;
 
@@ -159,7 +159,7 @@ class NegotiationController extends Controller
                 'message_type' => 'negotiation',
                 'product_id' => $product->id,
                 'negotiation_id' => $negotiation->id,
-                'message' => "Mengajukan tawaran produk seharga Rp " . number_format($offeredPrice, 0, ',', '.') . "/barang untuk {$quantity} pcs {$product->name}{$variantText}.",
+                'message' => 'Mengajukan tawaran produk seharga Rp '.number_format($offeredPrice, 0, ',', '.')."/barang untuk {$quantity} pcs {$product->name}{$variantText}.",
                 'is_read' => false,
             ]);
 
@@ -173,7 +173,7 @@ class NegotiationController extends Controller
         try {
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('Negotiation NewChatMessageEvent broadcast error: ' . $e->getMessage());
+            Log::warning('Negotiation NewChatMessageEvent broadcast error: '.$e->getMessage());
         }
 
         try {
@@ -182,13 +182,13 @@ class NegotiationController extends Controller
                 $senderName = Auth::user()?->name ?? 'Pelanggan';
                 $sellerUser->notify(new PushNotification(
                     "Tawaran Produk Baru dari {$senderName}",
-                    "Tawaran Rp " . number_format($negotiation->offered_price, 0, ',', '.') . " untuk produk {$negotiation->product?->name}.",
+                    'Tawaran Rp '.number_format($negotiation->offered_price, 0, ',', '.')." untuk produk {$negotiation->product?->name}.",
                     'chat',
                     "/pedagang/chat?room={$room->id}"
                 ));
             }
         } catch (\Throwable $e) {
-            Log::warning('Negotiation push notification to seller error: ' . $e->getMessage());
+            Log::warning('Negotiation push notification to seller error: '.$e->getMessage());
         }
 
         return response()->json([
@@ -247,7 +247,7 @@ class NegotiationController extends Controller
                 'message_type' => 'negotiation',
                 'product_id' => $locked->product_id,
                 'negotiation_id' => $locked->id,
-                'message' => "Menyetujui tawaran balik penjual sebesar Rp " . number_format((float) $locked->counter_price, 0, ',', '.') . "/barang untuk {$locked->quantity} pcs.",
+                'message' => 'Menyetujui tawaran balik penjual sebesar Rp '.number_format((float) $locked->counter_price, 0, ',', '.')."/barang untuk {$locked->quantity} pcs.",
                 'is_read' => false,
             ]);
 
@@ -260,7 +260,7 @@ class NegotiationController extends Controller
             broadcast(new NegotiationUpdatedEvent($negotiation->fresh()))->toOthers();
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('Negotiation acceptCounter broadcast error: ' . $e->getMessage());
+            Log::warning('Negotiation acceptCounter broadcast error: '.$e->getMessage());
         }
 
         try {
@@ -268,14 +268,14 @@ class NegotiationController extends Controller
             if ($sellerUser) {
                 $senderName = Auth::user()?->name ?? 'Pelanggan';
                 $sellerUser->notify(new PushNotification(
-                    "Tawaran Balik Disetujui!",
-                    "{$senderName} menyetujui tawaran balik Rp " . number_format((float) $negotiation->counter_price, 0, ',', '.') . ".",
+                    'Tawaran Balik Disetujui!',
+                    "{$senderName} menyetujui tawaran balik Rp ".number_format((float) $negotiation->counter_price, 0, ',', '.').'.',
                     'chat',
                     "/pedagang/chat?room={$negotiation->chat_room_id}"
                 ));
             }
         } catch (\Throwable $e) {
-            Log::warning('Negotiation acceptCounter push error: ' . $e->getMessage());
+            Log::warning('Negotiation acceptCounter push error: '.$e->getMessage());
         }
 
         return response()->json([
@@ -316,7 +316,7 @@ class NegotiationController extends Controller
                 'message_type' => 'negotiation',
                 'product_id' => $locked->product_id,
                 'negotiation_id' => $locked->id,
-                'message' => "Menolak tawaran balik dari penjual.",
+                'message' => 'Menolak tawaran balik dari penjual.',
                 'is_read' => false,
             ]);
 
@@ -329,7 +329,7 @@ class NegotiationController extends Controller
             broadcast(new NegotiationUpdatedEvent($negotiation->fresh()))->toOthers();
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('Negotiation rejectCounter broadcast error: ' . $e->getMessage());
+            Log::warning('Negotiation rejectCounter broadcast error: '.$e->getMessage());
         }
 
         return response()->json([
@@ -376,7 +376,7 @@ class NegotiationController extends Controller
             }
 
             $store = $locked->store;
-            if (!$store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
+            if (! $store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
                 throw ValidationException::withMessages([
                     'negotiation' => 'Toko penjual sedang tidak aktif.',
                 ]);
@@ -412,4 +412,3 @@ class NegotiationController extends Controller
         ]);
     }
 }
-

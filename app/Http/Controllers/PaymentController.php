@@ -10,6 +10,8 @@ use App\Services\PaymentSyncService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -105,29 +107,56 @@ class PaymentController extends Controller
     }
 
     /**
-     * Switch pending online order to Cash on Delivery (COD)
+     * Switch pending online order to Cash on Delivery (COD).
+     * In multi-order checkouts (same parent_transaction_id), switches all pending orders in that checkout to COD.
      */
     public function switchToCod(Request $request, int|string $orderId, MidtransService $midtransService): RedirectResponse
     {
-        $order = Order::where('id', $orderId)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
+        return DB::transaction(function () use ($orderId, $midtransService) {
+            $order = Order::where('id', $orderId)
+                ->where('user_id', auth()->id())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($order->payment_status !== 'pending' || $order->payment_method === 'cod') {
-            return redirect()->route('history.index');
-        }
+            if ($order->payment_status !== 'pending' || $order->payment_method === 'cod') {
+                return redirect()->route('history.index');
+            }
 
-        $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
-        if ($midtransOrderId) {
-            $midtransService->cancelTransaction($midtransOrderId);
-        }
+            $parentTransactionId = $order->parent_transaction_id;
+            $midtransOrderId = $parentTransactionId ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
 
-        $order->update([
-            'payment_method' => 'cod',
-            'payment_channel' => 'cod',
-        ]);
+            // Kumpulkan semua pesanan dalam checkout gabungan yang masih pending
+            $relatedOrders = collect([$order]);
+            if (! empty($parentTransactionId)) {
+                $relatedOrders = Order::where('user_id', auth()->id())
+                    ->where('parent_transaction_id', $parentTransactionId)
+                    ->where('payment_status', 'pending')
+                    ->where('shipping_status', 'pending')
+                    ->lockForUpdate()
+                    ->get();
+            }
 
-        return redirect()->route('checkout.success', ['order_id' => $order->id])
-            ->with('success', 'Metode pembayaran berhasil dialihkan ke Bayar di Tempat (COD).');
+            if ($midtransOrderId) {
+                try {
+                    $midtransService->cancelTransaction($midtransOrderId);
+                } catch (\Throwable $e) {
+                    Log::warning("Gagal membatalkan transaksi Midtrans saat switch ke COD: {$midtransOrderId} - ".$e->getMessage());
+                }
+            }
+
+            foreach ($relatedOrders as $targetOrder) {
+                $targetOrder->update([
+                    'payment_method' => 'cod',
+                    'payment_channel' => 'cod',
+                ]);
+            }
+
+            $message = count($relatedOrders) > 1
+                ? 'Seluruh pesanan dalam transaksi ini berhasil dialihkan ke Bayar di Tempat (COD).'
+                : 'Metode pembayaran berhasil dialihkan ke Bayar di Tempat (COD).';
+
+            return redirect()->route('checkout.success', ['order_id' => $order->id])
+                ->with('success', $message);
+        });
     }
 }

@@ -16,9 +16,9 @@ class NotificationController extends Controller
 
         $grouped = [
             'all' => $notifications->values(),
-            'orders' => $notifications->filter(fn($n) => in_array($n->data['type'] ?? '', ['order', 'pesanan', 'payment']))->values(),
-            'promotions' => $notifications->filter(fn($n) => in_array($n->data['type'] ?? '', ['promo', 'promotions', 'diskon']))->values(),
-            'security' => $notifications->filter(fn($n) => ($n->data['type'] ?? '') === 'security')->values(),
+            'orders' => $notifications->filter(fn ($n) => in_array($n->data['type'] ?? '', ['order', 'pesanan', 'payment']))->values(),
+            'promotions' => $notifications->filter(fn ($n) => in_array($n->data['type'] ?? '', ['promo', 'promotions', 'diskon']))->values(),
+            'security' => $notifications->filter(fn ($n) => ($n->data['type'] ?? '') === 'security')->values(),
         ];
 
         return response()->json($grouped);
@@ -30,7 +30,7 @@ class NotificationController extends Controller
     public function unreadCount(Request $request)
     {
         return response()->json([
-            'count' => $request->user()->unreadNotifications()->count()
+            'count' => $request->user()->unreadNotifications()->count(),
         ]);
     }
 
@@ -43,7 +43,7 @@ class NotificationController extends Controller
         if ($notification) {
             $notification->markAsRead();
         }
-        
+
         return response()->json(['success' => true]);
     }
 
@@ -53,6 +53,7 @@ class NotificationController extends Controller
     public function markAllAsRead(Request $request)
     {
         $request->user()->unreadNotifications()->update(['read_at' => now()]);
+
         return response()->json(['success' => true]);
     }
 
@@ -62,6 +63,7 @@ class NotificationController extends Controller
     public function clearAll(Request $request)
     {
         $request->user()->notifications()->delete();
+
         return response()->json(['success' => true]);
     }
 

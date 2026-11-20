@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Order;
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductReview;
@@ -11,6 +11,7 @@ use App\Models\Store;
 use App\Models\User;
 use App\Models\Withdrawal;
 use App\Services\ChatMediaProcessor;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -70,7 +71,7 @@ class AuditRemediationWave3Test extends TestCase
         ]);
     }
 
-    public function test_signed_url_showBatch_punya_expiry_dan_kedaluwarsa(): void
+    public function test_signed_url_show_batch_punya_expiry_dan_kedaluwarsa(): void
     {
         $urlBerExpiry = URL::signedRoute('tracker.showBatch', ['batch_token' => 'abc'], now()->addHours(24));
 
@@ -116,11 +117,11 @@ class AuditRemediationWave3Test extends TestCase
         ProductReview::create($data);
 
         // simpan kedua dengan order_item_id sama wajib gagal karena unique constraint
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         ProductReview::create($data);
     }
 
-    public function test_review_endpoint_updateOrCreate_tidak_bikin_baris_dobel(): void
+    public function test_review_endpoint_update_or_create_tidak_bikin_baris_dobel(): void
     {
         $merchant = User::factory()->create(['role' => 'pedagang']);
         $store = $this->buatToko($merchant);
@@ -205,18 +206,18 @@ class AuditRemediationWave3Test extends TestCase
     public function test_model_store_withdrawal_order_pakai_atribut_fillable(): void
     {
         // fillable lewat atribut #[Fillable] harus menolak kolom sensitif
-        $store = new Store();
+        $store = new Store;
         $store->fill(['name' => 'Toko Atribut', 'sid_status' => 'verified', 'available_balance' => 999999]);
         $this->assertSame('Toko Atribut', $store->name);
         $this->assertNull($store->getAttributes()['sid_status'] ?? null);
         $this->assertNull($store->getAttributes()['available_balance'] ?? null);
 
-        $withdrawal = new Withdrawal();
+        $withdrawal = new Withdrawal;
         $withdrawal->fill(['reference_no' => 'WD-X', 'payout_sent_at' => now(), 'needs_reconciliation' => true]);
         $this->assertSame('WD-X', $withdrawal->reference_no);
         $this->assertNull($withdrawal->getAttributes()['payout_sent_at'] ?? null);
 
-        $order = new Order();
+        $order = new Order;
         $order->fill(['invoice_number' => 'INV-X', 'shipping_pin' => '1234', 'payment_payload' => ['a' => 1]]);
         $this->assertSame('INV-X', $order->invoice_number);
         $this->assertNull($order->getAttributes()['shipping_pin'] ?? null);

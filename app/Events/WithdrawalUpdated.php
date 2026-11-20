@@ -8,13 +8,16 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 class WithdrawalUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public array $withdrawal;
+
     public int $storeId;
+
     public array $stats;
 
     /**
@@ -27,7 +30,7 @@ class WithdrawalUpdated implements ShouldBroadcastNow
 
         $rawAccount = (string) ($withdrawal->account_number ?? '');
         $maskedAccount = strlen($rawAccount) > 4
-            ? \Illuminate\Support\Str::mask($rawAccount, '*', 0, strlen($rawAccount) - 4)
+            ? Str::mask($rawAccount, '*', 0, strlen($rawAccount) - 4)
             : $rawAccount;
 
         $this->storeId = (int) $withdrawal->store_id;
@@ -63,12 +66,12 @@ class WithdrawalUpdated implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\PrivateChannel>
+     * @return array<int, PrivateChannel>
      */
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('store.' . $this->storeId),
+            new PrivateChannel('store.'.$this->storeId),
         ];
     }
 }

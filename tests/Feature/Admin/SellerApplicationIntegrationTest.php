@@ -2,11 +2,9 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Jobs\SyncSidSellerApplicationsJob;
 use App\Models\SellerApplication;
 use App\Models\Store;
 use App\Models\User;
-use App\Services\Sid\SidApiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;

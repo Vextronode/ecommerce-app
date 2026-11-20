@@ -180,7 +180,7 @@ class DeliveryTrackerController extends Controller
             try {
                 broadcast(new OrderStatusUpdated($order))->toOthers();
             } catch (\Throwable $e) {
-                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: '.$e->getMessage());
             }
         }
 
@@ -304,7 +304,7 @@ class DeliveryTrackerController extends Controller
 
         return DB::transaction(function () use ($batch_token, $orderIds) {
             $query = Order::query();
-            if (!empty($orderIds)) {
+            if (! empty($orderIds)) {
                 $query->whereIn('id', $orderIds);
             } else {
                 $query->where('delivery_batch_token', $batch_token);
@@ -350,7 +350,7 @@ class DeliveryTrackerController extends Controller
                     try {
                         broadcast(new OrderStatusUpdated($order))->toOthers();
                     } catch (\Throwable $e) {
-                        Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                        Log::warning('OrderStatusUpdated broadcast error: '.$e->getMessage());
                     }
                 }
 
@@ -374,7 +374,7 @@ class DeliveryTrackerController extends Controller
         $orderIds = $batchData['order_ids'] ?? [];
 
         $query = Order::with(['store', 'items.product', 'user']);
-        if (!empty($orderIds)) {
+        if (! empty($orderIds)) {
             $query->whereIn('id', $orderIds);
         } else {
             $query->where('delivery_batch_token', $batch_token);
@@ -502,7 +502,7 @@ class DeliveryTrackerController extends Controller
         }
 
         // Security / Rate Limiting: Max 5 attempts per invoice (locked across all IPs) to prevent PIN brute force
-        $throttleKey = 'pin_verify_' . $invoice_number;
+        $throttleKey = 'pin_verify_'.$invoice_number;
 
         $batchData = Cache::get("delivery_batch_{$batch_token}");
         $batchOrderIds = $batchData['order_ids'] ?? [];
@@ -547,6 +547,7 @@ class DeliveryTrackerController extends Controller
                     $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
                     $errMsg = "PIN salah. Terlalu banyak percobaan salah. Form diblokir selama {$timeText}.";
                 }
+
                 return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
             }
 
@@ -574,7 +575,7 @@ class DeliveryTrackerController extends Controller
             try {
                 broadcast(new OrderStatusUpdated($order))->toOthers();
             } catch (\Throwable $e) {
-                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: '.$e->getMessage());
             }
 
             return back()->with('success', "Pesanan #{$invoice_number} berhasil diselesaikan!");
@@ -614,7 +615,7 @@ class DeliveryTrackerController extends Controller
         }
 
         try {
-            broadcast(new \App\Events\DriverLocationBroadcasted(
+            broadcast(new DriverLocationBroadcasted(
                 $batch_token,
                 null,
                 (float) $request->latitude,
@@ -622,7 +623,7 @@ class DeliveryTrackerController extends Controller
             ))->toOthers();
 
             foreach ($invoices as $inv) {
-                broadcast(new \App\Events\DriverLocationBroadcasted(
+                broadcast(new DriverLocationBroadcasted(
                     null,
                     $inv,
                     (float) $request->latitude,
@@ -630,7 +631,7 @@ class DeliveryTrackerController extends Controller
                 ))->toOthers();
             }
         } catch (\Throwable $e) {
-            Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
+            Log::warning('DriverLocationBroadcasted broadcast error: '.$e->getMessage());
         }
 
         return response()->json(['success' => true]);
@@ -681,7 +682,7 @@ class DeliveryTrackerController extends Controller
         ]);
 
         // Security / Rate Limiting: Max 5 attempts per invoice (locked across all IPs) to prevent PIN brute force
-        $throttleKey = 'pin_verify_' . $invoice_number;
+        $throttleKey = 'pin_verify_'.$invoice_number;
 
         return DB::transaction(function () use ($request, $invoice_number, $throttleKey) {
             $order = Order::where('invoice_number', $invoice_number)->lockForUpdate()->firstOrFail();
@@ -712,6 +713,7 @@ class DeliveryTrackerController extends Controller
                     $timeText = $seconds < 60 ? "{$seconds} detik" : "{$minutes} menit ({$seconds} detik)";
                     $errMsg = "PIN salah. Terlalu banyak percobaan salah. Form diblokir selama {$timeText}.";
                 }
+
                 return back()->with('error', $errMsg)->withErrors(['pin' => $errMsg]);
             }
 
@@ -739,7 +741,7 @@ class DeliveryTrackerController extends Controller
             try {
                 broadcast(new OrderStatusUpdated($order))->toOthers();
             } catch (\Throwable $e) {
-                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: '.$e->getMessage());
             }
 
             return back()->with('success', 'Pengiriman berhasil diselesaikan!');
@@ -769,7 +771,7 @@ class DeliveryTrackerController extends Controller
         try {
             broadcast(new OrderStatusUpdated($order))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+            Log::warning('OrderStatusUpdated broadcast error: '.$e->getMessage());
         }
 
         return back()->with('success', 'Konfirmasi tiba di lokasi pembeli berhasil! Pembeli telah diberi tahu.');
@@ -802,7 +804,7 @@ class DeliveryTrackerController extends Controller
                 (float) $request->longitude
             ))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('DriverLocationBroadcasted broadcast error: ' . $e->getMessage());
+            Log::warning('DriverLocationBroadcasted broadcast error: '.$e->getMessage());
         }
 
         return response()->json(['success' => true]);
@@ -834,7 +836,7 @@ class DeliveryTrackerController extends Controller
      */
     private function calculateHaversineDistance($lat1, $lon1, $lat2, $lon2): ?float
     {
-        if (!$lat1 || !$lon1 || !$lat2 || !$lon2) {
+        if (! $lat1 || ! $lon1 || ! $lat2 || ! $lon2) {
             return null;
         }
 
@@ -858,10 +860,10 @@ class DeliveryTrackerController extends Controller
     private function buildGoogleMapsMultiStopUrl($storeLat, $storeLon, $stops): ?string
     {
         $validStops = array_values(array_filter($stops, function ($stop) {
-            return !empty($stop['shipping_latitude']) && !empty($stop['shipping_longitude']);
+            return ! empty($stop['shipping_latitude']) && ! empty($stop['shipping_longitude']);
         }));
 
-        if (empty($validStops) || !$storeLat || !$storeLon) {
+        if (empty($validStops) || ! $storeLat || ! $storeLon) {
             return null;
         }
 
@@ -875,9 +877,9 @@ class DeliveryTrackerController extends Controller
             return "{$s['shipping_latitude']},{$s['shipping_longitude']}";
         }, $waypoints);
 
-        $waypointParam = !empty($waypointCoords) ? '&waypoints=' . implode('|', $waypointCoords) : '';
+        $waypointParam = ! empty($waypointCoords) ? '&waypoints='.implode('|', $waypointCoords) : '';
 
-        return "https://www.google.com/maps/dir/?api=1&origin=" . urlencode($origin) . "&destination=" . urlencode($destination) . $waypointParam;
+        return 'https://www.google.com/maps/dir/?api=1&origin='.urlencode($origin).'&destination='.urlencode($destination).$waypointParam;
     }
 
     /**
@@ -896,7 +898,7 @@ class DeliveryTrackerController extends Controller
         $currentLat = $originLat;
         $currentLon = $originLon;
 
-        while (!empty($unvisited)) {
+        while (! empty($unvisited)) {
             $nearestIdx = null;
             $shortestDist = null;
 
@@ -923,7 +925,7 @@ class DeliveryTrackerController extends Controller
             }
 
             $optimized[] = $next;
-            if (!empty($next['shipping_latitude']) && !empty($next['shipping_longitude'])) {
+            if (! empty($next['shipping_latitude']) && ! empty($next['shipping_longitude'])) {
                 $currentLat = $next['shipping_latitude'];
                 $currentLon = $next['shipping_longitude'];
             }

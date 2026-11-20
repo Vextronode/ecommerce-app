@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\Withdrawal;
 use App\Services\MidtransIrisService;
 use App\Services\MidtransService;
+use App\Services\PaymentSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -685,7 +686,7 @@ class PaymentSecurityAuditTest extends TestCase
             'shipping_status' => 'processing',
         ]);
 
-        $sync = app(\App\Services\PaymentSyncService::class);
+        $sync = app(PaymentSyncService::class);
 
         // webhook settlement pertama -> pending_balance naik sekali
         $sync->applyPaymentStatus($order->id, 'settlement');

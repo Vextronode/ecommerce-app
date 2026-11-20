@@ -203,7 +203,7 @@ export const TERMS_ARTICLES: TermArticle[] = [
         title: "Pelindungan Data Pribadi",
         type: "numbered",
         items: [
-            "Pengelola memproses data pribadi Pengguna sesuai Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi.",
+            "Pengelola memproses data pribadi Pengguna sesuai Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi sebagaimana diatur secara rinci dalam Kebijakan Privasi Platform CibendaMart.",
             "Data Pedagang yang diperoleh dari SID hanya diproses untuk keperluan verifikasi dan pengelolaan Toko.",
             "Data pribadi dibagikan kepada pihak ketiga (Mitra Pembayaran, provider map/notifikasi) hanya sebatas yang diperlukan untuk menjalankan layanan pesanan.",
         ],

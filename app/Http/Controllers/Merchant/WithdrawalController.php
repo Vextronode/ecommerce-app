@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Events\WithdrawalUpdated;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessWithdrawalPayout;
+use App\Models\PlatformSetting;
 use App\Models\Store;
 use App\Models\Withdrawal;
 use Illuminate\Http\Request;
@@ -60,7 +61,7 @@ class WithdrawalController extends Controller
                 'total_withdrawn' => $totalWithdrawn,
                 'total_earnings' => $totalEarnings,
             ],
-            'isWithdrawalEnabled' => \App\Models\PlatformSetting::isEnabled('enable_withdrawal', true),
+            'isWithdrawalEnabled' => PlatformSetting::isEnabled('enable_withdrawal', true),
         ]);
     }
 
@@ -143,7 +144,7 @@ class WithdrawalController extends Controller
             return back()->with('error', 'Toko tidak ditemukan.');
         }
 
-        if (! \App\Models\PlatformSetting::isEnabled('enable_withdrawal', true)) {
+        if (! PlatformSetting::isEnabled('enable_withdrawal', true)) {
             throw ValidationException::withMessages([
                 'amount' => 'Layanan penarikan saldo pedagang sedang dinonaktifkan sementara oleh admin.',
             ]);
@@ -229,7 +230,8 @@ class WithdrawalController extends Controller
 
         try {
             broadcast(new WithdrawalUpdated($withdrawal))->toOthers();
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return back()->with('success', 'Permintaan penarikan saldo sebesar Rp '.number_format($amount, 0, ',', '.').' berhasil diajukan dan sedang diproses!');
     }

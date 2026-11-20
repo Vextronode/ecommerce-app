@@ -105,10 +105,10 @@ class ChatNegotiation extends Model
     {
         if ($this->isExpired() && $this->status !== 'expired') {
             $this->update(['status' => 'expired']);
+
             return true;
         }
 
         return false;
     }
 }
-

@@ -35,6 +35,7 @@ export function useCreateMerchantForm(initialApplication?: ApplicationInitialDat
         phone: initialApplication?.phone || "",
         password: "",
         business_ref: initialApplication?.business_ref || "",
+        manual_creation_reason: "",
     });
 
     const [showPassword, setShowPassword] = useState(false);
@@ -96,6 +97,14 @@ export function useCreateMerchantForm(initialApplication?: ApplicationInitialDat
                 errs.username = "Username minimal 3 karakter.";
             } else if (!/^[a-z0-9_\-\.]+$/i.test(data.username.trim())) {
                 errs.username = "Username hanya boleh huruf, angka, (-), (_), dan (.).";
+            }
+        }
+
+        if (!data.business_ref && touched.manual_creation_reason) {
+            if (!data.manual_creation_reason?.trim()) {
+                errs.manual_creation_reason = "Alasan pendaftaran manual wajib diisi.";
+            } else if (data.manual_creation_reason.trim().length < 5) {
+                errs.manual_creation_reason = "Alasan pendaftaran manual minimal 5 karakter.";
             }
         }
 
@@ -220,6 +229,11 @@ export function useCreateMerchantForm(initialApplication?: ApplicationInitialDat
 
         if (!data.password || data.password.length < 8) {
             toast.error("Password minimal 8 karakter.");
+            return;
+        }
+
+        if (!data.business_ref && (!data.manual_creation_reason || data.manual_creation_reason.trim().length < 5)) {
+            toast.error("Alasan pendaftaran manual tanpa SID wajib diisi minimal 5 karakter.");
             return;
         }
 

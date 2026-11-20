@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class CustomerController extends Controller
@@ -21,7 +22,7 @@ class CustomerController extends Controller
         }
 
         $statusFilter = is_string($request->query('status')) ? $request->query('status') : 'All Status';
-        $netAmountExpr = \Illuminate\Support\Facades\DB::raw('CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END');
+        $netAmountExpr = DB::raw('CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END');
 
         // Total Customers Metric
         $totalCustomers = Order::where('store_id', $storeId)
@@ -156,7 +157,6 @@ class CustomerController extends Controller
                 'status' => $isNew ? 'New' : 'Active',
             ];
         });
-
 
         return Inertia::render('Merchant/Customers/Index', [
             'metrics' => [

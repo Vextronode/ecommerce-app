@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -47,9 +48,9 @@ class LoginRequest extends FormRequest
         $loginInput = trim((string) $this->input('email'));
         $expectedRole = $this->string('expected_role')->toString() ?: 'user';
 
-        $targetUser = \App\Models\User::where('email', $loginInput)->first()
-            ?? \App\Models\User::where('name', $loginInput)->where('role', $expectedRole)->first()
-            ?? \App\Models\User::where('name', $loginInput)->first();
+        $targetUser = User::where('email', $loginInput)->first()
+            ?? User::where('name', $loginInput)->where('role', $expectedRole)->first()
+            ?? User::where('name', $loginInput)->first();
 
         $credentials = [
             'email' => $targetUser ? $targetUser->email : $loginInput,
@@ -180,8 +181,8 @@ class LoginRequest extends FormRequest
     public function emailThrottleKey(): string
     {
         $loginInput = trim((string) $this->input('email'));
-        $resolvedEmail = \App\Models\User::where('email', $loginInput)->value('email')
-            ?? \App\Models\User::where('name', $loginInput)->value('email')
+        $resolvedEmail = User::where('email', $loginInput)->value('email')
+            ?? User::where('name', $loginInput)->value('email')
             ?? $loginInput;
 
         return Str::transliterate('login_email_throttle|'.Str::lower((string) $resolvedEmail));

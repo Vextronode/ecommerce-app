@@ -109,7 +109,7 @@ export default function MerchantAgreement() {
                                         Pedagang wajib merespons dan menyiapkan pesanan yang masuk maksimal dalam waktu 1x24 jam sejak order diterima.
                                     </li>
                                     <li>
-                                        Apabila pesanan tidak diproses dalam batas waktu tersebut tanpa pemberitahuan resmi, sistem berhak membatalkan pesanan secara otomatis demi melindungi hak pembeli.
+                                        Apabila pesanan tidak diproses dalam batas waktu tersebut tanpa pemberitahuan resmi, Pengelola berhak membatalkan pesanan demi melindungi hak pembeli.
                                     </li>
                                     <li>
                                         Untuk pengiriman kurir lokal, pedagang wajib mengemas pesanan dengan aman sesuai standar perlindungan paket sebelum diserahterimakan kepada petugas kurir.
@@ -132,10 +132,10 @@ export default function MerchantAgreement() {
                                         Platform CibendaMart beroperasi dengan skema bagi hasil/biaya layanan yang ditetapkan secara transparan oleh Pemerintah Desa Cibenda untuk pemeliharaan server, operasional kurir lokal, dan kas pembangunan desa.
                                     </li>
                                     <li>
-                                        Besaran pajak dan biaya layanan dikelola terpusat melalui panel pengaturan platform resmi dan dipotong/ditambahkan secara otomatis saat transaksi terjadi.
+                                        Pengelola CibendaMart tidak memungut pajak secara otomatis pada transaksi, kecuali apabila diwajibkan secara tegas atau ditunjuk resmi oleh Direktorat Jenderal Pajak (DJP) sesuai ketentuan perpajakan yang berlaku. Pedagang bertanggung jawab secara mandiri atas kepatuhan kewajiban perpajakan usahanya.
                                     </li>
                                     <li>
-                                        Dana hasil penjualan akan masuk ke saldo dompet pedagang setelah pesanan terkonfirmasi selesai oleh pembeli. Pedagang dapat mengajukan pencairan saldo ke rekening bank terdaftar kapan saja selama fitur penarikan dalam status aktif.
+                                        Dana hasil penjualan bersih akan masuk ke saldo penjualan toko pedagang setelah pesanan terkonfirmasi selesai oleh pembeli. Pedagang dapat mengajukan pencairan saldo ke rekening bank terdaftar kapan saja selama fitur penarikan dalam status aktif.
                                     </li>
                                 </ul>
                             </section>
@@ -167,12 +167,21 @@ export default function MerchantAgreement() {
                                 <ShieldCheck className="w-5 h-5 text-status-success shrink-0" />
                                 <span>Perjanjian ini berlaku mengikat sejak toko pertama kali diverifikasi oleh Admin.</span>
                             </div>
-                            <Link
-                                href={route("legal.refund")}
-                                className="text-xs sm:text-sm font-bold text-brand-orange hover:text-brand-orange-hover transition"
-                            >
-                                Lihat Kebijakan Refund & Retur &rarr;
-                            </Link>
+                            <div className="flex items-center gap-4 text-xs sm:text-sm font-bold text-brand-orange">
+                                <Link
+                                    href={route("legal.privacy")}
+                                    className="hover:text-brand-orange-hover transition"
+                                >
+                                    Kebijakan Privasi
+                                </Link>
+                                <span className="text-slate-300">•</span>
+                                <Link
+                                    href={route("legal.refund")}
+                                    className="hover:text-brand-orange-hover transition"
+                                >
+                                    Kebijakan Refund &rarr;
+                                </Link>
+                            </div>
                         </div>
                     </article>
                 </div>

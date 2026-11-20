@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Events\OrderStatusUpdated;
+use App\Services\OrderNotificationService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -43,14 +46,27 @@ use Illuminate\Support\Facades\Log;
     'balance_credited_at',
     'escrow_credited_at',
     'stock_restored_at',
+    'arrived_at',
+    'shipped_at',
 ])]
 class Order extends Model
 {
+    protected static function booted(): void
+    {
+        static::updating(function (Order $order) {
+            if ($order->isDirty('shipping_status') && $order->shipping_status === 'shipped' && empty($order->shipped_at)) {
+                $order->shipped_at = now();
+            }
+        });
+    }
+
     protected $casts = [
         'payment_expiry_time' => 'datetime',
         'balance_credited_at' => 'datetime',
         'escrow_credited_at' => 'datetime',
         'stock_restored_at' => 'datetime',
+        'arrived_at' => 'datetime',
+        'shipped_at' => 'datetime',
         'payment_payload' => 'array',
         'total_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
@@ -350,28 +366,25 @@ class Order extends Model
         });
     }
 
-
     /**
      * Mark order as arrived at customer delivery location.
      */
     public function markAsArrived(): void
     {
-        \Illuminate\Support\Facades\Cache::put("order_arrived_{$this->id}", now()->toIso8601String(), 86400 * 7);
-        if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'arrived_at')) {
-            $this->forceFill(['arrived_at' => now()])->save();
-        }
+        Cache::put("order_arrived_{$this->id}", now()->toIso8601String(), 86400 * 7);
+        $this->forceFill(['arrived_at' => now()])->save();
     }
-
 
     /**
      * Check whether courier has arrived at destination.
      */
     public function isArrived(): bool
     {
-        if (!empty($this->arrived_at)) {
+        if ($this->arrived_at !== null) {
             return true;
         }
-        return \Illuminate\Support\Facades\Cache::has("order_arrived_{$this->id}");
+
+        return Cache::has("order_arrived_{$this->id}");
     }
 
     /**
@@ -396,7 +409,9 @@ class Order extends Model
             return true;
         }
 
-        $hoursElapsed = $this->updated_at ? $this->updated_at->diffInHours(now()) : 0;
+        $referenceTime = $this->shipped_at ?? $this->updated_at;
+        $hoursElapsed = $referenceTime ? $referenceTime->diffInHours(now()) : 0;
+
         return $hoursElapsed >= 4;
     }
 
@@ -429,15 +444,16 @@ class Order extends Model
             $locked->update(['shipping_status' => 'delivered']);
             $locked->creditStoreBalance();
 
-            \App\Services\OrderNotificationService::orderDelivered($locked);
+            OrderNotificationService::orderDelivered($locked);
 
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($locked))->toOthers();
-            } catch (\Throwable $e) {}
+                broadcast(new OrderStatusUpdated($locked))->toOthers();
+            } catch (\Throwable $e) {
+            }
 
             Log::info("Order #{$locked->invoice_number} auto-completed by system (4-hour timeout).");
+
             return true;
         });
     }
 }
-
