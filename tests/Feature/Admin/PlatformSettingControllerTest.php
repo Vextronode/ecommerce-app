@@ -111,4 +111,21 @@ class PlatformSettingControllerTest extends TestCase
 
         $response2->assertSessionHasErrors(['service_fee_amount']);
     }
+
+    public function test_admin_page_self_heals_when_settings_table_is_empty(): void
+    {
+        PlatformSetting::query()->delete();
+        $this->assertSame(0, PlatformSetting::count());
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.settings.index'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Settings/Index')
+                ->has('settings', 9)
+            );
+
+        $this->assertSame(9, PlatformSetting::count());
+    }
 }

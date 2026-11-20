@@ -14,6 +14,10 @@ class PlatformSettingController extends Controller
 {
     public function index(): Response
     {
+        if (PlatformSetting::count() === 0) {
+            (new \Database\Seeders\PlatformSettingSeeder())->run();
+        }
+
         $settings = PlatformSetting::orderBy('group')
             ->orderBy('id')
             ->get()
