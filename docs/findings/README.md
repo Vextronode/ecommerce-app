@@ -52,7 +52,7 @@ Diurutkan berdasarkan tingkat keparahan.
 
 | ID | Judul | Keparahan | Status | Dokumen |
 |---|---|---|---|---|
-| CHK-01 | Refund pembatalan pedagang memakai ID transaksi induk tanpa nominal | High | Terbuka | `checkout_pembayaran.md` |
+| CHK-01 | Refund pembatalan pedagang memakai ID transaksi induk tanpa nominal | High | Selesai | `checkout_pembayaran.md` |
 | CHK-05 | Pengalihan ke COD membatalkan transaksi gabungan tetapi hanya mengubah satu pesanan | High | Selesai | `checkout_pembayaran.md` |
 | ORD-01 | Pesanan COD dengan ambil sendiri tidak memiliki jalur ke `delivered` | High | Selesai | `pesanan_pengiriman.md` |
 | LEG-01 | Halaman Kebijakan Privasi tidak tersedia | High | Terbuka | `kebijakan_legal.md` |

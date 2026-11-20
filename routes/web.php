@@ -166,6 +166,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // Pengaturan Platform (Platform Settings & Kill Switches)
         Route::get('/pengaturan', [PlatformSettingController::class, 'index'])->name('admin.settings.index');
         Route::put('/pengaturan', [PlatformSettingController::class, 'update'])->name('admin.settings.update');
+
+        // Rekonsiliasi Pesanan / Refund Manual (CHK-01)
+        Route::post('/pesanan/{id}/reconcile', [\App\Http\Controllers\Admin\DashboardController::class, 'reconcileOrder'])->name('admin.orders.reconcile');
     });
 
 // Obfuscation Masking: Return 404 for obvious guessable admin URLs if admin prefix is customized

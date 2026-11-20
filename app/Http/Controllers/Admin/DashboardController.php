@@ -139,6 +139,32 @@ class DashboardController extends Controller
             ];
         }
 
+        // Pesanan yang memerlukan rekonsiliasi pengembalian dana manual (CHK-01)
+        $pendingReconciliations = Order::with(['store', 'user'])
+            ->where('payment_payload->needs_reconciliation', true)
+            ->latest('id')
+            ->get()
+            ->map(function ($order) {
+                $payload = $order->payment_payload ?? [];
+
+                return [
+                    'id' => $order->id,
+                    'invoice_number' => $order->invoice_number,
+                    'store_name' => $order->store?->name ?? 'Toko Mitra',
+                    'customer_name' => $order->customer_name ?: ($order->user?->name ?? 'Pelanggan'),
+                    'customer_phone' => $order->customer_phone ?? '-',
+                    'total_amount' => (float) $order->total_amount,
+                    'payment_method' => $order->payment_method,
+                    'payment_channel' => $order->payment_channel,
+                    'shipping_status' => $order->shipping_status,
+                    'payment_status' => $order->payment_status,
+                    'refund_type' => $payload['refund_type'] ?? 'gateway',
+                    'refund_reason' => $payload['refund_reason'] ?? 'Perlu rekonsiliasi pengembalian dana',
+                    'refund_amount' => isset($payload['refund_amount']) ? (float) $payload['refund_amount'] : (float) $order->total_amount,
+                    'created_at' => $order->created_at ? $order->created_at->format('d M Y H:i') : '-',
+                ];
+            });
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'total_merchants' => $totalMerchants,
@@ -153,6 +179,30 @@ class DashboardController extends Controller
             'chartData' => $chartData,
             'registrations' => $recentStores,
             'activities' => $activities,
+            'pendingReconciliations' => $pendingReconciliations,
         ]);
+    }
+
+    /**
+     * Selesaikan rekonsiliasi / refund manual pesanan oleh admin desa (CHK-01).
+     */
+    public function reconcileOrder(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    {
+        $order = Order::findOrFail($id);
+        $payload = $order->payment_payload ?? [];
+
+        $payload['needs_reconciliation'] = false;
+        $payload['reconciled_at'] = now()->toIso8601String();
+        $payload['reconciled_by'] = $request->user()?->name ?? 'Admin Desa';
+        $payload['reconcile_notes'] = $request->input('notes', 'Refund manual telah diselesaikan oleh Pemerintah Desa Cibenda');
+
+        $order->forceFill([
+            'payment_status' => 'refunded',
+            'payment_payload' => $payload,
+        ])->save();
+
+        \Illuminate\Support\Facades\Log::info("Admin #{$request->user()?->id} menyelesaikan rekonsiliasi pesanan #{$order->invoice_number}");
+
+        return redirect()->back()->with('success', "Rekonsiliasi pesanan #{$order->invoice_number} berhasil diselesaikan.");
     }
 }

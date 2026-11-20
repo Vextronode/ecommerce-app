@@ -24,7 +24,7 @@ class MerchantOrderCancelRefundTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function seedOrder(User $merchant, User $buyer, string $method = 'va', string $shipping = 'processing'): array
+    private function seedOrder(User $merchant, User $buyer, string $method = 'gopay', string $shipping = 'processing'): array
     {
         $store = Store::create([
             'user_id' => $merchant->id,
@@ -57,7 +57,7 @@ class MerchantOrderCancelRefundTest extends TestCase
             'shipping_cost' => 0,
             'total_amount' => 100000,
             'payment_method' => $method,
-            'payment_channel' => $method === 'va' ? 'bca_va' : null,
+            'payment_channel' => $method === 'va' ? 'bca_va' : ($method === 'gopay' ? 'gopay' : null),
             'payment_status' => 'paid',
             'shipping_status' => $shipping,
         ]);
@@ -80,10 +80,13 @@ class MerchantOrderCancelRefundTest extends TestCase
     {
         $merchant = User::factory()->create(['role' => 'pedagang']);
         $buyer = User::factory()->create(['role' => 'user']);
-        [$store, $order] = $this->seedOrder($merchant, $buyer);
+        [$store, $order] = $this->seedOrder($merchant, $buyer, 'gopay');
 
         $mock = Mockery::mock(MidtransService::class);
-        $mock->shouldReceive('refundTransaction')->once()->andReturn(['status_code' => '200']);
+        $mock->shouldReceive('refundTransaction')
+            ->once()
+            ->with($order->invoice_number, 100000.0, Mockery::any())
+            ->andReturn(['status_code' => '200']);
         $this->app->instance(MidtransService::class, $mock);
 
         $this->actingAs($merchant)
@@ -103,10 +106,13 @@ class MerchantOrderCancelRefundTest extends TestCase
     {
         $merchant = User::factory()->create(['role' => 'pedagang']);
         $buyer = User::factory()->create(['role' => 'user']);
-        [, $order] = $this->seedOrder($merchant, $buyer);
+        [, $order] = $this->seedOrder($merchant, $buyer, 'gopay');
 
         $mock = Mockery::mock(MidtransService::class);
-        $mock->shouldReceive('refundTransaction')->once()->andReturn(null);
+        $mock->shouldReceive('refundTransaction')
+            ->once()
+            ->with($order->invoice_number, 100000.0, Mockery::any())
+            ->andReturn(null);
         $this->app->instance(MidtransService::class, $mock);
 
         $this->actingAs($merchant)
@@ -115,6 +121,60 @@ class MerchantOrderCancelRefundTest extends TestCase
 
         $order->refresh();
         $this->assertTrue((bool) ($order->payment_payload['needs_reconciliation'] ?? false), 'refund gagal harus ditandai needs_reconciliation');
+    }
+
+    public function test_cancel_paid_va_order_requires_manual_refund_without_gateway_call(): void
+    {
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $buyer = User::factory()->create(['role' => 'user']);
+        [$store, $order] = $this->seedOrder($merchant, $buyer, 'va');
+
+        $mock = Mockery::mock(MidtransService::class);
+        $mock->shouldReceive('refundTransaction')->never();
+        $this->app->instance(MidtransService::class, $mock);
+
+        $this->actingAs($merchant)
+            ->put("/pedagang/merchant/orders/{$order->id}/status", ['shipping_status' => 'cancelled'])
+            ->assertRedirect()
+            ->assertSessionHas('info');
+
+        $order->refresh();
+        $store->refresh();
+
+        $this->assertSame('cancelled', $order->shipping_status);
+        $this->assertSame('paid', $order->payment_status, 'status pembayaran tetap paid sampai diselesaikan manual');
+        $this->assertSame(0, (int) $store->pending_balance, 'escrow pedagang tetap ditarik saat pesanan dibatalkan');
+        $this->assertTrue((bool) ($order->payment_payload['needs_reconciliation'] ?? false));
+        $this->assertSame('manual_bank_transfer', $order->payment_payload['refund_type'] ?? null);
+    }
+
+    public function test_partial_refund_webhook_only_affects_cancelled_order_in_multi_store_checkout(): void
+    {
+        $merchantA = User::factory()->create(['role' => 'pedagang']);
+        $merchantB = User::factory()->create(['role' => 'pedagang']);
+        $buyer = User::factory()->create(['role' => 'user']);
+
+        [$storeA, $orderA] = $this->seedOrder($merchantA, $buyer, 'gopay');
+        [$storeB, $orderB] = $this->seedOrder($merchantB, $buyer, 'gopay');
+
+        $parentTx = 'MID-MULTI-TX-'.Str::random(8);
+        $orderA->forceFill(['parent_transaction_id' => $parentTx, 'shipping_status' => 'cancelled', 'payment_status' => 'paid'])->save();
+        $orderB->forceFill(['parent_transaction_id' => $parentTx, 'shipping_status' => 'processing', 'payment_status' => 'paid'])->save();
+
+        $syncService = app(\App\Services\PaymentSyncService::class);
+
+        // Simulasi notifikasi partial_refund dari Midtrans untuk kedua order dalam parent transaction yang sama
+        $syncService->applyPaymentStatus($orderA->id, 'partial_refund');
+        $syncService->applyPaymentStatus($orderB->id, 'partial_refund');
+
+        $orderA->refresh();
+        $orderB->refresh();
+        $storeB->refresh();
+
+        $this->assertSame('refunded', $orderA->payment_status, 'Order A yang dibatalkan harus ditandai refunded');
+        $this->assertSame('paid', $orderB->payment_status, 'Order B yang aktif tidak boleh ditandai refunded');
+        $this->assertSame('processing', $orderB->shipping_status);
+        $this->assertSame(100000, (int) $storeB->pending_balance, 'Escrow toko B tidak boleh berkurang');
     }
 
     public function test_order_non_cod_paid_yang_sudah_dikirim_tidak_bisa_dibatalkan(): void

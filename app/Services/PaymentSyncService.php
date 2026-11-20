@@ -139,6 +139,14 @@ class PaymentSyncService
                     $isFullRefund = $transactionStatus === 'refund';
                     $wasDelivered = $lockedOrder->balance_credited_at !== null;
 
+                    // PENTING (CHK-01): Notifikasi partial_refund untuk checkout multi-toko
+                    // hanya diterapkan ke pesanan yang status pengirimannya cancelled.
+                    // Pesanan toko lain yang masih aktif/berjalan tidak boleh ditandai refunded.
+                    if ($transactionStatus === 'partial_refund' && $lockedOrder->shipping_status !== 'cancelled') {
+                        Log::info("Partial refund diabaikan untuk order #{$lockedOrder->invoice_number} karena pesanan tidak dibatalkan.");
+                        return;
+                    }
+
                     $updateFields = ['payment_status' => 'refunded'];
                     // partial refund ga batalin seluruh order
                     if ($isFullRefund) {
