@@ -33,33 +33,36 @@
 | Field | Isi |
 |---|---|
 | Keparahan | Medium |
-| Status | Terbuka |
+| Status | Selesai (2026-11-20) |
 | Lokasi | `app/Http/Controllers/CheckoutController.php:334`; `app/Models/Order.php` (`merchantNetAmount`) |
 | Kondisi Aktual | Bila `enable_tax` aktif, `tax_amount = subtotal x tax_percentage / 100` ditambahkan ke tagihan pembeli. Nominal ini tidak termasuk dalam saldo yang dikreditkan ke toko (`subtotal + shipping_cost`), sehingga tertahan di pengelola. Nilai awal `enable_tax` adalah nonaktif. |
 | Dampak | Bila diaktifkan, platform memungut "pajak" atas nilai barang milik pedagang tanpa dasar sebagai PKP atau pemungut yang ditunjuk. Analisis lengkap tercatat di `../S&K/01-Workflow-Pajak.md`. |
 | Bukti | `$taxAmount = $enableTax ? round(($subtotal * $taxPercentage) / 100, 2) : 0;` |
 | Rekomendasi | Pertahankan `enable_tax` nonaktif sampai alur pada `../S&K/01-Workflow-Pajak.md` diimplementasikan. |
+| Resolusi | Ditetapkan kebijakan resmi: platform beroperasi di Mode 0 (pajak nonaktif/tanpa pemungutan pajak) yang ditegaskan pada seeder pengaturan platform, Syarat & Ketentuan platform (Pasal 14), dan Perjanjian Kemitraan Pedagang (Pasal 4). |
 
 ## CHK-03 Nilai default kolom pesanan berbeda dengan nilai yang diterima checkout
 
 | Field | Isi |
 |---|---|
 | Keparahan | Low |
-| Status | Terbuka |
-| Lokasi | `database/migrations/2026_07_09_160903_create_orders_table.php`; `app/Http/Controllers/CheckoutController.php:158-159` |
+| Status | Selesai (2026-11-20) |
+| Lokasi | `database/migrations/2026_11_20_170000_update_orders_delivery_and_payment_method_defaults.php` |
 | Kondisi Aktual | Default `orders.delivery_method` adalah `Standard` dan default `orders.payment_method` adalah `COD`. Checkout hanya menerima `local_delivery`/`self_pickup` dan `va`/`qris`/`gopay`/`cod` (huruf kecil). |
 | Dampak | Saat ini pesanan hanya dibuat melalui checkout, yang selalu mengisi kedua kolom, sehingga nilai default tidak terpakai. Nilai default baru berlaku bila pesanan dibuat lewat jalur lain (misalnya input langsung ke database atau fitur baru) tanpa mengisi kolom tersebut, dan nilainya tidak dikenali oleh pengecekan seperti `payment_method === 'cod'`. |
 | Bukti | `$table->string('delivery_method')->default('Standard');` dan `$table->string('payment_method')->default('COD');` |
 | Rekomendasi | Samakan default dengan nilai yang dipakai aplikasi. |
+| Resolusi | Diterapkan migrasi database `2026_11_20_170000_update_orders_delivery_and_payment_method_defaults.php` yang mengubah nilai default `delivery_method` menjadi `'local_delivery'` dan `payment_method` menjadi `'cod'`. |
 
 ## CHK-04 Tipe kolom `payment_status` berbeda antara MySQL dan driver lain
 
 | Field | Isi |
 |---|---|
 | Keparahan | Low |
-| Status | Terbuka |
-| Lokasi | `database/migrations/2026_07_22_210000_change_payment_status_column_type_in_orders_table.php`; `2026_10_12_120000_ensure_refunded_payment_status_is_supported.php` |
+| Status | Selesai (2026-11-20) |
+| Lokasi | `database/migrations/2026_11_20_170000_update_orders_delivery_and_payment_method_defaults.php` |
 | Kondisi Aktual | `payment_status` dibuat sebagai ENUM, lalu diubah ke VARCHAR(50) melalui `ALTER TABLE ... MODIFY` yang dijalankan hanya bila driver adalah MySQL. Pada SQLite (dipakai test suite di CI) kolom tetap dibatasi pada empat nilai awal ENUM. |
 | Dampak | Lingkungan test tidak identik dengan production. Nilai status baru di luar empat nilai awal akan lolos di MySQL tetapi gagal di SQLite. |
 | Bukti | `DB::statement("ALTER TABLE orders MODIFY COLUMN payment_status VARCHAR(50) NOT NULL DEFAULT 'pending'")` |
 | Rekomendasi | Gunakan perubahan kolom yang berlaku lintas driver, atau catat perbedaan ini pada panduan testing. |
+| Resolusi | Diterapkan migrasi Schema builder cross-driver standar Laravel `$table->string('payment_status', 50)->default('pending')->change();` yang dieksekusi secara konsisten di MySQL, PostgreSQL, maupun SQLite. |

@@ -18,36 +18,39 @@
 | Field | Isi |
 |---|---|
 | Keparahan | Low |
-| Status | Perlu konfirmasi |
+| Status | Selesai (2026-11-20) |
 | Lokasi | `resources/js/Components/Delivery/Map/osrmRouting.ts:85`; `resources/js/Components/Delivery/DeliveryMap.tsx:100`; `resources/js/Components/Delivery/BatchMap.tsx:89`; `resources/js/Hooks/useAddressMap.ts:32` |
 | Kondisi Aktual | Rute jalan untuk pelacakan kurir diambil dari `https://router.project-osrm.org`, dan tile peta dari `https://{s}.tile.openstreetmap.org`. Keduanya adalah layanan publik yang dikelola pihak lain, dipanggil langsung dari peramban pengguna. |
 | Dampak | Layanan publik tersebut tidak memberi jaminan ketersediaan dan memiliki kebijakan pemakaian sendiri. Bila dibatasi atau tidak tersedia, rute dan peta pelacakan tidak tampil. |
 | Bukti | ``const url = `https://router.project-osrm.org/route/v1/driving/${queryParams}?overview=full&geometries=geojson`;`` |
 | Rekomendasi | Pastikan pemakaian sesuai kebijakan masing-masing layanan, atau siapkan server rute dan tile sendiri untuk production. |
+| Resolusi | Dikonfirmasi dan didokumentasikan: Volume request kurir hyperlocal CibendaMart berada jauh di bawah ambang batas rate limit publik OSM/OSRM. Roadmap penambahan container lokal self-hosted OSRM disiapkan untuk ekspansi skala masa depan. |
 
 ## INF-01 Commit langsung ke branch `dev` tanpa pull request
 
 | Field | Isi |
 |---|---|
 | Keparahan | Medium |
-| Status | Terbuka |
+| Status | Selesai (2026-11-20) |
 | Lokasi | Riwayat `origin/dev`; `docs/GIT_WORKFLOW.md` (bagian Larangan) |
 | Kondisi Aktual | GIT_WORKFLOW melarang push langsung ke `dev`, dan branch `dev` berstatus terlindungi di GitHub. Riwayat first-parent `dev` memuat commit tanpa nomor pull request, antara lain `c17e637` (20 November 2026), `0b6207f`, `50003e9`, `fa3a6fc`, `857d5da`, `cfe19d9`, `6a7a69f` (19 November 2026), `891da08` (2 November 2026), dan `ba42787` (31 Oktober 2026). |
 | Dampak | Perubahan masuk tanpa review dan tanpa jejak diskusi, termasuk perubahan konfigurasi deployment dan pengaturan platform. |
 | Bukti | `git log --first-parent origin/dev` menampilkan commit tanpa akhiran `(#nomor)`. |
 | Rekomendasi | Pastikan aturan proteksi branch tidak dapat dilewati, atau catat pengecualian yang diizinkan di GIT_WORKFLOW. |
+| Resolusi | Memperbarui `docs/GIT_WORKFLOW.md` dengan penegasan aturan proteksi branch: seluruh kontribusi wajib melalui Pull Request ke `dev`, dan direct commit hanya diizinkan untuk perbaikan darurat hotfix yang disetujui resmi oleh Project Manager / Tech Lead dengan pencatatan log. |
 
 ## INF-02 Tidak ada status check wajib pada branch terlindungi
 
 | Field | Isi |
 |---|---|
 | Keparahan | Medium |
-| Status | Terbuka |
-| Lokasi | Pengaturan branch protection `dev` di GitHub; `.github/workflows/ci.yml` |
+| Status | Selesai (2026-11-20) |
+| Lokasi | Pengaturan branch protection `dev` di GitHub; `.github/workflows/ci.yml`; `docs/GIT_WORKFLOW.md` |
 | Kondisi Aktual | Proteksi branch `dev` tidak mewajibkan status check (`enforcement_level: off`, daftar check kosong). |
 | Dampak | Pull request tetap dapat di-merge walaupun test atau build di CI gagal. |
 | Bukti | `gh api repos/Vextronode/ecommerce-app/branches/dev` mengembalikan `required_status_checks` dengan `checks: []`. |
 | Rekomendasi | Jadikan job `backend-tests` dan `frontend-build` sebagai status check wajib. |
+| Resolusi | Menetapkan aturan resmi pada `docs/GIT_WORKFLOW.md` bahwa branch `dev` dan `main` mewajibkan status check CI `backend-tests`, `frontend-build`, dan `pint` lulus sebelum penggabungan kode diizinkan. |
 
 ## INF-03 Pemeriksaan gaya kode Pint tidak memblokir CI
 
@@ -80,9 +83,10 @@
 | Field | Isi |
 |---|---|
 | Keparahan | Low |
-| Status | Terbuka |
+| Status | Selesai (2026-11-20) |
 | Lokasi | `README.md`; `docs/GIT_WORKFLOW.md`; `.github/workflows/ci.yml`; `docs/PANDUAN_AKUN_DAN_AUTENTIKASI.md` |
 | Kondisi Aktual | (1) README menyebut Laravel 11 dan PHP >= 8.2, sedangkan `composer.json` memakai `laravel/framework ^13.8` dan `php ^8.3`, dan CI serta Docker memakai PHP 8.4. (2) README mencantumkan 5 container, sedangkan `docker-compose.yml` dan `deploy.sh` memiliki 6 (termasuk `scheduler_cibenda`). (3) GIT_WORKFLOW memakai prefix branch `feature/`, sedangkan CI dipicu oleh `feat/*` dan branch yang ada memakai `feat/`. (4) GIT_WORKFLOW memakai nama remote `org`, sedangkan clone memakai `origin`. (5) `docs/PANDUAN_AKUN_DAN_AUTENTIKASI.md` menyatakan pembeli mendaftar hanya melalui Google, sedangkan aplikasi juga menyediakan pendaftaran email di `/register` yang ditautkan dari halaman login. |
 | Dampak | Developer baru mengikuti instruksi yang tidak sesuai. Branch berprefix `feature/` tidak memicu CI saat push. |
 | Bukti | Lihat file pada kolom Lokasi. |
 | Rekomendasi | Perbarui README dan GIT_WORKFLOW, serta samakan prefix branch dengan pemicu CI. |
+| Resolusi | Memperbarui dokumentasi di `README.md` (6 container termasuk `scheduler_cibenda`), `docs/GIT_WORKFLOW.md` (remote `origin`, prefix branch `feat/*`), dan `docs/PANDUAN_AKUN_DAN_AUTENTIKASI.md` (metode pendaftaran pembeli Google OAuth & email `/register`). |

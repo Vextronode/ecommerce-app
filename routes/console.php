@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\SyncSidSellerApplicationsJob;
+use App\Models\ChatNegotiation;
 use App\Models\Order;
 use App\Models\PlatformSetting;
 use Illuminate\Console\Command;
@@ -54,6 +55,14 @@ Schedule::command('withdrawals:alert-stuck --threshold=30')
     ->withoutOverlapping()
     ->onOneServer()
     ->name('alert-stuck-withdrawals');
+
+// Auto-Expire: Ubah status tawaran negosiasi yang melewati batas waktu kedaluwarsa menjadi 'expired' (NEG-01)
+Schedule::call(function () {
+    ChatNegotiation::whereIn('status', ['pending', 'countered'])
+        ->whereNotNull('expires_at')
+        ->where('expires_at', '<=', now())
+        ->update(['status' => 'expired']);
+})->everyFifteenMinutes()->name('expire-abandoned-negotiations')->withoutOverlapping()->onOneServer();
 
 // Sinkronisasi otomatis permohonan pedagang dari SIDUTama (SID, SID-01)
 Schedule::job(new SyncSidSellerApplicationsJob)

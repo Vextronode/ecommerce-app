@@ -10,15 +10,15 @@ Dokumen ini menjelaskan alur kerja Git yang digunakan tim dalam pengembangan pro
 | --------------------- | ----------------------------------------------------------------- | :-------: |
 | `main`                | Production-ready code                                             |     ✅     |
 | `dev`                 | Integration branch tempat seluruh fitur digabungkan sebelum rilis |     ✅     |
-| `feature/nama-fitur`  | Branch untuk pengembangan fitur baru                              |     ❌     |
-| `fix/nama-bug`        | Branch untuk perbaikan bug                                        |     ❌     |
+| `feat/nama-fitur`     | Branch untuk pengembangan fitur baru (memicu CI)                 |     ❌     |
+| `fix/nama-bug`        | Branch untuk perbaikan bug (memicu CI)                            |     ❌     |
 | `hotfix/nama-masalah` | Perbaikan darurat langsung dari `main`                            |     ❌     |
 
 ---
 
 # 📝 Penamaan Branch
 
-Gunakan format:
+Gunakan format yang dikenali oleh GitHub Actions CI:
 
 ```text
 tipe/deskripsi-singkat
@@ -27,8 +27,8 @@ tipe/deskripsi-singkat
 Contoh:
 
 ```text
-feature/login-page
-feature/checkout-flow
+feat/login-page
+feat/checkout-flow
 fix/navbar-overflow
 hotfix/payment-gateway-down
 ```
@@ -41,7 +41,7 @@ hotfix/payment-gateway-down
 
 ```bash
 git checkout dev
-git pull org dev
+git pull origin dev
 ```
 
 ---
@@ -49,7 +49,7 @@ git pull org dev
 ## 2. Buat branch baru dari `dev`
 
 ```bash
-git checkout -b feature/nama-fitur
+git checkout -b feat/nama-fitur
 ```
 
 ---
@@ -65,7 +65,7 @@ git checkout -b feature/nama-fitur
 ## 4. Push branch
 
 ```bash
-git push org feature/nama-fitur
+git push origin feat/nama-fitur
 ```
 
 ---
@@ -86,6 +86,7 @@ dev
 
 - Tunggu review
 - Minimal **1 approval**
+- Pastikan seluruh CI Status Checks wajib (`backend-tests`, `frontend-build`, `pint`) lulus (Status Check Requirement - INF-02)
 - Perbaiki jika ada request changes
 
 ---
@@ -107,13 +108,13 @@ Setelah berhasil merge:
 ### Hapus branch lokal
 
 ```bash
-git branch -d feature/nama-fitur
+git branch -d feat/nama-fitur
 ```
 
 ### Hapus branch remote
 
 ```bash
-git push org --delete feature/nama-fitur
+git push origin --delete feat/nama-fitur
 ```
 
 ---
@@ -154,6 +155,7 @@ chore: update eslint configuration
 - PR **wajib** menuju `dev`
 - Hotfix darurat boleh menuju `main`
 - Minimal **1 approval**
+- **Wajib Lolos Status Check CI (INF-02):** Job `backend-tests`, `frontend-build`, dan `pint` harus berstatus hijau (`Passed`) sebelum tombol merge aktif.
 - Isi template PR
     - Deskripsi perubahan
     - Cara testing
@@ -171,7 +173,7 @@ Hanya branch `dev` yang boleh di-merge ke `main`.
 Alurnya:
 
 ```text
-feature/*
+feat/*
       │
       ▼
 dev
@@ -203,7 +205,7 @@ v2.0.0
 ## Update branch menggunakan rebase
 
 ```bash
-git pull org dev --rebase
+git pull origin dev --rebase
 ```
 
 ---
@@ -250,19 +252,20 @@ Ulangi sampai semua conflict selesai.
 ## Push kembali
 
 ```bash
-git push org feature/nama-fitur --force-with-lease
+git push origin feat/nama-fitur --force-with-lease
 ```
 
 > Gunakan **`--force-with-lease`**, **jangan** `--force`, agar tidak menimpa perubahan anggota tim lain.
 
 ---
 
-# 🚫 Larangan
+# 🚫 Larangan & Kebijakan Proteksi (INF-01)
 
 - ❌ Push langsung ke `main`
-- ❌ Push langsung ke `dev`
+- ❌ Push langsung ke `dev` tanpa Pull Request. **Aturan:** Branch `dev` dilindungi oleh Branch Protection Rules di GitHub. Pengecualian langsung (direct bypass) hanya diizinkan untuk perbaikan darurat hotfix yang disetujui langsung oleh Project Manager / Tech Lead dan wajib dicatat dalam log changelog.
 - ❌ Force push ke branch bersama (`main` / `dev`)
-- ❌ Merge Pull Request tanpa review
+- ❌ Merge Pull Request tanpa review dan approval
+- ❌ Merge Pull Request yang status check CI-nya belum lulus (`backend-tests`, `frontend-build`, `pint`)
 - ❌ Merge Pull Request yang masih conflict
 - ❌ Commit file sensitif (`.env`, credential, secret key)
 
