@@ -3,8 +3,8 @@ import parigiMerchantImg from "@/assets/images/parigi_merchant.png";
 
 export default function AuthMerchantNotice() {
     return (
-        <div className="mt-4 pt-3.5 border-t border-gray-100 shrink-0">
-            <div className="p-2.5 sm:p-3 rounded-xl bg-orange-50/70 border border-brand-orange/20 flex items-center gap-2.5 text-left">
+        <div className="mt-3 pt-2.5 border-t border-gray-100 shrink-0">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-orange-50/70 border border-brand-orange/20 flex items-center gap-2.5 text-left">
                 <div className="w-8 h-8 rounded-lg bg-white border border-brand-orange/25 shadow-xs p-1 flex items-center justify-center shrink-0 overflow-hidden">
                     <img
                         src={parigiMerchantImg}

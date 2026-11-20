@@ -174,6 +174,7 @@ class OrderHistoryController extends Controller
         $orderData = [
             'id' => $order->id,
             'invoice_number' => $order->invoice_number,
+            'store_id' => $order->store_id,
             'store_name' => $order->store->name ?? 'Toko',
             'store_phone' => $order->store?->user?->phone ?? '',
             'status' => $this->mapStatusToLabel($order),

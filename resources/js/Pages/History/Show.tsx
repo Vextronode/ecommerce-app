@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Head, Link, router } from "@inertiajs/react";
-import Navbar from "@/Components/Global/Navbar";
+import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import ConfirmModal from "@/Components/ConfirmModal";
 import { Store, ChevronLeft, AlertCircle, MessageSquare, CheckCircle, Navigation, Clock } from "lucide-react";
 import { useOrderHistoryActions } from "@/Hooks/Storefront/useOrderHistoryActions";
@@ -42,13 +42,32 @@ export default function Show({ order }: { order: any }) {
     const isWaitingCourierArrival = order.shipping_status === 'shipped' && isLocalDelivery && !isCod && !canComplete;
     const showRatingButton = order.status === 'Selesai' && order.items && order.items.length > 0;
 
+    const handleContactSeller = () => {
+        if (!order.store_id) return;
+        const firstItem = order.items?.[0];
+        window.dispatchEvent(
+            new CustomEvent("open-storefront-chat", {
+                detail: {
+                    storeId: order.store_id,
+                    product: firstItem
+                        ? {
+                              id: firstItem.product_id,
+                              name: firstItem.product_name,
+                              slug: firstItem.product_slug || "",
+                              price: Number(firstItem.price),
+                              image_path: firstItem.image,
+                          }
+                        : null,
+                },
+            })
+        );
+    };
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <StorefrontLayout>
             <Head title={`Pesanan ${order.invoice_number}`} />
-            <Navbar />
 
-            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-32">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-32">
                 <Link
                     href={route("history.index")}
                     className="inline-flex items-center text-sm text-gray-500 hover:text-brand-orange mb-6 transition-colors font-medium cursor-pointer"
@@ -266,15 +285,14 @@ export default function Show({ order }: { order: any }) {
                                 if (currentTime - updatedTime > 1800000) return null;
                             }
                             return (
-                                <a 
-                                    href={order.store_phone ? `https://wa.me/${order.store_phone.replace(/\D/g, '').replace(/^0/, '62')}?text=${encodeURIComponent(`Halo admin ${order.store_name}, saya pembeli dengan nomor pesanan #${order.invoice_number}. Saya ingin bertanya mengenai pesanan saya...`)}` : '#'}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-indigo-merchant/5 border border-brand-indigo-merchant/20 text-brand-indigo-merchant text-sm font-bold rounded-xl hover:bg-brand-indigo-merchant/10 transition-colors"
+                                <button
+                                    type="button"
+                                    onClick={handleContactSeller}
+                                    className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-indigo-merchant/5 border border-brand-indigo-merchant/20 text-brand-indigo-merchant text-sm font-bold rounded-xl hover:bg-brand-indigo-merchant/10 transition-colors cursor-pointer"
                                 >
                                     <MessageSquare className="w-4 h-4 mr-2" />
                                     Hubungi Penjual
-                                </a>
+                                </button>
                             );
                         })()}
                         
@@ -340,7 +358,7 @@ export default function Show({ order }: { order: any }) {
                         )}
                     </div>
                 </div>
-            </main>
+            </div>
 
             <ConfirmModal
                 isOpen={isCancelModalOpen}
@@ -362,6 +380,6 @@ export default function Show({ order }: { order: any }) {
                 onConfirm={() => handleCompleteOrder(order.id)}
                 onClose={() => setIsCompleteModalOpen(false)}
             />
-        </div>
+        </StorefrontLayout>
     );
 }
