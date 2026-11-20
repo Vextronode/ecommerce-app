@@ -49,4 +49,14 @@ class LegalPagesTest extends TestCase
                 ->component('Legal/ProhibitedProducts')
             );
     }
+
+    public function test_can_view_privacy_policy_page(): void
+    {
+        $response = $this->get(route('legal.privacy'));
+
+        $response->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Legal/PrivacyPolicy')
+            );
+    }
 }

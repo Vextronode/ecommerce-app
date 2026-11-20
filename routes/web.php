@@ -70,6 +70,7 @@ Route::middleware(['storefront.user'])->group(function () {
     Route::get('/kebijakan/refund', [LegalController::class, 'refundPolicy'])->name('legal.refund');
     Route::get('/kebijakan/syarat-ketentuan', [LegalController::class, 'termsAndConditions'])->name('legal.terms');
     Route::get('/kebijakan/produk-terlarang', [LegalController::class, 'prohibitedProducts'])->name('legal.prohibited-products');
+    Route::get('/kebijakan/privasi', [LegalController::class, 'privacyPolicy'])->name('legal.privacy');
 });
 
 Route::middleware(['auth', 'role:user,pedagang'])->group(function () {

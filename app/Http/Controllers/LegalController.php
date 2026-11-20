@@ -26,4 +26,9 @@ class LegalController extends Controller
     {
         return Inertia::render('Legal/ProhibitedProducts');
     }
+
+    public function privacyPolicy(): Response
+    {
+        return Inertia::render('Legal/PrivacyPolicy');
+    }
 }

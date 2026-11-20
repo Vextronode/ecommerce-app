@@ -95,6 +95,17 @@ const Register = () => {
                             {processing ? "Memproses..." : "Daftar"}
                         </PrimaryButton>
                     </div>
+                    <p className="mt-3 text-center text-[11px] text-gray-500 leading-relaxed">
+                        Dengan mendaftar, Anda menyetujui{" "}
+                        <Link href={route("legal.terms")} className="text-brand-orange hover:underline font-medium">
+                            Syarat & Ketentuan
+                        </Link>{" "}
+                        dan{" "}
+                        <Link href={route("legal.privacy")} className="text-brand-orange hover:underline font-medium">
+                            Kebijakan Privasi
+                        </Link>{" "}
+                        Pemerintah Desa Cibenda.
+                    </p>
                 </div>
 
                 <div className="mt-5 text-center text-xs sm:text-sm text-gray-500 shrink-0">

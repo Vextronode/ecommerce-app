@@ -55,16 +55,16 @@ Diurutkan berdasarkan tingkat keparahan.
 | CHK-01 | Refund pembatalan pedagang memakai ID transaksi induk tanpa nominal | High | Selesai | `checkout_pembayaran.md` |
 | CHK-05 | Pengalihan ke COD membatalkan transaksi gabungan tetapi hanya mengubah satu pesanan | High | Selesai | `checkout_pembayaran.md` |
 | ORD-01 | Pesanan COD dengan ambil sendiri tidak memiliki jalur ke `delivered` | High | Selesai | `pesanan_pengiriman.md` |
-| LEG-01 | Halaman Kebijakan Privasi tidak tersedia | High | Terbuka | `kebijakan_legal.md` |
+| LEG-01 | Halaman Kebijakan Privasi tidak tersedia | High | Selesai | `kebijakan_legal.md` |
 | INF-06 | Redis tanpa persistensi menyimpan antrean job dan data operasional | High | Selesai | `infra_repo.md` |
 | CHK-02 | Perhitungan pajak tidak sesuai skema perpajakan mana pun | Medium | Terbuka | `checkout_pembayaran.md` |
 | MER-01 | Akun pedagang dapat dibuat tanpa permohonan SID | Medium | Selesai | `pedagang_toko.md` |
 | SID-01 | Saklar `enable_sid_sync` tidak dibaca backend | Medium | Selesai | `integrasi_sid.md` |
 | SID-04 | Status `accepted` dikirim ke SID sebelum akun lokal tersimpan | Medium | Selesai | `integrasi_sid.md` |
-| LEG-02 | Janji pembatalan otomatis 1x24 jam tidak diterapkan sistem | Medium | Terbuka | `kebijakan_legal.md` |
-| LEG-03 | Kebijakan Refund merujuk mekanisme klaim yang tidak tersedia di aplikasi | Medium | Terbuka | `kebijakan_legal.md` |
-| LEG-04 | Keputusan mediasi dinyatakan mengikat kedua pihak | Medium | Terbuka | `kebijakan_legal.md` |
-| LEG-05 | Perjanjian Mitra menyebut pajak dipotong otomatis dan saldo sebagai dompet | Medium | Terbuka | `kebijakan_legal.md` |
+| LEG-02 | Janji pembatalan otomatis 1x24 jam tidak diterapkan sistem | Medium | Selesai | `kebijakan_legal.md` |
+| LEG-03 | Kebijakan Refund merujuk mekanisme klaim yang tidak tersedia di aplikasi | Medium | Selesai | `kebijakan_legal.md` |
+| LEG-04 | Keputusan mediasi dinyatakan mengikat kedua pihak | Medium | Selesai | `kebijakan_legal.md` |
+| LEG-05 | Perjanjian Mitra menyebut pajak dipotong otomatis dan saldo sebagai dompet | Medium | Selesai | `kebijakan_legal.md` |
 | INF-01 | Commit langsung ke branch `dev` tanpa pull request | Medium | Terbuka | `infra_repo.md` |
 | INF-02 | Tidak ada status check wajib pada branch terlindungi | Medium | Terbuka | `infra_repo.md` |
 | CHK-03 | Nilai default kolom pesanan berbeda dengan nilai yang diterima checkout | Low | Terbuka | `checkout_pembayaran.md` |
