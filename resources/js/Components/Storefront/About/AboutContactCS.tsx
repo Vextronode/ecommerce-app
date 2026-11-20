@@ -202,8 +202,8 @@ export default function AboutContactCS() {
                                     className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue bg-white"
                                 >
                                     <option value="pesanan">Kendala Pesanan & Pengiriman</option>
-                                    <option value="stok">Cek Ketersediaan Ikan Hari Ini</option>
-                                    <option value="mitra">Pendaftaran Pedagang / Nelayan Baru</option>
+                                    <option value="stok">Cek Ketersediaan Stock</option>
+                                    <option value="mitra">Pendaftaran Pedagang</option>
                                     <option value="garansi">Klaim Garansi Kerusakan Produk</option>
                                     <option value="lainnya">Pertanyaan Umum Lainnya</option>
                                 </select>
