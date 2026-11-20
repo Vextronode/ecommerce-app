@@ -125,7 +125,7 @@ Route::middleware(['auth', 'role:user,pedagang'])->group(function () {
 
     Route::prefix('chat')->group(function () {
         Route::get('/rooms', [StorefrontChatController::class, 'index'])->middleware('throttle:chat-action')->name('chat.rooms');
-        Route::post('/room', [StorefrontChatController::class, 'getOrCreateRoom'])->middleware('throttle:20,1')->name('chat.room.create');
+        Route::post('/room', [StorefrontChatController::class, 'getOrCreateRoom'])->middleware('throttle:chat-room')->name('chat.room.create');
         Route::get('/rooms/{room}/messages', [StorefrontChatController::class, 'messages'])->middleware('throttle:chat-action')->name('chat.messages');
         Route::post('/rooms/{room}/send', [StorefrontChatController::class, 'sendMessage'])->middleware('throttle:chat-send')->name('chat.send');
         Route::post('/rooms/{room}/read', [StorefrontChatController::class, 'markAsRead'])->middleware('throttle:chat-action')->name('chat.read');

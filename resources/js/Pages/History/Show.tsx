@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import StorefrontLayout from "@/Layouts/StorefrontLayout";
 import ConfirmModal from "@/Components/ConfirmModal";
@@ -41,9 +41,13 @@ export default function Show({ order }: { order: any }) {
     const canComplete = order.shipping_status === 'shipped' && !isCod && (order.can_buyer_complete ?? (!isLocalDelivery || order.is_arrived));
     const isWaitingCourierArrival = order.shipping_status === 'shipped' && isLocalDelivery && !isCod && !canComplete;
     const showRatingButton = order.status === 'Selesai' && order.items && order.items.length > 0;
+    const [isOpeningChat, setIsOpeningChat] = useState(false);
 
     const handleContactSeller = () => {
-        if (!order.store_id) return;
+        if (!order.store_id || isOpeningChat) return;
+        setIsOpeningChat(true);
+        setTimeout(() => setIsOpeningChat(false), 1200);
+
         const firstItem = order.items?.[0];
         window.dispatchEvent(
             new CustomEvent("open-storefront-chat", {
@@ -288,10 +292,13 @@ export default function Show({ order }: { order: any }) {
                                 <button
                                     type="button"
                                     onClick={handleContactSeller}
-                                    className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-indigo-merchant/5 border border-brand-indigo-merchant/20 text-brand-indigo-merchant text-sm font-bold rounded-xl hover:bg-brand-indigo-merchant/10 transition-colors cursor-pointer"
+                                    disabled={isOpeningChat}
+                                    className={`inline-flex items-center justify-center px-6 py-2.5 bg-brand-indigo-merchant/5 border border-brand-indigo-merchant/20 text-brand-indigo-merchant text-sm font-bold rounded-xl hover:bg-brand-indigo-merchant/10 transition-colors ${
+                                        isOpeningChat ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+                                    }`}
                                 >
                                     <MessageSquare className="w-4 h-4 mr-2" />
-                                    Hubungi Penjual
+                                    {isOpeningChat ? "Membuka Chat..." : "Hubungi Penjual"}
                                 </button>
                             );
                         })()}
