@@ -159,6 +159,11 @@ class PaymentSyncService
                     }
                 }
             } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'], true)) {
+                // SECURITY GUARD (CHK-05): Pesanan yang sudah dialihkan ke COD tidak boleh dibatalkan oleh event cancel dari gateway
+                if ($lockedOrder->payment_method === 'cod') {
+                    return;
+                }
+
                 if (! in_array($lockedOrder->payment_status, ['paid', 'refunded', 'failed'], true)) {
                     $updateFields = ['payment_status' => 'failed'];
                     if ($lockedOrder->shipping_status === 'pending') {
