@@ -120,7 +120,7 @@ class AnalyticsController extends Controller
             $yearEnd = "{$year}-12-31 23:59:59";
 
             $monthlyRows = Order::where('store_id', $store->id)
-                ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+                ->where('payment_status', 'paid')
                 ->where('shipping_status', '!=', 'cancelled')
                 ->whereBetween('created_at', [$yearStart, $yearEnd])
                 ->get(['created_at', 'subtotal', 'shipping_cost', 'total_amount']);
@@ -151,7 +151,7 @@ class AnalyticsController extends Controller
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')
             ->where('orders.store_id', $store->id)
-            ->whereIn('orders.payment_status', ['paid', 'settlement', 'capture', 'success'])
+            ->where('orders.payment_status', 'paid')
             ->where('orders.shipping_status', '!=', 'cancelled');
 
         if ($startDate) {
@@ -188,7 +188,7 @@ class AnalyticsController extends Controller
             $ordersTrendByMonth[$monthNumber] ??= ['completed' => 0, 'canceled' => 0];
 
             $isCanceled = $row->shipping_status === 'cancelled' || in_array($row->payment_status, ['failed', 'refunded'], true);
-            $isCompleted = $row->shipping_status === 'delivered' || (in_array($row->payment_status, ['paid', 'settlement', 'capture', 'success'], true) && $row->shipping_status !== 'cancelled');
+            $isCompleted = $row->shipping_status === 'delivered' || ($row->payment_status === 'paid' && $row->shipping_status !== 'cancelled');
 
             if ($isCanceled) {
                 $ordersTrendByMonth[$monthNumber]['canceled']++;
@@ -210,7 +210,7 @@ class AnalyticsController extends Controller
         $bestSellingQuery = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->where('orders.store_id', $store->id)
-            ->whereIn('orders.payment_status', ['paid', 'settlement', 'capture', 'success'])
+            ->where('orders.payment_status', 'paid')
             ->where('orders.shipping_status', '!=', 'cancelled');
 
         if ($startDate) {

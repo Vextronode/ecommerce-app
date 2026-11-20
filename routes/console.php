@@ -2,6 +2,7 @@
 
 use App\Jobs\SyncSidSellerApplicationsJob;
 use App\Models\Order;
+use App\Models\PlatformSetting;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -54,9 +55,10 @@ Schedule::command('withdrawals:alert-stuck --threshold=30')
     ->onOneServer()
     ->name('alert-stuck-withdrawals');
 
-// Sinkronisasi otomatis permohonan pedagang dari SIDUTama (SID)
+// Sinkronisasi otomatis permohonan pedagang dari SIDUTama (SID, SID-01)
 Schedule::job(new SyncSidSellerApplicationsJob)
     ->everyTwoMinutes()
+    ->when(fn () => PlatformSetting::isEnabled('enable_sid_sync', true))
     ->withoutOverlapping()
     ->onOneServer()
     ->name('sync-sid-seller-applications');

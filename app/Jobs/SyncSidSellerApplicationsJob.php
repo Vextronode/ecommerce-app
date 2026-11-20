@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Events\NewSellerApplicationEvent;
 use App\Exceptions\Sid\SidApplicationCancelledException;
+use App\Models\PlatformSetting;
 use App\Models\SellerApplication;
 use App\Services\Sid\SidApiService;
 use Carbon\Carbon;
@@ -20,7 +21,10 @@ class SyncSidSellerApplicationsJob implements ShouldQueue
 
     public function handle(SidApiService $sidService): void
     {
-        if (! $sidService->isEnabled()) {
+        // Guard killswitch: batalkan sinkronisasi jika SID disabled atau saklar dimatikan di admin (SID-01)
+        if (! $sidService->isEnabled() || ! PlatformSetting::isEnabled('enable_sid_sync', true)) {
+            Log::info('SyncSidSellerApplicationsJob dilewati (layanan SID nonaktif atau saklar enable_sid_sync dimatikan).');
+
             return;
         }
 

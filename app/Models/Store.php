@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable([
     'user_id',
     'business_ref',
+    'is_manual_creation',
+    'manual_creation_reason',
     'name',
     'slug',
     'logo_path',
@@ -38,6 +40,7 @@ class Store extends Model
 
     protected $casts = [
         'has_completed_tour' => 'boolean',
+        'is_manual_creation' => 'boolean',
     ];
 
     public function user()

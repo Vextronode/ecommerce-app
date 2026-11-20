@@ -33,7 +33,7 @@ export default function CreateMerchantForm({ application }: Props) {
     return (
         <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
             {/* SID Verification Banner */}
-            {application && (
+            {application ? (
                 <div className="p-4 rounded-2xl bg-orange-50 border border-orange-200/80 flex items-start gap-3.5 shadow-2xs">
                     <div className="w-9 h-9 rounded-xl bg-brand-orange text-white flex items-center justify-center shrink-0 shadow-xs">
                         <ShieldCheck className="w-5 h-5" />
@@ -50,6 +50,41 @@ export default function CreateMerchantForm({ application }: Props) {
                         <p className="text-[11px] text-gray-600 leading-relaxed">
                             Data toko, pemilik, NIK, dan kontak telah diverifikasi oleh Pemerintah Desa Cibenda. Silakan buat password akun pedagang di bawah ini untuk mengaktifkan akun.
                         </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 space-y-2.5 shadow-2xs">
+                    <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>Pendaftaran Manual Tanpa SID (Jalur Non-SKU)</span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                        Sesuai regulasi Pemerintah Desa Cibenda, pendaftaran mitra tanpa verifikasi Surat Keterangan Usaha (SKU) SIDUTama wajib disertai catatan alasan administratif untuk keperluan audit trail.
+                    </p>
+                    <div className="pt-1">
+                        <label htmlFor="field_manual_reason" className="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Alasan Pendaftaran Manual <span className="text-rose-500">*</span>
+                        </label>
+                        <textarea
+                            id="field_manual_reason"
+                            rows={2}
+                            required
+                            value={data.manual_creation_reason}
+                            onChange={(e) => setData("manual_creation_reason", e.target.value)}
+                            onBlur={() => handleBlur("manual_creation_reason")}
+                            placeholder="Contoh: Mitra UMKM binaan khusus desa belum terhubung ke sistem SKU online / pendaftaran offline langsung di kantor desa"
+                            className={`w-full px-4 py-2.5 bg-white border rounded-xl text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white transition ${
+                                errors.manual_creation_reason || fieldErrors.manual_creation_reason
+                                    ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 bg-rose-50/20"
+                                    : "border-gray-300 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+                            }`}
+                        />
+                        {(errors.manual_creation_reason || fieldErrors.manual_creation_reason) && (
+                            <p className="flex items-center gap-1.5 text-rose-500 text-[11px] mt-1.5 font-medium">
+                                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                {errors.manual_creation_reason || fieldErrors.manual_creation_reason}
+                            </p>
+                        )}
                     </div>
                 </div>
             )}

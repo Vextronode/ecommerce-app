@@ -39,12 +39,12 @@ class DashboardController extends Controller
 
         // Produk Terjual (Total Qty Sold dari Paid Orders) & Trend
         $totalSold = (int) OrderItem::whereHas('order', function ($q) {
-            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+            $q->where('payment_status', 'paid')
                 ->where('shipping_status', '!=', 'cancelled');
         })->sum('quantity');
 
         $lastMonthSold = (int) OrderItem::whereHas('order', function ($q) {
-            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+            $q->where('payment_status', 'paid')
                 ->where('shipping_status', '!=', 'cancelled')
                 ->where('created_at', '<', now()->startOfMonth());
         })->sum('quantity');
@@ -56,7 +56,7 @@ class DashboardController extends Controller
         // Produk Terlaris (Berdasarkan jumlah terjual aktual dari order yang sukses)
         $topProduct = Product::with(['store', 'category'])
             ->withSum(['orderItems as total_sold' => function ($q) {
-                $q->whereHas('order', fn ($o) => $o->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])->where('shipping_status', '!=', 'cancelled'));
+                $q->whereHas('order', fn ($o) => $o->where('payment_status', 'paid')->where('shipping_status', '!=', 'cancelled'));
             }], 'quantity')
             ->orderByDesc('total_sold')
             ->first();
@@ -86,7 +86,7 @@ class DashboardController extends Controller
 
         $startDate = now()->startOfWeek()->subWeeks(2);
         $weeklySales = OrderItem::whereHas('order', function ($q) use ($startDate) {
-            $q->whereIn('payment_status', ['paid', 'settlement', 'capture', 'success'])
+            $q->where('payment_status', 'paid')
                 ->where('shipping_status', '!=', 'cancelled')
                 ->where('created_at', '>=', $startDate);
         })
