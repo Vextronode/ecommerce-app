@@ -4,7 +4,10 @@ namespace Tests\Feature\Admin;
 
 use App\Events\PlatformSettingsUpdated;
 use App\Jobs\ProcessWithdrawalPayout;
+use App\Models\Category;
+use App\Models\ChatRoom;
 use App\Models\PlatformSetting;
+use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
 use Database\Seeders\PlatformSettingSeeder;
@@ -20,7 +23,9 @@ class RealtimePlatformSettingsTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $merchant;
+
     protected Store $store;
 
     protected function setUp(): void
@@ -131,8 +136,8 @@ class RealtimePlatformSettingsTest extends TestCase
 
     public function test_user_cannot_negotiate_when_negotiation_killswitch_is_disabled(): void
     {
-        $category = \App\Models\Category::first() ?? \App\Models\Category::create(['name' => 'Ikan', 'slug' => 'ikan']);
-        $product = \App\Models\Product::create([
+        $category = Category::first() ?? Category::create(['name' => 'Ikan', 'slug' => 'ikan']);
+        $product = Product::create([
             'store_id' => $this->store->id,
             'category_id' => $category->id,
             'name' => 'Ikan Kembung Segar',
@@ -143,7 +148,7 @@ class RealtimePlatformSettingsTest extends TestCase
         ]);
 
         $buyer = User::factory()->create(['role' => 'user']);
-        $room = \App\Models\ChatRoom::create([
+        $room = ChatRoom::create([
             'user_id' => $buyer->id,
             'store_id' => $this->store->id,
             'last_message_at' => now(),

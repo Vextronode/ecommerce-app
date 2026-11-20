@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,7 +17,7 @@ return new class extends Migration
         });
 
         // Mark existing merchants who already have an address as having completed the tour
-        \Illuminate\Support\Facades\DB::table('stores')
+        DB::table('stores')
             ->whereNotNull('address')
             ->where('address', '!=', '')
             ->update(['has_completed_tour' => true]);

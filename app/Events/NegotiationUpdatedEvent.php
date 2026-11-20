@@ -21,7 +21,7 @@ class NegotiationUpdatedEvent implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('chat.room.' . $this->negotiation->chat_room_id),
+            new PrivateChannel('chat.room.'.$this->negotiation->chat_room_id),
         ];
     }
 
@@ -56,4 +56,3 @@ class NegotiationUpdatedEvent implements ShouldBroadcastNow
         ];
     }
 }
-

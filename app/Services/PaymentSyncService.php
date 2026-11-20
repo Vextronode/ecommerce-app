@@ -49,7 +49,7 @@ class PaymentSyncService
                 $this->applyPaymentStatus($order->id, $trxStatus, $fraudStatus);
             }
         } catch (\Throwable $e) {
-            Log::warning("PaymentSyncService::syncByMidtransOrderId failed for {$midtransOrderId}: " . $e->getMessage());
+            Log::warning("PaymentSyncService::syncByMidtransOrderId failed for {$midtransOrderId}: ".$e->getMessage());
         }
     }
 
@@ -130,7 +130,7 @@ class PaymentSyncService
                     try {
                         broadcast(new OrderStatusUpdated($lockedOrder))->toOthers();
                     } catch (\Throwable $e) {
-                        Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: ' . $e->getMessage());
+                        Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: '.$e->getMessage());
                     }
                 }
             } elseif (in_array($transactionStatus, ['refund', 'partial_refund'], true)) {
@@ -144,6 +144,7 @@ class PaymentSyncService
                     // Pesanan toko lain yang masih aktif/berjalan tidak boleh ditandai refunded.
                     if ($transactionStatus === 'partial_refund' && $lockedOrder->shipping_status !== 'cancelled') {
                         Log::info("Partial refund diabaikan untuk order #{$lockedOrder->invoice_number} karena pesanan tidak dibatalkan.");
+
                         return;
                     }
 
@@ -185,7 +186,7 @@ class PaymentSyncService
                     try {
                         broadcast(new OrderStatusUpdated($lockedOrder))->toOthers();
                     } catch (\Throwable $e) {
-                        Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: ' . $e->getMessage());
+                        Log::warning('OrderStatusUpdated broadcast error in PaymentSyncService: '.$e->getMessage());
                     }
                 }
             } elseif ($transactionStatus === 'pending') {
@@ -196,4 +197,3 @@ class PaymentSyncService
         });
     }
 }
-

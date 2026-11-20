@@ -107,11 +107,11 @@ class SyncSidSellerApplicationsJob implements ShouldQueue
                     // Section 7.4: Mark as cancelled and delete personal data (PII)
                     $missingApp->anonymizeCancelled();
                 } catch (\Throwable $e) {
-                    Log::warning("Failed to reconcile missing SID application {$missingApp->business_ref}: " . $e->getMessage());
+                    Log::warning("Failed to reconcile missing SID application {$missingApp->business_ref}: ".$e->getMessage());
                 }
             }
         } catch (\Throwable $e) {
-            Log::error("SyncSidSellerApplicationsJob error: " . $e->getMessage(), [
+            Log::error('SyncSidSellerApplicationsJob error: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
         }

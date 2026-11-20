@@ -14,11 +14,17 @@ class ProductStockUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     protected Product $product;
+
     public int $productId;
+
     public int $storeId;
+
     public string $name;
+
     public int $stock;
+
     public float $price;
+
     public string $action;
 
     /**
@@ -38,13 +44,13 @@ class ProductStockUpdated implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
         return [
             new Channel('storefront-products'),
-            new Channel('store-products.' . $this->storeId),
+            new Channel('store-products.'.$this->storeId),
         ];
     }
 

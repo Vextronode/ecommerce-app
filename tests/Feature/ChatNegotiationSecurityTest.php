@@ -17,9 +17,13 @@ class ChatNegotiationSecurityTest extends TestCase
     use RefreshDatabase;
 
     private User $buyer;
+
     private User $merchantUser;
+
     private Store $store;
+
     private Product $product;
+
     private ChatRoom $room;
 
     protected function setUp(): void

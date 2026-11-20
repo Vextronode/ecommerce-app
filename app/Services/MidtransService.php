@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\CoreApi;
 use Midtrans\Transaction;
@@ -31,7 +32,7 @@ class MidtransService
     ): array {
         $transactionId = count($orders) === 1
             ? $orders[0]->invoice_number
-            : 'TRX-'.date('YmdHis').'-'.strtoupper(\Illuminate\Support\Str::random(6));
+            : 'TRX-'.date('YmdHis').'-'.strtoupper(Str::random(6));
 
         $itemDetails = $this->buildItemDetails($orders);
         $grossAmount = array_sum(array_map(fn ($item) => $item['price'] * $item['quantity'], $itemDetails));

@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\PlatformSetting;
 use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\PlatformSettingSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

@@ -2,10 +2,10 @@
 
 namespace App\Notifications;
 
+use App\Broadcasting\FcmChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use App\Broadcasting\FcmChannel;
 use Illuminate\Support\Str;
 
 class PushNotification extends Notification implements ShouldQueue
@@ -13,8 +13,11 @@ class PushNotification extends Notification implements ShouldQueue
     use Queueable;
 
     protected $title;
+
     protected $message;
+
     protected $type;
+
     protected $actionUrl;
 
     /**
@@ -57,7 +60,7 @@ class PushNotification extends Notification implements ShouldQueue
 
     /**
      * Get the array representation for FCM.
-     * 
+     *
      * @return array<string, mixed>
      */
     public function toFcm(object $notifiable): array
@@ -66,7 +69,7 @@ class PushNotification extends Notification implements ShouldQueue
         $icon = $isMerchant ? '/icons/icon-merchant-192.png' : '/icons/icon-192.png';
         $fullIconUrl = url($icon);
         $fullActionUrl = url($this->actionUrl ?? '/');
-        $notifTag = (string) ($this->id ?? ($this->title . ':' . $this->message));
+        $notifTag = (string) ($this->id ?? ($this->title.':'.$this->message));
 
         return [
             'notification' => [

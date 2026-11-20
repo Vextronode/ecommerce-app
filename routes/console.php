@@ -1,8 +1,12 @@
 <?php
 
+use App\Jobs\SyncSidSellerApplicationsJob;
+use App\Models\Order;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     /** @var Command $this */
@@ -10,15 +14,15 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Auto-Prune: Hapus notifikasi lama (> 60 hari) secara otomatis agar database tetap bersih & ringan
-\Illuminate\Support\Facades\Schedule::call(function () {
-    \Illuminate\Support\Facades\DB::table('notifications')
+Schedule::call(function () {
+    DB::table('notifications')
         ->where('created_at', '<', now()->subDays(60))
         ->delete();
 })->daily()->name('prune-old-notifications')->withoutOverlapping()->onOneServer();
 
 // Auto-Complete: Selesaikan pesanan kurir lokal non-COD yang sudah dibayar & dikirim > 4 jam jika belum dikonfirmasi (Shopee-style, ORD-03)
-\Illuminate\Support\Facades\Schedule::call(function () {
-    \App\Models\Order::where('shipping_status', 'shipped')
+Schedule::call(function () {
+    Order::where('shipping_status', 'shipped')
         ->where('delivery_method', 'local_delivery')
         ->where('payment_method', '!=', 'cod')
         ->where('payment_status', 'paid')
@@ -37,23 +41,22 @@ Artisan::command('inspire', function () {
 })->everyFifteenMinutes()->name('auto-complete-shipped-orders')->withoutOverlapping()->onOneServer();
 
 // Rekonsiliasi: cek withdrawal nyangkut processing ke Midtrans IRIS & benerin statusnya otomatis
-\Illuminate\Support\Facades\Schedule::command('withdrawals:reconcile')
+Schedule::command('withdrawals:reconcile')
     ->everyFifteenMinutes()
     ->withoutOverlapping()
     ->onOneServer()
     ->name('reconcile-withdrawals');
 
 // Alert: kabarin admin kalau ada withdrawal nyangkut processing lebih dari 30 menit
-\Illuminate\Support\Facades\Schedule::command('withdrawals:alert-stuck --threshold=30')
+Schedule::command('withdrawals:alert-stuck --threshold=30')
     ->everyFifteenMinutes()
     ->withoutOverlapping()
     ->onOneServer()
     ->name('alert-stuck-withdrawals');
 
 // Sinkronisasi otomatis permohonan pedagang dari SIDUTama (SID)
-\Illuminate\Support\Facades\Schedule::job(new \App\Jobs\SyncSidSellerApplicationsJob)
+Schedule::job(new SyncSidSellerApplicationsJob)
     ->everyTwoMinutes()
     ->withoutOverlapping()
     ->onOneServer()
     ->name('sync-sid-seller-applications');
-

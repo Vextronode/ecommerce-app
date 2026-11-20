@@ -7,7 +7,6 @@ class ProhibitedItemGuardService
     /**
      * Periksa apakah teks memuat kata kunci barang terlarang sesuai S&K.
      *
-     * @param  string|null  $text
      * @return array{keyword: string, matched_term: string, category_key: string, category_label: string, reference: string, message: string}|null
      */
     public function check(?string $text): ?array

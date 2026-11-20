@@ -60,6 +60,7 @@ class AdminInit extends Command
 
                 if ($validator->fails()) {
                     $this->components->error('Format email tidak valid. Silakan coba lagi.');
+
                     continue;
                 }
 
@@ -88,12 +89,14 @@ class AdminInit extends Command
 
                 if (strlen($password) < 8) {
                     $this->components->error('Password minimal 8 karakter. Silakan coba lagi.');
+
                     continue;
                 }
 
                 $passwordConfirm = $this->secret('Konfirmasi Password');
                 if ($password !== $passwordConfirm) {
                     $this->components->error('Konfirmasi password tidak cocok. Silakan coba lagi.');
+
                     continue;
                 }
 
@@ -101,7 +104,7 @@ class AdminInit extends Command
             }
         }
 
-        $user = $existingUser ?? new User();
+        $user = $existingUser ?? new User;
         $user->forceFill([
             'name' => trim($name),
             'email' => trim($email),

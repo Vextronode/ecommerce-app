@@ -17,7 +17,7 @@ class ChatMediaProcessorTest extends TestCase
 
     public function test_converts_jpeg_to_webp_and_preserves_dimensions(): void
     {
-        $processor = new ChatMediaProcessor();
+        $processor = new ChatMediaProcessor;
 
         $width = 450;
         $height = 320;
@@ -51,7 +51,7 @@ class ChatMediaProcessorTest extends TestCase
 
     public function test_converts_png_with_transparency_to_webp_and_preserves_alpha(): void
     {
-        $processor = new ChatMediaProcessor();
+        $processor = new ChatMediaProcessor;
 
         $width = 150;
         $height = 150;
@@ -97,7 +97,7 @@ class ChatMediaProcessorTest extends TestCase
 
     public function test_preserves_gif_format_for_animations(): void
     {
-        $processor = new ChatMediaProcessor();
+        $processor = new ChatMediaProcessor;
 
         $img = imagecreate(50, 50);
         imagecolorallocate($img, 255, 200, 0);
@@ -121,7 +121,7 @@ class ChatMediaProcessorTest extends TestCase
 
     public function test_downscales_only_if_exceeding_max_dimension(): void
     {
-        $processor = new ChatMediaProcessor();
+        $processor = new ChatMediaProcessor;
 
         $origWidth = 3000;
         $origHeight = 1500;

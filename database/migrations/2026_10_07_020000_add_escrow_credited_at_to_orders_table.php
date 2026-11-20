@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -18,16 +19,16 @@ return new class extends Migration
 
         // order lama yang udah credit escrow dianggap escrow_credited_at-nya terisi.
         // order paid yang belum dipindah ke available (balance_credited_at null) juga escrow-nya udah masuk pending_balance
-        \Illuminate\Support\Facades\DB::table('orders')
+        DB::table('orders')
             ->whereNotNull('balance_credited_at')
-            ->update(['escrow_credited_at' => \Illuminate\Support\Facades\DB::raw('balance_credited_at')]);
+            ->update(['escrow_credited_at' => DB::raw('balance_credited_at')]);
 
-        \Illuminate\Support\Facades\DB::table('orders')
+        DB::table('orders')
             ->whereNull('escrow_credited_at')
             ->whereIn('payment_status', ['paid', 'settlement'])
             ->whereNotNull('store_id')
             ->whereNull('balance_credited_at')
-            ->update(['escrow_credited_at' => \Illuminate\Support\Facades\DB::raw('updated_at')]);
+            ->update(['escrow_credited_at' => DB::raw('updated_at')]);
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace App\Broadcasting;
 
+use Google\Client;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -12,14 +14,13 @@ class FcmChannel
      * Send the given notification.
      *
      * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
      * @return void
      */
     public function send($notifiable, Notification $notification)
     {
         $token = $notifiable->routeNotificationFor('fcm') ?? $notifiable->fcm_token;
 
-        if (!$token) {
+        if (! $token) {
             return;
         }
 
@@ -37,20 +38,22 @@ class FcmChannel
         try {
             $authConfig = $this->getAuthConfig();
 
-            if (!$authConfig) {
+            if (! $authConfig) {
                 Log::error('FCM Error: Firebase credentials not found (checked storage/app/firebase-auth.json and FIREBASE_CREDENTIALS_JSON env).');
+
                 return;
             }
 
             // Using Google Client to get OAuth2 token
-            $client = new \Google\Client();
+            $client = new Client;
             $client->setAuthConfig($authConfig);
             $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
             $client->fetchAccessTokenWithAssertion();
             $accessToken = $client->getAccessToken();
 
-            if (!$accessToken || !isset($accessToken['access_token'])) {
+            if (! $accessToken || ! isset($accessToken['access_token'])) {
                 Log::error('FCM Error: Failed to obtain Firebase OAuth2 access token.');
+
                 return;
             }
 
@@ -86,15 +89,15 @@ class FcmChannel
                 ->timeout(10)
                 ->post("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send", $fcmMessage);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $body = $response->json();
-                Log::error('FCM Send Error: ' . $response->body());
+                Log::error('FCM Send Error: '.$response->body());
 
                 $errorCode = $body['error']['details'][0]['errorCode'] ?? $body['error']['status'] ?? null;
                 $this->bersihkanTokenKadaluarsa($notifiable, $token, $errorCode, $response->status());
             }
         } catch (\Throwable $e) {
-            Log::error('FCM Exception: ' . $e->getMessage());
+            Log::error('FCM Exception: '.$e->getMessage());
         }
     }
 
@@ -114,9 +117,9 @@ class FcmChannel
             return;
         }
 
-        $adalahModel = $notifiable instanceof \Illuminate\Database\Eloquent\Model;
+        $adalahModel = $notifiable instanceof Model;
 
-        if (!$adalahModel || !$notifiable->exists) {
+        if (! $adalahModel || ! $notifiable->exists) {
             return;
         }
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Exceptions\Sid\SidApiException;
 use App\Exceptions\Sid\SidApplicationCancelledException;
 use App\Http\Controllers\Controller;
 use App\Jobs\SyncSidSellerApplicationsJob;
@@ -341,7 +340,7 @@ class MerchantController extends Controller
             return redirect()->route('admin.merchants.index', ['tab' => 'applications'])
                 ->with('error', 'Permohonan telah dibatalkan oleh pemohon di SID. Akun tidak dapat dibuat.');
         } catch (\Throwable $e) {
-            return back()->withInput()->withErrors(['general' => 'Gagal membuat akun pedagang: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['general' => 'Gagal membuat akun pedagang: '.$e->getMessage()]);
         }
 
         return redirect()->route('admin.merchants.index', ['tab' => 'merchants'])
@@ -379,9 +378,10 @@ class MerchantController extends Controller
             return back()->with('success', 'Permohonan pedagang berhasil ditolak dan alasan telah dikirimkan ke SID.');
         } catch (SidApplicationCancelledException) {
             $application->anonymizeCancelled();
+
             return back()->with('error', 'Permohonan telah dibatalkan oleh pemohon di SID.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menolak permohonan ke SID: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menolak permohonan ke SID: '.$e->getMessage());
         }
     }
 
@@ -392,12 +392,12 @@ class MerchantController extends Controller
     {
         try {
             (new SyncSidSellerApplicationsJob)->handle($sidService);
+
             return back()->with('success', 'Sinkronisasi permohonan dari SID berhasil dijalankan.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Sinkronisasi SID gagal: ' . $e->getMessage());
+            return back()->with('error', 'Sinkronisasi SID gagal: '.$e->getMessage());
         }
     }
-
 
     /**
      * Update the specified merchant account in storage.

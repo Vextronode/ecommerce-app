@@ -6,6 +6,7 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Services\ChatMediaProcessor;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -13,7 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Jenssegers\Agent\Agent;
@@ -95,7 +98,7 @@ class ProfileController extends Controller
             ->where('id', '!=', $request->session()->getId())
             ->delete();
 
-        $user->setRememberToken(\Illuminate\Support\Str::random(60));
+        $user->setRememberToken(Str::random(60));
         $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'Sesion lainnya berhasil dihapus.');
@@ -133,7 +136,7 @@ class ProfileController extends Controller
         }
 
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+            if (Schema::hasTable('sessions')) {
                 DB::table('sessions')->where('user_id', $user->id)->delete();
             }
         } catch (\Throwable $e) {
@@ -165,7 +168,7 @@ class ProfileController extends Controller
                 Storage::disk('public')->delete($user->profile_photo_path);
             }
 
-            [$path] = app(\App\Services\ChatMediaProcessor::class)->store($request->file('photo'), 'profile-photos', 'public');
+            [$path] = app(ChatMediaProcessor::class)->store($request->file('photo'), 'profile-photos', 'public');
 
             $user->update([
                 'profile_photo_path' => $path,

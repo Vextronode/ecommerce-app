@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Cart;
+use App\Models\Category;
 use App\Models\ChatRoom;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -9,6 +11,7 @@ use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -41,7 +44,7 @@ class MerchantStorefrontAccessTest extends TestCase
 
     private function createActiveProduct(Store $store, string $name = 'Produk Uji', float $price = 25000): Product
     {
-        $category = \App\Models\Category::firstOrCreate(
+        $category = Category::firstOrCreate(
             ['name' => 'Kategori Uji'],
             ['slug' => 'kategori-uji']
         );
@@ -153,7 +156,7 @@ class MerchantStorefrontAccessTest extends TestCase
         [$merchant, $store] = $this->createMerchantWithStore();
         $ownProduct = $this->createActiveProduct($store, 'Produk Saya');
 
-        $cart = \App\Models\Cart::create([
+        $cart = Cart::create([
             'user_id' => $merchant->id,
             'product_id' => $ownProduct->id,
             'quantity' => 1,
@@ -273,7 +276,7 @@ class MerchantStorefrontAccessTest extends TestCase
         $merchant->forceFill([
             'email' => 'pedagang.link@gmail.com',
             'google_id' => null,
-            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+            'password' => Hash::make('password123'),
             'is_password_changed' => true,
         ])->save();
 

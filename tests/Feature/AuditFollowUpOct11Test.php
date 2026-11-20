@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
-use App\Models\ChatMessage;
 use App\Models\ChatRoom;
 use App\Models\Product;
 use App\Models\Store;

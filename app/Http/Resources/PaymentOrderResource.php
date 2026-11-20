@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,7 @@ class PaymentOrderResource extends JsonResource
         $siblingOrders = collect([$this->resource]);
 
         if (! empty($this->parent_transaction_id)) {
-            $loadedSiblings = \App\Models\Order::with(['items.product', 'store'])
+            $loadedSiblings = Order::with(['items.product', 'store'])
                 ->where('user_id', $this->user_id)
                 ->where('parent_transaction_id', $this->parent_transaction_id)
                 ->get();
@@ -62,4 +63,3 @@ class PaymentOrderResource extends JsonResource
         ];
     }
 }
-

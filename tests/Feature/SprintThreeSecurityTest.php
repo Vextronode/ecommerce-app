@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -10,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\GoogleProvider;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Tests\TestCase;
 
@@ -47,7 +49,7 @@ class SprintThreeSecurityTest extends TestCase
             'shipping_status' => 'delivered',
         ]);
 
-        $category = \App\Models\Category::create([
+        $category = Category::create([
             'name' => 'Seafood',
             'slug' => 'seafood-'.Str::random(4),
         ]);
@@ -83,14 +85,14 @@ class SprintThreeSecurityTest extends TestCase
      */
     public function test_google_oauth_assigns_user_role_and_verifies_email(): void
     {
-        $mockGoogleUser = new SocialiteUser();
+        $mockGoogleUser = new SocialiteUser;
         $mockGoogleUser->id = 'google-uid-12345';
         $mockGoogleUser->name = 'Budi Google';
         $mockGoogleUser->email = 'budi_google_test@gmail.com';
         // fail-closed: provider wajib kirim flag terverifikasi, kalau tidak akan ditolak
         $mockGoogleUser->user = ['email_verified' => true];
 
-        $provider = $this->createMock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider = $this->createMock(GoogleProvider::class);
         $provider->method('redirectUrl')->willReturnSelf();
         $provider->method('user')->willReturn($mockGoogleUser);
 

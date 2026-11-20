@@ -143,4 +143,38 @@ class AlertStuckWithdrawalsTest extends TestCase
         $this->artisan('withdrawals:alert-stuck', ['--threshold' => 30])->assertExitCode(0);
         Notification::assertSentToTimes($admin, PushNotification::class, 1);
     }
+
+    public function test_alert_terkirim_saat_withdrawal_pending_tertahan_lebih_dari_threshold(): void
+    {
+        Notification::fake();
+
+        $merchant = User::factory()->create(['role' => 'pedagang']);
+        $store = Store::create([
+            'user_id' => $merchant->id,
+            'name' => 'Toko Pending Stuck',
+            'slug' => 'toko-pending-stuck',
+            'has_completed_tour' => true,
+        ]);
+
+        $withdrawal = Withdrawal::create([
+            'store_id' => $store->id,
+            'reference_no' => 'WD-STUCK-PENDING',
+            'amount' => 50000,
+            'bank_name' => 'BRI',
+            'account_number' => '9876543210',
+            'account_holder' => 'Pedagang Pending',
+            'status' => 'pending',
+            'notes' => 'Antrean pending tertahan',
+        ]);
+        $withdrawal->forceFill(['created_at' => now()->subMinutes(45)])->save();
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $admin->forceFill(['fcm_token' => 'token-admin-pending'])->save();
+
+        $this->artisan('withdrawals:alert-stuck', ['--threshold' => 30])
+            ->expectsOutputToContain('Ketemu 1 withdrawal nyangkut')
+            ->assertExitCode(0);
+
+        Notification::assertSentTo($admin, PushNotification::class);
+    }
 }

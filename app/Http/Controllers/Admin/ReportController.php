@@ -43,7 +43,7 @@ class ReportController extends Controller
             $imagePath = $product->image_path;
             if ($imagePath && ! str_starts_with($imagePath, 'http')) {
                 $cleanPath = ltrim($imagePath, '/');
-                $imagePath = str_starts_with($cleanPath, 'storage/') ? '/' . $cleanPath : '/storage/' . $cleanPath;
+                $imagePath = str_starts_with($cleanPath, 'storage/') ? '/'.$cleanPath : '/storage/'.$cleanPath;
             }
 
             $storeName = $product->store?->name ?? 'Toko Mitra';
@@ -64,7 +64,7 @@ class ReportController extends Controller
             $logoPath = $product->store?->logo_path;
             if ($logoPath && ! str_starts_with($logoPath, 'http')) {
                 $cleanLogo = ltrim($logoPath, '/');
-                $logoPath = str_starts_with($cleanLogo, 'storage/') ? '/' . $cleanLogo : '/storage/' . $cleanLogo;
+                $logoPath = str_starts_with($cleanLogo, 'storage/') ? '/'.$cleanLogo : '/storage/'.$cleanLogo;
             }
 
             $revenue = (float) $product->total_revenue;
@@ -164,11 +164,12 @@ class ReportController extends Controller
                 $str = (string) ($val ?? '');
                 $trimmed = ltrim($str, " \t\r\n");
                 if ($trimmed !== '' && in_array($trimmed[0], ['=', '+', '-', '@'], true)) {
-                    return "'" . $str;
+                    return "'".$str;
                 }
                 if ($str !== '' && in_array($str[0], ["\t", "\r", "\n"], true)) {
-                    return "'" . $str;
+                    return "'".$str;
                 }
+
                 return $str;
             };
 
@@ -182,7 +183,7 @@ class ReportController extends Controller
                     $sanitizeCsvCell($product->name),
                     $sanitizeCsvCell($product->category?->name ?? 'Umum'),
                     $sanitizeCsvCell($product->store?->name ?? '-'),
-                    $sanitizeCsvCell($product->store?->slug ? 'toko/' . $product->store->slug : '-'),
+                    $sanitizeCsvCell($product->store?->slug ? 'toko/'.$product->store->slug : '-'),
                     (int) $product->price,
                     (int) $product->stock,
                     (int) $product->total_sales,

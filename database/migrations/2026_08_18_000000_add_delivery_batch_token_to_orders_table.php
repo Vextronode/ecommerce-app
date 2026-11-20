@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('orders', 'delivery_batch_token')) {
+            if (! Schema::hasColumn('orders', 'delivery_batch_token')) {
                 $table->string('delivery_batch_token', 64)->nullable()->index();
             }
         });

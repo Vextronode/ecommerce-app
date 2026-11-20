@@ -56,7 +56,7 @@ Diurutkan berdasarkan tingkat keparahan.
 | CHK-05 | Pengalihan ke COD membatalkan transaksi gabungan tetapi hanya mengubah satu pesanan | High | Selesai | `checkout_pembayaran.md` |
 | ORD-01 | Pesanan COD dengan ambil sendiri tidak memiliki jalur ke `delivered` | High | Selesai | `pesanan_pengiriman.md` |
 | LEG-01 | Halaman Kebijakan Privasi tidak tersedia | High | Terbuka | `kebijakan_legal.md` |
-| INF-06 | Redis tanpa persistensi menyimpan antrean job dan data operasional | High | Terbuka | `infra_repo.md` |
+| INF-06 | Redis tanpa persistensi menyimpan antrean job dan data operasional | High | Selesai | `infra_repo.md` |
 | CHK-02 | Perhitungan pajak tidak sesuai skema perpajakan mana pun | Medium | Terbuka | `checkout_pembayaran.md` |
 | MER-01 | Akun pedagang dapat dibuat tanpa permohonan SID | Medium | Terbuka | `pedagang_toko.md` |
 | SID-01 | Saklar `enable_sid_sync` tidak dibaca backend | Medium | Terbuka | `integrasi_sid.md` |
@@ -75,8 +75,8 @@ Diurutkan berdasarkan tingkat keparahan.
 | MER-02 | Query analitik memakai nilai `payment_status` yang tidak pernah disimpan | Low | Terbuka | `pedagang_toko.md` |
 | SID-02 | `business_ref` antara toko dan permohonan tidak diikat foreign key | Low | Terbuka | `integrasi_sid.md` |
 | SID-03 | Status kontrak `openapi.yaml` tidak sesuai implementasi | Low | Terbuka | `integrasi_sid.md` |
-| INF-03 | Pemeriksaan gaya kode Pint tidak memblokir CI | Low | Terbuka | `infra_repo.md` |
-| INF-04 | Dua konfigurasi formatter dan file cache formatter ikut di-commit | Low | Terbuka | `infra_repo.md` |
+| INF-03 | Pemeriksaan gaya kode Pint tidak memblokir CI | Low | Selesai | `infra_repo.md` |
+| INF-04 | Dua konfigurasi formatter dan file cache formatter ikut di-commit | Low | Selesai | `infra_repo.md` |
 | INF-05 | Dokumen repositori tidak sesuai kondisi aktual | Low | Terbuka | `infra_repo.md` |
 | INF-07 | Peta dan rute bergantung pada server publik OSRM dan OpenStreetMap | Low | Perlu konfirmasi | `infra_repo.md` |
 | AUTH-01 | Pendaftaran dengan email tidak mensyaratkan verifikasi email | Low | Terbuka | `akun_autentikasi.md` |

@@ -157,7 +157,7 @@ class SprintFourSecurityTest extends TestCase
         // shipping_pin ga masuk fillable, jadi set lewat forceFill biar mass-assignment tetap diproteksi
         $order->forceFill(['shipping_pin' => '4321'])->save();
 
-        RateLimiter::clear('pin_verify_' . $order->invoice_number);
+        RateLimiter::clear('pin_verify_'.$order->invoice_number);
 
         // 1st wrong attempt: verify remaining attempts message and validation error bag
         $firstAttempt = $this->withSession(["driver_authorized_{$order->invoice_number}" => true])

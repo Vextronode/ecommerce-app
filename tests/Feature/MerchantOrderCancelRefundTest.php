@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
 use App\Services\MidtransService;
+use App\Services\PaymentSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Mockery;
@@ -161,7 +162,7 @@ class MerchantOrderCancelRefundTest extends TestCase
         $orderA->forceFill(['parent_transaction_id' => $parentTx, 'shipping_status' => 'cancelled', 'payment_status' => 'paid'])->save();
         $orderB->forceFill(['parent_transaction_id' => $parentTx, 'shipping_status' => 'processing', 'payment_status' => 'paid'])->save();
 
-        $syncService = app(\App\Services\PaymentSyncService::class);
+        $syncService = app(PaymentSyncService::class);
 
         // Simulasi notifikasi partial_refund dari Midtrans untuk kedua order dalam parent transaction yang sama
         $syncService->applyPaymentStatus($orderA->id, 'partial_refund');

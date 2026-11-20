@@ -140,7 +140,7 @@ class PaymentController extends Controller
                 try {
                     $midtransService->cancelTransaction($midtransOrderId);
                 } catch (\Throwable $e) {
-                    Log::warning("Gagal membatalkan transaksi Midtrans saat switch ke COD: {$midtransOrderId} - " . $e->getMessage());
+                    Log::warning("Gagal membatalkan transaksi Midtrans saat switch ke COD: {$midtransOrderId} - ".$e->getMessage());
                 }
             }
 

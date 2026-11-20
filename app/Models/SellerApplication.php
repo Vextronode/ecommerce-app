@@ -12,12 +12,17 @@ class SellerApplication extends Model
     use HasFactory;
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_ACCEPTED = 'accepted';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const CATEGORY_KELONTONG = 'kelontong';
+
     public const CATEGORY_KULINER = 'kuliner';
+
     public const CATEGORY_NON_KULINER = 'non_kuliner';
 
     protected $fillable = [

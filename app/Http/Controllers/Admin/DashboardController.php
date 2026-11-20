@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -186,7 +187,7 @@ class DashboardController extends Controller
     /**
      * Selesaikan rekonsiliasi / refund manual pesanan oleh admin desa (CHK-01).
      */
-    public function reconcileOrder(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    public function reconcileOrder(Request $request, int $id): RedirectResponse
     {
         $order = Order::findOrFail($id);
         $payload = $order->payment_payload ?? [];
@@ -201,7 +202,7 @@ class DashboardController extends Controller
             'payment_payload' => $payload,
         ])->save();
 
-        \Illuminate\Support\Facades\Log::info("Admin #{$request->user()?->id} menyelesaikan rekonsiliasi pesanan #{$order->invoice_number}");
+        Log::info("Admin #{$request->user()?->id} menyelesaikan rekonsiliasi pesanan #{$order->invoice_number}");
 
         return redirect()->back()->with('success', "Rekonsiliasi pesanan #{$order->invoice_number} berhasil diselesaikan.");
     }

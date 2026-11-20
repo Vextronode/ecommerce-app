@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\OrderItem;
 use App\Models\ProductReview;
 use App\Notifications\PushNotification;
+use App\Services\ChatMediaProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ProductReviewController extends Controller
@@ -102,14 +104,14 @@ class ProductReviewController extends Controller
                 $isVideo = str_starts_with($mime, 'video/');
 
                 if (! $isImage && ! $isVideo) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
+                    throw ValidationException::withMessages([
                         'images' => 'Tipe file tidak valid. Hanya foto (JPEG, PNG, WebP) dan video (MP4, MOV) yang diizinkan.',
                     ]);
                 }
 
                 // Foto maksimal 2MB (2048 KB)
                 if ($isImage && $file->getSize() > 2048 * 1024) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
+                    throw ValidationException::withMessages([
                         'images' => "Ukuran foto '{$file->getClientOriginalName()}' melebihi batas maksimal 2MB.",
                     ]);
                 }
@@ -118,12 +120,12 @@ class ProductReviewController extends Controller
                 if ($isVideo) {
                     $videoCount++;
                     if ($videoCount > 1) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
+                        throw ValidationException::withMessages([
                             'images' => 'Maksimal hanya diperbolehkan mengunggah 1 file video per ulasan.',
                         ]);
                     }
                     if ($file->getSize() > 5120 * 1024) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
+                        throw ValidationException::withMessages([
                             'images' => "Ukuran video '{$file->getClientOriginalName()}' melebihi batas maksimal 5MB.",
                         ]);
                     }
@@ -142,7 +144,7 @@ class ProductReviewController extends Controller
 
             $imagePaths = [];
             foreach ($files as $file) {
-                [$path] = app(\App\Services\ChatMediaProcessor::class)->store($file, 'reviews', 'public');
+                [$path] = app(ChatMediaProcessor::class)->store($file, 'reviews', 'public');
                 $imagePaths[] = '/storage/'.$path;
             }
         }
@@ -196,12 +198,12 @@ class ProductReviewController extends Controller
                         $productName = $orderItem->product?->name ?? 'Produk';
                         $ratingStars = str_repeat('⭐', (int) ($reviewData['rating'] ?? 5));
                         $title = "Ulasan Baru ({$ratingStars})";
-                        $message = "Pelanggan memberikan ulasan pada {$productName}: \"" . Str::limit($reviewData['comment'] ?? '', 60) . "\"";
+                        $message = "Pelanggan memberikan ulasan pada {$productName}: \"".Str::limit($reviewData['comment'] ?? '', 60).'"';
                         $storeOwner->notify(new PushNotification($title, $message, 'review', '/pedagang/products'));
                     }
                 }
             } catch (\Throwable $e) {
-                Log::warning('Review notification error: ' . $e->getMessage());
+                Log::warning('Review notification error: '.$e->getMessage());
             }
         }
 

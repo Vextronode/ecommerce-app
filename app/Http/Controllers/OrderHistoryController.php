@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderStatusUpdated;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\MidtransService;
+use App\Services\OrderNotificationService;
 use App\Services\PaymentSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +16,7 @@ class OrderHistoryController extends Controller
 {
     // batas baris riwayat yang dikirim ke halaman riwayat pembeli
     private const MAX_HISTORY_ROWS = 200;
+
     public function index(Request $request)
     {
         $rawStatus = $request->query('status', 'all');
@@ -92,7 +96,6 @@ class OrderHistoryController extends Controller
                         $order->refresh();
                     }
                 }
-
 
                 return [
                     'id' => $order->id,
@@ -244,11 +247,12 @@ class OrderHistoryController extends Controller
 
                 $targetOrder->restoreStock();
 
-                \App\Services\OrderNotificationService::orderCancelled($targetOrder, 'Dibatalkan oleh pembeli');
+                OrderNotificationService::orderCancelled($targetOrder, 'Dibatalkan oleh pembeli');
 
                 try {
-                    broadcast(new \App\Events\OrderStatusUpdated($targetOrder))->toOthers();
-                } catch (\Throwable $e) {}
+                    broadcast(new OrderStatusUpdated($targetOrder))->toOthers();
+                } catch (\Throwable $e) {
+                }
             }
 
             if ($order->payment_method !== 'cod') {
@@ -259,7 +263,7 @@ class OrderHistoryController extends Controller
         });
 
         if ($midtransOrderIdToCancel) {
-            app(\App\Services\MidtransService::class)->cancelTransaction($midtransOrderIdToCancel);
+            app(MidtransService::class)->cancelTransaction($midtransOrderIdToCancel);
         }
 
         return $response;
@@ -289,14 +293,14 @@ class OrderHistoryController extends Controller
             $order->update(['shipping_status' => 'delivered']);
             $order->creditStoreBalance();
 
-            \App\Services\OrderNotificationService::orderDelivered($order);
+            OrderNotificationService::orderDelivered($order);
 
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
-            } catch (\Throwable $e) {}
+                broadcast(new OrderStatusUpdated($order))->toOthers();
+            } catch (\Throwable $e) {
+            }
 
             return back()->with('success', 'Pesanan berhasil dikonfirmasi selesai.');
         });
     }
 }
-

@@ -29,8 +29,8 @@ class PlatformSettingsUpdated implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      *
-     * @param array<string, mixed> $settings
-     * @param array<int, string> $changedKeys
+     * @param  array<string, mixed>  $settings
+     * @param  array<int, string>  $changedKeys
      */
     public function __construct(array $settings, array $changedKeys = [])
     {
@@ -54,7 +54,7 @@ class PlatformSettingsUpdated implements ShouldBroadcastNow
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {

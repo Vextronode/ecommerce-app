@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Events\OrderStatusUpdated;
+use App\Services\OrderNotificationService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -363,16 +366,14 @@ class Order extends Model
         });
     }
 
-
     /**
      * Mark order as arrived at customer delivery location.
      */
     public function markAsArrived(): void
     {
-        \Illuminate\Support\Facades\Cache::put("order_arrived_{$this->id}", now()->toIso8601String(), 86400 * 7);
+        Cache::put("order_arrived_{$this->id}", now()->toIso8601String(), 86400 * 7);
         $this->forceFill(['arrived_at' => now()])->save();
     }
-
 
     /**
      * Check whether courier has arrived at destination.
@@ -383,7 +384,7 @@ class Order extends Model
             return true;
         }
 
-        return \Illuminate\Support\Facades\Cache::has("order_arrived_{$this->id}");
+        return Cache::has("order_arrived_{$this->id}");
     }
 
     /**
@@ -443,15 +444,16 @@ class Order extends Model
             $locked->update(['shipping_status' => 'delivered']);
             $locked->creditStoreBalance();
 
-            \App\Services\OrderNotificationService::orderDelivered($locked);
+            OrderNotificationService::orderDelivered($locked);
 
             try {
-                broadcast(new \App\Events\OrderStatusUpdated($locked))->toOthers();
-            } catch (\Throwable $e) {}
+                broadcast(new OrderStatusUpdated($locked))->toOthers();
+            } catch (\Throwable $e) {
+            }
 
             Log::info("Order #{$locked->invoice_number} auto-completed by system (4-hour timeout).");
+
             return true;
         });
     }
 }
-

@@ -12,7 +12,7 @@ class ProhibitedItemGuardServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ProhibitedItemGuardService();
+        $this->service = new ProhibitedItemGuardService;
     }
 
     public function test_detects_tobacco_and_vape_keywords(): void
@@ -148,7 +148,7 @@ class ProhibitedItemGuardServiceTest extends TestCase
             $check = $this->service->check($cleanText);
             $this->assertNull(
                 $check,
-                "False positive terdeteksi pada produk legal '{$cleanText}': " . ($check['message'] ?? '')
+                "False positive terdeteksi pada produk legal '{$cleanText}': ".($check['message'] ?? '')
             );
             $this->assertTrue($this->service->isClean($cleanText));
         }

@@ -11,12 +11,17 @@ class PlatformSetting extends Model
     use HasFactory;
 
     public const TYPE_BOOLEAN = 'boolean';
+
     public const TYPE_NUMBER = 'number';
+
     public const TYPE_STRING = 'string';
+
     public const TYPE_JSON = 'json';
 
     public const GROUP_FINANCE = 'finance';
+
     public const GROUP_FEATURE_FLAGS = 'feature_flags';
+
     public const GROUP_GENERAL = 'general';
 
     protected $fillable = [

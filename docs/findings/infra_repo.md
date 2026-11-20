@@ -5,12 +5,13 @@
 | Field | Isi |
 |---|---|
 | Keparahan | High |
-| Status | Terbuka |
+| Status | Selesai |
 | Lokasi | `docker-compose.yml` (layanan `redis_cibenda`); `.env.docker.example` (`QUEUE_CONNECTION`, `CACHE_STORE`, `SESSION_DRIVER`); `app/Http/Controllers/Merchant/WithdrawalController.php`; `app/Console/Commands/AlertStuckWithdrawals.php:31-33`; `app/Console/Commands/ReconcileWithdrawals.php:132` |
 | Kondisi Aktual | Redis dijalankan dengan `--appendonly no --save ""`, sehingga isinya hilang setiap kali container dimulai ulang. Container aplikasi membaca konfigurasi dari `.env.docker`; contohnya (`.env.docker.example`) memakai Redis untuk antrean job, cache, dan sesi. Isi `.env.docker` di server production tidak tersimpan di repositori. Data yang hanya ada di cache antara lain penanda kedatangan kurir (`order_arrived_*`), data pengantaran batch (`delivery_batch_*`), dan lokasi terakhir kurir (`driver_loc_*`). Pengajuan pencairan dana mengurangi saldo dan membuat `withdrawals` berstatus `pending`, lalu mengirim job `ProcessWithdrawalPayout` ke antrean. Peringatan dan rekonsiliasi pencairan hanya memeriksa status `processing` dan `failed`. |
 | Dampak | Bila Redis dimulai ulang sebelum job pencairan dijalankan, pencairan tertahan di `pending` dengan saldo yang sudah terpotong, tanpa peringatan ke admin. Selama pencairan itu masih `pending`, pedagang juga tidak dapat mengajukan pencairan baru. Job notifikasi yang belum dijalankan hilang, seluruh pengguna keluar dari sesinya, dan data pengantaran batch serta penanda kedatangan kurir ikut hilang. |
 | Bukti | `command: redis-server --appendonly no --save ""`; `.env.docker.example`: `QUEUE_CONNECTION=redis`, `CACHE_STORE=redis`, `SESSION_DRIVER=redis`. Query `AlertStuckWithdrawals` hanya memuat `status = 'processing'` atau `status = 'failed'` dengan `needs_reconciliation`. |
 | Rekomendasi | Aktifkan persistensi Redis atau pindahkan antrean ke database, dan tambahkan pemeriksaan untuk pencairan `pending` yang tertahan. |
+| Keputusan | Diselesaikan 20 November 2026: (1) Diperbarui docker-compose.yml dengan perintah redis-server --appendonly yes dan menambahkan persistent volume redis_data:/data. (2) Diperbarui AlertStuckWithdrawals.php agar mendeteksi pencairan dana berstatus pending yang tertahan lebih lama dari threshold (akibat restart/antrean macet). |
 
 ## INF-07 Peta dan rute bergantung pada server publik OSRM dan OpenStreetMap
 
@@ -53,24 +54,26 @@
 | Field | Isi |
 |---|---|
 | Keparahan | Low |
-| Status | Terbuka |
+| Status | Selesai |
 | Lokasi | `.github/workflows/ci.yml` (langkah "Code Style Check") |
 | Kondisi Aktual | Langkah `./vendor/bin/pint --test` memakai `continue-on-error: true`. |
 | Dampak | Pelanggaran gaya kode tidak menggagalkan CI. |
 | Bukti | `continue-on-error: true` pada langkah Pint. |
 | Rekomendasi | Tentukan apakah Pint wajib. Bila ya, hapus `continue-on-error`. |
+| Keputusan | Diselesaikan 20 November 2026: Dihapus continue-on-error: true pada langkah Pint di .github/workflows/ci.yml sehingga pelanggaran gaya kode secara aktif memblokir CI. |
 
 ## INF-04 Dua konfigurasi formatter dan file cache formatter ikut di-commit
 
 | Field | Isi |
 |---|---|
 | Keparahan | Low |
-| Status | Terbuka |
+| Status | Selesai |
 | Lokasi | `.php-cs-fixer.dist.php`, `.php-cs-fixer.cache`; `composer.json` (`laravel/pint`) |
 | Kondisi Aktual | Repositori memiliki konfigurasi PHP-CS-Fixer sekaligus memakai Laravel Pint di CI. File cache `.php-cs-fixer.cache` ter-track di git. |
 | Dampak | Dua formatter dapat menghasilkan gaya yang berbeda. File cache berubah setiap formatter dijalankan dan menambah diff yang tidak relevan. |
 | Bukti | `git ls-files` memuat `.php-cs-fixer.cache` dan `.php-cs-fixer.dist.php`. |
 | Rekomendasi | Pilih satu formatter dan keluarkan file cache dari git. |
+| Keputusan | Diselesaikan 20 November 2026: Dihapus .php-cs-fixer.cache dan .php-cs-fixer.dist.php dari git, ditambahkan .php-cs-fixer.cache ke .gitignore, dan distandarkan konfigurasi formatter proyek menggunakan pint.json. |
 
 ## INF-05 Dokumen repositori tidak sesuai kondisi aktual
 

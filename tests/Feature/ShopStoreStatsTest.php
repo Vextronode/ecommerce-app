@@ -145,6 +145,7 @@ class ShopStoreStatsTest extends TestCase
         $this->assertSame(5, (int) $toko['total_sold'], 'hanya order delivered yang dihitung');
         $this->assertSame('4.0', $toko['average_rating']);
     }
+
     public function test_jumlah_query_tidak_tumbuh_ikut_jumlah_toko(): void
     {
         $buyer = User::factory()->create(['role' => 'user']);

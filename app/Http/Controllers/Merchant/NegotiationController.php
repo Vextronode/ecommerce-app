@@ -27,7 +27,7 @@ class NegotiationController extends Controller
         $user = Auth::user();
         $store = $user->store;
 
-        if (!$store || (int) $negotiation->store_id !== (int) $store->id) {
+        if (! $store || (int) $negotiation->store_id !== (int) $store->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -74,7 +74,7 @@ class NegotiationController extends Controller
                 'message_type' => 'negotiation',
                 'product_id' => $locked->product_id,
                 'negotiation_id' => $locked->id,
-                'message' => "Menyetujui tawaran produk seharga Rp " . number_format((float) $locked->offered_price, 0, ',', '.') . "/barang untuk {$locked->quantity} pcs {$locked->product?->name}{$variantText}.",
+                'message' => 'Menyetujui tawaran produk seharga Rp '.number_format((float) $locked->offered_price, 0, ',', '.')."/barang untuk {$locked->quantity} pcs {$locked->product?->name}{$variantText}.",
                 'is_read' => false,
             ]);
 
@@ -87,7 +87,7 @@ class NegotiationController extends Controller
             broadcast(new NegotiationUpdatedEvent($negotiation->fresh()))->toOthers();
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('Merchant accept negotiation broadcast error: ' . $e->getMessage());
+            Log::warning('Merchant accept negotiation broadcast error: '.$e->getMessage());
         }
 
         try {
@@ -95,14 +95,14 @@ class NegotiationController extends Controller
             if ($buyerUser) {
                 $storeName = $store->name ?? 'Penjual';
                 $buyerUser->notify(new PushNotification(
-                    "Tawaran Produk Disetujui!",
-                    "{$storeName} telah menyetujui tawaran produk Rp " . number_format((float) $negotiation->offered_price, 0, ',', '.') . ". Segera checkout sebelum masa berlaku habis.",
+                    'Tawaran Produk Disetujui!',
+                    "{$storeName} telah menyetujui tawaran produk Rp ".number_format((float) $negotiation->offered_price, 0, ',', '.').'. Segera checkout sebelum masa berlaku habis.',
                     'chat',
                     "/chat?room={$negotiation->chat_room_id}"
                 ));
             }
         } catch (\Throwable $e) {
-            Log::warning('Merchant accept negotiation push error: ' . $e->getMessage());
+            Log::warning('Merchant accept negotiation push error: '.$e->getMessage());
         }
 
         return response()->json([
@@ -117,7 +117,7 @@ class NegotiationController extends Controller
         $user = Auth::user();
         $store = $user->store;
 
-        if (!$store || (int) $negotiation->store_id !== (int) $store->id) {
+        if (! $store || (int) $negotiation->store_id !== (int) $store->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -163,7 +163,7 @@ class NegotiationController extends Controller
             broadcast(new NegotiationUpdatedEvent($negotiation->fresh()))->toOthers();
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('Merchant reject negotiation broadcast error: ' . $e->getMessage());
+            Log::warning('Merchant reject negotiation broadcast error: '.$e->getMessage());
         }
 
         try {
@@ -171,14 +171,14 @@ class NegotiationController extends Controller
             if ($buyerUser) {
                 $storeName = $store->name ?? 'Penjual';
                 $buyerUser->notify(new PushNotification(
-                    "Tawaran Belum Disetujui",
+                    'Tawaran Belum Disetujui',
                     "{$storeName} belum dapat menerima tawaran produk Anda untuk {$negotiation->product?->name}.",
                     'chat',
                     "/chat?room={$negotiation->chat_room_id}"
                 ));
             }
         } catch (\Throwable $e) {
-            Log::warning('Merchant reject negotiation push error: ' . $e->getMessage());
+            Log::warning('Merchant reject negotiation push error: '.$e->getMessage());
         }
 
         return response()->json([
@@ -197,7 +197,7 @@ class NegotiationController extends Controller
         $user = Auth::user();
         $store = $user->store;
 
-        if (!$store || (int) $negotiation->store_id !== (int) $store->id) {
+        if (! $store || (int) $negotiation->store_id !== (int) $store->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -239,13 +239,13 @@ class NegotiationController extends Controller
 
             if ($counterPrice <= $offeredPrice) {
                 throw ValidationException::withMessages([
-                    'counter_price' => 'Tawaran balik harus lebih tinggi dari penawaran pembeli (Rp ' . number_format($offeredPrice, 0, ',', '.') . ').',
+                    'counter_price' => 'Tawaran balik harus lebih tinggi dari penawaran pembeli (Rp '.number_format($offeredPrice, 0, ',', '.').').',
                 ]);
             }
 
             if ($counterPrice >= $originalPrice) {
                 throw ValidationException::withMessages([
-                    'counter_price' => 'Tawaran balik harus lebih murah dari harga normal (Rp ' . number_format($originalPrice, 0, ',', '.') . ').',
+                    'counter_price' => 'Tawaran balik harus lebih murah dari harga normal (Rp '.number_format($originalPrice, 0, ',', '.').').',
                 ]);
             }
 
@@ -256,7 +256,7 @@ class NegotiationController extends Controller
                 ]);
             }
 
-            $sanitizedNote = !empty($validated['note'])
+            $sanitizedNote = ! empty($validated['note'])
                 ? trim((string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', strip_tags($validated['note'])))
                 : null;
 
@@ -277,7 +277,7 @@ class NegotiationController extends Controller
                 'message_type' => 'negotiation',
                 'product_id' => $locked->product_id,
                 'negotiation_id' => $locked->id,
-                'message' => "Mengajukan tawaran balik sebesar Rp " . number_format($counterPrice, 0, ',', '.') . "/barang untuk {$locked->quantity} pcs {$locked->product?->name}{$variantText}.{$noteSuffix}",
+                'message' => 'Mengajukan tawaran balik sebesar Rp '.number_format($counterPrice, 0, ',', '.')."/barang untuk {$locked->quantity} pcs {$locked->product?->name}{$variantText}.{$noteSuffix}",
                 'is_read' => false,
             ]);
 
@@ -290,7 +290,7 @@ class NegotiationController extends Controller
             broadcast(new NegotiationUpdatedEvent($negotiation->fresh()))->toOthers();
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('Merchant counter negotiation broadcast error: ' . $e->getMessage());
+            Log::warning('Merchant counter negotiation broadcast error: '.$e->getMessage());
         }
 
         try {
@@ -299,13 +299,13 @@ class NegotiationController extends Controller
                 $storeName = $store->name ?? 'Penjual';
                 $buyerUser->notify(new PushNotification(
                     "Tawaran Balik dari {$storeName}",
-                    "Penjual menawarkan harga Rp " . number_format($counterPrice, 0, ',', '.') . " untuk {$negotiation->product?->name}. Cek penawaran sekarang.",
+                    'Penjual menawarkan harga Rp '.number_format($counterPrice, 0, ',', '.')." untuk {$negotiation->product?->name}. Cek penawaran sekarang.",
                     'chat',
                     "/chat?room={$negotiation->chat_room_id}"
                 ));
             }
         } catch (\Throwable $e) {
-            Log::warning('Merchant counter negotiation push error: ' . $e->getMessage());
+            Log::warning('Merchant counter negotiation push error: '.$e->getMessage());
         }
 
         return response()->json([
@@ -315,4 +315,3 @@ class NegotiationController extends Controller
         ]);
     }
 }
-

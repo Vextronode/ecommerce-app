@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Merchant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -47,7 +48,7 @@ class MerchantSetupController extends Controller
         $baseSlug = Str::slug($request->store_name) ?: 'toko-'.$user->id;
         $slug = $baseSlug.'-'.$user->id;
         $count = 1;
-        while (\App\Models\Store::where('slug', $slug)->when($store, fn ($q) => $q->where('id', '!=', $store->id))->exists()) {
+        while (Store::where('slug', $slug)->when($store, fn ($q) => $q->where('id', '!=', $store->id))->exists()) {
             $slug = $baseSlug.'-'.$user->id.'-'.$count++;
         }
 

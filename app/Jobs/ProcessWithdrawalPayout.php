@@ -165,7 +165,8 @@ class ProcessWithdrawalPayout implements ShouldQueue
 
                 try {
                     broadcast(new WithdrawalUpdated($this->withdrawal->fresh()));
-                } catch (\Throwable $bEx) {}
+                } catch (\Throwable $bEx) {
+                }
 
                 Log::warning("ProcessWithdrawalPayout: Rate-limited on attempt {$currentAttempt}/{$this->tries} for withdrawal #{$this->withdrawal->id}. Releasing back to queue in {$delaySeconds}s.");
 
@@ -182,12 +183,13 @@ class ProcessWithdrawalPayout implements ShouldQueue
             Log::warning("ProcessWithdrawalPayout: Withdrawal #{$this->withdrawal->id} ({$refNo}) dapet respons ambigu dari gateway: ".$e->getMessage());
 
             Withdrawal::where('id', $this->withdrawal->id)->update([
-                'notes' => "Gateway memberi respons ambigu, status payout belum pasti. Menunggu rekonsiliasi otomatis.",
+                'notes' => 'Gateway memberi respons ambigu, status payout belum pasti. Menunggu rekonsiliasi otomatis.',
             ]);
 
             try {
                 broadcast(new WithdrawalUpdated($this->withdrawal->fresh()));
-            } catch (\Throwable $bEx) {}
+            } catch (\Throwable $bEx) {
+            }
 
             return;
         } catch (\Throwable $e) {
@@ -211,7 +213,8 @@ class ProcessWithdrawalPayout implements ShouldQueue
 
                 try {
                     broadcast(new WithdrawalUpdated($this->withdrawal->fresh()));
-                } catch (\Throwable $bEx) {}
+                } catch (\Throwable $bEx) {
+                }
 
                 Log::warning("ProcessWithdrawalPayout: Not-sent error '{$e->getMessage()}' on attempt {$currentAttempt}/{$this->tries} for withdrawal #{$this->withdrawal->id}. Releasing back to queue in {$delaySeconds}s.");
 
@@ -230,7 +233,8 @@ class ProcessWithdrawalPayout implements ShouldQueue
 
                 try {
                     broadcast(new WithdrawalUpdated($this->withdrawal->fresh()));
-                } catch (\Throwable $bEx) {}
+                } catch (\Throwable $bEx) {
+                }
 
                 Log::warning("ProcessWithdrawalPayout: Maybe-sent error '{$e->getMessage()}' on attempt {$currentAttempt}/{$this->tries} for withdrawal #{$this->withdrawal->id}. Biarin processing buat rekonsiliasi.");
 
@@ -286,7 +290,8 @@ class ProcessWithdrawalPayout implements ShouldQueue
             if ($failed && $failed->status === 'failed') {
                 try {
                     broadcast(new WithdrawalUpdated($failed->fresh()));
-                } catch (\Throwable $bEx) {}
+                } catch (\Throwable $bEx) {
+                }
             }
 
             return;

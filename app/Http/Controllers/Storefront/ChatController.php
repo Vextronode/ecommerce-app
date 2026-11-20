@@ -20,7 +20,7 @@ class ChatController extends Controller
     public function index(): JsonResponse
     {
         $userId = Auth::id();
-        if (!$userId) {
+        if (! $userId) {
             return response()->json(['rooms' => []]);
         }
 
@@ -32,8 +32,9 @@ class ChatController extends Controller
             }])
             ->orderByDesc('last_message_at')
             ->get()
-            ->map(function ($room) use ($userId) {
+            ->map(function ($room) {
                 $storeUser = $room->store?->user;
+
                 return [
                     'id' => $room->id,
                     'store' => [
@@ -172,7 +173,7 @@ class ChatController extends Controller
                         'price' => $msg->product->price,
                         'image_path' => $msg->product->image_path,
                     ] : null,
-                    'media_path' => $msg->media_path ? '/storage/' . $msg->media_path : null,
+                    'media_path' => $msg->media_path ? '/storage/'.$msg->media_path : null,
                     'media_type' => $msg->media_type,
                     'is_read' => $msg->is_read,
                     'created_at' => $msg->created_at->toISOString(),
@@ -230,7 +231,7 @@ class ChatController extends Controller
 
         $room->loadMissing('store.user');
         $store = $room->store;
-        if (!$store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
+        if (! $store || $store->sid_status !== 'verified' || ($store->user && in_array($store->user->status, ['suspended', 'inactive'], true))) {
             return response()->json(['message' => 'Toko ini sedang tidak aktif.'], 422);
         }
 
@@ -249,7 +250,7 @@ class ChatController extends Controller
         $rawMessage = (string) ($request->message ?? '');
         $sanitizedMessage = trim((string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $rawMessage));
 
-        if ($sanitizedMessage === '' && !$request->hasFile('media') && !$request->product_id) {
+        if ($sanitizedMessage === '' && ! $request->hasFile('media') && ! $request->product_id) {
             return response()->json(['message' => 'Pesan atau lampiran tidak boleh kosong.'], 422);
         }
 
@@ -259,7 +260,7 @@ class ChatController extends Controller
                 ->where('store_id', $room->store_id)
                 ->where('is_active', true)
                 ->exists();
-            if (!$productExists) {
+            if (! $productExists) {
                 return response()->json(['message' => 'Produk tidak berasal dari toko ini.'], 422);
             }
             $validProductId = (int) $request->product_id;
@@ -273,8 +274,9 @@ class ChatController extends Controller
             try {
                 [$mediaPath, $mediaType] = app(ChatMediaProcessor::class)->store($file);
             } catch (\Throwable $e) {
-                Log::error('Chat media upload failed: ' . $e->getMessage());
-                return response()->json(['message' => 'Gagal memproses gambar lampiran: ' . $e->getMessage()], 422);
+                Log::error('Chat media upload failed: '.$e->getMessage());
+
+                return response()->json(['message' => 'Gagal memproses gambar lampiran: '.$e->getMessage()], 422);
             }
         }
 
@@ -294,7 +296,7 @@ class ChatController extends Controller
         try {
             broadcast(new NewChatMessageEvent($chatMessage))->toOthers();
         } catch (\Throwable $e) {
-            Log::warning('NewChatMessageEvent broadcast error: ' . $e->getMessage());
+            Log::warning('NewChatMessageEvent broadcast error: '.$e->getMessage());
         }
 
         // Push notification ke pedagang jika sedang offline / di luar livechat
@@ -312,7 +314,7 @@ class ChatController extends Controller
                 ));
             }
         } catch (\Throwable $e) {
-            Log::warning('Chat push notification to seller error: ' . $e->getMessage());
+            Log::warning('Chat push notification to seller error: '.$e->getMessage());
         }
 
         $formattedMessage = [
@@ -328,7 +330,7 @@ class ChatController extends Controller
                 'price' => $chatMessage->product->price,
                 'image_path' => $chatMessage->product->image_path,
             ] : null,
-            'media_path' => $chatMessage->media_path ? '/storage/' . $chatMessage->media_path : null,
+            'media_path' => $chatMessage->media_path ? '/storage/'.$chatMessage->media_path : null,
             'media_type' => $chatMessage->media_type,
             'is_read' => false,
             'created_at' => $chatMessage->created_at->toISOString(),

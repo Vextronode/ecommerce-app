@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Carbon\Carbon;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -51,20 +52,20 @@ class User extends Authenticatable
 
     public function isOnline(): bool
     {
-        if (!$this->last_seen_at) {
+        if (! $this->last_seen_at) {
             return false;
         }
 
-        $date = $this->last_seen_at instanceof \Carbon\Carbon
+        $date = $this->last_seen_at instanceof Carbon
             ? $this->last_seen_at
-            : \Carbon\Carbon::parse($this->last_seen_at);
+            : Carbon::parse($this->last_seen_at);
 
         return $date->gt(now()->subMinutes(3));
     }
 
     public function lastSeenFormatted(): string
     {
-        if (!$this->last_seen_at) {
+        if (! $this->last_seen_at) {
             return 'Tidak aktif';
         }
 
@@ -72,11 +73,11 @@ class User extends Authenticatable
             return 'Online';
         }
 
-        $date = $this->last_seen_at instanceof \Carbon\Carbon
+        $date = $this->last_seen_at instanceof Carbon
             ? $this->last_seen_at
-            : \Carbon\Carbon::parse($this->last_seen_at);
+            : Carbon::parse($this->last_seen_at);
 
-        return 'Aktif ' . $date->diffForHumans();
+        return 'Aktif '.$date->diffForHumans();
     }
 
     public function isAdmin(): bool

@@ -66,4 +66,3 @@ return new class extends Migration
         // One-way security cleanup; old PIN plaintext cannot and should not be restored.
     }
 };
-

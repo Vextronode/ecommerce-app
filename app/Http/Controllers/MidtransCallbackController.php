@@ -17,7 +17,7 @@ class MidtransCallbackController extends Controller
 
         $logData = $notificationData;
         if (isset($logData['signature_key'])) {
-            $logData['signature_key'] = substr((string) $logData['signature_key'], 0, 8) . '...[MASKED]';
+            $logData['signature_key'] = substr((string) $logData['signature_key'], 0, 8).'...[MASKED]';
         }
 
         Log::info('Midtrans Webhook Received', $logData);

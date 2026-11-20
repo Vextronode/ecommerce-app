@@ -14,6 +14,7 @@ class PlatformSettingControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $regularUser;
 
     protected function setUp(): void

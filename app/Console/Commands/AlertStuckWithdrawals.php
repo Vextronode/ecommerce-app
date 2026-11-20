@@ -31,16 +31,24 @@ class AlertStuckWithdrawals extends Command
                 $q2->where('status', 'processing')->whereNotNull('payout_sent_at');
             })->orWhere(function ($q2) {
                 $q2->where('status', 'failed')->where('needs_reconciliation', true);
+            })->orWhere(function ($q2) {
+                // INF-06: Tangkap pencairan pending yang tertahan melebihi threshold (antrean redis macet/restart)
+                $q2->where('status', 'pending');
             });
         })
             ->where(function ($q) use ($threshold) {
-                // umur dihitung dari payout_sent_at, atau updated_at buat yang failed tanpa payout_sent_at
-                $q->where('payout_sent_at', '<=', now()->subMinutes($threshold))
-                    ->orWhere(function ($q2) use ($threshold) {
-                        $q2->whereNull('payout_sent_at')->where('updated_at', '<=', now()->subMinutes($threshold));
+                // umur dihitung dari payout_sent_at, atau created_at/updated_at buat yang pending/failed
+                $cutoff = now()->subMinutes($threshold);
+                $q->where('payout_sent_at', '<=', $cutoff)
+                    ->orWhere(function ($q2) use ($cutoff) {
+                        $q2->whereNull('payout_sent_at')
+                            ->where(function ($q3) use ($cutoff) {
+                                $q3->where('created_at', '<=', $cutoff)
+                                    ->orWhere('updated_at', '<=', $cutoff);
+                            });
                     });
             })
-            ->orderBy('payout_sent_at')
+            ->orderBy('created_at')
             ->get();
 
         if ($stuck->isEmpty()) {
@@ -127,7 +135,7 @@ class AlertStuckWithdrawals extends Command
      */
     private function ageMinutes(Withdrawal $withdrawal): int
     {
-        $reference = $withdrawal->payout_sent_at ?? $withdrawal->updated_at;
+        $reference = $withdrawal->payout_sent_at ?? $withdrawal->created_at ?? $withdrawal->updated_at;
 
         return $reference ? max(0, (int) $reference->diffInMinutes(now())) : 0;
     }

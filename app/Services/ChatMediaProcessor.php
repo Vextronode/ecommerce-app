@@ -18,7 +18,9 @@ use RuntimeException;
 class ChatMediaProcessor
 {
     private const MAX_IMAGE_DIMENSION = 2560;
+
     private const JPEG_QUALITY = 82;
+
     private const WEBP_QUALITY = 82;
 
     /**

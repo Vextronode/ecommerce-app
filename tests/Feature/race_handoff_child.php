@@ -1,10 +1,11 @@
 <?php
+
 $host = '127.0.0.1';
 $db = getenv('DB_DATABASE') ?: 'cibenda_mart';
 $user = getenv('DB_USERNAME') ?: 'sho';
 $pass = getenv('DB_PASSWORD') ?: '';
 
-list($_, $script, $mode, $userId, $gate, $table, $token) = $argv;
+[$_, $script, $mode, $userId, $gate, $table, $token] = $argv;
 
 $pdo = new PDO("mysql:host={$host};dbname={$db}", $user, $pass, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -49,5 +50,5 @@ try {
     $pdo->commit();
     echo "OK\n";
 } catch (Throwable $e) {
-    echo "ERR:".get_class($e)."\n";
+    echo 'ERR:'.get_class($e)."\n";
 }

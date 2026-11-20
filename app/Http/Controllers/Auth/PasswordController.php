@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller
@@ -23,12 +26,12 @@ class PasswordController extends Controller
         $user = $request->user();
         $user->forceFill([
             'password' => Hash::make($validated['password']),
-            'remember_token' => \Illuminate\Support\Str::random(60),
+            'remember_token' => Str::random(60),
         ])->save();
 
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
-                \Illuminate\Support\Facades\DB::table('sessions')
+            if (Schema::hasTable('sessions')) {
+                DB::table('sessions')
                     ->where('user_id', $user->id)
                     ->where('id', '!=', $request->session()->getId())
                     ->delete();

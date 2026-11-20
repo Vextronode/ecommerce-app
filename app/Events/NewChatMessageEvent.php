@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\ChatMessage;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -15,15 +14,18 @@ class NewChatMessageEvent implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     protected ChatMessage $message;
+
     public int $roomId;
+
     public int $receiverUserId;
+
     public ?int $storeId;
 
     public function __construct(ChatMessage $message)
     {
         $this->message = $message->load(['sender', 'product', 'chatRoom.store', 'chatRoom.user', 'negotiation.product', 'negotiation.sku']);
         $this->roomId = $message->chat_room_id;
-        
+
         $room = $this->message->chatRoom;
         $this->storeId = $room?->store_id;
 
@@ -37,14 +39,14 @@ class NewChatMessageEvent implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         $channels = [
-            new PrivateChannel('chat.room.' . $this->roomId),
+            new PrivateChannel('chat.room.'.$this->roomId),
         ];
 
         if ($this->receiverUserId > 0) {
-            $channels[] = new PrivateChannel('user-chats.' . $this->receiverUserId);
+            $channels[] = new PrivateChannel('user-chats.'.$this->receiverUserId);
         }
         if ($this->storeId) {
-            $channels[] = new PrivateChannel('store-chats.' . $this->storeId);
+            $channels[] = new PrivateChannel('store-chats.'.$this->storeId);
         }
 
         return $channels;
@@ -69,7 +71,7 @@ class NewChatMessageEvent implements ShouldBroadcastNow
             : $this->message->sender?->profile_photo_path;
 
         $senderAvatar = $rawAvatar
-            ? (str_starts_with($rawAvatar, 'http') || str_starts_with($rawAvatar, '/storage/') ? $rawAvatar : '/storage/' . ltrim($rawAvatar, '/'))
+            ? (str_starts_with($rawAvatar, 'http') || str_starts_with($rawAvatar, '/storage/') ? $rawAvatar : '/storage/'.ltrim($rawAvatar, '/'))
             : null;
 
         $negotiation = $this->message->negotiation;
@@ -112,7 +114,7 @@ class NewChatMessageEvent implements ShouldBroadcastNow
                 ] : null,
                 'variant_name' => $negotiation->sku?->variant_name,
             ] : null,
-            'media_path' => $this->message->media_path ? '/storage/' . $this->message->media_path : null,
+            'media_path' => $this->message->media_path ? '/storage/'.$this->message->media_path : null,
             'media_type' => $this->message->media_type,
             'is_read' => $this->message->is_read,
             'created_at' => $this->message->created_at->toISOString(),

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Events\OrderStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\MidtransService;
 use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -134,7 +135,7 @@ class OrderController extends Controller
             ], 422);
         }
 
-        $batchToken = 'BAT-' . strtoupper(Str::random(12));
+        $batchToken = 'BAT-'.strtoupper(Str::random(12));
         $validOrderIds = $orders->pluck('id')->toArray();
         $validInvoices = $orders->pluck('invoice_number')->toArray();
 
@@ -308,13 +309,13 @@ class OrderController extends Controller
             try {
                 broadcast(new OrderStatusUpdated($order));
             } catch (\Throwable $e) {
-                Log::warning('OrderStatusUpdated broadcast error: ' . $e->getMessage());
+                Log::warning('OrderStatusUpdated broadcast error: '.$e->getMessage());
             }
 
             return redirect()->route('merchant.orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
         });
 
-        $midtrans = app(\App\Services\MidtransService::class);
+        $midtrans = app(MidtransService::class);
 
         if ($midtransOrderIdToCancel) {
             $midtrans->cancelTransaction($midtransOrderIdToCancel);
