@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import toast from "react-hot-toast";
 import MerchantLayout from "@/Layouts/MerchantLayout";
-import { HelpCircle, Clock, ShieldCheck, CheckCircle2, Zap, Landmark } from "lucide-react";
+import { HelpCircle, Clock, ShieldCheck, CheckCircle2, Zap, Landmark, Info } from "lucide-react";
+import { formatRupiah } from "@/utils/formatters";
 import WithdrawalStats from "@/Components/Merchant/Withdrawal/WithdrawalStats";
 import BankAccountCard from "@/Components/Merchant/Withdrawal/BankAccountCard";
 import WithdrawFormCard from "@/Components/Merchant/Withdrawal/WithdrawFormCard";
@@ -39,6 +40,8 @@ interface Props {
         pending_balance: number;
         total_withdrawn: number;
         total_earnings: number;
+        total_cod?: number;
+        total_digital?: number;
     };
     isWithdrawalEnabled?: boolean;
 }
@@ -160,8 +163,46 @@ export default function Index({ store, withdrawals, stats, isWithdrawalEnabled =
                         pendingBalance={stats.pending_balance}
                         totalWithdrawn={stats.total_withdrawn}
                         totalEarnings={stats.total_earnings}
+                        totalCod={stats.total_cod}
+                        totalDigital={stats.total_digital}
                     />
                 </div>
+
+                {stats.total_earnings > 0 && (
+                    <div className="mb-6 bg-gradient-to-r from-orange-50/70 via-white to-amber-50/60 rounded-2xl p-4 md:p-5 border border-brand-orange/20 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-start gap-3.5">
+                            <div className="w-9 h-9 rounded-xl bg-brand-orange-tint flex items-center justify-center shrink-0 mt-0.5">
+                                <Info className="w-5 h-5 text-brand-orange" />
+                            </div>
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                    Informasi Saldo & Total Penjualan
+                                </h4>
+                                <p className="text-xs text-gray-600 leading-relaxed max-w-3xl">
+                                    Total Penjualan Anda tercatat sebesar <span className="font-bold text-gray-800">{formatRupiah(stats.total_earnings)}</span> (sinkron dengan Laporan & Analisis).
+                                    {stats.total_cod && stats.total_cod > 0 ? (
+                                        <>
+                                            {" "}Sebesar <span className="font-bold text-brand-orange-dark">{formatRupiah(stats.total_cod)}</span> merupakan transaksi <strong className="font-semibold text-gray-800">COD (Bayar di Tempat)</strong> di mana uang tunai sudah langsung diterima oleh pedagang/kurir secara fisik dan tidak masuk ke saldo dompet digital platform.
+                                        </>
+                                    ) : null}
+                                    {stats.pending_balance > 0 ? (
+                                        <>
+                                            {" "}Terdapat <span className="font-bold text-amber-700">{formatRupiah(stats.pending_balance)}</span> saldo pesanan online yang sedang tertahan aman (Escrow) dan akan otomatis masuk ke <strong>Saldo Siap Ditarik</strong> setelah pembeli menerima paket.
+                                        </>
+                                    ) : null}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="shrink-0 flex items-center gap-2 text-xs font-semibold text-brand-orange self-start md:self-center">
+                            <span className="px-3 py-1.5 rounded-xl bg-white border border-brand-orange/30 shadow-2xs">
+                                COD: Tunai di Tangan
+                            </span>
+                            <span className="px-3 py-1.5 rounded-xl bg-white border border-brand-orange/30 shadow-2xs">
+                                Online: Dompet Digital
+                            </span>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8 items-start">
                     <div className="space-y-4 md:space-y-6">

@@ -7,6 +7,8 @@ interface StatsProps {
     pendingBalance: number;
     totalWithdrawn: number;
     totalEarnings: number;
+    totalCod?: number;
+    totalDigital?: number;
 }
 
 export default function WithdrawalStats({
@@ -14,39 +16,46 @@ export default function WithdrawalStats({
     pendingBalance,
     totalWithdrawn,
     totalEarnings,
+    totalCod = 0,
+    totalDigital = 0,
 }: StatsProps) {
+    const earningsSubtitle =
+        totalCod > 0
+            ? `Termasuk tunai COD ${formatRupiah(totalCod)}`
+            : "Sinkron Laporan & Analisis";
+
     const stats = [
         {
             title: "Saldo Siap Ditarik",
             value: formatRupiah(availableBalance),
-            subtitle: "* Tersedia di Available Balance",
+            subtitle: "* Dana digital siap dicairkan ke bank",
             icon: <Wallet className="w-6 h-6 text-brand-orange" />,
             badgeBg: "bg-emerald-50 text-emerald-600 border-emerald-200/50",
-            badgeText: "Aktif",
+            badgeText: "Siap Tarik",
         },
         {
             title: "Saldo Tertahan (Escrow)",
             value: formatRupiah(pendingBalance),
-            subtitle: "* Cair setelah pesanan selesai",
+            subtitle: "* Cair otomatis saat pesanan online tiba",
             icon: <Wallet className="w-6 h-6 text-amber-500" />,
             badgeBg: "bg-amber-50 text-amber-600 border-amber-200/50",
-            badgeText: "Ditahan",
+            badgeText: "Escrow",
         },
         {
             title: "Total Saldo Ditarik",
             value: formatRupiah(totalWithdrawn),
-            subtitle: "Akumulasi pencairan sukses",
+            subtitle: "Akumulasi pencairan berhasil",
             icon: <ArrowUpRight className="w-6 h-6 text-brand-orange" />,
             badgeBg: "bg-emerald-50 text-emerald-600 border-emerald-200/50",
-            badgeText: "Sukses",
+            badgeText: "Dicairkan",
         },
         {
             title: "Total Penjualan",
             value: formatRupiah(totalEarnings),
-            subtitle: "Total pendapatan kotor",
+            subtitle: earningsSubtitle,
             icon: <TrendingUp className="w-6 h-6 text-brand-orange" />,
             badgeBg: "bg-emerald-50 text-emerald-600 border-emerald-200/50",
-            badgeText: "Kotor",
+            badgeText: "Omzet",
         },
     ];
 

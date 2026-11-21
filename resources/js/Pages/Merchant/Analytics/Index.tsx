@@ -11,6 +11,8 @@ import { Banknote, ShoppingBag, Star, Receipt, Calendar } from 'lucide-react';
 interface Metrics {
     total_revenue: number;
     total_revenue_growth?: number;
+    total_cod?: number;
+    total_online?: number;
     total_orders: number;
     total_orders_growth?: number;
     rating_shop: number;
@@ -114,6 +116,11 @@ export default function AnalyticsIndex({
                         growth={metrics.total_revenue_growth}
                         isCurrency={true}
                         iconTheme="teal"
+                        subtitle={
+                            metrics.total_cod && metrics.total_cod > 0
+                                ? `Termasuk Tunai COD: Rp. ${Number(metrics.total_cod).toLocaleString('id-ID')}`
+                                : undefined
+                        }
                     />
                     <AnalyticsOverviewCard
                         title="Total Orderan"

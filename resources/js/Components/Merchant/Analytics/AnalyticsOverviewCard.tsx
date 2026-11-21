@@ -12,6 +12,7 @@ interface AnalyticsOverviewCardProps {
     isRating?: boolean;
     reviewsCount?: number;
     iconTheme?: 'teal' | 'emerald' | 'blue' | 'orange' | 'amber';
+    subtitle?: string;
 }
 
 export default function AnalyticsOverviewCard({ 
@@ -24,6 +25,7 @@ export default function AnalyticsOverviewCard({
     isRating = false,
     reviewsCount,
     iconTheme = 'teal',
+    subtitle,
 }: AnalyticsOverviewCardProps) {
     const isRatingCard = isRating || title.toUpperCase().includes('RATING');
 
@@ -105,6 +107,9 @@ export default function AnalyticsOverviewCard({
                     <div className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
                         {formattedValue}
                     </div>
+                    {subtitle && (
+                        <p className="text-xs text-gray-400 mt-1.5 font-medium">{subtitle}</p>
+                    )}
                 </div>
             </div>
         </div>

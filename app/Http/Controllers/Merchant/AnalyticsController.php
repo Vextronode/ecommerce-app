@@ -48,6 +48,8 @@ class AnalyticsController extends Controller
         }
 
         $totalPendapatan = (float) (clone $overviewQuery)->sum($netAmountExpr);
+        $totalCodRevenue = (float) (clone $overviewQuery)->where('payment_method', 'cod')->sum($netAmountExpr);
+        $totalOnlineRevenue = (float) (clone $overviewQuery)->where('payment_method', '!=', 'cod')->sum($netAmountExpr);
         $paidOrdersCount = (clone $overviewQuery)->count();
         $totalOrderan = $ordersQuery->count();
 
@@ -234,6 +236,8 @@ class AnalyticsController extends Controller
             'metrics' => [
                 'total_revenue' => $totalPendapatan,
                 'total_revenue_growth' => $revenueGrowth,
+                'total_cod' => $totalCodRevenue,
+                'total_online' => $totalOnlineRevenue,
                 'total_orders' => $totalOrderan,
                 'total_orders_growth' => $ordersGrowth,
                 'rating_shop' => $ratingShop,

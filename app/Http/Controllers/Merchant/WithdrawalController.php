@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Events\WithdrawalUpdated;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessWithdrawalPayout;
+use App\Models\Order;
 use App\Models\PlatformSetting;
 use App\Models\Store;
 use App\Models\Withdrawal;
@@ -31,11 +32,36 @@ class WithdrawalController extends Controller
             return redirect()->route('merchant.store.setup');
         }
 
+        // Auto-reconciliation: pastikan pesanan online yang sudah delivered namun belum dicreditkan ke saldo toko diproses otomatis.
+        $uncreditedOrders = Order::where('store_id', $store->id)
+            ->where('payment_method', '!=', 'cod')
+            ->where('payment_status', 'paid')
+            ->where('shipping_status', 'delivered')
+            ->whereNull('balance_credited_at')
+            ->get();
+
+        foreach ($uncreditedOrders as $uncreditedOrder) {
+            $uncreditedOrder->creditStoreBalance();
+        }
+
+        if ($uncreditedOrders->isNotEmpty()) {
+            $store->refresh();
+        }
+
         $totalWithdrawn = (float) Withdrawal::where('store_id', $store->id)
             ->where('status', 'completed')
             ->sum('amount');
 
-        $totalEarnings = (float) $store->available_balance + (float) $store->pending_balance + $totalWithdrawn;
+        // Net amount calculation yang konsisten dengan AnalyticsController
+        $netAmountExpr = DB::raw('CASE WHEN subtotal > 0 THEN subtotal + shipping_cost ELSE total_amount END');
+
+        $paidOrdersQuery = Order::where('store_id', $store->id)
+            ->where('payment_status', 'paid')
+            ->where('shipping_status', '!=', 'cancelled');
+
+        $totalSales = (float) (clone $paidOrdersQuery)->sum($netAmountExpr);
+        $totalCodSales = (float) (clone $paidOrdersQuery)->where('payment_method', 'cod')->sum($netAmountExpr);
+        $totalDigitalSales = (float) (clone $paidOrdersQuery)->where('payment_method', '!=', 'cod')->sum($netAmountExpr);
 
         // batasi riwayat agar payload tidak membengkak untuk toko dengan ribuan penarikan.
         // table di frontend memfilter & menghitung dari daftar ini, jadi tetap dikirim sebagai array.
@@ -59,7 +85,9 @@ class WithdrawalController extends Controller
                 'available_balance' => (float) $store->available_balance,
                 'pending_balance' => (float) $store->pending_balance,
                 'total_withdrawn' => $totalWithdrawn,
-                'total_earnings' => $totalEarnings,
+                'total_earnings' => $totalSales,
+                'total_cod' => $totalCodSales,
+                'total_digital' => $totalDigitalSales,
             ],
             'isWithdrawalEnabled' => PlatformSetting::isEnabled('enable_withdrawal', true),
         ]);

@@ -278,9 +278,17 @@ class Order extends Model
             }
 
             // defense-in-depth: order COD ga lewat escrow, jadi ga boleh narik saldo sama sekali.
-            // kalau escrow belum pernah dikredit, juga ga boleh narik dari pending_balance (biar ga ada saldo dari udara).
-            if ($order->payment_method === 'cod' || $order->escrow_credited_at === null) {
+            if ($order->payment_method === 'cod') {
                 return false;
+            }
+
+            // Jika pesanan online sudah dibayar (paid) namun escrow_credited_at tertinggal (null),
+            // set otomatis saat pesanan delivered agar saldo toko tidak tertahan selamanya.
+            if ($order->escrow_credited_at === null) {
+                if ($order->payment_status !== 'paid') {
+                    return false;
+                }
+                $order->forceFill(['escrow_credited_at' => now()])->save();
             }
 
             $store = Store::where('id', $order->store_id)->lockForUpdate()->first();
