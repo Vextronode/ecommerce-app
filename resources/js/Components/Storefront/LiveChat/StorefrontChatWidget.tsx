@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePage, router } from "@inertiajs/react";
 import echoInstance from "@/echo";
 import axios from "axios";
@@ -30,6 +30,7 @@ export default function StorefrontChatWidget() {
     const [pendingProduct, setPendingProduct] = useState<ProductAttachment | null>(null);
     const [autoOpenNegotiation, setAutoOpenNegotiation] = useState(false);
     const [storeLiveStatus, setStoreLiveStatus] = useState<{ is_online: boolean; last_seen: string } | null>(null);
+    const isOpeningChatRef = useRef(false);
 
     useEffect(() => {
         setUnreadTotal(unread_chats_count || 0);
@@ -285,7 +286,31 @@ export default function StorefrontChatWidget() {
                 return;
             }
 
-            if (!storeId) return;
+            if (!storeId || isOpeningChatRef.current) return;
+
+            // Jika ruang chat toko ini sedang aktif, langsung tampilkan tanpa request ulang
+            if (activeRoom && Number(activeRoom.store?.id) === Number(storeId)) {
+                setIsOpen(true);
+                if (product) {
+                    setPendingProduct(product);
+                }
+                setAutoOpenNegotiation(Boolean(autoNegotiate));
+                return;
+            }
+
+            // Jika room sudah pernah dimuat di daftar room lokal
+            const existingRoom = rooms.find((r) => Number(r.store?.id) === Number(storeId));
+            if (existingRoom) {
+                setIsOpen(true);
+                if (product) {
+                    setPendingProduct(product);
+                }
+                setAutoOpenNegotiation(Boolean(autoNegotiate));
+                setActiveRoom(existingRoom);
+                return;
+            }
+
+            isOpeningChatRef.current = true;
 
             try {
                 const res = await axios.post("/chat/room", {
@@ -322,6 +347,8 @@ export default function StorefrontChatWidget() {
                 } else {
                     toast.error("Gagal memulai obrolan dengan toko.");
                 }
+            } finally {
+                isOpeningChatRef.current = false;
             }
         };
 
@@ -329,7 +356,7 @@ export default function StorefrontChatWidget() {
         return () => {
             window.removeEventListener("open-storefront-chat", handleOpenChatEvent);
         };
-    }, [user]);
+    }, [user, activeRoom, rooms]);
 
     const handleSendMessage = async (
         e?: React.FormEvent,
@@ -345,7 +372,9 @@ export default function StorefrontChatWidget() {
         const msgToSend =
             text ||
             (pendingProduct && !mediaFile
-                ? `Halo, saya tertarik dengan produk ${pendingProduct.name}`
+                ? pendingProduct.order_invoice
+                    ? `Halo kak, saya ingin bertanya mengenai pesanan #${pendingProduct.order_invoice}`
+                    : `Halo, saya tertarik dengan produk ${pendingProduct.name}`
                 : "");
 
         setInputMessage("");

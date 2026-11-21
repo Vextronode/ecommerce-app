@@ -76,6 +76,10 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(30)->by('chat_send|'.($request->user()?->id ?: $request->ip()));
         });
 
+        RateLimiter::for('chat-room', function (Request $request) {
+            return Limit::perMinute(60)->by('chat_room|'.($request->user()?->id ?: $request->ip()));
+        });
+
         RateLimiter::for('chat-action', function (Request $request) {
             return Limit::perMinute(60)->by('chat_act|'.($request->user()?->id ?: $request->ip()));
         });

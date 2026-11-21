@@ -23,7 +23,7 @@ class NewChatMessageEvent implements ShouldBroadcastNow
 
     public function __construct(ChatMessage $message)
     {
-        $this->message = $message->load(['sender', 'product', 'chatRoom.store', 'chatRoom.user', 'negotiation.product', 'negotiation.sku']);
+        $this->message = $message->load(['sender', 'product.images', 'chatRoom.store', 'chatRoom.user', 'negotiation.product', 'negotiation.sku']);
         $this->roomId = $message->chat_room_id;
 
         $room = $this->message->chatRoom;
@@ -76,6 +76,11 @@ class NewChatMessageEvent implements ShouldBroadcastNow
 
         $negotiation = $this->message->negotiation;
 
+        $rawProductImage = $this->message->product?->image_path ?: $this->message->product?->images?->first()?->image_path;
+        $productImage = $rawProductImage
+            ? (str_starts_with($rawProductImage, 'http') || str_starts_with($rawProductImage, '/storage/') ? $rawProductImage : '/storage/'.ltrim($rawProductImage, '/'))
+            : null;
+
         return [
             'id' => $this->message->id,
             'chat_room_id' => $this->message->chat_room_id,
@@ -90,7 +95,7 @@ class NewChatMessageEvent implements ShouldBroadcastNow
                 'name' => $this->message->product->name,
                 'slug' => $this->message->product->slug,
                 'price' => $this->message->product->price,
-                'image_path' => $this->message->product->image_path,
+                'image_path' => $productImage,
             ] : null,
             'negotiation' => $negotiation ? [
                 'id' => $negotiation->id,

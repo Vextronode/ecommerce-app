@@ -7,6 +7,12 @@ interface Props {
 }
 
 export default function ChatProductCard({ product }: Props) {
+    const imageUrl = product.image_path
+        ? product.image_path.startsWith("http") || product.image_path.startsWith("/storage/")
+            ? product.image_path
+            : `/storage/${product.image_path.replace(/^\/+/, "")}`
+        : null;
+
     return (
         <div className="mb-1.5 max-w-[280px] bg-white rounded-2xl border border-orange-200/80 shadow-xs overflow-hidden">
             <div className="px-3 py-1.5 bg-orange-50/70 border-b border-orange-100 flex items-center justify-between text-[11px] text-gray-600 font-medium">
@@ -22,9 +28,9 @@ export default function ChatProductCard({ product }: Props) {
                 className="flex items-center gap-2.5 p-2.5 hover:bg-gray-50/80 transition-colors group"
             >
                 <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100">
-                    {product.image_path ? (
+                    {imageUrl ? (
                         <img
-                            src={product.image_path}
+                            src={imageUrl}
                             alt={product.name}
                             className="w-full h-full object-cover"
                         />
