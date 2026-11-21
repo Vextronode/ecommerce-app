@@ -156,7 +156,7 @@ class OrderHistoryController extends Controller
 
     public function show($id)
     {
-        $order = Order::with(['items.product', 'store.user'])->where('user_id', auth()->id())->findOrFail($id);
+        $order = Order::with(['items.product.images', 'store.user'])->where('user_id', auth()->id())->findOrFail($id);
 
         if ($order->payment_status === 'pending' && $order->payment_method !== 'cod' && $order->shipping_status !== 'cancelled') {
             $midtransOrderId = $order->parent_transaction_id ?? $order->payment_payload['order_id'] ?? $order->invoice_number;
@@ -197,6 +197,13 @@ class OrderHistoryController extends Controller
             'shipping_pin' => $order->shipping_status === 'shipped' ? $order->shipping_pin : null,
 
             'items' => $order->items->map(function ($item) {
+                $rawImage = $item->product ? ($item->product->image_path ?: $item->product->images->first()?->image_path) : null;
+                $imageUrl = $rawImage
+                    ? (str_starts_with($rawImage, 'http') || str_starts_with($rawImage, '/storage/')
+                        ? $rawImage
+                        : '/storage/'.ltrim($rawImage, '/'))
+                    : 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400';
+
                 return [
                     'id' => $item->id,
                     'product_id' => $item->product_id,
@@ -205,7 +212,7 @@ class OrderHistoryController extends Controller
                     'quantity' => $item->quantity,
                     'price' => $item->price,
                     'product_slug' => $item->product ? $item->product->slug : null,
-                    'image' => $item->product ? ($item->product->image_path ?? 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400') : 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&q=80&w=400',
+                    'image' => $imageUrl,
                 ];
             }),
         ];

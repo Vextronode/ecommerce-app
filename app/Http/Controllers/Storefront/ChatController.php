@@ -119,7 +119,7 @@ class ChatController extends Controller
 
         $messages = $room->messages()
             ->with([
-                'product:id,name,slug,price,image_path',
+                'product.images',
                 'negotiation.product:id,name,slug,price,image_path,unit',
                 'negotiation.sku:id,product_id,variant_name,price,stock',
             ])
@@ -166,13 +166,7 @@ class ChatController extends Controller
                     'negotiation_id' => $msg->negotiation_id,
                     'negotiation' => $negotiationData,
                     'message' => $msg->message,
-                    'product' => $msg->product ? [
-                        'id' => $msg->product->id,
-                        'name' => $msg->product->name,
-                        'slug' => $msg->product->slug,
-                        'price' => $msg->product->price,
-                        'image_path' => $msg->product->image_path,
-                    ] : null,
+                    'product' => $this->formatProductAttachment($msg->product),
                     'media_path' => $msg->media_path ? '/storage/'.$msg->media_path : null,
                     'media_type' => $msg->media_type,
                     'is_read' => $msg->is_read,
@@ -258,7 +252,6 @@ class ChatController extends Controller
         if ($request->filled('product_id')) {
             $productExists = Product::where('id', $request->product_id)
                 ->where('store_id', $room->store_id)
-                ->where('is_active', true)
                 ->exists();
             if (! $productExists) {
                 return response()->json(['message' => 'Produk tidak berasal dari toko ini.'], 422);
@@ -317,19 +310,16 @@ class ChatController extends Controller
             Log::warning('Chat push notification to seller error: '.$e->getMessage());
         }
 
+        $chatMessage->load(['product.images']);
+
         $formattedMessage = [
             'id' => $chatMessage->id,
             'chat_room_id' => $chatMessage->chat_room_id,
             'sender_id' => $chatMessage->sender_id,
             'sender_type' => $chatMessage->sender_type,
+            'message_type' => $chatMessage->message_type ?? 'text',
             'message' => $chatMessage->message,
-            'product' => $chatMessage->product ? [
-                'id' => $chatMessage->product->id,
-                'name' => $chatMessage->product->name,
-                'slug' => $chatMessage->product->slug,
-                'price' => $chatMessage->product->price,
-                'image_path' => $chatMessage->product->image_path,
-            ] : null,
+            'product' => $this->formatProductAttachment($chatMessage->product),
             'media_path' => $chatMessage->media_path ? '/storage/'.$chatMessage->media_path : null,
             'media_type' => $chatMessage->media_type,
             'is_read' => false,
@@ -341,5 +331,27 @@ class ChatController extends Controller
             'status' => 'success',
             'message' => $formattedMessage,
         ]);
+    }
+
+    private function formatProductAttachment(?Product $product): ?array
+    {
+        if (! $product) {
+            return null;
+        }
+
+        $rawImage = $product->image_path ?: $product->images->first()?->image_path;
+        $imagePath = $rawImage
+            ? (str_starts_with($rawImage, 'http') || str_starts_with($rawImage, '/storage/')
+                ? $rawImage
+                : '/storage/'.ltrim($rawImage, '/'))
+            : null;
+
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'slug' => $product->slug,
+            'price' => $product->price,
+            'image_path' => $imagePath,
+        ];
     }
 }

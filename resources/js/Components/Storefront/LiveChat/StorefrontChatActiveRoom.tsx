@@ -10,6 +10,7 @@ import {
     ExternalLink,
     X,
     ShoppingBag,
+    Package,
     Loader2,
     MessageSquare,
     Check,
@@ -243,13 +244,22 @@ export default function StorefrontChatActiveRoom({
                 </div>
             </div>
 
-            {/* Shopee-style: Kamu Menanyakan Produk Ini */}
+            {/* Shopee-style: Kamu Menanyakan Produk Ini / Pesanan Ini */}
             {pendingProduct && (
                 <div className="p-3 bg-orange-50/95 border-b border-orange-200/80 flex flex-col gap-2 shrink-0 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-gray-800 flex items-center gap-1.5">
-                            <ShoppingBag className="w-3.5 h-3.5 text-brand-orange" />
-                            Kamu menanyakan produk ini
+                            {pendingProduct.order_invoice ? (
+                                <>
+                                    <Package className="w-3.5 h-3.5 text-brand-orange" />
+                                    Kamu menanyakan pesanan #{pendingProduct.order_invoice}
+                                </>
+                            ) : (
+                                <>
+                                    <ShoppingBag className="w-3.5 h-3.5 text-brand-orange" />
+                                    Kamu menanyakan produk ini
+                                </>
+                            )}
                         </span>
                         <button
                             type="button"
@@ -265,7 +275,12 @@ export default function StorefrontChatActiveRoom({
                         <div className="w-11 h-11 rounded-lg bg-gray-50 overflow-hidden shrink-0 border border-gray-100">
                             {pendingProduct.image_path ? (
                                 <img
-                                    src={pendingProduct.image_path}
+                                    src={
+                                        pendingProduct.image_path.startsWith("http") ||
+                                        pendingProduct.image_path.startsWith("/storage/")
+                                            ? pendingProduct.image_path
+                                            : `/storage/${pendingProduct.image_path.replace(/^\/+/, "")}`
+                                    }
                                     alt={pendingProduct.name}
                                     className="w-full h-full object-cover"
                                 />
@@ -284,33 +299,82 @@ export default function StorefrontChatActiveRoom({
                     </div>
 
                     <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
-                        {isNegotiationEnabled && (
-                            <button
-                                type="button"
-                                onClick={() => setIsOfferModalOpen(true)}
-                                disabled={isSending}
-                                className="px-2.5 py-1 text-[11px] bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full font-bold hover:from-orange-600 hover:to-amber-600 transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-1"
-                            >
-                                <Tag className="w-3 h-3" />
-                                Tawar Produk
-                            </button>
+                        {pendingProduct.order_invoice ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleQuickInquiry(
+                                            `Halo kak, untuk pesanan #${pendingProduct.order_invoice} kapan akan dikirim ya?`
+                                        )
+                                    }
+                                    disabled={isSending}
+                                    className="px-2.5 py-1 text-[11px] bg-brand-orange text-white rounded-full font-semibold hover:bg-brand-orange-dark transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50"
+                                >
+                                    Kapan Dikirim?
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleQuickInquiry(
+                                            `Halo kak, saya ingin mengecek status pesanan #${pendingProduct.order_invoice}.`
+                                        )
+                                    }
+                                    disabled={isSending}
+                                    className="px-2.5 py-1 text-[11px] bg-white text-gray-700 border border-gray-200 rounded-full font-medium hover:bg-gray-50 transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50"
+                                >
+                                    Cek Status Pesanan
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleQuickInquiry(
+                                            `Halo kak, apakah pesanan #${pendingProduct.order_invoice} bisa dikirim hari ini?`
+                                        )
+                                    }
+                                    disabled={isSending}
+                                    className="px-2.5 py-1 text-[11px] bg-white text-gray-700 border border-gray-200 rounded-full font-medium hover:bg-gray-50 transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50"
+                                >
+                                    Bisa kirim hari ini?
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                {isNegotiationEnabled && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsOfferModalOpen(true)}
+                                        disabled={isSending}
+                                        className="px-2.5 py-1 text-[11px] bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full font-bold hover:from-orange-600 hover:to-amber-600 transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-1"
+                                    >
+                                        <Tag className="w-3 h-3" />
+                                        Tawar Produk
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleQuickInquiry(
+                                            "Halo kak, apakah produk ini masih tersedia?"
+                                        )
+                                    }
+                                    disabled={isSending}
+                                    className="px-2.5 py-1 text-[11px] bg-brand-orange text-white rounded-full font-semibold hover:bg-brand-orange-dark transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50"
+                                >
+                                    Tanya Stok
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleQuickInquiry("Bisa dikirim hari ini kak?")
+                                    }
+                                    disabled={isSending}
+                                    className="px-2.5 py-1 text-[11px] bg-white text-gray-700 border border-gray-200 rounded-full font-medium hover:bg-gray-50 transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50"
+                                >
+                                    Bisa kirim hari ini?
+                                </button>
+                            </>
                         )}
-                        <button
-                            type="button"
-                            onClick={() => handleQuickInquiry("Halo kak, apakah produk ini masih tersedia?")}
-                            disabled={isSending}
-                            className="px-2.5 py-1 text-[11px] bg-brand-orange text-white rounded-full font-semibold hover:bg-brand-orange-dark transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50"
-                        >
-                            Tanya Stok
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleQuickInquiry("Bisa dikirim hari ini kak?")}
-                            disabled={isSending}
-                            className="px-2.5 py-1 text-[11px] bg-white text-gray-700 border border-gray-200 rounded-full font-medium hover:bg-gray-50 transition whitespace-nowrap cursor-pointer shadow-xs disabled:opacity-50"
-                        >
-                            Bisa kirim hari ini?
-                        </button>
                     </div>
                 </div>
             )}
@@ -475,7 +539,11 @@ export default function StorefrontChatActiveRoom({
                 <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Tulis pesan ke toko..."
+                    placeholder={
+                        pendingProduct?.order_invoice
+                            ? "Tulis pesan mengenai pesanan ini..."
+                            : "Tulis pesan ke toko..."
+                    }
                     value={inputMessage}
                     onChange={(e) => onInputChange(e.target.value)}
                     disabled={isSending}

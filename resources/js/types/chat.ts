@@ -23,6 +23,8 @@ export interface ProductAttachment {
     slug: string;
     price: number;
     image_path?: string;
+    order_invoice?: string;
+    order_id?: number;
 }
 
 export interface NegotiationItem {

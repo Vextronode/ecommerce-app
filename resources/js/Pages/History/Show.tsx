@@ -53,13 +53,15 @@ export default function Show({ order }: { order: any }) {
             new CustomEvent("open-storefront-chat", {
                 detail: {
                     storeId: order.store_id,
-                    product: firstItem
+                    product: firstItem?.product_id
                         ? {
                               id: firstItem.product_id,
                               name: firstItem.product_name,
                               slug: firstItem.product_slug || "",
                               price: Number(firstItem.price),
                               image_path: firstItem.image,
+                              order_invoice: order.invoice_number,
+                              order_id: order.id,
                           }
                         : null,
                 },

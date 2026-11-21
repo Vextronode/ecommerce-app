@@ -372,7 +372,9 @@ export default function StorefrontChatWidget() {
         const msgToSend =
             text ||
             (pendingProduct && !mediaFile
-                ? `Halo, saya tertarik dengan produk ${pendingProduct.name}`
+                ? pendingProduct.order_invoice
+                    ? `Halo kak, saya ingin bertanya mengenai pesanan #${pendingProduct.order_invoice}`
+                    : `Halo, saya tertarik dengan produk ${pendingProduct.name}`
                 : "");
 
         setInputMessage("");
