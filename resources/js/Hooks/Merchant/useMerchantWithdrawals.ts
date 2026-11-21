@@ -51,6 +51,16 @@ export function useMerchantWithdrawals({
             return;
         }
 
+        const numericAmount = parseInt(data.amount, 10) || 0;
+        if (!data.amount || numericAmount < 10000) {
+            toast.error("Minimal penarikan saldo adalah Rp 10.000", { id: 'withdrawal-toast' });
+            return;
+        }
+        if (numericAmount > availableBalance) {
+            toast.error("Nominal penarikan melebihi saldo yang tersedia.", { id: 'withdrawal-toast' });
+            return;
+        }
+
         post(route("merchant.withdrawals.store"), {
             preserveScroll: true,
             onSuccess: (page) => {
@@ -69,7 +79,7 @@ export function useMerchantWithdrawals({
         });
     };
 
-    const currentNumericAmount = parseFloat(data.amount) || 0;
+    const currentNumericAmount = parseInt(data.amount, 10) || 0;
     const remainingBalance = Math.max(0, availableBalance - currentNumericAmount);
 
     return {

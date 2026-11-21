@@ -1,5 +1,5 @@
 import React from "react";
-import { formatRupiah } from "@/utils/formatters";
+import { formatRupiah, formatRupiahNumber, handleRupiahInputChange } from "@/utils/formatters";
 import { Send, Sparkles, AlertTriangle } from "lucide-react";
 import { useMerchantWithdrawals } from "@/Hooks/Merchant/useMerchantWithdrawals";
 
@@ -74,14 +74,34 @@ export default function WithdrawFormCard({
                         <input 
                             aria-label="Nominal Penarikan" 
                             id="field_withdrawal_amount"
-                            type="number"
-                            placeholder="Contoh: 100000"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            placeholder="Contoh: 100.000"
                             disabled={!isWithdrawalEnabled}
-                            value={data.amount}
-                            onChange={(e) => setData("amount", e.target.value)}
+                            value={data.amount ? formatRupiahNumber(data.amount) : ""}
+                            onChange={(e) => {
+                                const { raw } = handleRupiahInputChange(e.target.value);
+                                setData("amount", raw > 0 ? String(raw) : "");
+                            }}
+                            onKeyDown={(e) => {
+                                if (["-", "+", "e", "E", ".", ","].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                             className="w-full px-4 py-3 bg-transparent border-none focus:outline-none focus:ring-0 font-extrabold text-gray-900 text-sm disabled:text-gray-400 disabled:cursor-not-allowed"
                         />
                     </div>
+                    {currentNumericAmount > 0 && currentNumericAmount < 10000 && !errors.amount && (
+                        <p className="text-xs text-amber-600 mt-1.5 font-semibold">
+                            Minimal penarikan saldo adalah Rp 10.000
+                        </p>
+                    )}
+                    {currentNumericAmount > availableBalance && !errors.amount && (
+                        <p className="text-xs text-rose-500 mt-1.5 font-semibold">
+                            Nominal penarikan melebihi saldo yang tersedia (Maks. {formatRupiah(availableBalance)})
+                        </p>
+                    )}
                     {errors.amount && <p className="text-xs text-rose-500 mt-1 font-semibold">{errors.amount}</p>}
                 </div>
 
@@ -98,7 +118,7 @@ export default function WithdrawFormCard({
                                 disabled={!isWithdrawalEnabled}
                                 onClick={() => handleSelectPreset(preset)}
                                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border disabled:opacity-50 disabled:cursor-not-allowed ${
-                                    data.amount === preset.toString()
+                                    currentNumericAmount === preset
                                         ? "bg-brand-orange text-white border-brand-orange shadow-sm shadow-brand-orange/30"
                                         : "bg-brand-orange-soft hover:bg-brand-orange-tint text-brand-orange-dark border-brand-orange/20"
                                 }`}
@@ -130,7 +150,14 @@ export default function WithdrawFormCard({
 
                 <button
                     type="submit"
-                    disabled={processing || availableBalance < 10000 || !isWithdrawalEnabled}
+                    disabled={
+                        processing ||
+                        availableBalance < 10000 ||
+                        !isWithdrawalEnabled ||
+                        !data.amount ||
+                        currentNumericAmount < 10000 ||
+                        currentNumericAmount > availableBalance
+                    }
                     className="w-full py-3.5 bg-brand-orange hover:bg-brand-orange-hover disabled:opacity-50 text-white font-bold rounded-xl shadow-md shadow-brand-orange/30 transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer disabled:cursor-not-allowed"
                 >
                     {isWithdrawalEnabled ? (
