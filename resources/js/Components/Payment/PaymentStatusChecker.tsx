@@ -25,6 +25,7 @@ export default function PaymentStatusChecker({
             const res = await fetch(`/payment/${orderId}/check-status`, {
                 headers: {
                     Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
                 },
             });
 

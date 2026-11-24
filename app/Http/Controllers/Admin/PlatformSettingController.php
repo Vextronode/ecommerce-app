@@ -9,6 +9,7 @@ use Database\Seeders\PlatformSettingSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -80,7 +81,11 @@ class PlatformSettingController extends Controller
         }
 
         if (! empty($changedKeys)) {
-            broadcast(new PlatformSettingsUpdated($allSettings, $changedKeys));
+            try {
+                broadcast(new PlatformSettingsUpdated($allSettings, $changedKeys));
+            } catch (\Throwable $e) {
+                Log::warning('PlatformSettingsUpdated broadcast failed: '.$e->getMessage());
+            }
         }
 
         return back()->with('success', 'Pengaturan platform berhasil diperbarui.');

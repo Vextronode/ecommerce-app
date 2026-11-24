@@ -22,6 +22,7 @@ export default function AddressInformation({
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [addressToDelete, setAddressToDelete] = useState<number | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const confirmDelete = (id: number) => {
         setAddressToDelete(id);
@@ -29,7 +30,8 @@ export default function AddressInformation({
     };
 
     const executeDelete = () => {
-        if (addressToDelete !== null) {
+        if (addressToDelete !== null && !isDeleting) {
+            setIsDeleting(true);
             router.delete(route("profile.address.destroy", addressToDelete), {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -39,6 +41,9 @@ export default function AddressInformation({
                 },
                 onError: () => {
                     toast.error("Gagal menghapus alamat.");
+                },
+                onFinish: () => {
+                    setIsDeleting(false);
                 },
             });
         }
@@ -197,10 +202,11 @@ export default function AddressInformation({
                             </button>
                             <button
                                 type="button"
+                                disabled={isDeleting}
                                 onClick={executeDelete}
-                                className="px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm text-white bg-red-500 hover:bg-red-600 transition flex-1 shadow-sm shadow-red-500/20"
+                                className="px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition flex-1 shadow-sm shadow-red-500/20"
                             >
-                                Ya, Hapus
+                                {isDeleting ? "Menghapus..." : "Ya, Hapus"}
                             </button>
                         </div>
                     </div>

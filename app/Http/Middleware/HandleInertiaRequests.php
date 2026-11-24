@@ -34,6 +34,12 @@ class HandleInertiaRequests extends Middleware
      */
     public function handle(Request $request, \Closure $next)
     {
+        // Pastikan navigasi halaman Inertia (GET) selalu memperbarui _previous.url di session
+        // agar return back() dan redirect validasi tidak nyasar ke beranda/endpoint JSON saat Referer terpotong proxy.
+        if ($request->isMethod('GET') && $request->inertia() && ! $request->expectsJson() && $request->hasSession()) {
+            $request->session()->setPreviousUrl($request->fullUrl());
+        }
+
         $response = parent::handle($request, $next);
 
         if (isset($response->headers)) {

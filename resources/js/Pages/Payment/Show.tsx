@@ -72,6 +72,7 @@ export default function PaymentShow({ order, paymentInfo, isOnlinePaymentEnabled
                 const res = await fetch(`/payment/${order.id}/check-status`, {
                     headers: {
                         Accept: "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
                     },
                 });
 

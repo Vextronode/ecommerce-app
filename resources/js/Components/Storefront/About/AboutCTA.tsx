@@ -24,7 +24,7 @@ export default function AboutCTA() {
                     </Link>
 
                     <Link
-                        href={route("register")}
+                        href={route("merchant.guide")}
                         className="px-6 py-3 bg-white/10 hover:bg-white/15 text-white border border-white/20 rounded-xl font-semibold text-sm sm:text-base transition-colors inline-flex items-center gap-2"
                     >
                         <Store className="w-4 h-4 text-brand-cyan" />

@@ -30,10 +30,15 @@ export default function AddressFields({
                     <span className="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-sm font-bold">
                         +62
                     </span>
-                    <input aria-label="Input field" id="field_26"
-                        type="number"
+                    <input aria-label="Nomor Telepon" id="field_26"
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={14}
                         value={data.phone}
-                        onChange={(e) => setData("phone", e.target.value)}
+                        onChange={(e) => {
+                            const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 14);
+                            setData("phone", digitsOnly);
+                        }}
                         required
                         placeholder="81234567890"
                         className="flex-1 px-4 py-3 rounded-r-xl border border-slate-200 focus:ring-brand-orange text-sm"

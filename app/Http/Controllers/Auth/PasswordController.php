@@ -26,6 +26,7 @@ class PasswordController extends Controller
         $user = $request->user();
         $user->forceFill([
             'password' => Hash::make($validated['password']),
+            'is_password_changed' => true,
             'remember_token' => Str::random(60),
         ])->save();
 
