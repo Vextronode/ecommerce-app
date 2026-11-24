@@ -14,6 +14,7 @@ import {
     AlertCircle,
     Check,
     X,
+    ExternalLink,
 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -230,32 +231,52 @@ export default function ChatNegotiationCard({
 
             {/* Product Body */}
             <div className="p-3">
-                <div className="flex items-start gap-2.5">
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200/80">
-                        {negotiation.product?.image_path ? (
-                            <img
-                                src={negotiation.product.image_path}
-                                alt={negotiation.product.name}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <ShoppingBag className="w-5 h-5 m-auto text-gray-400 mt-3" />
-                        )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-gray-900 line-clamp-1">
-                            {negotiation.product?.name || "Produk"}
-                        </p>
-                        {negotiation.variant_name && (
-                            <span className="inline-block mt-0.5 px-1.5 py-0.2 text-[10px] font-medium bg-gray-100 text-gray-600 rounded">
-                                Varian: {negotiation.variant_name}
-                            </span>
-                        )}
-                        <p className="text-[11px] text-gray-400 line-through mt-0.5">
-                            Rp {Number(negotiation.original_price).toLocaleString("id-ID")}
-                        </p>
-                    </div>
-                </div>
+                {(() => {
+                    const productBody = (
+                        <>
+                            <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200/80">
+                                {negotiation.product?.image_path ? (
+                                    <img
+                                        src={negotiation.product.image_path}
+                                        alt={negotiation.product.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <ShoppingBag className="w-5 h-5 m-auto text-gray-400 mt-3" />
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-gray-900 line-clamp-1 group-hover:text-brand-orange transition-colors flex items-center gap-1">
+                                    <span className="truncate">{negotiation.product?.name || "Produk"}</span>
+                                    {negotiation.product?.slug && (
+                                        <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-brand-orange shrink-0" />
+                                    )}
+                                </p>
+                                {negotiation.variant_name && (
+                                    <span className="inline-block mt-0.5 px-1.5 py-0.2 text-[10px] font-medium bg-gray-100 text-gray-600 rounded">
+                                        Varian: {negotiation.variant_name}
+                                    </span>
+                                )}
+                                <p className="text-[11px] text-gray-400 line-through mt-0.5">
+                                    Rp {Number(negotiation.original_price).toLocaleString("id-ID")}
+                                </p>
+                            </div>
+                        </>
+                    );
+
+                    return negotiation.product?.slug ? (
+                        <a
+                            href={`/product/${negotiation.product.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-start gap-2.5 group rounded-xl p-1 -m-1 hover:bg-gray-50/80 transition-colors"
+                        >
+                            {productBody}
+                        </a>
+                    ) : (
+                        <div className="flex items-start gap-2.5">{productBody}</div>
+                    );
+                })()}
 
                 {/* Offer Details */}
                 <div className="mt-3 p-2.5 bg-gray-50/80 rounded-xl border border-gray-100 space-y-1.5">

@@ -140,7 +140,12 @@ export function useCheckoutForm({
                     url += `&cart_ids[]=${item.id}`;
                 });
 
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    headers: {
+                        Accept: "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                });
                 if (!response.ok) {
                     throw new Error("Failed to calculate fee");
                 }

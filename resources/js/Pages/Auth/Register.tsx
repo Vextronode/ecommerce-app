@@ -40,7 +40,7 @@ const Register = () => {
             <Head title="Register" />
 
             {/* Back to Home / Storefront */}
-            <div className="mb-3">
+            <div className="mb-2">
                 <Link
                     href={route("dashboard")}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-brand-orange transition-colors group cursor-pointer"
@@ -50,12 +50,12 @@ const Register = () => {
                 </Link>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-3 sm:mb-4 tracking-wide shrink-0">
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-3 tracking-wide shrink-0">
                 Register
             </h2>
 
             <form onSubmit={submit} className="flex flex-col grow h-full">
-                <div className="space-y-3 sm:space-y-3.5 grow">
+                <div className="space-y-2.5 sm:space-y-3 grow">
                     <AuthErrorBanner message={bannerMessage} />
                     <FormInput
                         label="Fullname"
@@ -90,7 +90,7 @@ const Register = () => {
                         errorMessage={errors.password}
                         required
                     />
-                    <div className="pt-2 sm:pt-3">
+                    <div className="pt-1.5 sm:pt-2">
                         <PrimaryButton disabled={processing}>
                             {processing ? "Memproses..." : "Daftar"}
                         </PrimaryButton>
@@ -118,12 +118,12 @@ const Register = () => {
                     </Link>
                 </div>
                 
-                <div aria-label="Pilih opsi yang tersedia" className="text-center mt-2 shrink-0 flex justify-center">
+                <div aria-label="Pilih opsi yang tersedia" className="text-center mt-1.5 shrink-0 flex justify-center">
                     <a aria-label="Tampilkan rincian lebih lanjut"
                         href={route("google.redirect")}
                         className="inline-flex items-center justify-center transition duration-300 hover:scale-110"
                     >
-                        <GoogleIcon className="w-14 sm:w-16 h-auto" />
+                        <GoogleIcon className="w-12 sm:w-14 h-auto" />
                     </a>
                 </div>
 

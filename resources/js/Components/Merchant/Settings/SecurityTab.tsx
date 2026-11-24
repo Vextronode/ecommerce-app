@@ -85,6 +85,8 @@ export default function SecurityTab({
                     toast.error(errs.current_password);
                 } else if (errs.password) {
                     toast.error(errs.password);
+                } else if (errs.password_confirmation) {
+                    toast.error(errs.password_confirmation);
                 } else {
                     toast.error(
                         "Gagal memperbarui kata sandi. Periksa input Anda."

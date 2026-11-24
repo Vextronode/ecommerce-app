@@ -246,7 +246,11 @@ class ProfileController extends Controller
 
     public function destroyAddress(Request $request, $id)
     {
-        $address = $request->user()->addresses()->findOrFail($id);
+        $address = $request->user()->addresses()->find($id);
+        if (! $address) {
+            return back()->with('info', 'Alamat sudah dihapus.');
+        }
+
         $wasPrimary = (bool) $address->is_primary;
         $address->delete();
 

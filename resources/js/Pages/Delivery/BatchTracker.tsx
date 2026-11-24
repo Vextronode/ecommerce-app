@@ -61,7 +61,12 @@ export default function BatchTracker({
         setIsRefreshing(true);
         setRefreshCounter((prev) => prev + 1);
         try {
-            const res = await fetch(locationUrl);
+            const res = await fetch(locationUrl, {
+                headers: {
+                    Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.latitude && data.longitude) {
@@ -147,7 +152,12 @@ export default function BatchTracker({
 
             const fetchBatchLocation = async () => {
                 try {
-                    const res = await fetch(locationUrl);
+                    const res = await fetch(locationUrl, {
+                headers: {
+                    Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
                     if (!res.ok) return;
                     const data = await res.json();
                     if (data && data.latitude && data.longitude) {

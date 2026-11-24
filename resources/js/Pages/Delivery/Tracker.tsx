@@ -86,7 +86,12 @@ export default function Tracker({ order, role }: Props) {
         setIsRefreshing(true);
         setRefreshCounter((prev) => prev + 1);
         try {
-            const res = await fetch(`/tracker/${order.invoice_number}/location`);
+            const res = await fetch(`/tracker/${order.invoice_number}/location`, {
+                headers: {
+                    Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.latitude && data.longitude) {
@@ -189,7 +194,12 @@ export default function Tracker({ order, role }: Props) {
 
             const fetchLocation = async () => {
                 try {
-                    const res = await fetch(`/tracker/${order.invoice_number}/location`);
+                    const res = await fetch(`/tracker/${order.invoice_number}/location`, {
+                headers: {
+                    Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
                     if (!res.ok) return;
                     const data = await res.json();
                     if (data && data.latitude && data.longitude) {

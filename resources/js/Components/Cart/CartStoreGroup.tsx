@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Trash2, Plus, Minus } from "lucide-react";
 import { router } from "@inertiajs/react";
 import toast from "react-hot-toast";
@@ -16,39 +16,63 @@ export default function CartStoreGroup({
     onToggleItem,
     onToggleStore,
 }: Props) {
+    const [updatingId, setUpdatingId] = useState<number | null>(null);
     const storeItemIds = store.items.map((item: any) => item.id);
     const selectedIdsSet = new Set(selectedIds);
     const isAllStoreSelected = storeItemIds.every((id: number) =>
         selectedIdsSet.has(id),
     );
 
-    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
-    const handleIncrement = (
-        cartId: number,
-        currentQty: number,
-        maxStock: number | null,
-    ) => {
-        if (maxStock && currentQty >= maxStock) {
-            toast.error("Stok produk tidak mencukupi");
-            return;
-        }
+    const updateQuantity = (cartId: number, nextQty: number) => {
+        if (updatingId === cartId) return;
+        setUpdatingId(cartId);
         router.patch(
             `/cart/${cartId}`,
-            { quantity: currentQty + 1 },
+            { quantity: nextQty },
             {
                 preserveScroll: true,
+                onError: (errs) => {
+                    toast.error(
+                        errs.quantity || "Gagal memperbarui jumlah produk.",
+                    );
+                },
+                onFinish: () => {
+                    setUpdatingId((prev) => (prev === cartId ? null : prev));
+                },
             },
         );
     };
 
     // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
-    const handleDecrement = (cartId: number, currentQty: number) => {
+    const handleIncrement = (
+        cartId: number,
+        currentQty: number,
+        maxStock: number | null,
+        isNegotiated?: boolean,
+    ) => {
+        if (isNegotiated) {
+            toast.error("Jumlah produk hasil negosiasi harga sudah terkunci sesuai kesepakatan.");
+            return;
+        }
+        if (maxStock !== null && maxStock !== undefined && currentQty >= maxStock) {
+            toast.error("Stok produk tidak mencukupi");
+            return;
+        }
+        updateQuantity(cartId, currentQty + 1);
+    };
+
+    // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
+    const handleDecrement = (
+        cartId: number,
+        currentQty: number,
+        isNegotiated?: boolean,
+    ) => {
+        if (isNegotiated) {
+            toast.error("Jumlah produk hasil negosiasi harga sudah terkunci sesuai kesepakatan.");
+            return;
+        }
         if (currentQty <= 1) return;
-        router.patch(
-            `/cart/${cartId}`,
-            { quantity: currentQty - 1 },
-            { preserveScroll: true },
-        );
+        updateQuantity(cartId, currentQty - 1);
     };
 
     // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
@@ -145,6 +169,11 @@ export default function CartStoreGroup({
                                         {item.prepOption}
                                     </span>
                                 )}
+                                {item.is_negotiated && (
+                                    <span className="bg-emerald-50 text-emerald-700 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded border border-emerald-200">
+                                        Harga Nego (Qty Terkunci)
+                                    </span>
+                                )}
                             </div>
 
                             <div className="flex items-baseline gap-1 mt-1 md:mt-2">
@@ -168,10 +197,12 @@ export default function CartStoreGroup({
 
                             <div aria-label="Pilih opsi yang tersedia" className="flex items-center justify-end gap-2 md:gap-3 bg-white border border-slate-200 rounded-full px-1.5 md:px-2 py-1 shadow-sm w-fit">
                                 <button aria-label="Kurangi jumlah"
+                                    type="button"
+                                    disabled={updatingId === item.id || item.qty <= 1}
                                     onClick={() =>
-                                        handleDecrement(item.id, item.qty)
+                                        handleDecrement(item.id, item.qty, item.is_negotiated)
                                     }
-                                    className="text-slate-400 hover:text-gray-900 p-0.5 md:p-1"
+                                    className="text-slate-400 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed p-0.5 md:p-1"
                                 >
                                     <Minus className="w-3 h-3 md:w-3.5 md:h-3.5" />
                                 </button>
@@ -179,14 +210,17 @@ export default function CartStoreGroup({
                                     {item.qty}
                                 </span>
                                 <button aria-label="Tambah jumlah"
+                                    type="button"
+                                    disabled={updatingId === item.id}
                                     onClick={() =>
                                         handleIncrement(
                                             item.id,
                                             item.qty,
                                             item.stock,
+                                            item.is_negotiated,
                                         )
                                     }
-                                    className="text-slate-400 hover:text-gray-900 p-0.5 md:p-1"
+                                    className="text-slate-400 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed p-0.5 md:p-1"
                                 >
                                     <Plus className="w-3 h-3 md:w-3.5 md:h-3.5" />
                                 </button>

@@ -83,13 +83,13 @@ export default function AuthLayout({ children }: PropsWithChildren) {
                             isLogin
                                 ? "justify-center px-6 lg:px-10"
                                 : "justify-center xl:justify-end pr-20 xl:pr-28 pl-6 lg:pl-10"
-                        } py-6 overflow-y-auto no-scrollbar`}
+                        } py-3 xl:py-6 overflow-y-auto no-scrollbar`}
                     >
                         {isLogin ? (
                             <AuthBranding type="login" />
                         ) : (
                             <div className="w-full max-w-[390px] xl:max-w-[440px] my-auto">
-                                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-5 sm:p-6 xl:p-8">
+                                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-5 xl:p-7">
                                     {children}
                                 </div>
                             </div>
