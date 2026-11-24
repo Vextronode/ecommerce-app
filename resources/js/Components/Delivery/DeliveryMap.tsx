@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { createStoreIcon, createStopIcon, createDriverIcon } from "./Map/MapIcons";
 import { fetchOsrmPolylineCoords } from "./Map/osrmRouting";
+import { addBaseTileLayer } from "@/utils/mapTiles";
 
 interface DeliveryMapProps {
     storePos: [number, number] | null;
@@ -97,10 +98,7 @@ export default function DeliveryMap({
                 attributionControl: false,
             }).setView(initialCenter, 13);
 
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            }).addTo(map);
+            addBaseTileLayer(map, { maxZoom: 19 });
 
             L.control.zoom({ position: "bottomright" }).addTo(map);
 

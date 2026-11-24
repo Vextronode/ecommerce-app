@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
 import toast from "react-hot-toast";
+import { addBaseTileLayer } from "@/utils/mapTiles";
 
 const customMarker = L.icon({
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -29,9 +30,7 @@ export function useAddressMap(
                 : [-7.6876, 108.6506]; // Pangandaran
             const map = L.map(mapContainerRef.current).setView(initialPos, 13);
 
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; OpenStreetMap",
-            }).addTo(map);
+            addBaseTileLayer(map, { attribution: "&copy; OpenStreetMap" });
 
             const marker = L.marker(initialPos, { icon: customMarker }).addTo(
                 map,

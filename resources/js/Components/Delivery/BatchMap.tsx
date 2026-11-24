@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { addBaseTileLayer } from "@/utils/mapTiles";
 import {
     LocateFixed,
     Maximize2,
@@ -86,10 +87,7 @@ export default function BatchMap({
                 attributionControl: false,
             }).setView([-7.6974, 108.6534], 13);
 
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            }).addTo(map);
+            addBaseTileLayer(map, { maxZoom: 19 });
 
             L.control.zoom({ position: "bottomright" }).addTo(map);
 

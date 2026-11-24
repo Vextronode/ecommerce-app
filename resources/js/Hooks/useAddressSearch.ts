@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { fetchNominatim } from "@/utils/mapTiles";
 
 interface SuggestionItem {
     display_name: string;
@@ -21,10 +22,6 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
 
     const [provQuery, setProvQuery] = useState("");
     const [jalanQuery, setJalanQuery] = useState("");
-
-    const baseUrl =
-        import.meta.env.VITE_NOMINATIM_URL ||
-        "https://nominatim.openstreetmap.org";
 
     // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const parseAddressResult = (address: any) => {
@@ -62,8 +59,8 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
         setSearchLoading(true);
         const timer = setTimeout(async () => {
             try {
-                const response = await fetch(
-                    `${baseUrl}/search?format=json&q=${encodeURIComponent(provQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
+                const response = await fetchNominatim(
+                    `/search?format=json&q=${encodeURIComponent(provQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
                 );
                 if (!response.ok) throw new Error("Failed");
                 setProvSuggestions(await response.json());
@@ -74,7 +71,7 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
             }
         }, 1500);
         return () => clearTimeout(timer);
-    }, [provQuery, baseUrl]);
+    }, [provQuery]);
 
     // eslint-disable-next-line react-doctor/no-fetch-in-effect
     useEffect(() => {
@@ -89,8 +86,8 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
                     ? `${jalanQuery}, ${currentProvinsi}`
                     : jalanQuery;
 
-                const response = await fetch(
-                    `${baseUrl}/search?format=json&q=${encodeURIComponent(fullQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
+                const response = await fetchNominatim(
+                    `/search?format=json&q=${encodeURIComponent(fullQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
                 );
                 if (!response.ok) throw new Error("Failed");
                 const results = await response.json();
@@ -98,8 +95,8 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
                 if (results && results.length > 0) {
                     setJalanSuggestions(results);
                 } else {
-                    const fallbackRes = await fetch(
-                        `${baseUrl}/search?format=json&q=${encodeURIComponent(jalanQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
+                    const fallbackRes = await fetchNominatim(
+                        `/search?format=json&q=${encodeURIComponent(jalanQuery)}&countrycodes=id&limit=5&addressdetails=1&accept-language=id`,
                     );
                     if (!fallbackRes.ok) throw new Error("Failed");
                     setJalanSuggestions(await fallbackRes.json());
@@ -112,7 +109,7 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
         }, 1500);
 
         return () => clearTimeout(timer);
-    }, [jalanQuery, currentProvinsi, baseUrl]);
+    }, [jalanQuery, currentProvinsi]);
 
     return {
         provSuggestions,

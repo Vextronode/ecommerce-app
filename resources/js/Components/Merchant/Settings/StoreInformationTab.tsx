@@ -4,6 +4,7 @@ import InputError from "@/Components/InputError";
 import AddressMapSection from "@/Pages/Profile/Partials/AddressMapSection";
 import { useMerchantSettings } from "@/Hooks/Merchant/useMerchantSettings";
 import { useAddressMap } from "@/Hooks/useAddressMap";
+import { fetchNominatim } from "@/utils/mapTiles";
 
 interface StoreInformationTabProps {
     merchantUser: {
@@ -55,11 +56,8 @@ export default function StoreInformationTab({
             }));
 
             try {
-                const baseUrl =
-                    import.meta.env.VITE_NOMINATIM_URL ||
-                    "https://nominatim.openstreetmap.org";
-                const response = await fetch(
-                    `${baseUrl}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+                const response = await fetchNominatim(
+                    `/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
                 );
                 if (!response.ok) throw new Error("Failed");
                 const result = await response.json();

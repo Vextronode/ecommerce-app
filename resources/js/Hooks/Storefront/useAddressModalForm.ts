@@ -3,6 +3,7 @@ import { useForm } from "@inertiajs/react";
 import toast from "react-hot-toast";
 import { useAddressSearch } from "@/Hooks/useAddressSearch";
 import { useAddressMap } from "@/Hooks/useAddressMap";
+import { fetchNominatim } from "@/utils/mapTiles";
 
 interface UseAddressModalFormOptions {
     isOpen: boolean;
@@ -36,9 +37,8 @@ export function useAddressModalForm({
 
     const handleCoordsChange = async (lat: number, lng: number) => {
         try {
-            const baseUrl = import.meta.env.VITE_NOMINATIM_URL;
-            const response = await fetch(
-                `${baseUrl}/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
+            const response = await fetchNominatim(
+                `/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
             );
             if (!response.ok) {
                 throw new Error("Failed to fetch address");
