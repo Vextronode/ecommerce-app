@@ -22,8 +22,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     gd \
     zip
 
-# Configure PHP resource limits for uploads and background tasks
-RUN echo "upload_max_filesize = 25M\npost_max_size = 30M\nmemory_limit = 256M\nmax_execution_time = 120" > /usr/local/etc/php/conf.d/uploads.ini
+# Configure PHP resource limits and hide PHP version header
+RUN echo "upload_max_filesize = 25M\npost_max_size = 30M\nmemory_limit = 256M\nmax_execution_time = 120\nexpose_php = Off" > /usr/local/etc/php/conf.d/uploads.ini
 
 # Install Composer and Node.js from official images
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
