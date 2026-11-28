@@ -53,10 +53,15 @@ export default function SettingsIndex({ settings }: Props) {
         e.preventDefault();
         setIsSaving(true);
 
+        const numericKeys = new Set(["tax_percentage", "service_fee_amount"]);
         const payload = {
             settings: Object.entries(formData).map(([key, value]) => ({
                 key,
-                value,
+                value: numericKeys.has(key)
+                    ? value === "" || value === null || value === undefined
+                        ? 0
+                        : Number(value)
+                    : value,
             })),
         };
 
@@ -192,14 +197,26 @@ export default function SettingsIndex({ settings }: Props) {
                                 </label>
                                 <div className="relative rounded-2xl shadow-xs">
                                     <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.1"
+                                        type="text"
+                                        inputMode="decimal"
                                         disabled={!formData["enable_tax"]}
-                                        value={formData["tax_percentage"] ?? 0}
-                                        onChange={(e) => updateValue("tax_percentage", parseFloat(e.target.value) || 0)}
-                                        className={`block w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                                        placeholder="0"
+                                        value={formData["tax_percentage"] ?? ""}
+                                        onChange={(e) => {
+                                            const normalized = e.target.value
+                                                .replace(",", ".")
+                                                .replace(/[^0-9.]/g, "");
+                                            const parts = normalized.split(".");
+                                            const sanitized =
+                                                parts.length > 2
+                                                    ? `${parts[0]}.${parts.slice(1).join("")}`
+                                                    : normalized;
+                                            if (sanitized !== "" && parseFloat(sanitized) > 100) {
+                                                return;
+                                            }
+                                            updateValue("tax_percentage", sanitized);
+                                        }}
+                                        className={`block w-full rounded-2xl border pl-4 pr-10 py-3 text-sm font-semibold transition ${
                                             formData["enable_tax"]
                                                 ? "border-gray-300 bg-white text-gray-900 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
                                                 : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
@@ -272,12 +289,15 @@ export default function SettingsIndex({ settings }: Props) {
                                         Rp
                                     </div>
                                     <input
-                                        type="number"
-                                        min="0"
-                                        step="500"
+                                        type="text"
+                                        inputMode="numeric"
                                         disabled={!formData["enable_service_fee"]}
-                                        value={formData["service_fee_amount"] ?? 0}
-                                        onChange={(e) => updateValue("service_fee_amount", parseInt(e.target.value, 10) || 0)}
+                                        placeholder="0"
+                                        value={formData["service_fee_amount"] ?? ""}
+                                        onChange={(e) => {
+                                            const digits = e.target.value.replace(/\D/g, "");
+                                            updateValue("service_fee_amount", digits);
+                                        }}
                                         className={`block w-full rounded-2xl border pl-12 pr-4 py-3 text-sm font-semibold transition ${
                                             formData["enable_service_fee"]
                                                 ? "border-gray-300 bg-white text-gray-900 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
