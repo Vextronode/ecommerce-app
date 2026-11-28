@@ -25,15 +25,23 @@ export default function Error({ status }: Props) {
     const title = {
         503: "Lagi Maintenance",
         500: "Server Bermasalah",
+        429: "Terlalu Banyak Permintaan",
+        419: "Sesi Halaman Berakhir",
+        405: "Metode Tidak Diizinkan",
         404: "Halaman Ga Ketemu",
         403: "Akses Ditolak",
+        401: "Belum Masuk Akun",
     }[status] || "Terjadi Kesalahan";
 
     const description = {
         503: "Tenang, kita lagi benerin sesuatu. Coba balik lagi sebentar lagi ya.",
         500: "Ada yang error di server kami. Tim teknis udah kita kabarin.",
+        429: "Permintaan terlalu cepat dalam waktu singkat. Tunggu beberapa detik lalu coba lagi ya.",
+        419: "Halaman terlalu lama dibuka atau sesi sudah kadaluarsa. Silakan muat ulang halaman.",
+        405: "Permintaan aksi ini tidak didukung oleh halaman tujuan. Coba muat ulang halaman lalu ulangi lagi.",
         404: "Waduh, halaman yang kamu cari kayaknya udah pindah atau emang ga ada.",
         403: "Kamu ga punya izin buat akses halaman ini.",
+        401: "Silakan masuk ke akun terlebih dahulu untuk melanjutkan.",
     }[status] || "Sesuatu yang ga diharapkan terjadi. Coba lagi nanti ya.";
 
     return (

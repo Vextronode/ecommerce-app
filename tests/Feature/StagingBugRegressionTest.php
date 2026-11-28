@@ -211,4 +211,17 @@ class StagingBugRegressionTest extends TestCase
         $this->assertEquals('1', PlatformSetting::where('key', 'enable_tax')->value('value'));
         $this->assertEquals('11', PlatformSetting::where('key', 'tax_percentage')->value('value'));
     }
+
+    public function test_http_405_renders_custom_inertia_error_page_instead_of_raw_symfony_html(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+
+        $response = $this->actingAs($user)->get('/password');
+
+        $response->assertStatus(405);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Error')
+            ->where('status', 405)
+        );
+    }
 }

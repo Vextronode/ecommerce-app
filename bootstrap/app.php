@@ -121,7 +121,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->withErrors(['amount' => $throttleMsg, 'error' => $throttleMsg]);
             }
 
-            if (in_array($status, [404, 403, 500, 503]) && ! $request->is('api/*') && ! $request->expectsJson()) {
+            if (in_array($status, [401, 403, 404, 405, 419, 429, 500, 503]) && ! $request->is('api/*') && ! $request->expectsJson()) {
                 return Inertia::render('Error', ['status' => $status])
                     ->toResponse($request)
                     ->setStatusCode($status);
