@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { UserCircle, Store, MapPin, Save, AlertTriangle } from "lucide-react";
 import InputError from "@/Components/InputError";
 import AddressMapSection from "@/Pages/Profile/Partials/AddressMapSection";
@@ -46,7 +46,7 @@ export default function StoreInformationTab({
         handleSubmit,
     } = useMerchantSettings({ merchantUser, merchantStore });
 
-    const { mapContainerRef, isLocating, handleGetLocation } = useAddressMap(
+    const { mapContainerRef, isLocating, handleGetLocation, mapRef, markerRef } = useAddressMap(
         true,
         async (lat, lng) => {
             setData((prevData: any) => ({
@@ -62,7 +62,12 @@ export default function StoreInformationTab({
                 if (!response.ok) throw new Error("Failed");
                 const result = await response.json();
                 if (result.display_name) {
-                    setData("store_address", result.display_name);
+                    setData((prevData: any) => ({
+                        ...prevData,
+                        store_address: prevData.store_address?.trim()
+                            ? prevData.store_address
+                            : result.display_name,
+                    }));
                 }
             } catch (error) {
                 console.error("Reverse geocoding error:", error);
@@ -71,6 +76,69 @@ export default function StoreInformationTab({
         merchantStore.latitude,
         merchantStore.longitude
     );
+
+    const hasAutoLocatedRef = useRef(false);
+
+    // Jika toko baru dari SID sudah punya alamat teks tapi latitude/longitude masih kosong,
+    // otomatis cari perkiraan koordinat di OpenStreetMap agar pin peta langsung pindah ke area toko.
+    useEffect(() => {
+        if (
+            hasAutoLocatedRef.current ||
+            merchantStore.latitude !== null ||
+            merchantStore.longitude !== null ||
+            !merchantStore.address
+        ) {
+            return;
+        }
+        hasAutoLocatedRef.current = true;
+
+        let isMounted = true;
+        const rawAddress = merchantStore.address;
+        const cleaned = rawAddress
+            .replace(/\b(RT|RW)\.?\s*\d+\b/gi, "")
+            .replace(/\s+/g, " ")
+            .trim();
+
+        const dusunMatch = cleaned.match(/\b(Dusun|Desa|Jalan|Jl\.?)\s+[A-Za-z0-9\s]+/i);
+        const candidates = [
+            `${cleaned}, Pangandaran`,
+            dusunMatch ? `${dusunMatch[0].trim()}, Cibenda, Pangandaran` : null,
+            "Desa Cibenda, Parigi, Pangandaran",
+        ].filter((q): q is string => Boolean(q && q.length > 3));
+
+        (async () => {
+            for (const query of candidates) {
+                try {
+                    const res = await fetchNominatim(
+                        `/search?format=json&q=${encodeURIComponent(query)}&countrycodes=id&limit=1`,
+                    );
+                    if (!res.ok) continue;
+                    const items = await res.json();
+                    if (Array.isArray(items) && items.length > 0 && isMounted) {
+                        const lat = parseFloat(items[0].lat);
+                        const lng = parseFloat(items[0].lon);
+                        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                            mapRef.current?.setView([lat, lng], 15);
+                            markerRef.current?.setLatLng([lat, lng]);
+                            setData((prev: any) => ({
+                                ...prev,
+                                latitude: lat,
+                                longitude: lng,
+                            }));
+                            break;
+                        }
+                    }
+                } catch {
+                    // Coba kandidat berikutnya
+                }
+            }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [merchantStore.address, merchantStore.latitude, merchantStore.longitude]);
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">

@@ -55,8 +55,10 @@ export function useAddressModalForm({
 
                 setData((prev) => ({
                     ...prev,
-                    provinsi: parsed.provinsi,
-                    jalan: streetName || prev.jalan,
+                    provinsi: prev.provinsi.trim()
+                        ? prev.provinsi
+                        : parsed.provinsi,
+                    jalan: prev.jalan.trim() ? prev.jalan : streetName,
                     latitude: lat,
                     longitude: lng,
                 }));

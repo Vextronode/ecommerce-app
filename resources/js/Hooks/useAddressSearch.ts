@@ -25,27 +25,30 @@ export function useAddressSearch(setData: any, currentProvinsi: string = "") {
 
     // eslint-disable-next-line react-doctor/prefer-module-scope-pure-function
     const parseAddressResult = (address: any) => {
+        const village = address.village || address.suburb || "";
+        const district = address.city_district || address.municipality || "";
         const city =
             address.city ||
             address.county ||
             address.town ||
-            address.city_district ||
             "";
         const state = address.state || "";
         const postcode = address.postcode || "";
         let road =
             address.road ||
+            address.hamlet ||
+            address.neighbourhood ||
             address.suburb ||
             address.village ||
-            address.neighbourhood ||
-            address.hamlet ||
             "";
         if (road === "0" || road.toLowerCase() === "undefined") road = "";
 
+        const regionParts = [village, district, city, state, postcode].filter(
+            (part, idx, arr) => Boolean(part) && arr.indexOf(part) === idx,
+        );
+
         return {
-            provinsi: `${state}, ${city}, ${postcode}`
-                .replace(/^, |, $/g, "")
-                .trim(),
+            provinsi: regionParts.join(", ").trim(),
             jalan: road.trim(),
         };
     };

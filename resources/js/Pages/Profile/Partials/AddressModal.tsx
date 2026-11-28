@@ -76,9 +76,9 @@ export default function AddressModal({
                     />
 
                     <AddressSuggestionInput
-                        label="Nama Jalan, Gedung, No. Rumah"
+                        label="Nama Jalan, Dusun, RT/RW, No. Rumah"
                         value={data.jalan}
-                        placeholder="Ketik nama jalan / kampung..."
+                        placeholder="Contoh: Dusun Sinargalih RT 001 RW 001, Jl. Raya Cibenda..."
                         suggestions={search.jalanSuggestions}
                         searchLoading={search.searchLoading}
                         type="textarea"
